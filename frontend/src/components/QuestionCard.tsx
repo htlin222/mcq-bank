@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bookmark, BookmarkPlus, Check, X, FolderPlus } from 'lucide-react';
+import { Bookmark, BookmarkPlus, Check, X, FolderPlus, RotateCcw } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
 import type { QuestionFull } from '../hooks/useQuestion';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
@@ -8,11 +8,12 @@ type Props = {
   question: QuestionFull;
   onAnswered?: (chosen: string, correct: boolean) => void;
   onBookmarkToggled?: (bookmarked: boolean) => void;
+  onProgressCleared?: () => void;
 };
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
 
-export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props) {
+export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared }: Props) {
   const bookmarkSet = useBookmarkSet();
   const [chosen, setChosen] = useState<string | null>(
     question.my_progress?.last_chosen ?? null,
@@ -54,6 +55,24 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
       onAnswered?.(chosen, r.correct);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  const [clearing, setClearing] = useState(false);
+  async function clearProgress() {
+    if (clearing) return;
+    if (!window.confirm('要清除本題的作答紀錄嗎?(只清你的,不影響其他人)')) return;
+    setClearing(true);
+    try {
+      await api.del(`/api/review/answer/${question.id}`);
+      setChosen(null);
+      setRevealed(false);
+      setStats(null);
+      onProgressCleared?.();
+    } catch (e) {
+      alert('清除失敗:' + String(e));
+    } finally {
+      setClearing(false);
     }
   }
 
@@ -217,6 +236,15 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
               答對率 {stats.accuracy ?? 0}%
             </span>
           )}
+          <button
+            onClick={clearProgress}
+            disabled={clearing}
+            className="ml-auto inline-flex items-center gap-1 text-xs text-ink-400 hover:text-rose-600 disabled:opacity-40"
+            title="只清除你自己在本題的作答紀錄"
+          >
+            <RotateCcw size={12} />
+            {clearing ? '清除中…' : '清除本題作答紀錄'}
+          </button>
         </div>
       )}
     </div>

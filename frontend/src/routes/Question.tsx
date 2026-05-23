@@ -255,7 +255,7 @@ export function Question() {
         </div>
       </header>
 
-      <QuestionCard question={data} onAnswered={reload} />
+      <QuestionCard key={data.id} question={data} onAnswered={reload} onProgressCleared={reload} />
 
       {/* 詳解 / 個人筆記 tabs */}
       <section className="mt-8">

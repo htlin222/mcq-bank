@@ -39,6 +39,18 @@ reviewRoutes.post('/answer', async (c) => {
   return c.json({ correct: !!isCorrect, correct_answer: q.answer });
 });
 
+// Clear this user's review_progress for one question — used by the
+// "清除本題作答紀錄" action in the reveal row. Idempotent.
+reviewRoutes.delete('/answer/:id', async (c) => {
+  const email = c.var.email;
+  const id = c.req.param('id');
+  await c.env.DB
+    .prepare('DELETE FROM review_progress WHERE user_email = ? AND question_id = ?')
+    .bind(email, id)
+    .run();
+  return c.json({ ok: true });
+});
+
 // Daily activity heatmap (for cal-heatmap). Counts answered questions
 // (review-mode + exam-mode) per local-day for the last N days.
 reviewRoutes.get('/heatmap', async (c) => {
