@@ -1,10 +1,13 @@
 import { Hono } from 'hono';
 import type { AppContext, ExamSession, Question } from '../types';
-import { uuid } from '../lib/db';
+import { uuid, optionsToRecord } from '../lib/db';
 
 export const examRoutes = new Hono<AppContext>();
 
-// Start a new exam session for a given year (100 questions)
+// Cap one mock exam at 100 minutes (the real exam length).
+const EXAM_CAP_MS = 100 * 60 * 1000;
+
+// Start a new exam session for a given year (full = 100 questions in prod)
 examRoutes.post('/start', async (c) => {
   const email = c.var.email;
   const body = await c.req.json<{ year: number; mode?: 'full' | 'partial' }>();
@@ -24,14 +27,14 @@ examRoutes.post('/start', async (c) => {
   const sessionId = uuid();
   const now = Date.now();
 
-  // Create session + empty answer rows in one batch
+  // Create session (immediately running) + empty answer rows in one batch
   const ops = [
     c.env.DB
       .prepare(
-        `INSERT INTO exam_sessions (id, user_email, year, started_at, mode)
-         VALUES (?, ?, ?, ?, ?)`
+        `INSERT INTO exam_sessions (id, user_email, year, started_at, mode, elapsed_ms, running_since)
+         VALUES (?, ?, ?, ?, ?, 0, ?)`
       )
-      .bind(sessionId, email, body.year, now, body.mode || 'full'),
+      .bind(sessionId, email, body.year, now, body.mode || 'full', now),
   ];
   for (const q of questions) {
     ops.push(
@@ -47,13 +50,124 @@ examRoutes.post('/start', async (c) => {
   return c.json({
     session_id: sessionId,
     started_at: now,
+    elapsed_ms: 0,
+    running_since: now,
+    cap_ms: EXAM_CAP_MS,
     questions: questions.map((q) => ({
       id: q.id,
       number: q.number,
       stem: q.stem,
-      options: JSON.parse(q.options_json),
+      options: optionsToRecord(q.options_json),
     })),
   });
+});
+
+// Resume / fetch an in-progress session (with all questions + saved answers).
+// Used when the user navigates back to /exam/:sid after leaving.
+examRoutes.get('/:sid/state', async (c) => {
+  const sid = c.req.param('sid');
+  const email = c.var.email;
+  const now = Date.now();
+
+  const session = await c.env.DB
+    .prepare('SELECT * FROM exam_sessions WHERE id = ?')
+    .bind(sid)
+    .first<ExamSession & { elapsed_ms: number; running_since: number | null }>();
+  if (!session) return c.json({ error: 'not found' }, 404);
+  if (session.user_email !== email) return c.json({ error: 'forbidden' }, 403);
+  if (session.finished_at) return c.json({ error: 'already finished' }, 410);
+
+  const { results: rows } = await c.env.DB
+    .prepare(
+      `SELECT q.id, q.number, q.stem, q.options_json, ea.chosen
+       FROM exam_answers ea
+       JOIN questions q ON q.id = ea.question_id
+       WHERE ea.session_id = ?
+       ORDER BY q.number ASC`
+    )
+    .bind(sid)
+    .all<{ id: string; number: number; stem: string; options_json: string; chosen: string | null }>();
+
+  const liveElapsed = session.running_since
+    ? session.elapsed_ms + (now - session.running_since)
+    : session.elapsed_ms;
+
+  return c.json({
+    session_id: sid,
+    started_at: session.started_at,
+    elapsed_ms: liveElapsed,
+    running_since: session.running_since,
+    cap_ms: EXAM_CAP_MS,
+    questions: rows.map((r) => ({
+      id: r.id,
+      number: r.number,
+      stem: r.stem,
+      options: optionsToRecord(r.options_json),
+      chosen: r.chosen,
+    })),
+  });
+});
+
+// Pause — freeze the timer
+examRoutes.post('/:sid/pause', async (c) => {
+  const sid = c.req.param('sid');
+  const email = c.var.email;
+  const now = Date.now();
+
+  const s = await c.env.DB
+    .prepare(
+      'SELECT user_email, finished_at, elapsed_ms, running_since FROM exam_sessions WHERE id = ?'
+    )
+    .bind(sid)
+    .first<{ user_email: string; finished_at: number | null; elapsed_ms: number; running_since: number | null }>();
+  if (!s) return c.json({ error: 'not found' }, 404);
+  if (s.user_email !== email) return c.json({ error: 'forbidden' }, 403);
+  if (s.finished_at) return c.json({ error: 'already finished' }, 400);
+  if (s.running_since === null) {
+    return c.json({ ok: true, elapsed_ms: s.elapsed_ms, running_since: null, already: true });
+  }
+
+  const newElapsed = s.elapsed_ms + (now - s.running_since);
+  await c.env.DB
+    .prepare(
+      'UPDATE exam_sessions SET elapsed_ms = ?, running_since = NULL WHERE id = ?'
+    )
+    .bind(newElapsed, sid)
+    .run();
+
+  return c.json({ ok: true, elapsed_ms: newElapsed, running_since: null });
+});
+
+// Resume — un-freeze
+examRoutes.post('/:sid/resume', async (c) => {
+  const sid = c.req.param('sid');
+  const email = c.var.email;
+  const now = Date.now();
+
+  const s = await c.env.DB
+    .prepare(
+      'SELECT user_email, finished_at, elapsed_ms, running_since FROM exam_sessions WHERE id = ?'
+    )
+    .bind(sid)
+    .first<{ user_email: string; finished_at: number | null; elapsed_ms: number; running_since: number | null }>();
+  if (!s) return c.json({ error: 'not found' }, 404);
+  if (s.user_email !== email) return c.json({ error: 'forbidden' }, 403);
+  if (s.finished_at) return c.json({ error: 'already finished' }, 400);
+  if (s.running_since !== null) {
+    return c.json({ ok: true, elapsed_ms: s.elapsed_ms, running_since: s.running_since, already: true });
+  }
+  // Refuse resume if already past cap — force-finish instead
+  if (s.elapsed_ms >= EXAM_CAP_MS) {
+    return c.json({ error: 'time cap reached, must finish', elapsed_ms: s.elapsed_ms, cap_ms: EXAM_CAP_MS }, 409);
+  }
+
+  await c.env.DB
+    .prepare(
+      'UPDATE exam_sessions SET running_since = ? WHERE id = ?'
+    )
+    .bind(now, sid)
+    .run();
+  return c.json({ ok: true, elapsed_ms: s.elapsed_ms, running_since: now });
 });
 
 // Submit an answer (can be called multiple times to update)
@@ -86,7 +200,7 @@ examRoutes.post('/:sid/answer', async (c) => {
   return c.json({ ok: true });
 });
 
-// Finish the exam — computes score
+// Finish the exam — computes score, freezes timer
 examRoutes.post('/:sid/finish', async (c) => {
   const sid = c.req.param('sid');
   const email = c.var.email;
@@ -97,7 +211,7 @@ examRoutes.post('/:sid/finish', async (c) => {
       'SELECT * FROM exam_sessions WHERE id = ?'
     )
     .bind(sid)
-    .first<ExamSession>();
+    .first<ExamSession & { elapsed_ms: number; running_since: number | null }>();
 
   if (!session) return c.json({ error: 'session not found' }, 404);
   if (session.user_email !== email) return c.json({ error: 'forbidden' }, 403);
@@ -122,15 +236,22 @@ examRoutes.post('/:sid/finish', async (c) => {
     .bind(sid)
     .first<{ n: number }>();
 
-  const duration = Math.floor((now - session.started_at) / 1000);
+  // Finalize elapsed time — cap at EXAM_CAP_MS so abandoned sessions
+  // resumed past the cap don't get an unbounded duration.
+  const liveElapsed = session.running_since
+    ? session.elapsed_ms + (now - session.running_since)
+    : session.elapsed_ms;
+  const finalMs = Math.min(liveElapsed, EXAM_CAP_MS);
+  const duration = Math.floor(finalMs / 1000);
 
   await c.env.DB
     .prepare(
       `UPDATE exam_sessions
-       SET finished_at = ?, score = ?, duration_sec = ?
+       SET finished_at = ?, score = ?, duration_sec = ?,
+           elapsed_ms = ?, running_since = NULL
        WHERE id = ?`
     )
-    .bind(now, correct!.n, duration, sid)
+    .bind(now, correct!.n, duration, finalMs, sid)
     .run();
 
   return c.json({ score: correct!.n, duration_sec: duration });

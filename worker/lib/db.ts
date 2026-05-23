@@ -121,3 +121,25 @@ export function excerpt(contentJson: string, maxLen = 80): string {
 export function uuid(): string {
   return crypto.randomUUID();
 }
+
+/**
+ * The DB stores question options as a JSON array preserving order:
+ *   [{ "key": "A", "text": "..." }, { "key": "B", "text": "..." }, ...]
+ *
+ * The UI types it as Record<string, string> keyed by letter. Normalize here
+ * so all API responses use the same shape.
+ */
+export function optionsToRecord(optionsJson: string): Record<string, string> {
+  try {
+    const arr = JSON.parse(optionsJson) as Array<{ key?: string; text?: string }>;
+    const out: Record<string, string> = {};
+    for (const o of arr) {
+      if (o && typeof o.key === 'string' && typeof o.text === 'string') {
+        out[o.key] = o.text;
+      }
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}

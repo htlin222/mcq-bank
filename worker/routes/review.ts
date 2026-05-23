@@ -39,21 +39,35 @@ reviewRoutes.post('/answer', async (c) => {
   return c.json({ correct: !!isCorrect, correct_answer: q.answer });
 });
 
-// Toggle bookmark
-reviewRoutes.post('/bookmark', async (c) => {
+// Daily activity heatmap (for cal-heatmap). Counts answered questions
+// (review-mode + exam-mode) per local-day for the last N days.
+reviewRoutes.get('/heatmap', async (c) => {
   const email = c.var.email;
-  const body = await c.req.json<{ question_id: string; bookmarked: boolean }>();
+  const days = Math.min(parseInt(c.req.query('days') || '120'), 365);
+  const since = Date.now() - days * 86_400_000;
 
-  await c.env.DB
+  // Buckets: bind everything to the user's clock by computing day-strings
+  // (YYYY-MM-DD) in UTC+8 (Asia/Taipei). D1 supports strftime modifier '+8 hours'.
+  const { results } = await c.env.DB
     .prepare(
-      `INSERT INTO review_progress (user_email, question_id, bookmarked, last_seen_at)
-       VALUES (?, ?, ?, ?)
-       ON CONFLICT(user_email, question_id) DO UPDATE SET bookmarked = ?`
+      `WITH a AS (
+         SELECT last_seen_at AS ts FROM review_progress
+           WHERE user_email = ? AND last_seen_at >= ?
+         UNION ALL
+         SELECT ea.answered_at FROM exam_answers ea
+           JOIN exam_sessions es ON es.id = ea.session_id
+           WHERE es.user_email = ? AND ea.answered_at >= ?
+       )
+       SELECT strftime('%Y-%m-%d', ts / 1000, 'unixepoch', '+8 hours') AS d,
+              COUNT(*) AS n
+       FROM a
+       WHERE ts IS NOT NULL
+       GROUP BY d
+       ORDER BY d`
     )
-    .bind(email, body.question_id, body.bookmarked ? 1 : 0, Date.now(), body.bookmarked ? 1 : 0)
-    .run();
-
-  return c.json({ ok: true });
+    .bind(email, since, email, since)
+    .all<{ d: string; n: number }>();
+  return c.json(results);
 });
 
 // My stats
@@ -94,38 +108,49 @@ reviewRoutes.get('/stats', async (c) => {
   });
 });
 
-// Bookmarked questions
-reviewRoutes.get('/bookmarks', async (c) => {
-  const email = c.var.email;
-  const { results } = await c.env.DB
-    .prepare(
-      `SELECT q.id, q.year, q.number, q.stem, q."group"
-       FROM review_progress rp
-       JOIN questions q ON q.id = rp.question_id
-       WHERE rp.user_email = ? AND rp.bookmarked = 1
-       ORDER BY q.year DESC, q.number ASC`
-    )
-    .bind(email)
-    .all();
-  return c.json(results);
-});
-
-// Wrong-answer list (review-mode mistakes)
+// Wrong-answer list (review-mode mistakes), with year/tag/group filters
 reviewRoutes.get('/wrong', async (c) => {
   const email = c.var.email;
-  const { results } = await c.env.DB
-    .prepare(
-      `SELECT q.id, q.year, q.number, q.stem, q."group",
-              rp.times_seen, rp.times_correct
-       FROM review_progress rp
-       JOIN questions q ON q.id = rp.question_id
-       WHERE rp.user_email = ?
-         AND rp.times_seen > 0
-         AND (rp.times_correct * 100 / rp.times_seen) < 100
-       ORDER BY (rp.times_correct * 100 / rp.times_seen) ASC, rp.last_seen_at DESC
-       LIMIT 100`
-    )
-    .bind(email)
-    .all();
+  const year = c.req.query('year');
+  const group = c.req.query('group');
+  const tags = c.req.query('tags');
+
+  const where: string[] = [
+    'rp.user_email = ?',
+    'rp.times_seen > 0',
+    '(rp.times_correct * 100 / rp.times_seen) < 100',
+  ];
+  const params: any[] = [email];
+
+  if (year) { where.push('q.year = ?'); params.push(parseInt(year)); }
+  if (group) { where.push('q."group" = ?'); params.push(group); }
+
+  let tagJoin = '';
+  if (tags) {
+    const list = tags.split(',').map((t) => t.trim()).filter(Boolean);
+    if (list.length > 0) {
+      tagJoin = `
+        JOIN (
+          SELECT question_id FROM question_tags
+          WHERE tag IN (${list.map(() => '?').join(',')})
+          GROUP BY question_id
+          HAVING COUNT(DISTINCT tag) = ?
+        ) tf ON tf.question_id = q.id
+      `;
+      params.push(...list, list.length);
+    }
+  }
+
+  const sql = `
+    SELECT q.id, q.year, q.number, q.stem, q."group",
+           rp.times_seen, rp.times_correct
+    FROM review_progress rp
+    JOIN questions q ON q.id = rp.question_id
+    ${tagJoin}
+    WHERE ${where.join(' AND ')}
+    ORDER BY (rp.times_correct * 100 / rp.times_seen) ASC, rp.last_seen_at DESC
+    LIMIT 200
+  `;
+  const { results } = await c.env.DB.prepare(sql).bind(...params).all();
   return c.json(results);
 });

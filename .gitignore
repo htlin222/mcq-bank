@@ -15,6 +15,11 @@ pnpm-debug.log*
 
 # Frontend build
 frontend/dist/
+frontend/tsconfig.tsbuildinfo
+
+# Raw exam materials — kept locally for the import script, never committed
+years/
+*.pdf
 
 # Smoke/screenshot scratch from headless Chrome runs
 .smoke/

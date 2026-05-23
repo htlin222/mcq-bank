@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
 import { useQuestion } from '../hooks/useQuestion';
 import { useLock } from '../hooks/useLock';
@@ -92,11 +93,11 @@ export function Question() {
     }
   }
 
-  if (loading || !data) {
+  // While we have data, keep rendering even during a refetch — this is the
+  // common case after saving 詳解, where blanking the page would feel jarring.
+  if (!data) {
+    if (error) return <div className="p-8 text-center text-rose-700">載入失敗:{String(error)}</div>;
     return <div className="p-8 text-center text-ink-400">載入中…</div>;
-  }
-  if (error) {
-    return <div className="p-8 text-center text-rose-700">載入失敗:{String(error)}</div>;
   }
 
   const hasExplanation = explanationJson &&
@@ -109,24 +110,24 @@ export function Question() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-32">
       <header className="flex items-center justify-between mb-6 text-sm">
-        <Link to={`/year/${data.year}`} className="text-ink-500 hover:text-accent">
-          ← 民國 {data.year} 年
+        <Link to={`/year/${data.year}`} className="inline-flex items-center gap-1 text-ink-500 hover:text-accent">
+          <ChevronLeft size={16} /> 民國 {data.year} 年
         </Link>
         <div className="flex gap-3">
           {neighbors.prev && (
             <button
               onClick={() => navigate(`/q/${neighbors.prev}`)}
-              className="text-ink-500 hover:text-accent"
+              className="inline-flex items-center gap-1 text-ink-500 hover:text-accent"
             >
-              ← 上一題
+              <ChevronLeft size={16} /> 上一題
             </button>
           )}
           {neighbors.next && (
             <button
               onClick={() => navigate(`/q/${neighbors.next}`)}
-              className="text-ink-500 hover:text-accent"
+              className="inline-flex items-center gap-1 text-ink-500 hover:text-accent"
             >
-              下一題 →
+              下一題 <ChevronRight size={16} />
             </button>
           )}
         </div>
@@ -142,11 +143,13 @@ export function Question() {
             <button
               onClick={startEdit}
               disabled={lockState.status === 'acquiring' || lockState.status === 'locked-by-other'}
-              className="text-sm text-accent hover:text-accent-dark disabled:opacity-40"
+              className="text-sm text-accent hover:text-accent-dark disabled:opacity-40 inline-flex items-center gap-1"
             >
-              {lockState.status === 'locked-by-other'
-                ? `${lockState.lockedBy} 正在編輯…`
-                : '✎ 編輯'}
+              {lockState.status === 'locked-by-other' ? (
+                <>{lockState.lockedBy} 正在編輯…</>
+              ) : (
+                <><Pencil size={14} /> 編輯</>
+              )}
             </button>
           )}
         </div>

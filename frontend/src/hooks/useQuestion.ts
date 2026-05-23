@@ -31,6 +31,7 @@ export type QuestionFull = {
     last_chosen: string | null;
     last_correct: 0 | 1 | null;
     bookmarked: 0 | 1;
+    bookmark_folder_id: string | null;
   } | null;
 };
 

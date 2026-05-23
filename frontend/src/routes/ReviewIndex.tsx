@@ -29,7 +29,7 @@ export function ReviewIndex() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-serif text-3xl text-ink-900 mb-2">複習模式</h1>
+      <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2">複習模式</h1>
       <p className="text-ink-500 text-sm mb-8">
         一題一答 · 可協作編輯詳解 · 留言討論
       </p>
@@ -47,9 +47,9 @@ export function ReviewIndex() {
           <Link
             key={y.year}
             to={`/year/${y.year}`}
-            className="bg-white border border-ink-200 rounded-lg p-4 hover:border-accent hover:shadow-paper transition"
+            className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 hover:border-accent hover:shadow-paper transition"
           >
-            <div className="font-serif text-xl text-ink-900">
+            <div className="font-serif text-xl text-ink-900 dark:text-ink-100">
               {y.year}
               {y.year === 100 && (
                 <span className="ml-1 text-xs text-ink-400 align-middle">(模擬)</span>

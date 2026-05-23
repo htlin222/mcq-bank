@@ -58,15 +58,28 @@ export async function authMiddleware(c: Context<AppContext>, next: Next) {
   }
 }
 
+// "Online" presence: keep `users.last_seen_at` fresh, but throttle to one
+// write per user per 5 min so D1 free-tier write budget stays comfortable.
+// The widget considers anyone seen in the last 5 min online.
+const PRESENCE_THROTTLE_MS = 5 * 60 * 1000;
+
 async function upsertUser(db: D1Database, email: string) {
   const now = Date.now();
   const defaultName = email.split('@')[0];
   await db
     .prepare(
-      `INSERT INTO users (email, display_name, created_at, updated_at)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO users (email, display_name, created_at, updated_at, last_seen_at)
+       VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(email) DO NOTHING`
     )
-    .bind(email, defaultName, now, now)
+    .bind(email, defaultName, now, now, now)
+    .run();
+  const cutoff = now - PRESENCE_THROTTLE_MS;
+  await db
+    .prepare(
+      `UPDATE users SET last_seen_at = ?
+       WHERE email = ? AND (last_seen_at IS NULL OR last_seen_at < ?)`
+    )
+    .bind(now, email, cutoff)
     .run();
 }

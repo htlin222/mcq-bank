@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Pause, Play, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { api } from '../lib/api';
 
 type YearMeta = { year: number; count: number };
@@ -9,11 +10,15 @@ type ExamQuestion = {
   number: number;
   stem: string;
   options: Record<string, string>;
+  chosen?: string | null;
 };
 
-type ExamSession = {
+type ExamState = {
   session_id: string;
   started_at: number;
+  elapsed_ms: number;
+  running_since: number | null;  // null = paused
+  cap_ms: number;                // 100 * 60 * 1000
   questions: ExamQuestion[];
 };
 
@@ -36,8 +41,7 @@ function ExamStart() {
     if (starting) return;
     setStarting(year);
     try {
-      const s = await api.post<{ session_id: string }>('/api/exam/start', { year });
-      // Cache session so we don't refetch immediately
+      const s = await api.post<ExamState>('/api/exam/start', { year });
       sessionStorage.setItem(`exam-${s.session_id}`, JSON.stringify(s));
       navigate(`/exam/${s.session_id}`);
     } finally {
@@ -47,9 +51,9 @@ function ExamStart() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-serif text-3xl text-ink-900 mb-2">全真作答</h1>
-      <p className="text-ink-500 text-sm mb-8">
-        選擇一個民國年度開始模擬考 (正式年度為 100 題:70 內科 + 30 共同)。完賽後查看分數與錯題回顧。
+      <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2">全真作答</h1>
+      <p className="text-ink-500 dark:text-ink-400 text-sm mb-8">
+        100 分鐘模擬考 · 可中途暫停離開、稍後續答 · 完賽看分數與錯題回顧
       </p>
 
       {years.length === 0 ? (
@@ -61,15 +65,15 @@ function ExamStart() {
               key={y.year}
               onClick={() => start(y.year)}
               disabled={starting !== null}
-              className="bg-white border border-ink-200 rounded-lg p-4 hover:border-accent hover:shadow-paper transition disabled:opacity-40 text-left"
+              className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 hover:border-accent hover:shadow-paper transition disabled:opacity-40 text-left"
             >
-              <div className="font-serif text-2xl text-ink-900">
+              <div className="font-serif text-2xl text-ink-900 dark:text-ink-100">
                 {y.year}
                 {y.year === 100 && (
                   <span className="ml-1 text-xs text-ink-400 align-middle">(模擬)</span>
                 )}
               </div>
-              <div className="text-xs text-ink-500 mt-1">{y.count} 題</div>
+              <div className="text-xs text-ink-500 dark:text-ink-400 mt-1">{y.count} 題</div>
               {starting === y.year && (
                 <div className="text-[11px] text-accent mt-2">準備中…</div>
               )}
@@ -89,74 +93,86 @@ function ExamStart() {
 
 function ExamInProgress({ sessionId }: { sessionId: string }) {
   const navigate = useNavigate();
-  const [session, setSession] = useState<ExamSession | null>(null);
+  const [state, setState] = useState<ExamState | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [activeIdx, setActiveIdx] = useState(0);
   const [now, setNow] = useState(Date.now());
   const [submitting, setSubmitting] = useState(false);
+  const [busy, setBusy] = useState(false);
   const flushTimers = useRef<Record<string, number>>({});
 
-  // Load (from sessionStorage if just started, else GET)
+  // Load: prefer fresh state from server (works after refresh / device switch)
   useEffect(() => {
     const cached = sessionStorage.getItem(`exam-${sessionId}`);
     if (cached) {
-      setSession(JSON.parse(cached));
-      return;
+      const s = JSON.parse(cached) as ExamState;
+      setState(s);
+      const seed: Record<string, string> = {};
+      for (const q of s.questions) if (q.chosen) seed[q.id] = q.chosen;
+      setAnswers(seed);
     }
-    api
-      .get<{
-        session: { started_at: number };
-        answers: {
-          question_id: string;
-          chosen: string | null;
-          number: number;
-          stem: string;
-        }[];
-      }>(`/api/exam/${sessionId}`)
-      .then((r) => {
-        // Rebuild ExamSession-shaped object from server response.
-        // (Skipped because GET /:sid is for results — in v1 we rely on sessionStorage
-        // for in-progress state. Fallback: redirect home.)
-        if (!cached) {
-          alert('找不到作答中的 session,可能已過期或被結束。');
-          navigate('/exam');
-        }
-      })
-      .catch(() => navigate('/exam'));
+    api.get<ExamState>(`/api/exam/${sessionId}/state`).then((s) => {
+      setState(s);
+      sessionStorage.setItem(`exam-${sessionId}`, JSON.stringify(s));
+      const seed: Record<string, string> = {};
+      for (const q of s.questions) if (q.chosen) seed[q.id] = q.chosen;
+      setAnswers((prev) => ({ ...seed, ...prev }));
+    }).catch(() => {
+      if (!cached) {
+        alert('找不到作答中的 session,可能已結束或非你本人。');
+        navigate('/exam');
+      }
+    });
   }, [sessionId, navigate]);
 
-  // Tick timer
+  // Tick (only when running)
   useEffect(() => {
+    if (!state || state.running_since === null) return;
     const t = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(t);
-  }, []);
+  }, [state?.running_since, !!state]);
 
-  // Warn on close
+  // Warn on close while running
   useEffect(() => {
     function beforeUnload(e: BeforeUnloadEvent) {
-      if (Object.keys(answers).length > 0) {
+      if (state?.running_since !== null && Object.keys(answers).length > 0) {
         e.preventDefault();
         e.returnValue = '';
       }
     }
     window.addEventListener('beforeunload', beforeUnload);
     return () => window.removeEventListener('beforeunload', beforeUnload);
-  }, [answers]);
+  }, [answers, state?.running_since]);
 
-  if (!session) {
+  if (!state) {
     return <div className="p-8 text-center text-ink-400">載入中…</div>;
   }
 
-  const elapsed = Math.floor((now - session.started_at) / 1000);
-  const hh = String(Math.floor(elapsed / 3600)).padStart(2, '0');
-  const mm = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
-  const ss = String(elapsed % 60).padStart(2, '0');
+  const live = state.running_since
+    ? state.elapsed_ms + (now - state.running_since)
+    : state.elapsed_ms;
+  const remaining = Math.max(0, state.cap_ms - live);
+  const overtime = live > state.cap_ms;
+  const isPaused = state.running_since === null;
 
-  const q = session.questions[activeIdx];
+  // Format mm:ss for remaining (or live elapsed if overtime)
+  function fmt(ms: number): string {
+    const sec = Math.floor(ms / 1000);
+    const hh = Math.floor(sec / 3600);
+    const mm = Math.floor((sec % 3600) / 60);
+    const ss = sec % 60;
+    return (
+      String(hh).padStart(2, '0') + ':' +
+      String(mm).padStart(2, '0') + ':' +
+      String(ss).padStart(2, '0')
+    );
+  }
+
+  const q = state.questions[activeIdx];
 
   function choose(letter: string) {
+    if (isPaused) return;
     setAnswers((prev) => ({ ...prev, [q.id]: letter }));
-    // Debounced flush per-question
     if (flushTimers.current[q.id])
       window.clearTimeout(flushTimers.current[q.id]);
     flushTimers.current[q.id] = window.setTimeout(() => {
@@ -167,18 +183,40 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
     }, 400);
   }
 
+  async function pause() {
+    if (busy || isPaused) return;
+    setBusy(true);
+    try {
+      const r = await api.post<{ elapsed_ms: number; running_since: null }>(
+        `/api/exam/${sessionId}/pause`
+      );
+      setState((s) => s && { ...s, elapsed_ms: r.elapsed_ms, running_since: null });
+    } finally { setBusy(false); }
+  }
+
+  async function resume() {
+    if (busy || !isPaused) return;
+    setBusy(true);
+    try {
+      const r = await api.post<{ elapsed_ms: number; running_since: number }>(
+        `/api/exam/${sessionId}/resume`
+      );
+      setState((s) => s && { ...s, elapsed_ms: r.elapsed_ms, running_since: r.running_since });
+    } finally { setBusy(false); }
+  }
+
   async function submit() {
-    if (submitting || !session) return;
+    if (submitting || !state) return;
     if (
-      Object.keys(answers).length < session.questions.length &&
+      !overtime &&
+      Object.keys(answers).length < state.questions.length &&
       !confirm(
-        `你還有 ${session.questions.length - Object.keys(answers).length} 題未作答,確定要交卷嗎?`,
+        `你還有 ${state.questions.length - Object.keys(answers).length} 題未作答,確定要交卷嗎?`,
       )
     )
       return;
     setSubmitting(true);
     try {
-      // Flush any pending
       Object.entries(flushTimers.current).forEach(([, id]) => window.clearTimeout(id));
       for (const [qid, letter] of Object.entries(answers)) {
         await api.post(`/api/exam/${sessionId}/answer`, {
@@ -194,109 +232,179 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
     }
   }
 
+  // Auto-force-finish at cap
+  useEffect(() => {
+    if (!state || isPaused) return;
+    if (live >= state.cap_ms && !submitting) {
+      submit();
+    }
+  }, [live, state, isPaused, submitting]);
+
   const answered = Object.keys(answers).length;
-  const total = session.questions.length;
+  const total = state.questions.length;
+  const warningSoon = !overtime && remaining < 10 * 60_000;
 
   return (
-    <div className="min-h-screen bg-ink-50 pb-32">
+    <div className="min-h-screen bg-ink-50 dark:bg-ink-900 pb-32">
       {/* Sticky header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-ink-200 px-4 sm:px-6 py-3 flex items-center justify-between">
-        <div className="text-sm">
-          <span className="font-mono text-ink-900">
-            {hh}:{mm}:{ss}
+      <header className="sticky top-0 z-10 bg-white dark:bg-ink-800 border-b border-ink-200 dark:border-ink-700 px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+        <div className="text-sm flex items-center gap-3 flex-wrap">
+          <span
+            className={
+              'font-mono ' +
+              (overtime
+                ? 'text-rose-700'
+                : warningSoon
+                ? 'text-amber-700'
+                : 'text-ink-900 dark:text-ink-100')
+            }
+            title={isPaused ? '已暫停' : '倒數中'}
+          >
+            {overtime ? '超時 ' + fmt(live - state.cap_ms) : fmt(remaining)}
           </span>
-          <span className="text-ink-400 mx-2">·</span>
-          <span className="text-ink-600">
+          <span className="text-ink-400">·</span>
+          <span className="text-ink-600 dark:text-ink-300">
             {answered}/{total} 題已答
           </span>
+          {isPaused && (
+            <span className="inline-flex items-center gap-1 text-xs bg-ink-100 dark:bg-ink-700 text-ink-700 dark:text-ink-200 px-2 py-0.5 rounded">
+              <Pause size={12} /> 暫停中
+            </span>
+          )}
         </div>
-        <button
-          onClick={submit}
-          disabled={submitting}
-          className="bg-accent hover:bg-accent-dark text-white px-4 py-1.5 rounded text-sm font-medium disabled:opacity-40"
-        >
-          {submitting ? '交卷中…' : '交卷'}
-        </button>
+        <div className="flex items-center gap-2">
+          {isPaused ? (
+            <button
+              onClick={resume}
+              disabled={busy}
+              className="inline-flex items-center gap-1 text-accent hover:text-accent-dark px-3 py-1.5 rounded text-sm disabled:opacity-40"
+            >
+              <Play size={14} /> 繼續
+            </button>
+          ) : (
+            <button
+              onClick={pause}
+              disabled={busy}
+              className="inline-flex items-center gap-1 text-ink-600 dark:text-ink-300 hover:text-accent px-3 py-1.5 rounded text-sm disabled:opacity-40"
+            >
+              <Pause size={14} /> 暫停
+            </button>
+          )}
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className="bg-accent hover:bg-accent-dark text-white px-4 py-1.5 rounded text-sm font-medium disabled:opacity-40"
+          >
+            {submitting ? '交卷中…' : '交卷'}
+          </button>
+        </div>
       </header>
 
-      {/* Current question */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-        <div className="bg-white border border-ink-200 rounded-lg p-5 sm:p-7 shadow-paper">
-          <div className="text-sm text-ink-500 mb-3">
-            第 {q.number} 題 / {total}
+      {warningSoon && !isPaused && (
+        <div className="bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-700 px-4 py-2 text-sm text-amber-800 dark:text-amber-200 inline-flex items-center gap-2 w-full">
+          <AlertTriangle size={14} /> 剩下不到 10 分鐘,記得交卷。
+        </div>
+      )}
+
+      {isPaused && (
+        <div className="bg-ink-50 dark:bg-ink-900 border-b border-ink-200 dark:border-ink-700">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-center">
+            <Pause className="mx-auto text-ink-400" size={48} strokeWidth={1.5} />
+            <h2 className="font-serif text-xl text-ink-800 dark:text-ink-200 mt-3">已暫停作答</h2>
+            <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
+              倒數計時已停止。隨時點「繼續」恢復。
+            </p>
+            <button
+              onClick={resume}
+              disabled={busy}
+              className="mt-4 inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium disabled:opacity-40"
+            >
+              <Play size={16} /> 繼續作答
+            </button>
           </div>
-          <p className="font-serif text-lg sm:text-xl leading-relaxed text-ink-900 whitespace-pre-wrap">
-            {q.stem}
-          </p>
-          <ul className="mt-6 space-y-2.5">
-            {(['A', 'B', 'C', 'D', 'E'] as const)
-              .filter((L) => q.options[L])
-              .map((L) => {
-                const selected = answers[q.id] === L;
+        </div>
+      )}
+
+      {/* Current question */}
+      {!isPaused && (
+        <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+          <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
+            <div className="text-sm text-ink-500 dark:text-ink-400 mb-3">
+              第 {q.number} 題 / {total}
+            </div>
+            <p className="font-serif text-lg sm:text-xl leading-relaxed text-ink-900 dark:text-ink-100 whitespace-pre-wrap">
+              {q.stem}
+            </p>
+            <ul className="mt-6 space-y-2.5">
+              {(['A', 'B', 'C', 'D', 'E'] as const)
+                .filter((L) => q.options[L])
+                .map((L) => {
+                  const selected = answers[q.id] === L;
+                  return (
+                    <li
+                      key={L}
+                      onClick={() => choose(L)}
+                      className={`flex gap-3 items-start p-3 rounded border cursor-pointer transition ${
+                        selected
+                          ? 'border-accent bg-accent/5'
+                          : 'border-ink-200 dark:border-ink-700 hover:border-ink-400 hover:bg-ink-50 dark:hover:bg-ink-700/50'
+                      }`}
+                    >
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
+                        {L}
+                      </span>
+                      <span className="leading-relaxed text-ink-800 dark:text-ink-200">{q.options[L]}</span>
+                    </li>
+                  );
+                })}
+            </ul>
+          </div>
+
+          <div className="mt-5 flex gap-2 justify-between">
+            <button
+              onClick={() => setActiveIdx((i) => Math.max(0, i - 1))}
+              disabled={activeIdx === 0}
+              className="inline-flex items-center gap-1 px-4 py-2 text-sm text-ink-600 dark:text-ink-300 disabled:opacity-30"
+            >
+              <ChevronLeft size={14} /> 上一題
+            </button>
+            <button
+              onClick={() => setActiveIdx((i) => Math.min(total - 1, i + 1))}
+              disabled={activeIdx === total - 1}
+              className="inline-flex items-center gap-1 px-4 py-2 text-sm text-ink-600 dark:text-ink-300 disabled:opacity-30"
+            >
+              下一題 <ChevronRight size={14} />
+            </button>
+          </div>
+
+          {/* Question navigator grid */}
+          <details className="mt-8 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg">
+            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-ink-700 dark:text-ink-300">
+              題號跳轉 ({answered}/{total})
+            </summary>
+            <div className="grid grid-cols-10 gap-1.5 p-3">
+              {state.questions.map((qq, i) => {
+                const a = answers[qq.id];
                 return (
-                  <li
-                    key={L}
-                    onClick={() => choose(L)}
-                    className={`flex gap-3 items-start p-3 rounded border cursor-pointer transition ${
-                      selected
-                        ? 'border-accent bg-accent/5'
-                        : 'border-ink-200 hover:border-ink-400 hover:bg-ink-50'
+                  <button
+                    key={qq.id}
+                    onClick={() => setActiveIdx(i)}
+                    className={`aspect-square text-xs font-mono rounded border transition ${
+                      i === activeIdx
+                        ? 'border-accent bg-accent text-white'
+                        : a
+                        ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200'
+                        : 'border-ink-200 dark:border-ink-700 text-ink-500 dark:text-ink-400 hover:border-ink-400'
                     }`}
                   >
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
-                      {L}
-                    </span>
-                    <span className="leading-relaxed">{q.options[L]}</span>
-                  </li>
+                    {qq.number}
+                  </button>
                 );
               })}
-          </ul>
-        </div>
-
-        <div className="mt-5 flex gap-2 justify-between">
-          <button
-            onClick={() => setActiveIdx((i) => Math.max(0, i - 1))}
-            disabled={activeIdx === 0}
-            className="px-4 py-2 text-sm text-ink-600 disabled:opacity-30"
-          >
-            ← 上一題
-          </button>
-          <button
-            onClick={() => setActiveIdx((i) => Math.min(total - 1, i + 1))}
-            disabled={activeIdx === total - 1}
-            className="px-4 py-2 text-sm text-ink-600 disabled:opacity-30"
-          >
-            下一題 →
-          </button>
-        </div>
-
-        {/* Question navigator grid */}
-        <details className="mt-8 bg-white border border-ink-200 rounded-lg">
-          <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-ink-700">
-            題號跳轉 ({answered}/{total})
-          </summary>
-          <div className="grid grid-cols-10 gap-1.5 p-3">
-            {session.questions.map((qq, i) => {
-              const a = answers[qq.id];
-              return (
-                <button
-                  key={qq.id}
-                  onClick={() => setActiveIdx(i)}
-                  className={`aspect-square text-xs font-mono rounded border transition ${
-                    i === activeIdx
-                      ? 'border-accent bg-accent text-white'
-                      : a
-                      ? 'border-emerald-400 bg-emerald-50 text-emerald-900'
-                      : 'border-ink-200 text-ink-500 hover:border-ink-400'
-                  }`}
-                >
-                  {qq.number}
-                </button>
-              );
-            })}
-          </div>
-        </details>
-      </main>
+            </div>
+          </details>
+        </main>
+      )}
     </div>
   );
 }

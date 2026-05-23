@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 import { api } from '../lib/api';
 
 type Notification = {
@@ -68,10 +69,10 @@ export function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={open ? () => setOpen(false) : openPanel}
-        className="relative w-9 h-9 grid place-items-center rounded-full hover:bg-ink-100 transition"
+        className="relative w-9 h-9 grid place-items-center rounded-full hover:bg-ink-100 transition text-ink-600"
         aria-label="通知"
       >
-        <span className="text-lg">🔔</span>
+        <Bell size={18} />
         {count > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 text-[10px] font-semibold bg-accent text-white rounded-full grid place-items-center">
             {count > 99 ? '99+' : count}

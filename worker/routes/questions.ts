@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { AppContext, Question, Explanation } from '../types';
+import { optionsToRecord } from '../lib/db';
 
 export const questionsRoutes = new Hono<AppContext>();
 
@@ -85,19 +86,38 @@ questionsRoutes.get('/:id', async (c) => {
     .bind(id)
     .all<{ tag: string }>();
 
-  const progress = await c.env.DB
-    .prepare(
-      'SELECT times_seen, times_correct, last_chosen, last_correct, bookmarked FROM review_progress WHERE user_email = ? AND question_id = ?'
-    )
-    .bind(email, id)
-    .first();
+  const [progress, bookmark] = await Promise.all([
+    c.env.DB
+      .prepare(
+        'SELECT times_seen, times_correct, last_chosen, last_correct FROM review_progress WHERE user_email = ? AND question_id = ?'
+      )
+      .bind(email, id)
+      .first<any>(),
+    c.env.DB
+      .prepare(
+        'SELECT folder_id FROM bookmark_items WHERE user_email = ? AND question_id = ?'
+      )
+      .bind(email, id)
+      .first<{ folder_id: string | null } | null>(),
+  ]);
+
+  const my_progress = progress || bookmark
+    ? {
+        times_seen: progress?.times_seen ?? 0,
+        times_correct: progress?.times_correct ?? 0,
+        last_chosen: progress?.last_chosen ?? null,
+        last_correct: progress?.last_correct ?? null,
+        bookmarked: bookmark ? 1 : 0,
+        bookmark_folder_id: bookmark?.folder_id ?? null,
+      }
+    : null;
 
   return c.json({
     ...question,
-    options: JSON.parse(question.options_json),
+    options: optionsToRecord(question.options_json),
     tags: tagRows.map((t) => t.tag),
     explanation: explanation || null,
-    my_progress: progress || null,
+    my_progress,
   });
 });
 

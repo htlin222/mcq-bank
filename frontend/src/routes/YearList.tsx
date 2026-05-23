@@ -49,7 +49,7 @@ export function YearList() {
         <Link to="/review" className="text-sm text-ink-500 hover:text-accent">
           ← 回到複習模式
         </Link>
-        <h1 className="font-serif text-3xl text-ink-900 mt-2">
+        <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mt-2">
           民國 {year} 年 · {items.length} 題
         </h1>
         <p className="text-xs text-ink-500 mt-1">
@@ -90,12 +90,12 @@ export function YearList() {
           <li key={q.id}>
             <Link
               to={`/q/${q.id}`}
-              className="flex gap-3 items-start bg-white border border-ink-200 rounded p-3 hover:border-accent hover:shadow-paper transition"
+              className="flex gap-3 items-start bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
             >
               <span className="font-mono text-sm text-ink-500 shrink-0 w-10 text-right">
                 {q.number}.
               </span>
-              <span className="text-ink-800 line-clamp-2 leading-relaxed">
+              <span className="text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed">
                 {q.stem}
               </span>
               {q.group && (

@@ -15,6 +15,9 @@ import { reviewRoutes } from './routes/review';
 import { aiRoutes } from './routes/ai';
 import { notificationsRoutes } from './routes/notifications';
 import { usersRoutes } from './routes/users';
+import { searchRoutes } from './routes/search';
+import { foldersRoutes } from './routes/folders';
+import { bookmarksRoutes } from './routes/bookmarks';
 
 const app = new Hono<AppContext>();
 
@@ -49,6 +52,9 @@ app.route('/api/exam', examRoutes);
 app.route('/api/review', reviewRoutes);
 app.route('/api/ai', aiRoutes);
 app.route('/api/notifications', notificationsRoutes);
+app.route('/api/search', searchRoutes);
+app.route('/api/folders', foldersRoutes);
+app.route('/api/bookmarks', bookmarksRoutes);
 
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 
