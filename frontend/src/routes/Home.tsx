@@ -13,27 +13,44 @@ type Stats = {
   by_year: { year: number; seen: number; correct: number }[];
 };
 
-// 血液腫瘤次專科考試日 (2026/08/29)
-const EXAM_DATE = new Date('2026-08-29T08:00:00+08:00');
+// 血液腫瘤次專科考試日 — 2026/08/29 上午 9:00 (Taipei time)
+const EXAM_DATE = new Date('2026-08-29T09:00:00+08:00');
 
-function daysUntil(target: Date): number {
-  const ms = target.getTime() - Date.now();
-  return Math.ceil(ms / 86_400_000);
+type Countdown = {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  total_ms: number;
+};
+
+function countdownTo(target: Date): Countdown {
+  const total_ms = Math.max(0, target.getTime() - Date.now());
+  const totalSec = Math.floor(total_ms / 1000);
+  const days = Math.floor(totalSec / 86_400);
+  const hours = Math.floor((totalSec % 86_400) / 3_600);
+  const minutes = Math.floor((totalSec % 3_600) / 60);
+  const seconds = totalSec % 60;
+  return { days, hours, minutes, seconds, total_ms };
 }
 
 export function Home() {
   const { me } = useMe();
   const [years, setYears] = useState<YearMeta[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [daysLeft, setDaysLeft] = useState(() => daysUntil(EXAM_DATE));
+  const [countdown, setCountdown] = useState<Countdown>(() => countdownTo(EXAM_DATE));
 
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
     api.get<Stats>('/api/review/stats').then(setStats).catch(() => setStats(null));
-    // Recompute at midnight so the countdown rolls over
-    const t = window.setInterval(() => setDaysLeft(daysUntil(EXAM_DATE)), 3_600_000);
+    // Tick once per second so the SS digits keep up. State updates are cheap
+    // here — only the countdown card depends on it.
+    const t = window.setInterval(() => setCountdown(countdownTo(EXAM_DATE)), 1000);
     return () => window.clearInterval(t);
   }, []);
+
+  const daysLeft = countdown.days;
+  const finished = countdown.total_ms <= 0;
 
   const totalQuestions = years.reduce((s, y) => s + y.count, 0);
   const seen = stats?.questions_attempted ?? 0;
@@ -61,15 +78,31 @@ export function Home() {
             <div className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400">
               血液腫瘤次專科考試倒數
             </div>
-            <div className="font-serif mt-0.5 flex items-baseline gap-2 flex-wrap">
-              <span className={`text-4xl sm:text-5xl ${daysLeft <= 30 ? 'text-rose-700' : daysLeft <= 60 ? 'text-amber-700' : 'text-accent'}`}>
-                {daysLeft > 0 ? daysLeft : 0}
-              </span>
-              <span className="text-ink-600 text-base">天</span>
-              <span className="ml-2 text-ink-500 dark:text-ink-400 text-sm">
-                · 2026 / 08 / 29
-              </span>
-            </div>
+            {finished ? (
+              <div className="font-serif mt-0.5 text-2xl sm:text-3xl text-ink-700 dark:text-ink-200">
+                考試已開始 — 加油!
+              </div>
+            ) : (
+              <div className="font-serif mt-0.5 flex items-baseline gap-2 flex-wrap">
+                <span className={`text-4xl sm:text-5xl ${daysLeft <= 30 ? 'text-rose-700' : daysLeft <= 60 ? 'text-amber-700' : 'text-accent'}`}>
+                  {daysLeft}
+                </span>
+                <span className="text-ink-600 text-base">天</span>
+                <span
+                  className="font-mono tabular-nums text-ink-600 dark:text-ink-300 text-sm sm:text-base ml-1"
+                  aria-live="polite"
+                >
+                  {String(countdown.hours).padStart(2, '0')}
+                  <span className="text-ink-400">:</span>
+                  {String(countdown.minutes).padStart(2, '0')}
+                  <span className="text-ink-400">:</span>
+                  {String(countdown.seconds).padStart(2, '0')}
+                </span>
+                <span className="ml-2 text-ink-500 dark:text-ink-400 text-xs sm:text-sm">
+                  · 2026 / 08 / 29 09:00
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </section>
