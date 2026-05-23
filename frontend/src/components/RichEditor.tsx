@@ -86,7 +86,7 @@ export function RichEditor({ content, onChange, placeholder, editable = true, au
   if (!editor) return null;
 
   return (
-    <div className="border border-ink-200 rounded-lg bg-white overflow-hidden">
+    <div className="border border-ink-200 dark:border-ink-700 rounded-lg bg-white dark:bg-ink-800 overflow-hidden">
       {editable && <Toolbar editor={editor} onPickImage={uploadAndInsert} />}
       <div className="p-4">
         <EditorContent editor={editor} />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bookmark, BookmarkPlus, Check, X, FolderPlus, RotateCcw } from 'lucide-react';
+import { Bookmark, BookmarkPlus, Check, X, FolderPlus, RotateCcw, Copy } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
 import type { QuestionFull } from '../hooks/useQuestion';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
@@ -55,6 +55,26 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
       onAnswered?.(chosen, r.correct);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  const [copied, setCopied] = useState(false);
+  async function copyAsMarkdown() {
+    const lines: string[] = [];
+    lines.push(`**民國 ${question.year} 年 · 第 ${question.number} 題**${question.group ? ` (${question.group})` : ''}`);
+    lines.push('');
+    lines.push(question.stem);
+    lines.push('');
+    for (const { L, text } of options) {
+      lines.push(`- ${L}. ${text}`);
+    }
+    const md = lines.join('\n');
+    try {
+      await navigator.clipboard.writeText(md);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      alert('複製失敗,請手動選取。');
     }
   }
 
@@ -139,12 +159,28 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
             </span>
           )}
         </div>
-        <BookmarkButton
-          bookmarked={bookmarked}
-          onToggle={toggleBookmark}
-          onMoveToFolder={moveToFolder}
-          currentFolderId={folderId}
-        />
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={copyAsMarkdown}
+            title={copied ? '已複製' : '複製題目與選項為 Markdown'}
+            aria-label="複製為 Markdown"
+            className={
+              'p-1.5 rounded transition ' +
+              (copied
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-ink-400 dark:text-ink-500 hover:text-ink-700 dark:hover:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-700')
+            }
+          >
+            {copied ? <Check size={18} /> : <Copy size={18} />}
+          </button>
+          <BookmarkButton
+            bookmarked={bookmarked}
+            onToggle={toggleBookmark}
+            onMoveToFolder={moveToFolder}
+            currentFolderId={folderId}
+          />
+        </div>
       </header>
 
       <p className="font-serif text-lg sm:text-xl leading-relaxed text-ink-900 dark:text-ink-100 whitespace-pre-wrap">
@@ -159,14 +195,14 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
             'flex gap-3 items-start p-3 rounded border cursor-pointer transition select-none';
           if (!revealed) {
             cls += selected
-              ? ' border-accent bg-accent/5'
-              : ' border-ink-200 hover:border-ink-400 hover:bg-ink-50';
+              ? ' border-accent bg-accent/5 dark:bg-accent/15'
+              : ' border-ink-200 dark:border-ink-700 hover:border-ink-400 dark:hover:border-ink-500 hover:bg-ink-50 dark:hover:bg-ink-700/40';
           } else {
             if (isCorrect)
-              cls += ' border-emerald-500 bg-emerald-50';
+              cls += ' border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15';
             else if (selected)
-              cls += ' border-rose-500 bg-rose-50';
-            else cls += ' border-ink-200 opacity-70';
+              cls += ' border-rose-500 bg-rose-50 dark:bg-rose-500/15';
+            else cls += ' border-ink-200 dark:border-ink-700 opacity-70';
           }
           return (
             <li

@@ -11,7 +11,7 @@ export function ActivityHeatmap() {
 
   useEffect(() => {
     let alive = true;
-    api.get<Bucket[]>('/api/review/heatmap?days=120').then((data) => {
+    api.get<Bucket[]>('/api/review/heatmap?days=90').then((data) => {
       if (!alive || !ref.current) return;
       if (calRef.current) {
         try { calRef.current.destroy?.(); } catch {}
@@ -22,8 +22,8 @@ export function ActivityHeatmap() {
         itemSelector: ref.current,
         domain: { type: 'month', gutter: 6 },
         subDomain: { type: 'ghDay', radius: 2, width: 13, height: 13, gutter: 3 },
-        date: { start: new Date(Date.now() - 110 * 86_400_000) },
-        range: 4,
+        date: { start: new Date(Date.now() - 80 * 86_400_000) },
+        range: 3,
         data: {
           source: data.map((d) => ({ date: d.d, value: d.n })),
           x: 'date',
@@ -47,7 +47,7 @@ export function ActivityHeatmap() {
   return (
     <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 overflow-x-auto">
       <div className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">
-        最近 4 個月活動
+        最近 3 個月活動
       </div>
       <div ref={ref} className="cal-heatmap-host" />
     </div>

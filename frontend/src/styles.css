@@ -13,7 +13,7 @@
   }
 
   h1, h2, h3, h4 {
-    @apply font-serif text-ink-800 tracking-tight;
+    @apply font-serif text-ink-800 dark:text-ink-100 tracking-tight;
   }
 
   /* Subtle paper texture on cards */
@@ -32,7 +32,7 @@
 
 /* === TipTap editor (ProseMirror) === */
 .tiptap {
-  @apply font-serif text-ink-800 leading-relaxed outline-none min-h-[140px];
+  @apply font-serif text-ink-800 dark:text-ink-100 leading-relaxed outline-none min-h-[140px];
 }
 
 .tiptap > * + * {
@@ -41,7 +41,7 @@
 
 .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  @apply text-ink-400 italic float-left h-0 pointer-events-none;
+  @apply text-ink-400 dark:text-ink-500 italic float-left h-0 pointer-events-none;
 }
 
 .tiptap h1 { @apply text-2xl font-bold mt-6; }
@@ -58,37 +58,37 @@
 .tiptap li { @apply my-1; }
 
 .tiptap blockquote {
-  @apply border-l-4 border-ink-300 pl-4 italic text-ink-600 my-4;
+  @apply border-l-4 border-ink-300 dark:border-ink-600 pl-4 italic text-ink-600 dark:text-ink-300 my-4;
 }
 
 .tiptap code {
-  @apply font-mono text-sm bg-ink-100 px-1.5 py-0.5 rounded;
+  @apply font-mono text-sm bg-ink-100 dark:bg-ink-700 dark:text-ink-100 px-1.5 py-0.5 rounded;
 }
 
 .tiptap pre {
-  @apply font-mono text-sm bg-ink-800 text-ink-50 p-3 rounded-lg overflow-x-auto;
+  @apply font-mono text-sm bg-ink-800 dark:bg-ink-900 text-ink-50 p-3 rounded-lg overflow-x-auto;
 }
 
 .tiptap pre code { @apply bg-transparent p-0; }
 
 .tiptap img {
-  @apply rounded-lg my-4 max-w-full h-auto shadow-sm border border-ink-200;
+  @apply rounded-lg my-4 max-w-full h-auto shadow-sm border border-ink-200 dark:border-ink-700;
 }
 
 .tiptap a {
-  @apply text-accent underline decoration-accent/30 underline-offset-2 hover:decoration-accent;
+  @apply text-accent dark:text-accent-light underline decoration-accent/30 underline-offset-2 hover:decoration-accent;
 }
 
 .tiptap .mention {
-  @apply bg-accent/10 text-accent-dark px-1.5 py-0.5 rounded font-medium no-underline;
+  @apply bg-accent/10 dark:bg-accent/20 text-accent-dark dark:text-accent-light px-1.5 py-0.5 rounded font-medium no-underline;
 }
 
 .tiptap .qref,
 .tiptap a.qref {
-  @apply bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded font-mono text-[0.92em] no-underline decoration-transparent;
+  @apply bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 px-1.5 py-0.5 rounded font-mono text-[0.92em] no-underline decoration-transparent;
 }
 .tiptap a.qref:hover {
-  @apply bg-emerald-100 underline decoration-emerald-700;
+  @apply bg-emerald-100 dark:bg-emerald-900/50 underline decoration-emerald-700 dark:decoration-emerald-300;
 }
 
 /* Selected node indicator */
@@ -98,15 +98,15 @@
 
 /* === Mention dropdown === */
 .mention-list {
-  @apply bg-white shadow-lg rounded-lg border border-ink-200 overflow-hidden;
-  @apply text-sm max-h-72 overflow-y-auto;
+  @apply bg-white dark:bg-ink-800 shadow-lg rounded-lg border border-ink-200 dark:border-ink-700 overflow-hidden;
+  @apply text-sm max-h-72 overflow-y-auto text-ink-800 dark:text-ink-100;
 }
 .mention-item {
   @apply flex items-center gap-2 px-3 py-2 cursor-pointer;
 }
 .mention-item:hover,
 .mention-item.is-selected {
-  @apply bg-accent/10;
+  @apply bg-accent/10 dark:bg-accent/20;
 }
 
 /* === Editor toolbar === */

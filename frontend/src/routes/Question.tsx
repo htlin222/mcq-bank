@@ -332,8 +332,8 @@ export function Question() {
         </div>
 
         {tab === 'explanation' && (editing ? (
-          <div className="bg-white border-2 border-accent/40 rounded-lg p-4 sm:p-5 shadow-paper">
-            <div className="mb-3 text-xs text-ink-500">
+          <div className="bg-white dark:bg-ink-800 border-2 border-accent/40 rounded-lg p-4 sm:p-5 shadow-paper">
+            <div className="mb-3 text-xs text-ink-500 dark:text-ink-400">
               {lockState.status === 'held' && (
                 <span>
                   ✓ 你正在編輯 · 鎖至 {new Date(lockState.until).toLocaleTimeString('zh-TW')} ·
@@ -378,9 +378,9 @@ export function Question() {
                 onClose={() => { setAiOutput(null); setAiError(null); }}
               />
             )}
-            <article className="bg-white border border-ink-200 rounded-lg p-5 sm:p-7 shadow-paper">
+            <article className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
               <ReadOnlyContent content={explanationJson} />
-              <footer className="mt-5 pt-3 border-t border-ink-100 text-xs text-ink-400">
+              <footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
                 最近更新:{data.explanation?.updated_by ?? '—'}
                 {data.explanation?.updated_at && (
                   <> · {new Date(data.explanation.updated_at).toLocaleString('zh-TW')}</>
@@ -398,8 +398,8 @@ export function Question() {
                 onClose={() => { setAiOutput(null); setAiError(null); }}
               />
             )}
-            <div className="bg-ink-50 border border-dashed border-ink-200 rounded-lg p-8 text-center">
-              <p className="text-ink-500 mb-3">尚無詳解,你願意第一個寫嗎?</p>
+            <div className="bg-ink-50 dark:bg-ink-800/60 border border-dashed border-ink-200 dark:border-ink-700 rounded-lg p-8 text-center">
+              <p className="text-ink-500 dark:text-ink-400 mb-3">尚無詳解,你願意第一個寫嗎?</p>
               <button
                 onClick={startEdit}
                 className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium"
@@ -411,8 +411,8 @@ export function Question() {
         ))}
 
         {tab === 'note' && (noteEditing ? (
-          <div className="bg-white border-2 border-accent/40 rounded-lg p-4 sm:p-5 shadow-paper">
-            <div className="mb-3 text-xs text-ink-500">
+          <div className="bg-white dark:bg-ink-800 border-2 border-accent/40 rounded-lg p-4 sm:p-5 shadow-paper">
+            <div className="mb-3 text-xs text-ink-500 dark:text-ink-400">
               ✎ 個人筆記 · 僅你可見
             </div>
             <RichEditor
@@ -444,9 +444,9 @@ export function Question() {
             </div>
           </div>
         ) : noteJson ? (
-          <article className="bg-white border border-ink-200 rounded-lg p-5 sm:p-7 shadow-paper">
+          <article className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
             <ReadOnlyContent content={noteJson} />
-            <footer className="mt-5 pt-3 border-t border-ink-100 text-xs text-ink-400">
+            <footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
               僅你可見
               {data.my_note?.updated_at && (
                 <> · 最近編輯 {new Date(data.my_note.updated_at).toLocaleString('zh-TW')}</>
@@ -454,8 +454,8 @@ export function Question() {
             </footer>
           </article>
         ) : (
-          <div className="bg-ink-50 border border-dashed border-ink-200 rounded-lg p-8 text-center">
-            <p className="text-ink-500 mb-3">尚未寫下個人筆記。這裡僅你可見。</p>
+          <div className="bg-ink-50 dark:bg-ink-800/60 border border-dashed border-ink-200 dark:border-ink-700 rounded-lg p-8 text-center">
+            <p className="text-ink-500 dark:text-ink-400 mb-3">尚未寫下個人筆記。這裡僅你可見。</p>
             <button
               onClick={startNoteEdit}
               className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium"
