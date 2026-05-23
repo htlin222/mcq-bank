@@ -297,6 +297,32 @@ questionsRoutes.delete("/:id/tags/:tag", async (c) => {
 });
 
 // ------------------------------------------------------------
+// Aggregate (anonymous) review-mode stats for one question.
+// Sums times_seen / times_correct across all users — no identity exposed.
+// Cheap query; lazy-loaded by the UI when the answer is revealed.
+// ------------------------------------------------------------
+questionsRoutes.get("/:id/stats", async (c) => {
+	const id = c.req.param("id");
+	const row = await c.env.DB.prepare(
+		`SELECT
+       COALESCE(SUM(times_seen), 0)    AS attempts,
+       COALESCE(SUM(times_correct), 0) AS correct,
+       COUNT(*)                         AS responders
+     FROM review_progress
+     WHERE question_id = ? AND times_seen > 0`,
+	)
+		.bind(id)
+		.first<{ attempts: number; correct: number; responders: number }>();
+
+	const attempts = row?.attempts ?? 0;
+	const correct = row?.correct ?? 0;
+	const responders = row?.responders ?? 0;
+	const accuracy = attempts > 0 ? Math.round((correct * 1000) / attempts) / 10 : null;
+
+	return c.json({ attempts, correct, responders, accuracy });
+});
+
+// ------------------------------------------------------------
 // Meta
 // ------------------------------------------------------------
 

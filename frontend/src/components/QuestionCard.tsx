@@ -24,6 +24,24 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
   );
   const [submitting, setSubmitting] = useState(false);
 
+  // Aggregate (anonymous) review-mode stats. Lazy-loaded once the answer
+  // is revealed — adds one extra request per card view, not per page load.
+  type StatsPayload = {
+    attempts: number;
+    correct: number;
+    responders: number;
+    accuracy: number | null;
+  };
+  const [stats, setStats] = useState<StatsPayload | null>(null);
+  useEffect(() => {
+    if (!revealed) return;
+    let cancelled = false;
+    api.get<StatsPayload>(`/api/questions/${question.id}/stats`).then(
+      (r) => { if (!cancelled) setStats(r); },
+    ).catch(() => { /* stats are best-effort */ });
+    return () => { cancelled = true; };
+  }, [revealed, question.id]);
+
   async function submit() {
     if (!chosen || submitting) return;
     setSubmitting(true);
@@ -191,6 +209,12 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
             <span className="text-ink-400">
               · 已看過 {question.my_progress.times_seen} 次,答對{' '}
               {question.my_progress.times_correct} 次
+            </span>
+          )}
+          {stats && stats.attempts > 0 && (
+            <span className="text-ink-400">
+              · 全體被作答 {stats.attempts} 次 / 答對 {stats.correct} 次,
+              答對率 {stats.accuracy ?? 0}%
             </span>
           )}
         </div>
