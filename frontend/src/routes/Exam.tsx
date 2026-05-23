@@ -144,6 +144,14 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
     return () => window.removeEventListener('beforeunload', beforeUnload);
   }, [answers, state?.running_since]);
 
+  // Auto-force-finish at cap — must run before any early return to keep hook
+  // count stable across renders (Rules of Hooks).
+  useEffect(() => {
+    if (!state || state.running_since === null || submitting) return;
+    const liveMs = state.elapsed_ms + (now - state.running_since);
+    if (liveMs >= state.cap_ms) submit();
+  }, [now, state, submitting]);
+
   if (!state) {
     return <div className="p-8 text-center text-ink-400">載入中…</div>;
   }
@@ -231,14 +239,6 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       setSubmitting(false);
     }
   }
-
-  // Auto-force-finish at cap
-  useEffect(() => {
-    if (!state || isPaused) return;
-    if (live >= state.cap_ms && !submitting) {
-      submit();
-    }
-  }, [live, state, isPaused, submitting]);
 
   const answered = Object.keys(answers).length;
   const total = state.questions.length;
