@@ -1,9 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, History, AlertTriangle, CalendarDays } from 'lucide-react';
+import { Bookmark, History, AlertTriangle, CalendarDays, Scale } from 'lucide-react';
 import { api } from '../lib/api';
 import { useMe } from '../hooks/useMe';
 import { ActivityHeatmap } from '../components/ActivityHeatmap';
+
+type RecentChallenge = {
+  id: string;
+  question_id: string;
+  year: number;
+  number: number;
+  stem: string;
+  proposer_name: string | null;
+  proposer_email: string;
+  proposed_answer: string;
+  original_answer_at_challenge: string;
+  status: 'open' | 'contested';
+  contested_at: number | null;
+  created_at: number;
+  agrees: number;
+  disagrees: number;
+};
 
 type YearMeta = { year: number; count: number };
 type Stats = {
@@ -38,11 +55,16 @@ export function Home() {
   const { me } = useMe();
   const [years, setYears] = useState<YearMeta[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [challenges, setChallenges] = useState<RecentChallenge[]>([]);
   const [countdown, setCountdown] = useState<Countdown>(() => countdownTo(EXAM_DATE));
 
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
     api.get<Stats>('/api/review/stats').then(setStats).catch(() => setStats(null));
+    api
+      .get<RecentChallenge[]>('/api/challenges/recent?limit=5')
+      .then(setChallenges)
+      .catch(() => setChallenges([]));
     // Tick once per second so the SS digits keep up. State updates are cheap
     // here — only the countdown card depends on it.
     const t = window.setInterval(() => setCountdown(countdownTo(EXAM_DATE)), 1000);
@@ -213,6 +235,55 @@ export function Home() {
           </div>
         )}
       </section>
+
+      {/* 近期爭議 — active answer challenges across the dataset */}
+      {challenges.length > 0 && (
+        <section className="mb-10">
+          <h2 className="font-serif text-xl text-ink-800 dark:text-ink-200 mb-4 inline-flex items-center gap-2">
+            <Scale size={18} className="text-amber-700 dark:text-amber-300" /> 近期爭議
+          </h2>
+          <ul className="space-y-2">
+            {challenges.map((c) => {
+              const qid = `${c.year}-${String(c.number).padStart(3, '0')}`;
+              const statusLabel = c.status === 'contested' ? '討論中' : '表決中';
+              const statusCls =
+                c.status === 'contested'
+                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200'
+                  : 'bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200';
+              return (
+                <li key={c.id}>
+                  <Link
+                    to={`/q/${qid}`}
+                    className="block bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent transition"
+                  >
+                    <div className="flex items-start gap-2 flex-wrap text-sm">
+                      <span className="font-mono text-ink-500 dark:text-ink-400 shrink-0">{qid}</span>
+                      <span className="text-ink-700 dark:text-ink-200 line-clamp-1 flex-1 min-w-0">
+                        {c.stem}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[11px] shrink-0 ${statusCls}`}>
+                        {statusLabel}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 text-xs text-ink-500 dark:text-ink-400 flex items-center gap-2 flex-wrap">
+                      <span>
+                        {c.proposer_name ?? c.proposer_email.split('@')[0]} 主張{' '}
+                        <span className="font-mono">{c.original_answer_at_challenge}</span> →{' '}
+                        <span className="font-mono font-semibold text-amber-700 dark:text-amber-300">
+                          {c.proposed_answer}
+                        </span>
+                      </span>
+                      <span className="text-ink-400">
+                        · 同意 {c.agrees} · 反對 {c.disagrees}
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* Quick links */}
       <section className="flex gap-4 flex-wrap text-sm">

@@ -14,7 +14,8 @@
     "db:seed:local": "wrangler d1 execute hema-2026-db --local --file=migrations/0004_hema_sample.sql",
     "db:seed:remote": "wrangler d1 execute hema-2026-db --remote --file=migrations/0004_hema_sample.sql",
     "r2:create": "wrangler r2 bucket create hema-2026-uploads",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test 'worker/**/*.test.ts'"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250501.0",

@@ -6,13 +6,37 @@ import { api } from '../lib/api';
 type Notification = {
   id: string;
   recipient: string;
-  kind: 'mention' | 'reply';
+  kind:
+    | 'mention'
+    | 'reply'
+    | 'edit'
+    | 'challenge_filed'
+    | 'challenge_promoted'
+    | 'challenge_rejected';
   question_id: string | null;
-  actor_email: string;
+  challenge_id: string | null;
+  actor_email: string | null;
   preview: string;
   read_at: number | null;
   created_at: number;
 };
+
+function notificationLabel(n: Notification): string {
+  switch (n.kind) {
+    case 'mention':
+      return '提到了你';
+    case 'reply':
+      return '回覆了你的留言';
+    case 'edit':
+      return '更新了詳解';
+    case 'challenge_filed':
+      return '對本題答案發起挑戰';
+    case 'challenge_promoted':
+      return '本題答案已由社群修正';
+    case 'challenge_rejected':
+      return '挑戰未通過';
+  }
+}
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -107,8 +131,11 @@ export function NotificationBell() {
                   className="block px-4 py-3 border-b border-ink-50 hover:bg-ink-50 last:border-0"
                 >
                   <div className="text-sm text-ink-700">
-                    <span className="font-medium text-ink-900">{n.actor_email}</span>{' '}
-                    {n.kind === 'mention' ? '在詳解中提到了你' : '回覆了你的留言'}
+                    {n.actor_email && (
+                      <span className="font-medium text-ink-900">{n.actor_email}</span>
+                    )}
+                    {n.actor_email ? ' ' : ''}
+                    {notificationLabel(n)}
                   </div>
                   <div className="text-xs text-ink-500 mt-1 line-clamp-2">
                     {n.preview}

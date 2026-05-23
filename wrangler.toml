@@ -39,6 +39,7 @@ binding = "AI"
 # CF_ACCESS_TEAM_DOMAIN = "yourteam.cloudflareaccess.com"
 # CF_ACCESS_AUD = "<application audience tag from Access dashboard>"
 GH_FEEDBACK_REPO = "htlin222/hema-2026"
+ADMIN_EMAILS = "ppoiu87@gmail.com"
 # GH_FEEDBACK_TOKEN is a secret — set via:  wrangler secret put GH_FEEDBACK_TOKEN
 
 [observability]

@@ -1,7 +1,10 @@
 import { Hono } from "hono";
+import type { D1PreparedStatement } from "@cloudflare/workers-types";
 import type { AppContext, Question, Explanation } from "../types";
 import { optionsToRecord } from "../lib/db";
 import { ftsQuery } from "./search";
+import { getActiveChallenge } from "../lib/challenges";
+import { isAdminEmail } from "../lib/admin";
 
 export const questionsRoutes = new Hono<AppContext>();
 
@@ -95,7 +98,7 @@ questionsRoutes.get("/:id", async (c) => {
 		.bind(id)
 		.all<{ tag: string }>();
 
-	const [progress, bookmark, note, backRefRows] = await Promise.all([
+	const [progress, bookmark, note, backRefRows, activeChallenge] = await Promise.all([
 		c.env.DB.prepare(
 			"SELECT times_seen, times_correct, last_chosen, last_correct FROM review_progress WHERE user_email = ? AND question_id = ?",
 		)
@@ -133,6 +136,7 @@ questionsRoutes.get("/:id", async (c) => {
 				source_number: number;
 				source_stem: string;
 			}>(),
+		getActiveChallenge(c.env.DB, id, email),
 	]);
 
 	const my_progress =
@@ -163,7 +167,85 @@ questionsRoutes.get("/:id", async (c) => {
 		my_progress,
 		my_note: note || null,
 		back_refs,
+		active_challenge: activeChallenge,
+		can_edit_answer: isAdminEmail(email, c.env),
 	});
+});
+
+// ------------------------------------------------------------
+// Admin-only canonical answer edit
+// ------------------------------------------------------------
+questionsRoutes.put("/:id/answer", async (c) => {
+	const id = c.req.param("id");
+	const email = c.var.email;
+
+	if (!isAdminEmail(email, c.env)) {
+		return c.json({ error: "forbidden" }, 403);
+	}
+
+	const body = await c.req.json<{ answer?: string }>();
+	const nextAnswer = (body.answer || "").trim().toUpperCase();
+	if (!/^[A-E]$/.test(nextAnswer)) {
+		return c.json({ error: "answer must be A-E" }, 400);
+	}
+
+	const question = await c.env.DB.prepare(
+		"SELECT id, answer, options_json FROM questions WHERE id = ?",
+	)
+		.bind(id)
+		.first<{ id: string; answer: string; options_json: string }>();
+	if (!question) return c.json({ error: "not found" }, 404);
+
+	const options = optionsToRecord(question.options_json);
+	if (!options[nextAnswer]) {
+		return c.json({ error: "answer is not an option of this question" }, 400);
+	}
+
+	if (question.answer === nextAnswer) {
+		return c.json({ ok: true, answer: nextAnswer, changed: false });
+	}
+
+	const now = Date.now();
+	const hasHistory = await c.env.DB.prepare(
+		"SELECT 1 FROM answer_history WHERE question_id = ? LIMIT 1",
+	)
+		.bind(id)
+		.first<{ "1": number }>();
+
+	const ops: D1PreparedStatement[] = [];
+	if (!hasHistory) {
+		ops.push(
+			c.env.DB.prepare(
+				`INSERT INTO answer_history
+           (question_id, previous_answer, new_answer, source, challenge_id, changed_by, changed_at)
+         VALUES (?, ?, ?, 'original', NULL, NULL, ?)`,
+			).bind(id, question.answer, question.answer, now),
+		);
+	}
+
+	ops.push(
+		c.env.DB.prepare(
+			`INSERT INTO answer_history
+         (question_id, previous_answer, new_answer, source, challenge_id, changed_by, changed_at)
+       VALUES (?, ?, ?, 'admin', NULL, ?, ?)`,
+		).bind(id, question.answer, nextAnswer, email, now),
+	);
+	ops.push(
+		c.env.DB.prepare("UPDATE questions SET answer = ? WHERE id = ?").bind(
+			nextAnswer,
+			id,
+		),
+	);
+	ops.push(
+		c.env.DB.prepare(
+			`UPDATE answer_challenges
+         SET status = 'archived', resolved_at = ?, resolution_reason = 'admin:answer-edit'
+       WHERE question_id = ? AND status IN ('open', 'contested')`,
+		).bind(now, id),
+	);
+
+	await c.env.DB.batch(ops);
+	return c.json({ ok: true, answer: nextAnswer, changed: true });
 });
 
 // ------------------------------------------------------------

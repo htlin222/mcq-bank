@@ -20,5 +20,5 @@
     }
   },
   "include": ["worker/**/*.ts"],
-  "exclude": ["node_modules", "frontend"]
+  "exclude": ["node_modules", "frontend", "worker/**/*.test.ts"]
 }

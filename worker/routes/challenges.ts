@@ -1,0 +1,101 @@
+import { Hono } from 'hono';
+import type { AppContext } from '../types';
+import {
+  createChallenge,
+  castVote,
+  retractVote,
+  withdrawChallenge,
+  getActiveChallenge,
+  listChallengesForQuestion,
+  listRecentChallenges,
+  recomputeAndMaybeResolve,
+} from '../lib/challenges';
+
+// Routes that hang off /api/questions/:id/* — mounted under /api/questions.
+export const questionChallengeRoutes = new Hono<AppContext>();
+
+questionChallengeRoutes.get('/:id/challenges/active', async (c) => {
+  const id = c.req.param('id');
+  const active = await getActiveChallenge(c.env.DB, id, c.var.email);
+  return c.json(active);
+});
+
+questionChallengeRoutes.get('/:id/challenges', async (c) => {
+  const id = c.req.param('id');
+  const limit = Math.min(parseInt(c.req.query('limit') || '10'), 50);
+  const list = await listChallengesForQuestion(c.env.DB, id, limit);
+  return c.json(list);
+});
+
+questionChallengeRoutes.post('/:id/challenges', async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<{
+    proposed_answer: string;
+    rationale_json: unknown;
+  }>();
+  const result = await createChallenge(
+    c.env.DB,
+    c.var.email,
+    id,
+    body.proposed_answer,
+    body.rationale_json
+  );
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  // Echo back the new active row so the client can render immediately.
+  const active = await getActiveChallenge(c.env.DB, id, c.var.email);
+  return c.json({ ok: true, id: result.id, active }, 201);
+});
+
+// Routes that operate on a challenge_id — mounted under /api/challenges.
+export const challengesRoutes = new Hono<AppContext>();
+
+challengesRoutes.post('/:cid/votes', async (c) => {
+  const cid = c.req.param('cid');
+  const body = await c.req.json<{
+    vote: 'agree' | 'disagree';
+    comment_json?: unknown;
+  }>();
+  const result = await castVote(
+    c.env.DB,
+    c.var.email,
+    cid,
+    body.vote,
+    body.comment_json ?? null
+  );
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json({ ok: true, status: result.status, resolution: result.resolution ?? null });
+});
+
+challengesRoutes.delete('/:cid/votes', async (c) => {
+  const cid = c.req.param('cid');
+  const result = await retractVote(c.env.DB, c.var.email, cid);
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json({ ok: true, status: result.status });
+});
+
+challengesRoutes.post('/:cid/withdraw', async (c) => {
+  const cid = c.req.param('cid');
+  const result = await withdrawChallenge(c.env.DB, c.var.email, cid);
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json({ ok: true, status: result.status });
+});
+
+challengesRoutes.post('/:cid/recompute', async (c) => {
+  // Manual "are we there yet" — chiefly useful for cron-style sweeps and tests.
+  const cid = c.req.param('cid');
+  const result = await recomputeAndMaybeResolve(c.env.DB, cid);
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json({ ok: true, status: result.status, resolution: result.resolution ?? null });
+});
+
+// Recent challenges feed for the Home widget. Defaults to active ones;
+// pass ?include=resolved to include promoted/rejected/archived too.
+challengesRoutes.get('/recent', async (c) => {
+  const limit = Math.min(parseInt(c.req.query('limit') || '5'), 20);
+  const include = c.req.query('include') === 'resolved';
+  const statuses = include
+    ? (['open', 'contested', 'promoted', 'rejected'] as const)
+    : (['open', 'contested'] as const);
+  const rows = await listRecentChallenges(c.env.DB, { statuses: [...statuses], limit });
+  return c.json(rows);
+});

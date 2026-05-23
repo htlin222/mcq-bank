@@ -235,13 +235,15 @@ examRoutes.post('/:sid/finish', async (c) => {
   if (session.user_email !== email) return c.json({ error: 'forbidden' }, 403);
   if (session.finished_at) return c.json({ error: 'already finished' }, 400);
 
-  // Compute correctness
+  // Compute correctness AND snapshot the canonical answer at finish time so
+  // a later challenge promotion doesn't retroactively rescore this attempt.
   await c.env.DB
     .prepare(
       `UPDATE exam_answers
-       SET is_correct = CASE
-         WHEN chosen = (SELECT answer FROM questions WHERE id = exam_answers.question_id)
-         THEN 1 ELSE 0 END
+       SET correct_answer_at_finish = (SELECT answer FROM questions WHERE id = exam_answers.question_id),
+           is_correct = CASE
+             WHEN chosen = (SELECT answer FROM questions WHERE id = exam_answers.question_id)
+             THEN 1 ELSE 0 END
        WHERE session_id = ?`
     )
     .bind(sid)
@@ -291,7 +293,8 @@ examRoutes.get('/:sid', async (c) => {
   const { results: answers } = await c.env.DB
     .prepare(
       `SELECT ea.question_id, ea.chosen, ea.is_correct, ea.answered_at,
-              q.number, q.answer as correct_answer, q.stem
+              q.number, q.stem,
+              COALESCE(ea.correct_answer_at_finish, q.answer) AS correct_answer
        FROM exam_answers ea
        JOIN questions q ON q.id = ea.question_id
        WHERE ea.session_id = ?

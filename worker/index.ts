@@ -20,6 +20,7 @@ import { searchRoutes } from './routes/search';
 import { foldersRoutes } from './routes/folders';
 import { bookmarksRoutes } from './routes/bookmarks';
 import { feedbackRoutes } from './routes/feedback';
+import { challengesRoutes, questionChallengeRoutes } from './routes/challenges';
 
 const app = new Hono<AppContext>();
 
@@ -49,6 +50,8 @@ app.route('/api/questions', questionsRoutes);
 app.route('/api/questions', explanationsRoutes); // /:id/explanation/*
 app.route('/api/questions', notesRoutes);        // /:id/note
 app.route('/api/questions', commentsRoutes);     // /:id/comments
+app.route('/api/questions', questionChallengeRoutes); // /:id/challenges*
+app.route('/api/challenges', challengesRoutes);  // /:cid/votes etc.
 app.route('/api/upload', uploadRoutes);
 app.route('/img', imagesRoutes);
 app.route('/api/exam', examRoutes);

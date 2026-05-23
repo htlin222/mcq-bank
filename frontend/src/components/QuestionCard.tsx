@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bookmark, BookmarkPlus, Check, X, FolderPlus, RotateCcw, Copy } from 'lucide-react';
+import { Bookmark, BookmarkPlus, Check, X, FolderPlus, RotateCcw, Copy, ShieldCheck, Loader2 } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
 import type { QuestionFull } from '../hooks/useQuestion';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
+import { useMe } from '../hooks/useMe';
+import { ChallengePanel } from './ChallengePanel';
 
 type Props = {
   question: QuestionFull;
@@ -15,6 +17,7 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
 
 export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared }: Props) {
   const bookmarkSet = useBookmarkSet();
+  const { me } = useMe();
   const [chosen, setChosen] = useState<string | null>(
     question.my_progress?.last_chosen ?? null,
   );
@@ -24,6 +27,18 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     question.my_progress?.bookmark_folder_id ?? null,
   );
   const [submitting, setSubmitting] = useState(false);
+  const [currentAnswer, setCurrentAnswer] = useState(question.answer);
+  const [answerEditing, setAnswerEditing] = useState(false);
+  const [answerDraft, setAnswerDraft] = useState(question.answer);
+  const [answerSaving, setAnswerSaving] = useState(false);
+  const [answerError, setAnswerError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCurrentAnswer(question.answer);
+    setAnswerDraft(question.answer);
+    setAnswerEditing(false);
+    setAnswerError(null);
+  }, [question.id, question.answer]);
 
   // Aggregate (anonymous) review-mode stats. Lazy-loaded once the answer
   // is revealed — adds one extra request per card view, not per page load.
@@ -125,9 +140,38 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     onBookmarkToggled?.(true);
   }
 
+  async function saveAnswer() {
+    if (answerSaving || answerDraft === currentAnswer) {
+      setAnswerEditing(false);
+      setAnswerError(null);
+      return;
+    }
+    setAnswerSaving(true);
+    setAnswerError(null);
+    try {
+      const r = await api.put<{ ok: true; answer: string; changed: boolean }>(
+        `/api/questions/${question.id}/answer`,
+        { answer: answerDraft },
+      );
+      setCurrentAnswer(r.answer);
+      setAnswerDraft(r.answer);
+      setAnswerEditing(false);
+      setStats(null);
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setAnswerError(String(e.data?.error ?? e.message));
+      } else {
+        setAnswerError(String(e));
+      }
+    } finally {
+      setAnswerSaving(false);
+    }
+  }
+
   const options = LETTERS
     .map((L) => ({ L, text: question.options[L] }))
     .filter((o) => !!o.text);
+  const canEditAnswer = question.can_edit_answer === true;
 
   return (
     <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper p-5 sm:p-7">
@@ -190,7 +234,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
       <ul className="mt-6 space-y-2.5">
         {options.map(({ L, text }) => {
           const selected = chosen === L;
-          const isCorrect = L === question.answer;
+          const isCorrect = L === currentAnswer;
           let cls =
             'flex gap-3 items-start p-3 rounded border cursor-pointer transition select-none';
           if (!revealed) {
@@ -249,16 +293,16 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
 
       {revealed && (
         <div className="mt-6 pt-4 border-t border-ink-100 text-sm text-ink-600 flex items-center gap-3 flex-wrap">
-          {chosen === question.answer ? (
+          {chosen === currentAnswer ? (
             <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
               <Check size={16} /> 答對了
             </span>
           ) : chosen ? (
             <span className="inline-flex items-center gap-1 text-rose-700 font-medium">
-              <X size={16} /> 你選 {chosen},正解 {question.answer}
+              <X size={16} /> 你選 {chosen},正解 {currentAnswer}
             </span>
           ) : (
-            <span>正解 {question.answer}</span>
+            <span>正解 {currentAnswer}</span>
           )}
           {question.my_progress && question.my_progress.times_seen > 0 && (
             <span className="text-ink-400">
@@ -272,17 +316,133 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
               答對率 {stats.accuracy ?? 0}%
             </span>
           )}
-          <button
-            onClick={clearProgress}
-            disabled={clearing}
-            className="ml-auto inline-flex items-center gap-1 text-xs text-ink-400 hover:text-rose-600 disabled:opacity-40"
-            title="只清除你自己在本題的作答紀錄"
-          >
-            <RotateCcw size={12} />
-            {clearing ? '清除中…' : '清除本題作答紀錄'}
-          </button>
+          <div className="ml-auto flex items-center justify-end gap-2 flex-wrap">
+            {canEditAnswer && (
+              <AdminAnswerEditor
+                currentAnswer={currentAnswer}
+                draft={answerDraft}
+                options={options.map((o) => o.L)}
+                editing={answerEditing}
+                saving={answerSaving}
+                error={answerError}
+                onStart={() => {
+                  setAnswerDraft(currentAnswer);
+                  setAnswerEditing(true);
+                  setAnswerError(null);
+                }}
+                onDraft={setAnswerDraft}
+                onSave={saveAnswer}
+                onCancel={() => {
+                  setAnswerDraft(currentAnswer);
+                  setAnswerEditing(false);
+                  setAnswerError(null);
+                }}
+              />
+            )}
+            <button
+              onClick={clearProgress}
+              disabled={clearing}
+              className="inline-flex items-center gap-1 text-xs text-ink-400 hover:text-rose-600 disabled:opacity-40"
+              title="只清除你自己在本題的作答紀錄"
+            >
+              <RotateCcw size={12} />
+              {clearing ? '清除中…' : '清除本題作答紀錄'}
+            </button>
+          </div>
         </div>
       )}
+
+      {revealed && (
+        <ChallengePanel
+          key={`${question.id}:${currentAnswer}`}
+          questionId={question.id}
+          currentAnswer={currentAnswer}
+          availableLetters={options.map((o) => o.L)}
+          meEmail={me?.email ?? null}
+        />
+      )}
+    </div>
+  );
+}
+
+function AdminAnswerEditor({
+  currentAnswer,
+  draft,
+  options,
+  editing,
+  saving,
+  error,
+  onStart,
+  onDraft,
+  onSave,
+  onCancel,
+}: {
+  currentAnswer: string;
+  draft: string;
+  options: string[];
+  editing: boolean;
+  saving: boolean;
+  error: string | null;
+  onStart: () => void;
+  onDraft: (answer: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={onStart}
+        className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
+        title="管理員可直接修正本題正解"
+      >
+        <ShieldCheck size={12} />
+        管理員編輯正解
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap justify-end">
+      <div className="inline-flex items-center gap-1 rounded border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-2 py-1">
+        <span className="text-xs text-amber-800 dark:text-amber-200 mr-1">正解</span>
+        {options.map((L) => (
+          <button
+            key={L}
+            type="button"
+            onClick={() => onDraft(L)}
+            disabled={saving}
+            className={
+              'w-7 h-7 rounded-full border text-xs font-mono font-semibold transition disabled:opacity-50 ' +
+              (draft === L
+                ? 'bg-amber-600 border-amber-600 text-white'
+                : 'bg-white dark:bg-ink-800 border-amber-300 dark:border-amber-600 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40')
+            }
+            aria-label={`設為 ${L}`}
+          >
+            {L}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saving || draft === currentAnswer}
+          className="ml-1 inline-flex items-center gap-1 rounded bg-amber-700 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-amber-800 disabled:opacity-40"
+        >
+          {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+          儲存
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+          className="inline-flex items-center gap-1 rounded px-2 py-1.5 text-xs text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 disabled:opacity-40"
+        >
+          <X size={12} />
+          取消
+        </button>
+      </div>
+      {error && <span className="w-full text-right text-xs text-rose-700">{error}</span>}
     </div>
   );
 }

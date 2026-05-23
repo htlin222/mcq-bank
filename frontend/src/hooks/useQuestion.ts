@@ -16,6 +16,7 @@ export type QuestionFull = {
   difficulty: number | null;
   source: string | null;
   tags: string[];
+  can_edit_answer: boolean;
   explanation: {
     question_id: string;
     content_json: string;
