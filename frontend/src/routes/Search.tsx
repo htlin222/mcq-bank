@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search as SearchIcon, X as XIcon } from 'lucide-react';
+import { Search as SearchIcon, X as XIcon, FolderPlus } from 'lucide-react';
 import { api } from '../lib/api';
 
 type Hit = {
@@ -27,6 +27,10 @@ export function Search() {
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [hits, setHits] = useState<Hit[] | null>(null);
   const [searching, setSearching] = useState(false);
+  const [savePromptOpen, setSavePromptOpen] = useState(false);
+  const [folderName, setFolderName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [savedNotice, setSavedNotice] = useState<string | null>(null);
 
   useEffect(() => {
     api.get<Year[]>('/api/questions/_meta/years').then(setYears);
@@ -63,6 +67,28 @@ export function Search() {
       else next.add(t);
       return next;
     });
+  }
+
+  async function saveResults() {
+    if (!hits || hits.length === 0 || saving) return;
+    const name = folderName.trim();
+    if (!name) return;
+    setSaving(true);
+    try {
+      const folder = await api.post<{ id: string; name: string }>('/api/folders', { name });
+      const r = await api.post<{ inserted: number }>('/api/bookmarks/bulk', {
+        question_ids: hits.map((h) => h.id),
+        folder_id: folder.id,
+      });
+      setSavePromptOpen(false);
+      setFolderName('');
+      setSavedNotice(`已存 ${r.inserted} 題到資料夾「${folder.name}」`);
+      setTimeout(() => setSavedNotice(null), 5000);
+    } catch (e) {
+      alert('儲存失敗:' + String(e));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -152,7 +178,51 @@ export function Search() {
         <p className="text-ink-400 text-sm">沒有符合的題目。</p>
       ) : (
         <>
-          <p className="text-xs text-ink-500 dark:text-ink-400 mb-3">{hits.length} 筆結果</p>
+          <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+            <p className="text-xs text-ink-500 dark:text-ink-400">{hits.length} 筆結果</p>
+            <div className="flex items-center gap-2">
+              {savedNotice && (
+                <span className="text-xs text-emerald-700 dark:text-emerald-300">{savedNotice}</span>
+              )}
+              {!savePromptOpen ? (
+                <button
+                  onClick={() => setSavePromptOpen(true)}
+                  className="text-xs text-accent hover:text-accent-dark inline-flex items-center gap-1.5"
+                >
+                  <FolderPlus size={14} /> 儲存為收藏資料夾
+                </button>
+              ) : (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); saveResults(); }}
+                  className="flex items-center gap-1.5"
+                >
+                  <input
+                    autoFocus
+                    value={folderName}
+                    onChange={(e) => setFolderName(e.target.value)}
+                    placeholder="資料夾名稱"
+                    maxLength={40}
+                    className="px-2 py-1 border border-ink-200 dark:border-ink-700 rounded text-xs bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-100 focus:outline-none focus:border-accent"
+                  />
+                  <button
+                    type="submit"
+                    disabled={saving || !folderName.trim()}
+                    className="bg-accent hover:bg-accent-dark text-white px-3 py-1 rounded text-xs font-medium disabled:opacity-40"
+                  >
+                    {saving ? '存…' : '存'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSavePromptOpen(false); setFolderName(''); }}
+                    disabled={saving}
+                    className="text-xs text-ink-500 hover:text-ink-700"
+                  >
+                    取消
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
           <ul className="space-y-2">
             {hits.map((h) => (
               <li key={h.id}>

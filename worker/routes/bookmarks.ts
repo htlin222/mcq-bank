@@ -86,6 +86,40 @@ bookmarksRoutes.put('/:question_id', async (c) => {
   return c.json({ ok: true });
 });
 
+// Bulk upsert — used by the search page to save a result set into a folder.
+//   body: { question_ids: string[]; folder_id?: string | null }
+// Existing bookmarks for those questions get their folder_id overwritten;
+// missing ones are inserted. Caps payload at 500 to protect the worker.
+bookmarksRoutes.post('/bulk', async (c) => {
+  const email = c.var.email;
+  const body = await c.req.json<{ question_ids: string[]; folder_id?: string | null }>();
+  const ids = Array.isArray(body.question_ids) ? body.question_ids.slice(0, 500) : [];
+  if (ids.length === 0) return c.json({ ok: true, inserted: 0 });
+
+  // Validate folder ownership when one is given
+  if (body.folder_id) {
+    const ok = await c.env.DB
+      .prepare('SELECT id FROM bookmark_folders WHERE id = ? AND user_email = ?')
+      .bind(body.folder_id, email)
+      .first();
+    if (!ok) return c.json({ error: 'folder not yours' }, 403);
+  }
+
+  const now = Date.now();
+  const ops = ids.map((qid) =>
+    c.env.DB
+      .prepare(
+        `INSERT INTO bookmark_items (user_email, question_id, folder_id, note, created_at)
+         VALUES (?, ?, ?, NULL, ?)
+         ON CONFLICT(user_email, question_id) DO UPDATE SET
+           folder_id = excluded.folder_id`
+      )
+      .bind(email, qid, body.folder_id ?? null, now)
+  );
+  await c.env.DB.batch(ops);
+  return c.json({ ok: true, inserted: ids.length });
+});
+
 // Remove bookmark
 bookmarksRoutes.delete('/:question_id', async (c) => {
   const email = c.var.email;

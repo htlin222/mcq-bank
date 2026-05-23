@@ -28,20 +28,40 @@ export function Exam() {
   return <ExamStart />;
 }
 
+type Group = '內科' | '共同';
+const GROUP_COUNTS: Record<Group, number> = { '內科': 70, '共同': 30 };
+
 function ExamStart() {
   const [years, setYears] = useState<YearMeta[]>([]);
   const [starting, setStarting] = useState<number | null>(null);
+  const [groups, setGroups] = useState<Set<Group>>(new Set(['內科', '共同']));
   const navigate = useNavigate();
 
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
   }, []);
 
+  const totalCount =
+    (groups.has('內科') ? GROUP_COUNTS['內科'] : 0) +
+    (groups.has('共同') ? GROUP_COUNTS['共同'] : 0);
+
+  function toggleGroup(g: Group) {
+    setGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(g)) next.delete(g);
+      else next.add(g);
+      return next;
+    });
+  }
+
   async function start(year: number) {
-    if (starting) return;
+    if (starting || groups.size === 0) return;
     setStarting(year);
     try {
-      const s = await api.post<ExamState>('/api/exam/start', { year });
+      const s = await api.post<ExamState>('/api/exam/start', {
+        year,
+        groups: [...groups],
+      });
       sessionStorage.setItem(`exam-${s.session_id}`, JSON.stringify(s));
       navigate(`/exam/${s.session_id}`);
     } finally {
@@ -49,12 +69,30 @@ function ExamStart() {
     }
   }
 
+  const canStart = groups.size > 0;
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2">全真作答</h1>
-      <p className="text-ink-500 dark:text-ink-400 text-sm mb-8">
-        100 分鐘模擬考 · 可中途暫停離開、稍後續答 · 完賽看分數與錯題回顧
+      <p className="text-ink-500 dark:text-ink-400 text-sm mb-6">
+        {totalCount > 0 ? `${totalCount} 分鐘模擬考` : '選擇科別'} · 可中途暫停離開、稍後續答 · 完賽看分數與錯題回顧
       </p>
+
+      {/* 科別選擇 */}
+      <div className="mb-8 flex flex-wrap gap-2 items-center">
+        <span className="text-xs uppercase tracking-wider text-ink-400 mr-1">科別</span>
+        <GroupToggle group="內科" active={groups.has('內科')} onClick={() => toggleGroup('內科')} />
+        <GroupToggle group="共同" active={groups.has('共同')} onClick={() => toggleGroup('共同')} />
+        {totalCount > 0 && (
+          <span className="text-xs text-ink-500 dark:text-ink-400 ml-2">
+            共 {totalCount} 題
+          </span>
+        )}
+      </div>
+
+      {!canStart && (
+        <p className="text-rose-700 dark:text-rose-300 text-sm mb-4">至少選一個科別才能開始。</p>
+      )}
 
       {years.length === 0 ? (
         <p className="text-ink-400">尚無題庫,請先匯入。</p>
@@ -64,8 +102,8 @@ function ExamStart() {
             <button
               key={y.year}
               onClick={() => start(y.year)}
-              disabled={starting !== null}
-              className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 hover:border-accent hover:shadow-paper transition disabled:opacity-40 text-left"
+              disabled={starting !== null || !canStart}
+              className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 hover:border-accent hover:shadow-paper transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-ink-200 dark:disabled:hover:border-ink-700 disabled:hover:shadow-none text-left"
             >
               <div className="font-serif text-2xl text-ink-900 dark:text-ink-100">
                 {y.year}
@@ -73,7 +111,7 @@ function ExamStart() {
                   <span className="ml-1 text-xs text-ink-400 align-middle">(模擬)</span>
                 )}
               </div>
-              <div className="text-xs text-ink-500 dark:text-ink-400 mt-1">{y.count} 題</div>
+              <div className="text-xs text-ink-500 dark:text-ink-400 mt-1">{totalCount} 題</div>
               {starting === y.year && (
                 <div className="text-[11px] text-accent mt-2">準備中…</div>
               )}
@@ -88,6 +126,33 @@ function ExamStart() {
         </Link>
       </div>
     </div>
+  );
+}
+
+function GroupToggle({
+  group,
+  active,
+  onClick,
+}: {
+  group: Group;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={
+        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition ' +
+        (active
+          ? 'bg-accent/10 border-accent text-accent-dark dark:text-accent font-medium'
+          : 'bg-white dark:bg-ink-800 border-ink-200 dark:border-ink-700 text-ink-500 dark:text-ink-400 hover:border-ink-400')
+      }
+    >
+      <span className={'inline-block w-2 h-2 rounded-full ' + (active ? 'bg-accent' : 'bg-ink-300 dark:bg-ink-600')} />
+      {group} ({GROUP_COUNTS[group]})
+    </button>
   );
 }
 

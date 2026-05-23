@@ -4,37 +4,55 @@ import { uuid, optionsToRecord } from '../lib/db';
 
 export const examRoutes = new Hono<AppContext>();
 
-// Cap one mock exam at 100 minutes (the real exam length).
-const EXAM_CAP_MS = 100 * 60 * 1000;
+// Real exam pacing: 1 minute per question. 100 questions → 100 min,
+// 內科 only (70) → 70 min, 共同 only (30) → 30 min.
+const MS_PER_QUESTION = 60 * 1000;
+const VALID_GROUPS = ['內科', '共同'] as const;
+type Group = (typeof VALID_GROUPS)[number];
 
-// Start a new exam session for a given year (full = 100 questions in prod)
+// Start a new exam session. `groups` defaults to both 內科 + 共同 for
+// backwards compatibility with older clients that don't send it.
 examRoutes.post('/start', async (c) => {
   const email = c.var.email;
-  const body = await c.req.json<{ year: number; mode?: 'full' | 'partial' }>();
+  const body = await c.req.json<{
+    year: number;
+    mode?: 'full' | 'partial';
+    groups?: Group[];
+  }>();
+
+  const groups: Group[] = Array.isArray(body.groups) && body.groups.length > 0
+    ? body.groups.filter((g): g is Group => VALID_GROUPS.includes(g))
+    : [...VALID_GROUPS];
+  if (groups.length === 0) {
+    return c.json({ error: 'invalid groups' }, 400);
+  }
+  const placeholders = groups.map(() => '?').join(',');
 
   const { results: questions } = await c.env.DB
     .prepare(
       `SELECT id, year, number, stem, options_json
-       FROM questions WHERE year = ? ORDER BY number ASC`
+       FROM questions WHERE year = ? AND "group" IN (${placeholders})
+       ORDER BY number ASC`
     )
-    .bind(body.year)
+    .bind(body.year, ...groups)
     .all<Pick<Question, 'id' | 'year' | 'number' | 'stem' | 'options_json'>>();
 
   if (questions.length === 0) {
-    return c.json({ error: 'no questions for that year' }, 404);
+    return c.json({ error: 'no questions for that selection' }, 404);
   }
 
   const sessionId = uuid();
   const now = Date.now();
+  const capMs = questions.length * MS_PER_QUESTION;
 
   // Create session (immediately running) + empty answer rows in one batch
   const ops = [
     c.env.DB
       .prepare(
-        `INSERT INTO exam_sessions (id, user_email, year, started_at, mode, elapsed_ms, running_since)
-         VALUES (?, ?, ?, ?, ?, 0, ?)`
+        `INSERT INTO exam_sessions (id, user_email, year, started_at, mode, elapsed_ms, running_since, cap_ms)
+         VALUES (?, ?, ?, ?, ?, 0, ?, ?)`
       )
-      .bind(sessionId, email, body.year, now, body.mode || 'full', now),
+      .bind(sessionId, email, body.year, now, body.mode || 'full', now, capMs),
   ];
   for (const q of questions) {
     ops.push(
@@ -52,7 +70,7 @@ examRoutes.post('/start', async (c) => {
     started_at: now,
     elapsed_ms: 0,
     running_since: now,
-    cap_ms: EXAM_CAP_MS,
+    cap_ms: capMs,
     questions: questions.map((q) => ({
       id: q.id,
       number: q.number,
@@ -72,7 +90,7 @@ examRoutes.get('/:sid/state', async (c) => {
   const session = await c.env.DB
     .prepare('SELECT * FROM exam_sessions WHERE id = ?')
     .bind(sid)
-    .first<ExamSession & { elapsed_ms: number; running_since: number | null }>();
+    .first<ExamSession & { elapsed_ms: number; running_since: number | null; cap_ms: number }>();
   if (!session) return c.json({ error: 'not found' }, 404);
   if (session.user_email !== email) return c.json({ error: 'forbidden' }, 403);
   if (session.finished_at) return c.json({ error: 'already finished' }, 410);
@@ -97,7 +115,7 @@ examRoutes.get('/:sid/state', async (c) => {
     started_at: session.started_at,
     elapsed_ms: liveElapsed,
     running_since: session.running_since,
-    cap_ms: EXAM_CAP_MS,
+    cap_ms: session.cap_ms,
     questions: rows.map((r) => ({
       id: r.id,
       number: r.number,
@@ -146,10 +164,10 @@ examRoutes.post('/:sid/resume', async (c) => {
 
   const s = await c.env.DB
     .prepare(
-      'SELECT user_email, finished_at, elapsed_ms, running_since FROM exam_sessions WHERE id = ?'
+      'SELECT user_email, finished_at, elapsed_ms, running_since, cap_ms FROM exam_sessions WHERE id = ?'
     )
     .bind(sid)
-    .first<{ user_email: string; finished_at: number | null; elapsed_ms: number; running_since: number | null }>();
+    .first<{ user_email: string; finished_at: number | null; elapsed_ms: number; running_since: number | null; cap_ms: number }>();
   if (!s) return c.json({ error: 'not found' }, 404);
   if (s.user_email !== email) return c.json({ error: 'forbidden' }, 403);
   if (s.finished_at) return c.json({ error: 'already finished' }, 400);
@@ -157,8 +175,8 @@ examRoutes.post('/:sid/resume', async (c) => {
     return c.json({ ok: true, elapsed_ms: s.elapsed_ms, running_since: s.running_since, already: true });
   }
   // Refuse resume if already past cap — force-finish instead
-  if (s.elapsed_ms >= EXAM_CAP_MS) {
-    return c.json({ error: 'time cap reached, must finish', elapsed_ms: s.elapsed_ms, cap_ms: EXAM_CAP_MS }, 409);
+  if (s.elapsed_ms >= s.cap_ms) {
+    return c.json({ error: 'time cap reached, must finish', elapsed_ms: s.elapsed_ms, cap_ms: s.cap_ms }, 409);
   }
 
   await c.env.DB
@@ -211,7 +229,7 @@ examRoutes.post('/:sid/finish', async (c) => {
       'SELECT * FROM exam_sessions WHERE id = ?'
     )
     .bind(sid)
-    .first<ExamSession & { elapsed_ms: number; running_since: number | null }>();
+    .first<ExamSession & { elapsed_ms: number; running_since: number | null; cap_ms: number }>();
 
   if (!session) return c.json({ error: 'session not found' }, 404);
   if (session.user_email !== email) return c.json({ error: 'forbidden' }, 403);
@@ -236,12 +254,12 @@ examRoutes.post('/:sid/finish', async (c) => {
     .bind(sid)
     .first<{ n: number }>();
 
-  // Finalize elapsed time — cap at EXAM_CAP_MS so abandoned sessions
-  // resumed past the cap don't get an unbounded duration.
+  // Finalize elapsed time — clamp to the session's cap so abandoned
+  // sessions resumed past the cap don't get an unbounded duration.
   const liveElapsed = session.running_since
     ? session.elapsed_ms + (now - session.running_since)
     : session.elapsed_ms;
-  const finalMs = Math.min(liveElapsed, EXAM_CAP_MS);
+  const finalMs = Math.min(liveElapsed, session.cap_ms);
   const duration = Math.floor(finalMs / 1000);
 
   await c.env.DB

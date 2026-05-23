@@ -98,7 +98,7 @@ export function Profile() {
               onChange={(e) => setBio(e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-ink-200 rounded focus:outline-none focus:border-accent font-serif resize-y"
-              placeholder="e.g. 內科 R2 · 興趣:腎臟科、感染症"
+              placeholder="e.g. Fellow 1, 2, 3, 某某醫院"
             />
           </Field>
         </div>
