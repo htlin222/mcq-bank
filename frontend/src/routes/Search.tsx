@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search as SearchIcon, X as XIcon, FolderPlus } from 'lucide-react';
 import { api } from '../lib/api';
+import { BookmarkBadge } from '../components/BookmarkBadge';
+import { useBookmarkSet } from '../hooks/useBookmarkSet';
 
 type Hit = {
   id: string;
@@ -25,6 +27,7 @@ export function Search() {
   );
   const [years, setYears] = useState<Year[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
+  const bookmarkSet = useBookmarkSet();
   const [hits, setHits] = useState<Hit[] | null>(null);
   const [searching, setSearching] = useState(false);
   const [savePromptOpen, setSavePromptOpen] = useState(false);
@@ -84,6 +87,9 @@ export function Search() {
       setFolderName('');
       setSavedNotice(`已存 ${r.inserted} 題到資料夾「${folder.name}」`);
       setTimeout(() => setSavedNotice(null), 5000);
+      // bulk-save adds bookmarks across the result set; refresh the global
+      // bookmark set so the badge appears immediately everywhere.
+      bookmarkSet.reload();
     } catch (e) {
       alert('儲存失敗:' + String(e));
     } finally {
@@ -234,6 +240,7 @@ export function Search() {
                     <span className="font-mono text-ink-500 dark:text-ink-400">
                       {h.year}-{String(h.number).padStart(3, '0')}
                     </span>
+                    <BookmarkBadge questionId={h.id} />
                     {h.group && (
                       <span className={
                         'px-1.5 py-0.5 rounded text-[10px] ' +

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { X as XIcon } from 'lucide-react';
 import { api } from '../lib/api';
+import { BookmarkBadge } from '../components/BookmarkBadge';
 
 type Row = {
   id: string;
@@ -123,6 +124,7 @@ export function WrongQuestions() {
                 <span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0 w-16 text-right">
                   {r.year}-{String(r.number).padStart(3, '0')}
                 </span>
+                <BookmarkBadge questionId={r.id} className="mt-1" />
                 <span className="text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed flex-1">{r.stem}</span>
                 {r.group && (
                   <span className={

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Folder, FolderPlus, Trash2, MoreVertical } from 'lucide-react';
 import { api } from '../lib/api';
+import { BookmarkBadge } from '../components/BookmarkBadge';
+import { useBookmarkSet } from '../hooks/useBookmarkSet';
 
 type Folder = { id: string; name: string; sort: number; item_count: number };
 type FoldersResp = {
@@ -170,6 +172,7 @@ export function Bookmarks() {
                     <span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0 w-16 text-right">
                       {it.year}-{String(it.number).padStart(3, '0')}
                     </span>
+                    {active === NOTES && <BookmarkBadge questionId={it.id} className="mt-1" />}
                     <span className="text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed flex-1">{it.stem}</span>
                     {it.group && (
                       <span className={

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bookmark, BookmarkPlus, Check, X, FolderPlus, Sparkles, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Bookmark, BookmarkPlus, Check, X, FolderPlus } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
 import type { QuestionFull } from '../hooks/useQuestion';
+import { useBookmarkSet } from '../hooks/useBookmarkSet';
 
 type Props = {
   question: QuestionFull;
@@ -12,6 +13,7 @@ type Props = {
 const LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
 
 export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props) {
+  const bookmarkSet = useBookmarkSet();
   const [chosen, setChosen] = useState<string | null>(
     question.my_progress?.last_chosen ?? null,
   );
@@ -21,54 +23,6 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
     question.my_progress?.bookmark_folder_id ?? null,
   );
   const [submitting, setSubmitting] = useState(false);
-
-  // AI-suggested tags. We keep adopted tags in local state so the chip row
-  // reflects additions immediately without a page reload.
-  const [addedTags, setAddedTags] = useState<string[]>([]);
-  const [suggestedTags, setSuggestedTags] = useState<string[] | null>(null);
-  const [suggesting, setSuggesting] = useState(false);
-  const [suggestError, setSuggestError] = useState<string | null>(null);
-
-  const allTags = useMemo(() => {
-    const seen = new Set<string>();
-    const out: string[] = [];
-    for (const t of [...(question.tags || []), ...addedTags]) {
-      if (!seen.has(t)) { seen.add(t); out.push(t); }
-    }
-    return out;
-  }, [question.tags, addedTags]);
-
-  async function fetchSuggestedTags() {
-    if (suggesting) return;
-    setSuggesting(true);
-    setSuggestError(null);
-    try {
-      const r = await api.post<{ tags: string[] }>('/api/ai/suggest-tags', {
-        stem: question.stem,
-      });
-      const existing = new Set(allTags);
-      const fresh = (r.tags || []).filter((t) => !existing.has(t));
-      setSuggestedTags(fresh);
-      if (fresh.length === 0) setSuggestError('AI 沒給出新的標籤建議。');
-    } catch (e) {
-      setSuggestError(String(e));
-    } finally {
-      setSuggesting(false);
-    }
-  }
-
-  async function acceptTag(tag: string) {
-    setSuggestedTags((prev) => (prev ?? []).filter((t) => t !== tag));
-    setAddedTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
-    try {
-      await api.post(`/api/questions/${question.id}/tags`, { tag });
-    } catch (e) {
-      // Roll back optimistic state on failure
-      setAddedTags((prev) => prev.filter((t) => t !== tag));
-      setSuggestedTags((prev) => (prev && !prev.includes(tag) ? [tag, ...prev] : prev));
-      setSuggestError(String(e));
-    }
-  }
 
   async function submit() {
     if (!chosen || submitting) return;
@@ -88,6 +42,8 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
   async function toggleBookmark() {
     const next = !bookmarked;
     setBookmarked(next);
+    if (next) bookmarkSet.add(question.id);
+    else bookmarkSet.remove(question.id);
     try {
       if (next) {
         await api.put(`/api/bookmarks/${question.id}`, { folder_id: folderId });
@@ -98,6 +54,8 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
       onBookmarkToggled?.(next);
     } catch (e) {
       setBookmarked(!next);
+      if (next) bookmarkSet.remove(question.id);
+      else bookmarkSet.add(question.id);
       if (!(e instanceof ApiError)) throw e;
     }
   }
@@ -105,6 +63,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
   async function moveToFolder(newFolderId: string | null) {
     setFolderId(newFolderId);
     setBookmarked(true);
+    bookmarkSet.add(question.id);
     await api.put(`/api/bookmarks/${question.id}`, { folder_id: newFolderId });
     onBookmarkToggled?.(true);
   }
@@ -130,9 +89,9 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
               {question.group}
             </span>
           )}
-          {allTags.length > 0 && (
+          {question.tags && question.tags.length > 0 && (
             <span className="flex flex-wrap gap-1">
-              {allTags.map((t) => (
+              {question.tags.map((t) => (
                 <span
                   key={t}
                   className="inline-block bg-ink-100 text-ink-700 px-2 py-0.5 rounded text-[11px]"
@@ -142,15 +101,6 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
               ))}
             </span>
           )}
-          <button
-            onClick={fetchSuggestedTags}
-            disabled={suggesting}
-            className="inline-flex items-center gap-1 text-[11px] text-ink-400 hover:text-accent disabled:opacity-40"
-            title="讓 AI 根據題幹建議血腫科標籤"
-          >
-            <Sparkles size={11} />
-            {suggesting ? '思考中…' : '建議標籤'}
-          </button>
         </div>
         <BookmarkButton
           bookmarked={bookmarked}
@@ -159,38 +109,6 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled }: Props)
           currentFolderId={folderId}
         />
       </header>
-
-      {(suggestedTags !== null || suggestError) && (
-        <div className="mb-4 px-3 py-2 rounded bg-amber-50/60 dark:bg-amber-900/10 border border-amber-200/70 dark:border-amber-800/40">
-          <div className="flex items-center justify-between gap-3 mb-1">
-            <span className="inline-flex items-center gap-1 text-[11px] text-amber-800 dark:text-amber-300 font-medium tracking-wide">
-              <Sparkles size={11} /> AI 建議標籤 · 點選即可加入
-            </span>
-            <button
-              onClick={() => { setSuggestedTags(null); setSuggestError(null); }}
-              className="text-ink-400 hover:text-ink-600"
-              aria-label="關閉建議"
-            >
-              <X size={12} />
-            </button>
-          </div>
-          {suggestError ? (
-            <p className="text-xs text-rose-700">{suggestError}</p>
-          ) : suggestedTags && suggestedTags.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {suggestedTags.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => acceptTag(t)}
-                  className="inline-flex items-center gap-1 text-xs bg-white dark:bg-ink-800 border border-amber-300 dark:border-amber-700 text-ink-700 dark:text-ink-200 hover:bg-amber-100 dark:hover:bg-amber-900/30 px-2 py-0.5 rounded transition"
-                >
-                  <Plus size={11} /> {t}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      )}
 
       <p className="font-serif text-lg sm:text-xl leading-relaxed text-ink-900 dark:text-ink-100 whitespace-pre-wrap">
         {question.stem}

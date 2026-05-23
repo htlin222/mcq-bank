@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Pencil, LinkIcon, Sparkles, X as XIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pencil, LinkIcon, Sparkles, X as XIcon, ExternalLink } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
 import { useQuestion } from '../hooks/useQuestion';
 import { useLock } from '../hooks/useLock';
@@ -9,6 +9,7 @@ import { QuestionCard } from '../components/QuestionCard';
 import { RichEditor } from '../components/RichEditor';
 import { ReadOnlyContent } from '../components/ReadOnlyContent';
 import { CommentThread } from '../components/CommentThread';
+import { BookmarkBadge } from '../components/BookmarkBadge';
 
 type Tab = 'explanation' | 'note';
 
@@ -40,10 +41,14 @@ export function Question() {
   const [noteSaving, setNoteSaving] = useState(false);
   const [noteError, setNoteError] = useState<string | null>(null);
 
-  // AI summary of the explanation — fetched on demand, scoped to current version
-  const [summary, setSummary] = useState<{ text: string; version: number } | null>(null);
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
+  // AI panel — one shared display for 摘要 / 解題 / 翻譯.
+  // `version` is the explanation version snapshot for kinds that depend on it,
+  // so we can invalidate stale output when the explanation moves forward.
+  type AiKind = 'summary' | 'solve' | 'translate';
+  type AiOutput = { kind: AiKind; text: string; version: number };
+  const [aiOutput, setAiOutput] = useState<AiOutput | null>(null);
+  const [aiLoading, setAiLoading] = useState<AiKind | null>(null);
+  const [aiError, setAiError] = useState<{ kind: AiKind; message: string } | null>(null);
 
   const explanationJson = useMemo(() => {
     if (!data?.explanation?.content_json) return null;
@@ -63,14 +68,15 @@ export function Question() {
     }
   }, [data?.my_note?.content_json]);
 
-  // Invalidate cached summary when the explanation version moves past it
+  // Invalidate cached AI output when its source (explanation version) changes.
+  // `solve` is keyed off the question, not the explanation, so it never invalidates here.
   useEffect(() => {
     const v = data?.explanation?.version ?? 0;
-    if (summary && summary.version !== v) {
-      setSummary(null);
-      setSummaryError(null);
+    if (aiOutput && aiOutput.kind !== 'solve' && aiOutput.version !== v) {
+      setAiOutput(null);
+      setAiError(null);
     }
-  }, [data?.explanation?.version, summary]);
+  }, [data?.explanation?.version, aiOutput]);
 
   // 相似題目 — lazy-loaded after the main question payload arrives.
   // Kept off the hot /api/questions/:id path so navigation stays snappy.
@@ -160,22 +166,36 @@ export function Question() {
     setNoteError(null);
   }
 
-  async function runSummary() {
-    if (!data || !explanationJson || summaryLoading) return;
-    const plain = tiptapToText(explanationJson);
-    if (plain.length < 50) {
-      setSummaryError('詳解內容太短,無法摘要。');
-      return;
-    }
-    setSummaryLoading(true);
-    setSummaryError(null);
+  async function runAi(kind: AiKind) {
+    if (!data || aiLoading) return;
+    const version = data.explanation?.version ?? 0;
+    setAiLoading(kind);
+    setAiError(null);
     try {
-      const r = await api.post<{ summary: string }>('/api/ai/summarize', { text: plain });
-      setSummary({ text: r.summary, version: data.explanation?.version ?? 0 });
+      if (kind === 'summary') {
+        if (!explanationJson) throw new Error('尚無詳解可摘要');
+        const plain = tiptapToText(explanationJson);
+        if (plain.length < 50) throw new Error('詳解內容太短,無法摘要。');
+        const r = await api.post<{ summary: string }>('/api/ai/summarize', { text: plain });
+        setAiOutput({ kind, text: r.summary, version });
+      } else if (kind === 'solve') {
+        const r = await api.post<{ text: string }>('/api/ai/solve', {
+          stem: data.stem,
+          options: data.options,
+          answer: data.answer,
+        });
+        setAiOutput({ kind, text: r.text, version });
+      } else {
+        if (!explanationJson) throw new Error('尚無詳解可翻譯');
+        const plain = tiptapToText(explanationJson);
+        if (plain.length < 2) throw new Error('詳解內容太短,無法翻譯。');
+        const r = await api.post<{ text: string }>('/api/ai/translate-zh-tw', { text: plain });
+        setAiOutput({ kind, text: r.text, version });
+      }
     } catch (e) {
-      setSummaryError(String(e));
+      setAiError({ kind, message: e instanceof Error ? e.message : String(e) });
     } finally {
-      setSummaryLoading(false);
+      setAiLoading(null);
     }
   }
 
@@ -250,18 +270,44 @@ export function Question() {
             </TabButton>
           </div>
           {tab === 'explanation' && !editing && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap justify-end">
               {hasExplanation && (
-                <button
-                  onClick={runSummary}
-                  disabled={summaryLoading}
-                  className="text-sm text-ink-500 hover:text-accent disabled:opacity-40 inline-flex items-center gap-1"
+                <AiActionButton
+                  label="AI 摘要"
+                  loadingLabel="摘要中…"
+                  busy={aiLoading === 'summary'}
+                  disabled={!!aiLoading && aiLoading !== 'summary'}
+                  onClick={() => runAi('summary')}
                   title="用 AI 產生 2-3 句重點摘要"
-                >
-                  <Sparkles size={14} />
-                  {summaryLoading ? '摘要中…' : 'AI 摘要'}
-                </button>
+                />
               )}
+              <AiActionButton
+                label="AI 解題"
+                loadingLabel="解題中…"
+                busy={aiLoading === 'solve'}
+                disabled={!!aiLoading && aiLoading !== 'solve'}
+                onClick={() => runAi('solve')}
+                title="讓 AI 根據題幹+選項+正解,說明每個選項對錯"
+              />
+              {hasExplanation && (
+                <AiActionButton
+                  label="AI 繁中翻譯"
+                  loadingLabel="翻譯中…"
+                  busy={aiLoading === 'translate'}
+                  disabled={!!aiLoading && aiLoading !== 'translate'}
+                  onClick={() => runAi('translate')}
+                  title="把目前詳解轉成台灣繁體用語"
+                />
+              )}
+              <a
+                href={buildOpenEvidenceUrl(data)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-ink-500 hover:text-accent inline-flex items-center gap-1"
+                title="把題幹+選項丟到 OpenEvidence(不送正解,可當盲解參考)"
+              >
+                <ExternalLink size={14} /> OpenEvidence
+              </a>
               <button
                 onClick={startEdit}
                 disabled={lockState.status === 'acquiring' || lockState.status === 'locked-by-other'}
@@ -325,28 +371,12 @@ export function Question() {
           </div>
         ) : hasExplanation ? (
           <>
-            {(summary || summaryError) && (
-              <aside className="mb-3 bg-amber-50/60 dark:bg-amber-900/10 border border-amber-200/70 dark:border-amber-800/40 rounded-lg p-4 text-sm">
-                <div className="flex items-start justify-between gap-3 mb-1">
-                  <span className="inline-flex items-center gap-1 text-xs text-amber-800 dark:text-amber-300 font-medium tracking-wide">
-                    <Sparkles size={12} /> AI 摘要 · 僅供快速回顧
-                  </span>
-                  <button
-                    onClick={() => { setSummary(null); setSummaryError(null); }}
-                    className="text-ink-400 hover:text-ink-600"
-                    aria-label="關閉摘要"
-                  >
-                    <XIcon size={14} />
-                  </button>
-                </div>
-                {summaryError ? (
-                  <p className="text-rose-700">{summaryError}</p>
-                ) : (
-                  <p className="text-ink-800 dark:text-ink-200 whitespace-pre-wrap leading-relaxed">
-                    {summary!.text}
-                  </p>
-                )}
-              </aside>
+            {(aiOutput || aiError) && (
+              <AiPanel
+                output={aiOutput}
+                error={aiError}
+                onClose={() => { setAiOutput(null); setAiError(null); }}
+              />
             )}
             <article className="bg-white border border-ink-200 rounded-lg p-5 sm:p-7 shadow-paper">
               <ReadOnlyContent content={explanationJson} />
@@ -360,15 +390,24 @@ export function Question() {
             </article>
           </>
         ) : (
-          <div className="bg-ink-50 border border-dashed border-ink-200 rounded-lg p-8 text-center">
-            <p className="text-ink-500 mb-3">尚無詳解,你願意第一個寫嗎?</p>
-            <button
-              onClick={startEdit}
-              className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium"
-            >
-              開始寫詳解
-            </button>
-          </div>
+          <>
+            {(aiOutput || aiError) && (
+              <AiPanel
+                output={aiOutput}
+                error={aiError}
+                onClose={() => { setAiOutput(null); setAiError(null); }}
+              />
+            )}
+            <div className="bg-ink-50 border border-dashed border-ink-200 rounded-lg p-8 text-center">
+              <p className="text-ink-500 mb-3">尚無詳解,你願意第一個寫嗎?</p>
+              <button
+                onClick={startEdit}
+                className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium"
+              >
+                開始寫詳解
+              </button>
+            </div>
+          </>
         ))}
 
         {tab === 'note' && (noteEditing ? (
@@ -441,6 +480,7 @@ export function Question() {
                   <span className="font-mono text-sm text-ink-500 shrink-0">
                     {s.year}-{String(s.number).padStart(3, '0')}
                   </span>
+                  <BookmarkBadge questionId={s.id} className="mt-1" />
                   <span className="text-ink-700 line-clamp-1 flex-1">{s.stem}</span>
                 </Link>
                 <span
@@ -474,6 +514,7 @@ export function Question() {
               >
                 <Link to={`/q/${r.source_question_id}`} className="flex-1 flex items-start gap-3 min-w-0">
                   <span className="font-mono text-sm text-ink-500 shrink-0">{r.source_question_id}</span>
+                  <BookmarkBadge questionId={r.source_question_id} className="mt-1" />
                   <span className="text-ink-700 line-clamp-1 flex-1">{r.source_stem}</span>
                 </Link>
                 <span className="text-xs text-ink-400 shrink-0 self-center">
@@ -495,6 +536,95 @@ export function Question() {
         )}
       </section>
     </div>
+  );
+}
+
+// Build a blind-solving query for OpenEvidence: stem + options only, no answer.
+// We send a labelled multi-option prompt so OpenEvidence can frame its reply as
+// a choice analysis, not just a tangent. Truncate generously to avoid hitting
+// URL length limits on either OpenEvidence or the user's browser.
+function buildOpenEvidenceUrl(data: {
+  stem: string;
+  options: Record<string, string>;
+}): string {
+  const optionLines = ['A', 'B', 'C', 'D', 'E']
+    .map((L) => (data.options[L] ? `(${L}) ${data.options[L]}` : null))
+    .filter(Boolean)
+    .join('\n');
+  const query = `${data.stem}\n\nOptions:\n${optionLines}\n\nWhich option is best supported by current evidence, and why?`
+    .slice(0, 1800);
+  const url = new URL('https://www.openevidence.com/ask');
+  url.searchParams.set('query', query);
+  url.searchParams.set('configName', 'prod');
+  return url.toString();
+}
+
+function AiActionButton({
+  label,
+  loadingLabel,
+  busy,
+  disabled,
+  onClick,
+  title,
+}: {
+  label: string;
+  loadingLabel: string;
+  busy: boolean;
+  disabled: boolean;
+  onClick: () => void;
+  title: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={busy || disabled}
+      className="text-sm text-ink-500 hover:text-accent disabled:opacity-40 inline-flex items-center gap-1"
+      title={title}
+    >
+      <Sparkles size={14} />
+      {busy ? loadingLabel : label}
+    </button>
+  );
+}
+
+const AI_PANEL_HEADINGS: Record<'summary' | 'solve' | 'translate', string> = {
+  summary: 'AI 摘要 · 僅供快速回顧',
+  solve: 'AI 解題 · 僅供參考',
+  translate: 'AI 繁中翻譯 · 機器轉換,請核對',
+};
+
+function AiPanel({
+  output,
+  error,
+  onClose,
+}: {
+  output: { kind: 'summary' | 'solve' | 'translate'; text: string } | null;
+  error: { kind: 'summary' | 'solve' | 'translate'; message: string } | null;
+  onClose: () => void;
+}) {
+  const kind = output?.kind ?? error?.kind ?? 'summary';
+  return (
+    <aside className="mb-3 bg-amber-50/60 dark:bg-amber-900/10 border border-amber-200/70 dark:border-amber-800/40 rounded-lg p-4 text-sm">
+      <div className="flex items-start justify-between gap-3 mb-1">
+        <span className="inline-flex items-center gap-1 text-xs text-amber-800 dark:text-amber-300 font-medium tracking-wide">
+          <Sparkles size={12} /> {AI_PANEL_HEADINGS[kind]}
+        </span>
+        <button
+          onClick={onClose}
+          className="text-ink-400 hover:text-ink-600"
+          aria-label="關閉 AI 面板"
+        >
+          <XIcon size={14} />
+        </button>
+      </div>
+      {error ? (
+        <p className="text-rose-700">{error.message}</p>
+      ) : output ? (
+        <p className="text-ink-800 dark:text-ink-200 whitespace-pre-wrap leading-relaxed">
+          {output.text}
+        </p>
+      ) : null}
+    </aside>
   );
 }
 

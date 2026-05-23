@@ -86,6 +86,72 @@ aiRoutes.post('/expand', async (c) => {
   return c.json({ text: (out as any).response });
 });
 
+// Walk through a question: explain why the correct answer is right and the
+// distractors are wrong. Operates from stem + options + answer (not the
+// crowd-written explanation) so it stays independent of 詳解 quality.
+aiRoutes.post('/solve', async (c) => {
+  const body = await c.req.json<{
+    stem: string;
+    options: Record<string, string>;
+    answer: string;
+  }>();
+
+  if (!body.stem || !body.options || !body.answer) {
+    return c.json({ error: 'stem, options, and answer are required' }, 400);
+  }
+
+  const optionLines = Object.entries(body.options)
+    .filter(([, v]) => !!v)
+    .map(([k, v]) => `(${k}) ${v}`)
+    .join('\n');
+
+  const out = await c.env.AI.run(TEXT_MODEL, {
+    messages: [
+      {
+        role: 'system',
+        content:
+          '你是血液腫瘤科考題解題助手。針對使用者提供的題目,先用一句話講核心觀念,' +
+          '接著條列說明為什麼正解正確、其他每個選項錯在哪裡。' +
+          '用繁體中文,語氣專業精簡,不要客套,不要重複題目本身。',
+      },
+      {
+        role: 'user',
+        content:
+          `題幹:\n${body.stem.slice(0, 3000)}\n\n選項:\n${optionLines}\n\n正解:${body.answer}`,
+      },
+    ],
+  });
+
+  return c.json({ text: (out as any).response });
+});
+
+// Convert text to Traditional Chinese (Taiwan), preserving medical terminology.
+// Used to "rescue" 詳解 that contains 簡體 or English passages.
+aiRoutes.post('/translate-zh-tw', async (c) => {
+  const body = await c.req.json<{ text: string }>();
+  if (!body.text || body.text.length < 2) {
+    return c.json({ error: 'text too short' }, 400);
+  }
+
+  const out = await c.env.AI.run(TEXT_MODEL, {
+    messages: [
+      {
+        role: 'system',
+        content:
+          '你是醫學文件繁體中文化助手。把使用者提供的內容轉成台灣慣用的繁體中文。' +
+          '規則:(1) 簡體字直接轉繁體;(2) 中國大陸用語改為台灣用語' +
+          '(例如:激素→荷爾蒙/類固醇、白血球計數的單位保留)' +
+          ';(3) 英文醫學名詞與藥名保留原文不翻;' +
+          '(4) 已是繁體與正確用語的句子原樣保留,不要硬改;' +
+          '(5) 直接輸出轉換結果,不要加說明、前綴或客套話。',
+      },
+      { role: 'user', content: body.text.slice(0, 4000) },
+    ],
+  });
+
+  return c.json({ text: (out as any).response });
+});
+
 // Embed text for similarity search (used to find related questions)
 aiRoutes.post('/embed', async (c) => {
   const body = await c.req.json<{ text: string }>();

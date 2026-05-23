@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
+import { BookmarkBadge } from '../components/BookmarkBadge';
 
 type QListItem = {
   id: string;
@@ -95,6 +96,7 @@ export function YearList() {
               <span className="font-mono text-sm text-ink-500 shrink-0 w-10 text-right">
                 {q.number}.
               </span>
+              <BookmarkBadge questionId={q.id} className="mt-1" />
               <span className="text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed">
                 {q.stem}
               </span>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
+import { BookmarkBadge } from '../components/BookmarkBadge';
 
 type Result = {
   session: {
@@ -112,7 +113,10 @@ export function ExamResult() {
                   {a.number}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-ink-800 line-clamp-2 leading-relaxed">{a.stem}</p>
+                  <p className="text-ink-800 line-clamp-2 leading-relaxed inline-flex items-start gap-1.5">
+                    <BookmarkBadge questionId={a.question_id} className="mt-1" />
+                    <span>{a.stem}</span>
+                  </p>
                   <div className="text-xs text-ink-500 mt-1">
                     {unanswered ? (
                       <span>未作答 · 正解 {a.correct_answer}</span>

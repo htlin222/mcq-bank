@@ -24,6 +24,10 @@ years/
 # Smoke/screenshot scratch from headless Chrome runs
 .smoke/
 
+# Local data-pipeline backups + polish cache (per-question claude -p responses)
+.backups/
+.polish-cache/
+
 # OS
 .DS_Store
 Thumbs.db
