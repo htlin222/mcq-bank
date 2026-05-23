@@ -60,15 +60,21 @@ else
   echo "  ⚠️  R2 step may have failed; check manually."
 fi
 
-# 4. Worker
+# 4. Sync roster (CF Access whitelist + D1 users seed)
 echo ""
-echo "▶ Step 4: Deploy Worker"
+echo "▶ Step 4: Sync roster from Google Sheet"
+node --experimental-strip-types scripts/sync-access.ts
+echo "  ✅ Roster synced"
+
+# 5. Worker
+echo ""
+echo "▶ Step 5: Deploy Worker"
 wrangler deploy
 echo "  ✅ Worker deployed"
 
-# 5. Frontend
+# 6. Frontend
 echo ""
-echo "▶ Step 5: Build & deploy frontend (Pages)"
+echo "▶ Step 6: Build & deploy frontend (Pages)"
 cd frontend
 if [ ! -d node_modules ]; then
   echo "  Installing frontend deps (this can take a minute)..."

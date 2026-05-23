@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
+    "sync-users": "node --experimental-strip-types scripts/sync-access.ts",
+    "predeploy": "node --experimental-strip-types scripts/sync-access.ts",
     "deploy": "wrangler deploy",
     "tail": "wrangler tail",
     "db:create": "wrangler d1 create hema-2026-db",

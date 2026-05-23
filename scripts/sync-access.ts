@@ -10,6 +10,10 @@
  *   5. Pushes CF_ACCESS_TEAM_DOMAIN and CF_ACCESS_AUD as Worker secrets
  *      (only when they're not already set in production).
  *   6. Persists ACCESS_APP_ID back into .env for future runs.
+ *   7. Pre-seeds the D1 `users` table so everyone in the sheet shows up
+ *      in @mention pickers / online list before their first login.
+ *      Idempotent via ON CONFLICT(email) DO NOTHING — existing custom
+ *      display names are preserved.
  *
  * Reads .env at repo root. Required keys:
  *   CF_API_TOKEN, CF_ACCOUNT_ID, PAGES_DOMAIN, ADMIN_EMAILS, ROSTER_CSV_URL
@@ -21,7 +25,7 @@
  *   node scripts/sync-access.ts
  */
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, unlink } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 
@@ -95,6 +99,11 @@ async function main() {
     console.log(`\n✓ Saved ACCESS_APP_ID to .env`);
   }
 
+  // 7. Pre-seed D1 users table
+  console.log('\n▶ Seeding D1 users table…');
+  await seedD1Users(merged);
+  console.log(`  ✓ Upserted ${merged.length} rows (existing display names preserved)`);
+
   console.log('\n================================');
   console.log('✅ Access sync complete.');
   console.log(`   Team domain : ${org.auth_domain}`);
@@ -102,6 +111,49 @@ async function main() {
   console.log(`   AUD         : ${app.aud}`);
   console.log(`   Users       : ${merged.length}`);
   console.log(`   URL         : https://${env.PAGES_DOMAIN}`);
+}
+
+// ------------------------------------------------------------ D1 user seeding
+const D1_DB_NAME = 'hema-2026-db';
+
+function sqlEscape(s: string): string {
+  return s.replace(/'/g, "''");
+}
+
+async function seedD1Users(emails: string[]): Promise<void> {
+  if (emails.length === 0) return;
+  const now = Date.now();
+  const rows = emails
+    .map((email) => {
+      const safeEmail = sqlEscape(email);
+      // display_name defaults to the email local-part, matching what the
+      // auth middleware would produce on first login. Users can rename
+      // themselves later via the profile page.
+      const name = sqlEscape(email.split('@')[0]);
+      return `('${safeEmail}', '${name}', ${now}, ${now})`;
+    })
+    .join(',\n  ');
+  const sql =
+    `INSERT INTO users (email, display_name, created_at, updated_at)\n` +
+    `VALUES\n  ${rows}\n` +
+    `ON CONFLICT(email) DO NOTHING;\n`;
+
+  const tmpPath = resolve(ROOT, '.tmp-seed-users.sql');
+  await writeFile(tmpPath, sql, 'utf-8');
+  try {
+    await runWrangler(['d1', 'execute', D1_DB_NAME, '--remote', `--file=${tmpPath}`]);
+  } finally {
+    await unlink(tmpPath).catch(() => {});
+  }
+}
+
+function runWrangler(args: string[]): Promise<void> {
+  return new Promise((resolveP, rejectP) => {
+    const p = spawn('wrangler', args, { stdio: 'inherit', cwd: ROOT });
+    p.on('exit', (c) =>
+      c === 0 ? resolveP() : rejectP(new Error(`wrangler ${args.join(' ')} exited ${c}`)),
+    );
+  });
 }
 
 // ------------------------------------------------------------ env

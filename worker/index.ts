@@ -19,6 +19,7 @@ import { usersRoutes } from './routes/users';
 import { searchRoutes } from './routes/search';
 import { foldersRoutes } from './routes/folders';
 import { bookmarksRoutes } from './routes/bookmarks';
+import { feedbackRoutes } from './routes/feedback';
 
 const app = new Hono<AppContext>();
 
@@ -57,6 +58,7 @@ app.route('/api/notifications', notificationsRoutes);
 app.route('/api/search', searchRoutes);
 app.route('/api/folders', foldersRoutes);
 app.route('/api/bookmarks', bookmarksRoutes);
+app.route('/api/feedback', feedbackRoutes);
 
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 

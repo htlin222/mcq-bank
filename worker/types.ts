@@ -7,6 +7,9 @@ export type Env = {
   CACHE?: KVNamespace;
   CF_ACCESS_TEAM_DOMAIN: string;
   CF_ACCESS_AUD: string;
+  // Optional — feedback button is disabled if either is missing.
+  GH_FEEDBACK_REPO?: string;  // "owner/repo"
+  GH_FEEDBACK_TOKEN?: string; // PAT with issues:write
 };
 
 // Hono variables injected by auth middleware
