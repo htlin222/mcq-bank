@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Pause, Play, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Pause, Play, ChevronLeft, ChevronRight, AlertTriangle, Flag } from 'lucide-react';
 import { api } from '../lib/api';
 
 type YearMeta = { year: number; count: number };
@@ -164,7 +164,32 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
   const [now, setNow] = useState(Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [busy, setBusy] = useState(false);
+  // 標記題目 (待回頭檢查) — local-only, persisted in sessionStorage so a
+  // refresh during the exam doesn't drop the user's flags. Not synced to
+  // the server (these are ephemeral exam-time aids, no need for a roundtrip).
+  const [marked, setMarked] = useState<Set<string>>(() => {
+    try {
+      const raw = sessionStorage.getItem(`exam-marks-${sessionId}`);
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
   const flushTimers = useRef<Record<string, number>>({});
+
+  function toggleMark(qid: string) {
+    setMarked((prev) => {
+      const next = new Set(prev);
+      if (next.has(qid)) next.delete(qid);
+      else next.add(qid);
+      try {
+        sessionStorage.setItem(`exam-marks-${sessionId}`, JSON.stringify([...next]));
+      } catch {
+        /* storage full / disabled — non-fatal */
+      }
+      return next;
+    });
+  }
 
   // Load: prefer fresh state from server (works after refresh / device switch)
   useEffect(() => {
@@ -299,6 +324,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       }
       await api.post(`/api/exam/${sessionId}/finish`);
       sessionStorage.removeItem(`exam-${sessionId}`);
+      sessionStorage.removeItem(`exam-marks-${sessionId}`);
       navigate(`/exam/${sessionId}/result`);
     } finally {
       setSubmitting(false);
@@ -394,8 +420,24 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       {!isPaused && (
         <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
           <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
-            <div className="text-sm text-ink-500 dark:text-ink-400 mb-3">
-              第 {q.number} 題 / {total}
+            <div className="flex items-center justify-between mb-3 gap-3">
+              <div className="text-sm text-ink-500 dark:text-ink-400">
+                第 {q.number} 題 / {total}
+              </div>
+              <button
+                onClick={() => toggleMark(q.id)}
+                className={
+                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium border transition ' +
+                  (marked.has(q.id)
+                    ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-400 text-amber-800 dark:text-amber-200'
+                    : 'border-ink-200 dark:border-ink-700 text-ink-500 dark:text-ink-400 hover:border-amber-400 hover:text-amber-700')
+                }
+                aria-pressed={marked.has(q.id)}
+                title={marked.has(q.id) ? '取消標記' : '標記待回頭檢查'}
+              >
+                <Flag size={13} className={marked.has(q.id) ? 'fill-amber-500' : ''} />
+                {marked.has(q.id) ? '已標記' : '標記'}
+              </button>
             </div>
             <p className="font-serif text-lg sm:text-xl leading-relaxed text-ink-900 dark:text-ink-100 whitespace-pre-wrap">
               {q.stem}
@@ -444,25 +486,44 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 
           {/* Question navigator grid */}
           <details className="mt-8 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg">
-            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-ink-700 dark:text-ink-300">
-              題號跳轉 ({answered}/{total})
+            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-ink-700 dark:text-ink-300 flex items-center gap-3 flex-wrap">
+              <span>題號跳轉 ({answered}/{total})</span>
+              {marked.size > 0 && (
+                <span className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-300">
+                  <Flag size={12} className="fill-amber-500" /> {marked.size} 題已標記
+                </span>
+              )}
             </summary>
             <div className="grid grid-cols-10 gap-1.5 p-3">
               {state.questions.map((qq, i) => {
                 const a = answers[qq.id];
+                const m = marked.has(qq.id);
                 return (
                   <button
                     key={qq.id}
                     onClick={() => setActiveIdx(i)}
-                    className={`aspect-square text-xs font-mono rounded border transition ${
+                    className={`relative aspect-square text-xs font-mono rounded border transition ${
                       i === activeIdx
                         ? 'border-accent bg-accent text-white'
+                        : m
+                        ? a
+                          ? 'border-amber-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200'
+                          : 'border-amber-500 bg-amber-50 dark:bg-amber-900/30 text-amber-900 dark:text-amber-200'
                         : a
                         ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200'
                         : 'border-ink-200 dark:border-ink-700 text-ink-500 dark:text-ink-400 hover:border-ink-400'
                     }`}
                   >
                     {qq.number}
+                    {m && (
+                      <Flag
+                        size={9}
+                        className={
+                          'absolute top-0.5 right-0.5 fill-amber-500 ' +
+                          (i === activeIdx ? 'text-white' : 'text-amber-600')
+                        }
+                      />
+                    )}
                   </button>
                 );
               })}
