@@ -1,0 +1,26 @@
+{
+  "name": "hema-2026-api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "db:create": "wrangler d1 create hema-2026-db",
+    "db:migrate:local": "wrangler d1 migrations apply hema-2026-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply hema-2026-db --remote",
+    "db:seed:local": "wrangler d1 execute hema-2026-db --local --file=migrations/0004_hema_sample.sql",
+    "db:seed:remote": "wrangler d1 execute hema-2026-db --remote --file=migrations/0004_hema_sample.sql",
+    "r2:create": "wrangler r2 bucket create hema-2026-uploads",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250501.0",
+    "typescript": "^5.4.0",
+    "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "jose": "^5.9.0"
+  }
+}

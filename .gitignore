@@ -1,0 +1,29 @@
+# Secrets — never commit
+.env
+.env.local
+.dev.vars
+
+# Wrangler local state (D1 sqlite, KV, R2 caches)
+.wrangler/
+worker-configuration.d.ts
+
+# Node
+node_modules/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Frontend build
+frontend/dist/
+
+# Smoke/screenshot scratch from headless Chrome runs
+.smoke/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

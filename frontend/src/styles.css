@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === Base typography === */
+@layer base {
+  :root {
+    --reading-width: min(70ch, 100% - 2rem);
+  }
+
+  body {
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-serif text-ink-800 tracking-tight;
+  }
+
+  /* Subtle paper texture on cards */
+  .paper {
+    background-color: #fdfaf5;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,0.015) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+
+  /* Drop cap for question stem */
+  .stem-display::first-letter {
+    @apply font-serif font-bold;
+  }
+}
+
+/* === TipTap editor (ProseMirror) === */
+.tiptap {
+  @apply font-serif text-ink-800 leading-relaxed outline-none min-h-[140px];
+}
+
+.tiptap > * + * {
+  @apply mt-3;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply text-ink-400 italic float-left h-0 pointer-events-none;
+}
+
+.tiptap h1 { @apply text-2xl font-bold mt-6; }
+.tiptap h2 { @apply text-xl  font-bold mt-5; }
+.tiptap h3 { @apply text-lg  font-semibold mt-4; }
+
+.tiptap p { @apply leading-7; }
+
+.tiptap ul, .tiptap ol {
+  @apply ml-6 my-3;
+}
+.tiptap ul { list-style: disc; }
+.tiptap ol { list-style: decimal; }
+.tiptap li { @apply my-1; }
+
+.tiptap blockquote {
+  @apply border-l-4 border-ink-300 pl-4 italic text-ink-600 my-4;
+}
+
+.tiptap code {
+  @apply font-mono text-sm bg-ink-100 px-1.5 py-0.5 rounded;
+}
+
+.tiptap pre {
+  @apply font-mono text-sm bg-ink-800 text-ink-50 p-3 rounded-lg overflow-x-auto;
+}
+
+.tiptap pre code { @apply bg-transparent p-0; }
+
+.tiptap img {
+  @apply rounded-lg my-4 max-w-full h-auto shadow-sm border border-ink-200;
+}
+
+.tiptap a {
+  @apply text-accent underline decoration-accent/30 underline-offset-2 hover:decoration-accent;
+}
+
+.tiptap .mention {
+  @apply bg-accent/10 text-accent-dark px-1.5 py-0.5 rounded font-medium no-underline;
+}
+
+/* Selected node indicator */
+.tiptap .ProseMirror-selectednode {
+  @apply outline outline-2 outline-accent;
+}
+
+/* === Mention dropdown === */
+.mention-list {
+  @apply bg-white shadow-lg rounded-lg border border-ink-200 overflow-hidden;
+  @apply text-sm max-h-72 overflow-y-auto;
+}
+.mention-item {
+  @apply flex items-center gap-2 px-3 py-2 cursor-pointer;
+}
+.mention-item:hover,
+.mention-item.is-selected {
+  @apply bg-accent/10;
+}
+
+/* === Editor toolbar === */
+.editor-toolbar {
+  @apply flex flex-wrap gap-1 p-2 border-b border-ink-200 bg-ink-50/60;
+}
+.editor-toolbar button {
+  @apply px-2 py-1 rounded text-sm text-ink-700 hover:bg-ink-100 transition-colors;
+}
+.editor-toolbar button.is-active {
+  @apply bg-ink-200 text-ink-900;
+}
+
+/* === Animations === */
+.fade-in { animation: fadeIn 0.3s ease-out; }
+
+/* === Safari mobile bottom safe-area === */
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
