@@ -102,8 +102,12 @@ Return strictly JSON matching the schema. No prose outside the JSON.
 """
 
 
-def build_user_prompt(qid: str, stem: str, options: list, answer: str, raw_md: str) -> str:
-    opts_lines = "\n".join(f"({o['key']}) {o['text']}" for o in options)
+def build_user_prompt(qid: str, stem: str, options, answer: str, raw_md: str) -> str:
+    # options is list-of-dicts (year 104, reconstructed) OR dict (years 105-113 native).
+    if isinstance(options, dict):
+        opts_lines = "\n".join(f"({k}) {v}" for k, v in options.items())
+    else:
+        opts_lines = "\n".join(f"({o['key']}) {o['text']}" for o in options)
     return f"""Polish the rough explanation for this question.
 
 Question ID: {qid}
