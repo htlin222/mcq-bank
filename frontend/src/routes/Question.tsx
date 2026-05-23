@@ -26,7 +26,7 @@ type SimilarItem = {
 export function Question() {
   const { id } = useParams<{ id: string }>();
   const { me } = useMe();
-  const { data, loading, error, reload } = useQuestion(id);
+  const { data, error, reload } = useQuestion(id);
   const { state: lockState, acquire, release } = useLock(id || '');
 
   const [tab, setTab] = useState<Tab>('explanation');
