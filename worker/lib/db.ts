@@ -1,76 +1,77 @@
-import type { D1Database } from '@cloudflare/workers-types';
-import type { Explanation } from '../types';
+import type { D1Database } from "@cloudflare/workers-types";
 
 const LOCK_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
 export type LockResult =
-  | { ok: true; until: number }
-  | { ok: false; lockedBy: string; until: number };
+	| { ok: true; until: number }
+	| { ok: false; lockedBy: string; until: number };
 
 /**
  * Try to acquire (or extend) the edit lock on an explanation.
  * If the existing lock is held by the same user OR has expired, we succeed.
  */
 export async function tryLock(
-  db: D1Database,
-  questionId: string,
-  email: string,
-  now: number = Date.now()
+	db: D1Database,
+	questionId: string,
+	email: string,
+	now: number = Date.now(),
 ): Promise<LockResult> {
-  const row = await db
-    .prepare('SELECT editing_by, editing_until FROM explanations WHERE question_id = ?')
-    .bind(questionId)
-    .first<{ editing_by: string | null; editing_until: number | null }>();
+	const row = await db
+		.prepare(
+			"SELECT editing_by, editing_until FROM explanations WHERE question_id = ?",
+		)
+		.bind(questionId)
+		.first<{ editing_by: string | null; editing_until: number | null }>();
 
-  if (!row) {
-    // Auto-create explanation row if missing
-    await db
-      .prepare(
-        `INSERT INTO explanations (question_id, editing_by, editing_until, updated_at)
-         VALUES (?, ?, ?, ?)`
-      )
-      .bind(questionId, email, now + LOCK_DURATION_MS, now)
-      .run();
-    return { ok: true, until: now + LOCK_DURATION_MS };
-  }
+	if (!row) {
+		// Auto-create explanation row if missing
+		await db
+			.prepare(
+				`INSERT INTO explanations (question_id, editing_by, editing_until, updated_at)
+         VALUES (?, ?, ?, ?)`,
+			)
+			.bind(questionId, email, now + LOCK_DURATION_MS, now)
+			.run();
+		return { ok: true, until: now + LOCK_DURATION_MS };
+	}
 
-  const isLocked =
-    row.editing_by &&
-    row.editing_until &&
-    row.editing_until > now &&
-    row.editing_by !== email;
+	const isLocked =
+		row.editing_by &&
+		row.editing_until &&
+		row.editing_until > now &&
+		row.editing_by !== email;
 
-  if (isLocked) {
-    return {
-      ok: false,
-      lockedBy: row.editing_by!,
-      until: row.editing_until!,
-    };
-  }
+	if (isLocked) {
+		return {
+			ok: false,
+			lockedBy: row.editing_by!,
+			until: row.editing_until!,
+		};
+	}
 
-  const until = now + LOCK_DURATION_MS;
-  await db
-    .prepare(
-      `UPDATE explanations SET editing_by = ?, editing_until = ? WHERE question_id = ?`
-    )
-    .bind(email, until, questionId)
-    .run();
+	const until = now + LOCK_DURATION_MS;
+	await db
+		.prepare(
+			`UPDATE explanations SET editing_by = ?, editing_until = ? WHERE question_id = ?`,
+		)
+		.bind(email, until, questionId)
+		.run();
 
-  return { ok: true, until };
+	return { ok: true, until };
 }
 
 export async function releaseLock(
-  db: D1Database,
-  questionId: string,
-  email: string
+	db: D1Database,
+	questionId: string,
+	email: string,
 ): Promise<void> {
-  await db
-    .prepare(
-      `UPDATE explanations SET editing_by = NULL, editing_until = NULL
-       WHERE question_id = ? AND editing_by = ?`
-    )
-    .bind(questionId, email)
-    .run();
+	await db
+		.prepare(
+			`UPDATE explanations SET editing_by = NULL, editing_until = NULL
+       WHERE question_id = ? AND editing_by = ?`,
+		)
+		.bind(questionId, email)
+		.run();
 }
 
 /**
@@ -79,47 +80,105 @@ export async function releaseLock(
  *   { type: 'mention', attrs: { id: 'alice@example.com', label: 'Alice' } }
  */
 export function extractMentions(contentJson: string): string[] {
-  try {
-    const doc = JSON.parse(contentJson);
-    const emails = new Set<string>();
-    walk(doc, (node) => {
-      if (node?.type === 'mention' && node.attrs?.id) {
-        emails.add(node.attrs.id);
-      }
-    });
-    return [...emails];
-  } catch {
-    return [];
-  }
+	try {
+		const doc = JSON.parse(contentJson);
+		const emails = new Set<string>();
+		walk(doc, (node) => {
+			if (node?.type === "mention" && node.attrs?.id) {
+				emails.add(node.attrs.id);
+			}
+		});
+		return [...emails];
+	} catch {
+		return [];
+	}
 }
 
 function walk(node: any, fn: (n: any) => void) {
-  if (!node) return;
-  fn(node);
-  if (Array.isArray(node.content)) {
-    for (const child of node.content) walk(child, fn);
-  }
+	if (!node) return;
+	fn(node);
+	if (Array.isArray(node.content)) {
+		for (const child of node.content) walk(child, fn);
+	}
+}
+
+/**
+ * Extract @-question references from a TipTap doc JSON.
+ * The editor stores them as:
+ *   { type: 'questionRef', attrs: { id: '114-001' } }
+ */
+export function extractQuestionRefs(contentJson: string): string[] {
+	try {
+		const doc = JSON.parse(contentJson);
+		const ids = new Set<string>();
+		walk(doc, (node) => {
+			if (node?.type === "questionRef" && typeof node.attrs?.id === "string") {
+				ids.add(node.attrs.id);
+			}
+		});
+		return [...ids];
+	} catch {
+		return [];
+	}
+}
+
+/**
+ * Rewrite the question_refs index for a given (source_type, source_id).
+ * Atomic delete-then-insert; called from explanation/comment save handlers.
+ * Self-references are skipped (a question pointing at itself isn't useful).
+ */
+export async function syncQuestionRefs(
+	db: D1Database,
+	args: {
+		sourceType: "explanation" | "comment";
+		sourceId: string;
+		selfQuestionId: string;
+		byEmail: string;
+		targets: string[];
+		now: number;
+	},
+): Promise<void> {
+	const ops = [
+		db
+			.prepare(
+				"DELETE FROM question_refs WHERE source_type = ? AND source_id = ?",
+			)
+			.bind(args.sourceType, args.sourceId),
+	];
+	for (const target of args.targets) {
+		if (target === args.selfQuestionId) continue;
+		ops.push(
+			db
+				.prepare(
+					`INSERT INTO question_refs (source_type, source_id, target_question_id, by_email, created_at)
+           VALUES (?, ?, ?, ?, ?)
+           ON CONFLICT(source_type, source_id, target_question_id) DO NOTHING`,
+				)
+				.bind(args.sourceType, args.sourceId, target, args.byEmail, args.now),
+		);
+	}
+	await db.batch(ops);
 }
 
 /**
  * Lightweight excerpt from TipTap JSON for notification preview.
  */
 export function excerpt(contentJson: string, maxLen = 80): string {
-  try {
-    const doc = JSON.parse(contentJson);
-    const parts: string[] = [];
-    walk(doc, (n) => {
-      if (n?.type === 'text' && typeof n.text === 'string') parts.push(n.text);
-    });
-    const text = parts.join('').replace(/\s+/g, ' ').trim();
-    return text.length > maxLen ? text.slice(0, maxLen) + '…' : text;
-  } catch {
-    return '';
-  }
+	try {
+		const doc = JSON.parse(contentJson);
+		const parts: string[] = [];
+		walk(doc, (n) => {
+			if (n?.type === "text" && typeof n.text === "string") parts.push(n.text);
+		});
+		const text = parts.join("").replace(/\s+/g, " ").trim();
+		return text.length > maxLen ? text.slice(0, maxLen) + "…" : text;
+	} catch {
+		return "";
+	}
 }
 
 export function uuid(): string {
-  return crypto.randomUUID();
+	return crypto.randomUUID();
 }
 
 /**
@@ -130,16 +189,19 @@ export function uuid(): string {
  * so all API responses use the same shape.
  */
 export function optionsToRecord(optionsJson: string): Record<string, string> {
-  try {
-    const arr = JSON.parse(optionsJson) as Array<{ key?: string; text?: string }>;
-    const out: Record<string, string> = {};
-    for (const o of arr) {
-      if (o && typeof o.key === 'string' && typeof o.text === 'string') {
-        out[o.key] = o.text;
-      }
-    }
-    return out;
-  } catch {
-    return {};
-  }
+	try {
+		const arr = JSON.parse(optionsJson) as Array<{
+			key?: string;
+			text?: string;
+		}>;
+		const out: Record<string, string> = {};
+		for (const o of arr) {
+			if (o && typeof o.key === "string" && typeof o.text === "string") {
+				out[o.key] = o.text;
+			}
+		}
+		return out;
+	} catch {
+		return {};
+	}
 }

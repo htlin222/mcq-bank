@@ -83,6 +83,14 @@
   @apply bg-accent/10 text-accent-dark px-1.5 py-0.5 rounded font-medium no-underline;
 }
 
+.tiptap .qref,
+.tiptap a.qref {
+  @apply bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded font-mono text-[0.92em] no-underline decoration-transparent;
+}
+.tiptap a.qref:hover {
+  @apply bg-emerald-100 underline decoration-emerald-700;
+}
+
 /* Selected node indicator */
 .tiptap .ProseMirror-selectednode {
   @apply outline outline-2 outline-accent;

@@ -12,6 +12,25 @@ export const bookmarksRoutes = new Hono<AppContext>();
 bookmarksRoutes.get('/', async (c) => {
   const email = c.var.email;
   const folder = c.req.query('folder');
+  const source = c.req.query('source');
+
+  // Alternate source: list questions where the user has a private note.
+  // Same response shape as bookmarks so the existing UI renders unchanged.
+  if (source === 'notes') {
+    const { results } = await c.env.DB
+      .prepare(
+        `SELECT n.question_id AS id, NULL AS folder_id, NULL AS note,
+                n.updated_at AS created_at,
+                q.year, q.number, q.stem, q."group"
+         FROM personal_notes n
+         JOIN questions q ON q.id = n.question_id
+         WHERE n.user_email = ?
+         ORDER BY n.updated_at DESC`
+      )
+      .bind(email)
+      .all();
+    return c.json(results);
+  }
 
   let where = 'b.user_email = ?';
   const params: any[] = [email];

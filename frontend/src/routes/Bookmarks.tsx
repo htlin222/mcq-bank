@@ -4,7 +4,11 @@ import { Folder, FolderPlus, Trash2, MoreVertical } from 'lucide-react';
 import { api } from '../lib/api';
 
 type Folder = { id: string; name: string; sort: number; item_count: number };
-type FoldersResp = { folders: Folder[]; uncategorized_count: number };
+type FoldersResp = {
+  folders: Folder[];
+  uncategorized_count: number;
+  notes_count: number;
+};
 type Item = {
   id: string;            // question id
   folder_id: string | null;
@@ -18,10 +22,12 @@ type Item = {
 
 const UNCATEGORIZED = '__uncat__';
 const ALL = '__all__';
+const NOTES = '__notes__';
 
 export function Bookmarks() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [uncatCount, setUncatCount] = useState(0);
+  const [notesCount, setNotesCount] = useState(0);
   const [active, setActive] = useState<string>(ALL);
   const [items, setItems] = useState<Item[] | null>(null);
   const [creating, setCreating] = useState(false);
@@ -31,10 +37,14 @@ export function Bookmarks() {
     const r = await api.get<FoldersResp>('/api/folders');
     setFolders(r.folders);
     setUncatCount(r.uncategorized_count);
+    setNotesCount(r.notes_count);
   }
 
   async function loadItems(folder: string) {
-    const qs = folder === ALL ? '' : `?folder=${folder === UNCATEGORIZED ? 'null' : folder}`;
+    let qs = '';
+    if (folder === NOTES) qs = '?source=notes';
+    else if (folder === UNCATEGORIZED) qs = '?folder=null';
+    else if (folder !== ALL) qs = `?folder=${folder}`;
     const r = await api.get<Item[]>(`/api/bookmarks${qs}`);
     setItems(r);
   }
@@ -96,6 +106,12 @@ export function Bookmarks() {
             active={active === UNCATEGORIZED}
             onClick={() => setActive(UNCATEGORIZED)}
           />
+          <SideItem
+            label="已做筆記"
+            count={notesCount}
+            active={active === NOTES}
+            onClick={() => setActive(NOTES)}
+          />
           <div className="mt-3 mb-1.5 px-2 text-[11px] uppercase tracking-wider text-ink-400">
             資料夾
           </div>
@@ -138,7 +154,11 @@ export function Bookmarks() {
           {items === null ? (
             <div className="text-ink-400 text-sm">載入中…</div>
           ) : items.length === 0 ? (
-            <p className="text-ink-400 text-sm">這裡還沒有收藏題目。在任何題目右上角點 ▭+ 即可收藏。</p>
+            <p className="text-ink-400 text-sm">
+              {active === NOTES
+                ? '尚未為任何題目寫過個人筆記。在題目頁切到「個人筆記」分頁即可開始。'
+                : '這裡還沒有收藏題目。在任何題目右上角點 ▭+ 即可收藏。'}
+            </p>
           ) : (
             <ul className="space-y-2">
               {items.map((it) => (
@@ -160,12 +180,14 @@ export function Bookmarks() {
                       }>{it.group}</span>
                     )}
                   </Link>
-                  <ItemMenu
-                    item={it}
-                    folders={folders}
-                    onMove={(fid) => moveItem(it.id, fid)}
-                    onRemove={() => removeItem(it.id)}
-                  />
+                  {active !== NOTES && (
+                    <ItemMenu
+                      item={it}
+                      folders={folders}
+                      onMove={(fid) => moveItem(it.id, fid)}
+                      onRemove={() => removeItem(it.id)}
+                    />
+                  )}
                 </li>
               ))}
             </ul>

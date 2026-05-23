@@ -1,4 +1,5 @@
-import { Routes, Route, Link, NavLink } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, Link, NavLink, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import {
   Home as HomeIcon,
@@ -26,6 +27,23 @@ import { Search } from './routes/Search';
 
 export default function App() {
   const { me } = useMe();
+  const navigate = useNavigate();
+
+  // Intercept clicks on @-question-ref links inside TipTap content so they
+  // route via react-router instead of triggering a full page reload.
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const target = (e.target as Element | null)?.closest('a[data-question-ref]');
+      if (!target) return;
+      const id = target.getAttribute('data-question-ref');
+      if (!id) return;
+      e.preventDefault();
+      navigate(`/q/${id}`);
+    }
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-ink-50 dark:bg-ink-900 text-ink-800 dark:text-ink-200 flex flex-col">

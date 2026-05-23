@@ -1,6 +1,14 @@
 import { Hono } from 'hono';
 import type { AppContext, Explanation } from '../types';
-import { tryLock, releaseLock, extractMentions, excerpt, uuid } from '../lib/db';
+import {
+  tryLock,
+  releaseLock,
+  extractMentions,
+  excerpt,
+  uuid,
+  extractQuestionRefs,
+  syncQuestionRefs,
+} from '../lib/db';
 
 export const explanationsRoutes = new Hono<AppContext>();
 
@@ -80,6 +88,16 @@ explanationsRoutes.put('/:id/explanation', async (c) => {
       )
       .bind(id, newVersion, newJson, email, now),
   ]);
+
+  // Index cross-question references
+  await syncQuestionRefs(c.env.DB, {
+    sourceType: 'explanation',
+    sourceId: id,
+    selfQuestionId: id,
+    byEmail: email,
+    targets: extractQuestionRefs(newJson),
+    now,
+  });
 
   // Index mentions, fire notifications
   const mentioned = extractMentions(newJson);

@@ -3,7 +3,8 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Mention from '@tiptap/extension-mention';
-import { suggestionConfig } from './mention-suggestion';
+import { suggestionConfig, mentionCommand } from './mention-suggestion';
+import { QuestionRef } from './question-ref';
 
 export function buildExtensions(opts: { placeholder?: string; readOnly?: boolean } = {}) {
   return [
@@ -22,7 +23,14 @@ export function buildExtensions(opts: { placeholder?: string; readOnly?: boolean
     Mention.configure({
       HTMLAttributes: { class: 'mention' },
       renderText: ({ node }) => `@${node.attrs.label || node.attrs.id}`,
-      suggestion: suggestionConfig,
+      // Cast: @tiptap/extension-mention's suggestion typing forces
+      // MentionNodeAttrs as the props shape, but our command accepts a
+      // wider MentionSelection union so we can also insert questionRef.
+      suggestion: {
+        ...suggestionConfig,
+        command: mentionCommand,
+      } as any,
     }),
+    QuestionRef,
   ];
 }

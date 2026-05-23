@@ -33,6 +33,17 @@ export type QuestionFull = {
     bookmarked: 0 | 1;
     bookmark_folder_id: string | null;
   } | null;
+  my_note: {
+    content_json: string;
+    updated_at: number;
+  } | null;
+  back_refs: Array<{
+    source_type: 'explanation' | 'comment';
+    source_question_id: string;
+    source_stem: string;
+    by_email: string;
+    created_at: number;
+  }>;
 };
 
 export function useQuestion(id: string | undefined) {

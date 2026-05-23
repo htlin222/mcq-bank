@@ -1,15 +1,14 @@
 import { forwardRef, useImperativeHandle, useState, useEffect } from 'react';
 import { Avatar } from './Avatar';
-
-type User = { email: string; display_name: string; avatar_key: string | null };
+import type { MentionItem, MentionSelection } from '../lib/mention-suggestion';
 
 export type MentionListRef = {
   onKeyDown: (props: { event: KeyboardEvent }) => boolean;
 };
 
 type Props = {
-  items: User[];
-  command: (item: { id: string; label: string }) => void;
+  items: MentionItem[];
+  command: (item: MentionSelection) => void;
 };
 
 export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
@@ -19,8 +18,11 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
 
   const selectItem = (idx: number) => {
     const item = props.items[idx];
-    if (item) {
-      props.command({ id: item.email, label: item.display_name });
+    if (!item) return;
+    if (item.kind === 'user') {
+      props.command({ kind: 'user', id: item.email, label: item.display_name });
+    } else {
+      props.command({ kind: 'question', id: item.id });
     }
   };
 
@@ -52,17 +54,31 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
 
   return (
     <div className="mention-list">
-      {props.items.map((user, idx) => (
+      {props.items.map((item, idx) => (
         <div
-          key={user.email}
+          key={item.kind === 'user' ? `u:${item.email}` : `q:${item.id}`}
           className={`mention-item ${idx === selectedIndex ? 'is-selected' : ''}`}
           onClick={() => selectItem(idx)}
         >
-          <Avatar email={user.email} avatarKey={user.avatar_key} name={user.display_name} size={24} />
-          <div>
-            <div className="font-medium text-ink-800">{user.display_name}</div>
-            <div className="text-xs text-ink-500">{user.email}</div>
-          </div>
+          {item.kind === 'user' ? (
+            <>
+              <Avatar email={item.email} avatarKey={item.avatar_key} name={item.display_name} size={24} />
+              <div>
+                <div className="font-medium text-ink-800">{item.display_name}</div>
+                <div className="text-xs text-ink-500">{item.email}</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-6 h-6 flex items-center justify-center text-[10px] font-mono bg-accent/10 text-accent rounded">
+                Q
+              </div>
+              <div className="min-w-0">
+                <div className="font-mono text-sm text-ink-800">{item.id}</div>
+                <div className="text-xs text-ink-500 truncate">{item.stem}</div>
+              </div>
+            </>
+          )}
         </div>
       ))}
     </div>

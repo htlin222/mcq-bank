@@ -18,17 +18,26 @@ foldersRoutes.get('/', async (c) => {
     )
     .bind(email)
     .all();
-  // Also surface uncategorized as a synthetic "folder"
-  const uncat = await c.env.DB
-    .prepare(
-      `SELECT COUNT(*) AS n FROM bookmark_items
-       WHERE user_email = ? AND folder_id IS NULL`
-    )
-    .bind(email)
-    .first<{ n: number }>();
+  // Also surface uncategorized + has-note counts as synthetic "folders"
+  const [uncat, notes] = await Promise.all([
+    c.env.DB
+      .prepare(
+        `SELECT COUNT(*) AS n FROM bookmark_items
+         WHERE user_email = ? AND folder_id IS NULL`
+      )
+      .bind(email)
+      .first<{ n: number }>(),
+    c.env.DB
+      .prepare(
+        `SELECT COUNT(*) AS n FROM personal_notes WHERE user_email = ?`
+      )
+      .bind(email)
+      .first<{ n: number }>(),
+  ]);
   return c.json({
     folders: results,
     uncategorized_count: uncat?.n ?? 0,
+    notes_count: notes?.n ?? 0,
   });
 });
 

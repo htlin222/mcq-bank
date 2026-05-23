@@ -7,6 +7,7 @@ import type { AppContext } from './types';
 import { meRoutes } from './routes/me';
 import { questionsRoutes } from './routes/questions';
 import { explanationsRoutes } from './routes/explanations';
+import { notesRoutes } from './routes/notes';
 import { commentsRoutes } from './routes/comments';
 import { uploadRoutes } from './routes/upload';
 import { imagesRoutes } from './routes/images';
@@ -45,6 +46,7 @@ app.route('/api/me', meRoutes);
 app.route('/api/users', usersRoutes);
 app.route('/api/questions', questionsRoutes);
 app.route('/api/questions', explanationsRoutes); // /:id/explanation/*
+app.route('/api/questions', notesRoutes);        // /:id/note
 app.route('/api/questions', commentsRoutes);     // /:id/comments
 app.route('/api/upload', uploadRoutes);
 app.route('/img', imagesRoutes);
