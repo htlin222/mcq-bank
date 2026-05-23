@@ -159,21 +159,53 @@ export function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
             {years.map((y) => {
               const s = stats?.by_year.find((x) => x.year === y.year);
-              const pct = s && y.count ? Math.round((s.seen / y.count) * 100) : 0;
+              const seen = s?.seen ?? 0;
+              const correct = s?.correct ?? 0;
+              const seenPct = y.count > 0 ? Math.round((seen / y.count) * 100) : 0;
+              const accPct = seen > 0 ? Math.round((correct / seen) * 100) : null;
               return (
                 <Link
                   key={y.year}
                   to={`/year/${y.year}`}
                   className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg px-4 py-3 hover:border-accent hover:shadow-paper transition"
                 >
-                  <div className="font-serif text-2xl text-ink-900 dark:text-ink-100">
-                    {y.year}
-                    {y.year === 100 && (
-                      <span className="ml-1 text-xs text-ink-400 align-middle">(模擬)</span>
-                    )}
+                  <div className="flex items-baseline gap-2">
+                    <div className="font-serif text-2xl text-ink-900 dark:text-ink-100">
+                      {y.year}
+                      {y.year === 100 && (
+                        <span className="ml-1 text-xs text-ink-400 align-middle">(模擬)</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-ink-500 dark:text-ink-400">{y.count} 題</div>
                   </div>
-                  <div className="text-xs text-ink-500 dark:text-ink-400 mt-1">
-                    {y.count} 題{pct > 0 && ` · 已讀 ${pct}%`}
+
+                  <div className="mt-2 h-1.5 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden">
+                    <div
+                      className="h-full bg-accent transition-[width]"
+                      style={{ width: `${Math.min(100, seenPct)}%` }}
+                    />
+                  </div>
+
+                  <div className="mt-1.5 flex items-center justify-between text-[11px]">
+                    <span className="text-ink-500 dark:text-ink-400">
+                      已複習 <span className="font-mono text-ink-700 dark:text-ink-200">{seen}</span>
+                      <span className="text-ink-400">/{y.count}</span>
+                    </span>
+                    {accPct !== null && (
+                      <span
+                        className={
+                          'font-mono ' +
+                          (accPct >= 70
+                            ? 'text-emerald-700 dark:text-emerald-300'
+                            : accPct >= 50
+                            ? 'text-amber-700 dark:text-amber-300'
+                            : 'text-rose-700 dark:text-rose-300')
+                        }
+                        title="準確率 (本年最近一次作答)"
+                      >
+                        {accPct}%
+                      </span>
+                    )}
                   </div>
                 </Link>
               );
