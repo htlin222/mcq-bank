@@ -94,16 +94,24 @@ searchRoutes.get('/', async (c) => {
 /**
  * Convert user input into an FTS5-safe query.
  *
- * - Quotes phrases (so "AML 7+3" finds the phrase, not the OR of tokens).
- * - For single bare words, append `*` to enable prefix matching.
- * - Strips FTS operators we don't want users typing accidentally
- *   (column filters, NOT, parentheses are kept since they're useful).
+ * - Replaces stray `"` characters with spaces so user tokens never break
+ *   our own phrase quoting.
+ * - Pure ASCII alnum tokens get a trailing `*` for prefix matching
+ *   (e.g. `AML` → `AML*` matches `AML7`).
+ * - Mixed / CJK tokens are wrapped in `"..."` so FTS5 treats them as
+ *   literal phrases.
+ * - FTS5 operators (AND / OR / NOT / parentheses / column filters) are
+ *   intentionally NOT stripped — they're useful in the search box and
+ *   only operate over our indexed columns (stem / options / tags),
+ *   none of which leak private data.
+ *
+ * Safety: the returned string is always passed via `.bind(?)` so SQL
+ * injection is not possible regardless of input.
  */
 export function ftsQuery(raw: string): string {
   const cleaned = raw.replace(/"/g, ' ').trim();
   if (!cleaned) return '';
   const parts = cleaned.split(/\s+/).map((t) => {
-    // pure ASCII alnum tokens get prefix expansion; CJK and mixed stay literal
     if (/^[A-Za-z0-9_]+$/.test(t)) return `${t}*`;
     return `"${t}"`;
   });

@@ -43,6 +43,17 @@ meRoutes.patch('/', async (c) => {
   return c.json(user);
 });
 
+// Allowed avatar MIME types. The client-supplied Content-Type can be
+// anything, so we map only these to a known-good extension and reject the
+// rest. Prevents weird strings ending up in R2 keys (e.g. `image/../foo`).
+const AVATAR_MIME_TO_EXT: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
 meRoutes.post('/avatar', async (c) => {
   const email = c.var.email;
   const fd = await c.req.formData();
@@ -52,9 +63,14 @@ meRoutes.post('/avatar', async (c) => {
 
   if (!file || typeof file === 'string') return c.json({ error: 'no file' }, 400);
   if (file.size > 2_000_000) return c.json({ error: 'avatar must be <2MB' }, 413);
-  if (!file.type.startsWith('image/')) return c.json({ error: 'not an image' }, 415);
+  const ext = AVATAR_MIME_TO_EXT[file.type.toLowerCase()];
+  if (!ext) {
+    return c.json(
+      { error: 'unsupported image type; png/jpg/webp/gif only' },
+      415,
+    );
+  }
 
-  const ext = file.type.split('/')[1] || 'bin';
   const safeEmail = email.replace(/[^a-z0-9]/gi, '_');
   const key = `avatars/${safeEmail}.${ext}`;
 
