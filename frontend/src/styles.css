@@ -110,14 +110,10 @@
 }
 
 /* === Editor toolbar === */
+/* Individual buttons handle their own sizing/colors via the IconBtn
+   component; this rule just lays out the strip. */
 .editor-toolbar {
-  @apply flex flex-wrap gap-1 p-2 border-b border-ink-200 bg-ink-50/60;
-}
-.editor-toolbar button {
-  @apply px-2 py-1 rounded text-sm text-ink-700 hover:bg-ink-100 transition-colors;
-}
-.editor-toolbar button.is-active {
-  @apply bg-ink-200 text-ink-900;
+  @apply flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-ink-200 dark:border-ink-700 bg-ink-50/60 dark:bg-ink-800/60;
 }
 
 /* === Animations === */

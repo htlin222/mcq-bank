@@ -1,6 +1,21 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
-import { useCallback, useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import {
+  Bold,
+  Italic,
+  Strikethrough,
+  Heading1,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  Quote,
+  Code2,
+  Image as ImageIcon,
+  Sparkles,
+  Undo2,
+  Redo2,
+} from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
 import { api } from '../lib/api';
 
@@ -129,46 +144,148 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
     }
   }, [aiBusy, editor]);
 
-  const btn = (label: string, action: () => void, isActive?: () => boolean) => (
-    <button
-      type="button"
-      onClick={action}
-      className={isActive?.() ? 'is-active' : ''}
-      title={label}
-    >
-      {label}
-    </button>
-  );
-
   return (
     <div className="editor-toolbar">
-      {btn('B', () => editor.chain().focus().toggleBold().run(), () => editor.isActive('bold'))}
-      {btn('I', () => editor.chain().focus().toggleItalic().run(), () => editor.isActive('italic'))}
-      {btn('S', () => editor.chain().focus().toggleStrike().run(), () => editor.isActive('strike'))}
-      <span className="w-px bg-ink-200 mx-1" />
-      {btn('H1', () => editor.chain().focus().toggleHeading({ level: 1 }).run(), () => editor.isActive('heading', { level: 1 }))}
-      {btn('H2', () => editor.chain().focus().toggleHeading({ level: 2 }).run(), () => editor.isActive('heading', { level: 2 }))}
-      {btn('H3', () => editor.chain().focus().toggleHeading({ level: 3 }).run(), () => editor.isActive('heading', { level: 3 }))}
-      <span className="w-px bg-ink-200 mx-1" />
-      {btn('•', () => editor.chain().focus().toggleBulletList().run(), () => editor.isActive('bulletList'))}
-      {btn('1.', () => editor.chain().focus().toggleOrderedList().run(), () => editor.isActive('orderedList'))}
-      {btn('"', () => editor.chain().focus().toggleBlockquote().run(), () => editor.isActive('blockquote'))}
-      {btn('</>', () => editor.chain().focus().toggleCodeBlock().run(), () => editor.isActive('codeBlock'))}
-      <span className="w-px bg-ink-200 mx-1" />
-      {btn('🖼', fileInput)}
+      <IconBtn
+        label="粗體"
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        active={editor.isActive('bold')}
+      >
+        <Bold size={15} />
+      </IconBtn>
+      <IconBtn
+        label="斜體"
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        active={editor.isActive('italic')}
+      >
+        <Italic size={15} />
+      </IconBtn>
+      <IconBtn
+        label="刪除線"
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        active={editor.isActive('strike')}
+      >
+        <Strikethrough size={15} />
+      </IconBtn>
+      <Divider />
+      <IconBtn
+        label="標題 1"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        active={editor.isActive('heading', { level: 1 })}
+      >
+        <Heading1 size={16} />
+      </IconBtn>
+      <IconBtn
+        label="標題 2"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        active={editor.isActive('heading', { level: 2 })}
+      >
+        <Heading2 size={16} />
+      </IconBtn>
+      <IconBtn
+        label="標題 3"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        active={editor.isActive('heading', { level: 3 })}
+      >
+        <Heading3 size={16} />
+      </IconBtn>
+      <Divider />
+      <IconBtn
+        label="項目符號"
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        active={editor.isActive('bulletList')}
+      >
+        <List size={16} />
+      </IconBtn>
+      <IconBtn
+        label="編號清單"
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        active={editor.isActive('orderedList')}
+      >
+        <ListOrdered size={16} />
+      </IconBtn>
+      <IconBtn
+        label="引言"
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        active={editor.isActive('blockquote')}
+      >
+        <Quote size={15} />
+      </IconBtn>
+      <IconBtn
+        label="程式碼區塊"
+        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        active={editor.isActive('codeBlock')}
+      >
+        <Code2 size={15} />
+      </IconBtn>
+      <Divider />
+      <IconBtn label="插入圖片" onClick={fileInput}>
+        <ImageIcon size={15} />
+      </IconBtn>
       <button
         type="button"
         onClick={aiExpand}
         disabled={aiBusy}
         title="AI 擴寫(以目前內容為草稿)"
-        className="inline-flex items-center gap-1 disabled:opacity-40"
+        className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-sm text-accent hover:bg-accent/10 disabled:opacity-40 transition"
       >
         <Sparkles size={14} />
-        {aiBusy ? '思考中…' : 'AI 擴寫'}
+        <span>{aiBusy ? '思考中…' : 'AI 擴寫'}</span>
       </button>
       <span className="flex-1" />
-      {btn('↶', () => editor.chain().focus().undo().run())}
-      {btn('↷', () => editor.chain().focus().redo().run())}
+      <IconBtn
+        label="復原"
+        onClick={() => editor.chain().focus().undo().run()}
+        disabled={!editor.can().undo()}
+      >
+        <Undo2 size={15} />
+      </IconBtn>
+      <IconBtn
+        label="重做"
+        onClick={() => editor.chain().focus().redo().run()}
+        disabled={!editor.can().redo()}
+      >
+        <Redo2 size={15} />
+      </IconBtn>
     </div>
   );
+}
+
+function IconBtn({
+  label,
+  onClick,
+  active,
+  disabled,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      aria-pressed={active}
+      title={label}
+      className={
+        'inline-flex items-center justify-center w-8 h-8 rounded transition ' +
+        (disabled
+          ? 'text-ink-300 dark:text-ink-600 cursor-not-allowed'
+          : active
+          ? 'bg-ink-200 dark:bg-ink-700 text-ink-900 dark:text-ink-100'
+          : 'text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-ink-100')
+      }
+    >
+      {children}
+    </button>
+  );
+}
+
+function Divider() {
+  return <span className="w-px h-5 bg-ink-200 dark:bg-ink-700 mx-1 self-center" aria-hidden="true" />;
 }
