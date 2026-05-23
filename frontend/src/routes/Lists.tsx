@@ -52,7 +52,7 @@ export function WrongQuestions() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-4">錯題回顧</h1>
       <p className="text-sm text-ink-500 dark:text-ink-400 mb-6">複習模式中答錯的題目,按錯誤率排序。</p>
 

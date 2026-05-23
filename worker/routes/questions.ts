@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { AppContext, Question, Explanation } from "../types";
 import { optionsToRecord } from "../lib/db";
+import { ftsQuery } from "./search";
 
 export const questionsRoutes = new Hono<AppContext>();
 
@@ -183,6 +184,80 @@ questionsRoutes.get("/_meta/lookup", async (c) => {
 		.bind(like)
 		.all<{ id: string; year: number; number: number; stem: string }>();
 	return c.json(results);
+});
+
+// ------------------------------------------------------------
+// 相似題目 — tag overlap, with FTS5 BM25 fallback when sparse
+// ------------------------------------------------------------
+type SimilarRow = {
+	id: string;
+	year: number;
+	number: number;
+	stem: string;
+	group: "內科" | "共同" | null;
+	shared_tags: number;
+	source: "tag" | "fts";
+};
+
+questionsRoutes.get("/:id/similar", async (c) => {
+	const id = c.req.param("id");
+	const limit = Math.min(parseInt(c.req.query("limit") || "5"), 10);
+
+	const self = await c.env.DB.prepare(
+		'SELECT id, "group", stem FROM questions WHERE id = ?',
+	)
+		.bind(id)
+		.first<{ id: string; group: "內科" | "共同" | null; stem: string }>();
+	if (!self) return c.json([]);
+
+	// Step 1: tag overlap — same tag = related. Prefer same group, then
+	// more recent year. Self is excluded.
+	const { results: byTag } = await c.env.DB.prepare(
+		`SELECT q.id, q.year, q.number, q.stem, q."group",
+            COUNT(DISTINCT qt.tag) AS shared_tags,
+            'tag' AS source
+     FROM question_tags qt
+     JOIN questions q ON q.id = qt.question_id
+     WHERE qt.tag IN (SELECT tag FROM question_tags WHERE question_id = ?)
+       AND q.id != ?
+     GROUP BY q.id
+     ORDER BY shared_tags DESC,
+              (CASE WHEN q."group" = ? THEN 0 ELSE 1 END) ASC,
+              q.year DESC, q.number ASC
+     LIMIT ?`,
+	)
+		.bind(id, id, self.group ?? "", limit)
+		.all<SimilarRow>();
+
+	if (byTag.length >= limit) return c.json(byTag);
+
+	// Step 2: BM25 fallback — fill from FTS5 matches on the source stem.
+	// Cap the input so the FTS5 query stays small; reuse the same query
+	// shaping the /api/search endpoint uses.
+	const fillN = limit - byTag.length;
+	const seenIds = [id, ...byTag.map((r) => r.id)];
+	const ftsExpr = ftsQuery(self.stem.slice(0, 60));
+	if (!ftsExpr) return c.json(byTag);
+
+	const placeholders = seenIds.map(() => "?").join(",");
+	try {
+		const { results: byFts } = await c.env.DB.prepare(
+			`SELECT q.id, q.year, q.number, q.stem, q."group",
+              0 AS shared_tags, 'fts' AS source
+       FROM questions q
+       JOIN questions_fts f ON f.rowid = q.rowid
+       WHERE questions_fts MATCH ?
+         AND q.id NOT IN (${placeholders})
+       ORDER BY bm25(questions_fts) ASC
+       LIMIT ?`,
+		)
+			.bind(ftsExpr, ...seenIds, fillN)
+			.all<SimilarRow>();
+		return c.json([...byTag, ...byFts]);
+	} catch {
+		// Malformed FTS query (rare with our shaper) — return what we have.
+		return c.json(byTag);
+	}
 });
 
 // ------------------------------------------------------------

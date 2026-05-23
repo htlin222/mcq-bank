@@ -99,7 +99,7 @@ searchRoutes.get('/', async (c) => {
  * - Strips FTS operators we don't want users typing accidentally
  *   (column filters, NOT, parentheses are kept since they're useful).
  */
-function ftsQuery(raw: string): string {
+export function ftsQuery(raw: string): string {
   const cleaned = raw.replace(/"/g, ' ').trim();
   if (!cleaned) return '';
   const parts = cleaned.split(/\s+/).map((t) => {

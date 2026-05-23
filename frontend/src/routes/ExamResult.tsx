@@ -46,7 +46,7 @@ export function ExamResult() {
   });
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <header className="mb-8">
         <Link to="/exam" className="text-sm text-ink-500 hover:text-accent">
           ← 全真作答

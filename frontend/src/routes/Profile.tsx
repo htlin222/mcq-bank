@@ -45,7 +45,7 @@ export function Profile() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-2xl md:max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 mb-8">個人資料</h1>
 
       <div className="bg-white border border-ink-200 rounded-lg p-6 sm:p-8 shadow-paper">

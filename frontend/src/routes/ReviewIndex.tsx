@@ -28,7 +28,7 @@ export function ReviewIndex() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2">複習模式</h1>
       <p className="text-ink-500 text-sm mb-8">
         一題一答 · 可協作編輯詳解 · 留言討論

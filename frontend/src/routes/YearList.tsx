@@ -44,7 +44,7 @@ export function YearList() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <header className="mb-6">
         <Link to="/review" className="text-sm text-ink-500 hover:text-accent">
           ← 回到複習模式

@@ -303,6 +303,24 @@ examRoutes.get('/:sid', async (c) => {
   return c.json({ session, answers });
 });
 
+// Delete one of my sessions (works for in-progress or finished).
+// exam_answers cascades via ON DELETE CASCADE.
+examRoutes.delete('/:sid', async (c) => {
+  const sid = c.req.param('sid');
+  const email = c.var.email;
+  const owner = await c.env.DB
+    .prepare('SELECT user_email FROM exam_sessions WHERE id = ?')
+    .bind(sid)
+    .first<{ user_email: string }>();
+  if (!owner) return c.json({ error: 'not found' }, 404);
+  if (owner.user_email !== email) return c.json({ error: 'forbidden' }, 403);
+  await c.env.DB
+    .prepare('DELETE FROM exam_sessions WHERE id = ?')
+    .bind(sid)
+    .run();
+  return c.json({ ok: true });
+});
+
 // My exam history
 examRoutes.get('/', async (c) => {
   const email = c.var.email;

@@ -1,5 +1,6 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
 import { api } from '../lib/api';
 
@@ -80,6 +81,8 @@ export function RichEditor({ content, onChange, placeholder, editable = true, au
 }
 
 function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: File) => void }) {
+  const [aiBusy, setAiBusy] = useState(false);
+
   const fileInput = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -90,6 +93,41 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
     };
     input.click();
   }, [onPickImage]);
+
+  const aiExpand = useCallback(async () => {
+    if (aiBusy) return;
+    const draft = editor.getText().trim();
+    if (draft.length < 5) {
+      alert('請先寫幾個字當作 AI 擴寫的草稿。');
+      return;
+    }
+    const instruction = window.prompt(
+      'AI 擴寫指示(可留空):',
+      '請擴充這段詳解,補上機制、臨床判讀、相關治療指引重點。',
+    );
+    if (instruction === null) return;
+    setAiBusy(true);
+    try {
+      const { text } = await api.post<{ text: string }>('/api/ai/expand', {
+        context: draft,
+        instruction: instruction.trim() || undefined,
+      });
+      if (!text) return;
+      const paragraphs = text
+        .split(/\n{2,}/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+      const nodes = paragraphs.map((p) => ({
+        type: 'paragraph',
+        content: [{ type: 'text', text: p }],
+      }));
+      editor.chain().focus('end').insertContent(nodes).run();
+    } catch (e) {
+      alert('AI 擴寫失敗: ' + String(e));
+    } finally {
+      setAiBusy(false);
+    }
+  }, [aiBusy, editor]);
 
   const btn = (label: string, action: () => void, isActive?: () => boolean) => (
     <button
@@ -118,6 +156,16 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
       {btn('</>', () => editor.chain().focus().toggleCodeBlock().run(), () => editor.isActive('codeBlock'))}
       <span className="w-px bg-ink-200 mx-1" />
       {btn('🖼', fileInput)}
+      <button
+        type="button"
+        onClick={aiExpand}
+        disabled={aiBusy}
+        title="AI 擴寫(以目前內容為草稿)"
+        className="inline-flex items-center gap-1 disabled:opacity-40"
+      >
+        <Sparkles size={14} />
+        {aiBusy ? '思考中…' : 'AI 擴寫'}
+      </button>
       <span className="flex-1" />
       {btn('↶', () => editor.chain().focus().undo().run())}
       {btn('↷', () => editor.chain().focus().redo().run())}

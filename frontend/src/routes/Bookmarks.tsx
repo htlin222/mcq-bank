@@ -88,7 +88,7 @@ export function Bookmarks() {
   const totalCount = folders.reduce((s, f) => s + f.item_count, 0) + uncatCount;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-6">我的收藏</h1>
 
       <div className="grid sm:grid-cols-[200px_1fr] gap-6">

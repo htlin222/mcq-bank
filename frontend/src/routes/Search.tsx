@@ -92,7 +92,7 @@ export function Search() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-6 inline-flex items-center gap-2">
         <SearchIcon size={26} /> 搜尋
       </h1>

@@ -72,7 +72,7 @@ function ExamStart() {
   const canStart = groups.size > 0;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2">全真作答</h1>
       <p className="text-ink-500 dark:text-ink-400 text-sm mb-6">
         {totalCount > 0 ? `${totalCount} 分鐘模擬考` : '選擇科別'} · 可中途暫停離開、稍後續答 · 完賽看分數與錯題回顧
@@ -373,7 +373,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 
       {isPaused && (
         <div className="bg-ink-50 dark:bg-ink-900 border-b border-ink-200 dark:border-ink-700">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-center">
+          <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8 text-center">
             <Pause className="mx-auto text-ink-400" size={48} strokeWidth={1.5} />
             <h2 className="font-serif text-xl text-ink-800 dark:text-ink-200 mt-3">已暫停作答</h2>
             <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
