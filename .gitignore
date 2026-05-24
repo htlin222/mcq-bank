@@ -37,6 +37,9 @@ Thumbs.db
 .idea/
 *.swp
 
-# Personal tooling — Claude Code / Codex local skill caches and reports
-.claude/
-.codex/
+# Personal tooling — Claude Code / Codex local state, except skills which
+# we DO want shared with the repo so the whole team gets them.
+.claude/*
+!.claude/skills/
+.codex/*
+!.codex/skills/
