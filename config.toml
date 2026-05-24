@@ -43,3 +43,10 @@ og_invite_line = "限 20 位內測使用者 · Cloudflare Zero Trust"
 # localStorage key for the theme picker — namespaced so forks don't
 # collide on the same browser when developing locally.
 theme_storage_key = "hema-2026:theme"
+
+[dev]
+# Identity the Vite dev proxy injects as X-Dev-Email so the Worker
+# (CF_ACCESS_TEAM_DOMAIN === 'localhost') treats local requests as this
+# user. Has no effect in production — CF Access supplies the real email.
+# The Worker's admin allowlist lives in wrangler.toml [vars] ADMIN_EMAILS.
+dev_email = "ppoiu87@gmail.com"

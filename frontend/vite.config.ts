@@ -16,6 +16,7 @@ type AppConfig = {
   exam: { date_iso: string; date_label: string; countdown_label: string };
   public: { host: string; og_invite_line: string };
   storage: { theme_storage_key: string };
+  dev: { dev_email: string };
 };
 
 // Minimal TOML reader — handles the flat `[section] key = "value"` shape
@@ -45,10 +46,15 @@ function loadConfig(): AppConfig {
   return parseToml(readFileSync(CONFIG_PATH, 'utf8'));
 }
 
+// Loaded once at startup so the dev proxy below can reuse the same
+// dev_email. The plugin re-reads on change for HMR; the proxy header is
+// fixed for the lifetime of the dev server (restart to change it).
+const bootConfig = loadConfig();
+
 // Replace %CONFIG_*% tokens in index.html with values from config.toml
 // and rebuild whenever the file changes in dev.
 function appConfigPlugin(): Plugin {
-  let cfg = loadConfig();
+  let cfg = bootConfig;
   return {
     name: 'app-config',
     config() {
@@ -83,12 +89,12 @@ export default defineConfig({
         changeOrigin: true,
         // Local dev only — the Worker accepts this when
         // CF_ACCESS_TEAM_DOMAIN === 'localhost' (see .dev.vars).
-        headers: { 'X-Dev-Email': 'ppoiu87@gmail.com' },
+        headers: { 'X-Dev-Email': bootConfig.dev.dev_email },
       },
       '/img': {
         target: 'http://localhost:8787',
         changeOrigin: true,
-        headers: { 'X-Dev-Email': 'ppoiu87@gmail.com' },
+        headers: { 'X-Dev-Email': bootConfig.dev.dev_email },
       },
     },
   },
