@@ -15,9 +15,10 @@ type RecentChallenge = {
   proposer_email: string;
   proposed_answer: string;
   original_answer_at_challenge: string;
-  status: 'open' | 'contested';
+  status: 'open' | 'contested' | 'promoted' | 'rejected';
   contested_at: number | null;
   created_at: number;
+  resolved_at: number | null;
   agrees: number;
   disagrees: number;
 };
@@ -62,7 +63,7 @@ export function Home() {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
     api.get<Stats>('/api/review/stats').then(setStats).catch(() => setStats(null));
     api
-      .get<RecentChallenge[]>('/api/challenges/recent?limit=5')
+      .get<RecentChallenge[]>('/api/challenges/recent?limit=8&include=resolved')
       .then(setChallenges)
       .catch(() => setChallenges([]));
     // Tick once per second so the SS digits keep up. State updates are cheap
@@ -236,18 +237,33 @@ export function Home() {
         )}
       </section>
 
-      {/* 近期爭議 — active answer challenges across the dataset */}
-      {challenges.length > 0 && (
-        <section className="mb-10">
-          <h2 className="font-serif text-xl text-ink-800 dark:text-ink-200 mb-4 inline-flex items-center gap-2">
-            <Scale size={18} className="text-amber-700 dark:text-amber-300" /> 近期爭議
-          </h2>
+      {/* 近期答案挑戰 — active + resolved challenges across the dataset */}
+      <section className="mb-10">
+        <h2 className="font-serif text-xl text-ink-800 dark:text-ink-200 mb-4 inline-flex items-center gap-2">
+          <Scale size={18} className="text-amber-700 dark:text-amber-300" /> 近期答案挑戰
+        </h2>
+        {challenges.length === 0 ? (
+          <p className="text-sm text-ink-500 dark:text-ink-400 italic">
+            目前還沒有人對任何題目提出答案挑戰。
+          </p>
+        ) : (
           <ul className="space-y-2">
             {challenges.map((c) => {
               const qid = `${c.year}-${String(c.number).padStart(3, '0')}`;
-              const statusLabel = c.status === 'contested' ? '討論中' : '表決中';
+              const statusLabel =
+                c.status === 'promoted'
+                  ? '已採納'
+                  : c.status === 'rejected'
+                  ? '已駁回'
+                  : c.status === 'contested'
+                  ? '討論中'
+                  : '表決中';
               const statusCls =
-                c.status === 'contested'
+                c.status === 'promoted'
+                  ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200'
+                  : c.status === 'rejected'
+                  ? 'bg-ink-100 dark:bg-ink-900/30 text-ink-600 dark:text-ink-400'
+                  : c.status === 'contested'
                   ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200'
                   : 'bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200';
               return (
@@ -282,8 +298,8 @@ export function Home() {
               );
             })}
           </ul>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Quick links */}
       <section className="flex gap-4 flex-wrap text-sm">
