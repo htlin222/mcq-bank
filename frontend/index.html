@@ -8,24 +8,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;700&family=Source+Serif+Pro:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
-    <title>2026 台灣血專衝衝衝</title>
-    <meta name="description" content="血液腫瘤次專科考試共筆題庫 · 1000 題 · 共筆詳解 · 全真模擬 · 答案挑戰" />
+    <!-- %CONFIG_*% tokens are substituted at build time from /config.toml
+         by the app-config plugin in vite.config.ts. -->
+    <title>%CONFIG_TITLE%</title>
+    <meta name="description" content="%CONFIG_DESCRIPTION%" />
 
     <!-- OpenGraph -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://hema-2026.hsiehting.com/" />
-    <meta property="og:title" content="2026 台灣血專衝衝衝" />
-    <meta property="og:description" content="血液腫瘤次專科考試共筆題庫 · 共筆詳解 · 全真模擬 · 答案挑戰" />
-    <meta property="og:image" content="https://hema-2026.hsiehting.com/og-image.png" />
+    <meta property="og:url" content="%CONFIG_OG_URL%" />
+    <meta property="og:title" content="%CONFIG_TITLE%" />
+    <meta property="og:description" content="%CONFIG_DESCRIPTION%" />
+    <meta property="og:image" content="%CONFIG_OG_IMAGE%" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="zh_TW" />
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="2026 台灣血專衝衝衝" />
-    <meta name="twitter:description" content="血液腫瘤次專科考試共筆題庫 · 共筆詳解 · 全真模擬 · 答案挑戰" />
-    <meta name="twitter:image" content="https://hema-2026.hsiehting.com/og-image.png" />
+    <meta name="twitter:title" content="%CONFIG_TITLE%" />
+    <meta name="twitter:description" content="%CONFIG_DESCRIPTION%" />
+    <meta name="twitter:image" content="%CONFIG_OG_IMAGE%" />
   </head>
   <body class="bg-ink-50 text-ink-800 font-sans antialiased">
     <div id="root"></div>

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
+import { config } from '../config';
 
 type Mode = 'light' | 'dark' | 'system';
-const STORAGE_KEY = 'hema-2026:theme';
+const STORAGE_KEY = config.storage.theme_storage_key;
 
 function apply(mode: Mode) {
   const wantsDark =

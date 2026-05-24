@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bookmark, History, AlertTriangle, CalendarDays, Scale } from 'lucide-react';
 import { api } from '../lib/api';
+import { config } from '../config';
 import { useMe } from '../hooks/useMe';
 import { ActivityHeatmap } from '../components/ActivityHeatmap';
 
@@ -31,8 +32,8 @@ type Stats = {
   by_year: { year: number; seen: number; correct: number }[];
 };
 
-// 血液腫瘤次專科考試日 — 2026/08/29 上午 9:00 (Taipei time)
-const EXAM_DATE = new Date('2026-08-29T09:00:00+08:00');
+// Exam start time — configured in /config.toml [exam].
+const EXAM_DATE = new Date(config.exam.date_iso);
 
 type Countdown = {
   days: number;
@@ -89,17 +90,17 @@ export function Home() {
           {greeting()} {me?.display_name ? <span className="text-accent">{me.display_name}</span> : ''}
         </h1>
         <p className="text-ink-500 dark:text-ink-400 mt-2 text-sm sm:text-base">
-          2026 台灣血專衝衝衝 · 共筆詳解 · 全真模擬
+          {config.brand.home_subtitle}
         </p>
       </header>
 
-      {/* Countdown to 血專 exam */}
+      {/* Countdown to exam — date and label come from /config.toml [exam]. */}
       <section className="mb-8">
         <div className="bg-gradient-to-r from-accent/10 to-amber-50 border border-accent/30 rounded-lg p-5 sm:p-6 flex items-center gap-5">
           <CalendarDays className="text-accent shrink-0" size={36} strokeWidth={1.5} />
           <div className="flex-1">
             <div className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400">
-              血液腫瘤次專科考試倒數
+              {config.exam.countdown_label}
             </div>
             {finished ? (
               <div className="font-serif mt-0.5 text-2xl sm:text-3xl text-ink-700 dark:text-ink-200">
@@ -122,7 +123,7 @@ export function Home() {
                   {String(countdown.seconds).padStart(2, '0')}
                 </span>
                 <span className="ml-2 text-ink-500 dark:text-ink-400 text-xs sm:text-sm">
-                  · 2026 / 08 / 29 09:00
+                  · {config.exam.date_label}
                 </span>
               </div>
             )}

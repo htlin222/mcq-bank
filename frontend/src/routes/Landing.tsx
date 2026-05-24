@@ -1,4 +1,5 @@
 import { Users, ScrollText, Scale, ChevronRight } from 'lucide-react';
+import { config } from '../config';
 
 /**
  * Public landing page shown when the visitor isn't authenticated.
@@ -17,12 +18,12 @@ export function Landing() {
         <header className="text-center mb-12">
           <div className="inline-flex items-baseline gap-3 mb-4">
             <h1 className="font-serif text-5xl sm:text-6xl text-ink-900 dark:text-ink-100">
-              血專衝衝衝
+              {config.brand.short_name}
             </h1>
-            <span className="font-serif text-4xl sm:text-5xl text-accent">2026</span>
+            <span className="font-serif text-4xl sm:text-5xl text-accent">{config.brand.year}</span>
           </div>
           <p className="text-base sm:text-lg text-ink-600 dark:text-ink-400">
-            血液腫瘤次專科考試 · 共筆詳解 · 全真模擬 · 答案挑戰
+            {config.brand.subtitle}
           </p>
         </header>
 

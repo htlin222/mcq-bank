@@ -8,6 +8,7 @@ import {
   Bookmark,
   Search as SearchIcon,
 } from 'lucide-react';
+import { config } from './config';
 import { useMe } from './hooks/useMe';
 import { Avatar } from './components/Avatar';
 import { NotificationBell } from './components/NotificationBell';
@@ -72,7 +73,7 @@ export default function App() {
       <header className="sticky top-0 z-20 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
           <Link to="/" className="font-serif text-xl text-ink-900 dark:text-ink-100 hover:text-accent transition whitespace-nowrap">
-            血專衝衝衝
+            {config.brand.short_name}
           </Link>
 
           {/* Desktop nav */}
@@ -211,7 +212,7 @@ function BootSplash() {
   return (
     <div className="min-h-screen bg-ink-50 dark:bg-ink-900 flex items-center justify-center">
       <div className="font-serif text-3xl text-ink-400 dark:text-ink-600 animate-pulse">
-        血專衝衝衝
+        {config.brand.short_name}
       </div>
     </div>
   );
