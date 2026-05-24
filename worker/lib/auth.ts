@@ -9,9 +9,14 @@ import type { AppContext } from '../types';
  *   Cf-Access-Jwt-Assertion: <jwt>
  * We verify against CF's public JWKS, then trust the email claim.
  *
+ * If a route is in CF Access's *Bypass* policy (e.g. /api/me, so the
+ * public landing page can probe auth state without triggering a redirect),
+ * the header won't be forwarded — but the same JWT is also present as the
+ * `CF_Authorization` cookie set on the apex domain after login, so we fall
+ * back to that.
+ *
  * For local dev (wrangler dev), Access doesn't run, so we fall back to
- * a header `X-Dev-Email` for testing. In production, the absence of
- * Cf-Access-Jwt-Assertion means the request bypassed Access — reject it.
+ * a header `X-Dev-Email` for testing.
  */
 
 const jwksCache = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
@@ -26,8 +31,23 @@ function getJWKS(teamDomain: string) {
   return jwks;
 }
 
+function jwtFromRequest(c: Context<AppContext>): string | null {
+  const header = c.req.header('Cf-Access-Jwt-Assertion');
+  if (header) return header;
+  const cookie = c.req.header('Cookie');
+  if (!cookie) return null;
+  for (const part of cookie.split(';')) {
+    const eq = part.indexOf('=');
+    if (eq < 0) continue;
+    if (part.slice(0, eq).trim() === 'CF_Authorization') {
+      return decodeURIComponent(part.slice(eq + 1).trim());
+    }
+  }
+  return null;
+}
+
 export async function authMiddleware(c: Context<AppContext>, next: Next) {
-  const token = c.req.header('Cf-Access-Jwt-Assertion');
+  const token = jwtFromRequest(c);
 
   // Local dev fallback — Access isn't in front of `wrangler dev`
   if (!token) {

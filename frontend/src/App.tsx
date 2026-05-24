@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, Link, NavLink, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, NavLink, useNavigate, Navigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import {
   Home as HomeIcon,
@@ -15,6 +15,7 @@ import { FeedbackButton } from './components/FeedbackButton';
 import { OnlineUsers } from './components/OnlineUsers';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Home } from './routes/Home';
+import { Landing } from './routes/Landing';
 import { ReviewIndex } from './routes/ReviewIndex';
 import { YearList } from './routes/YearList';
 import { Question } from './routes/Question';
@@ -27,7 +28,7 @@ import { Bookmarks } from './routes/Bookmarks';
 import { Search } from './routes/Search';
 
 export default function App() {
-  const { me } = useMe();
+  const { me, loading } = useMe();
   const navigate = useNavigate();
 
   // Intercept clicks on @-question-ref links inside TipTap content so they
@@ -45,6 +46,25 @@ export default function App() {
     document.addEventListener('click', onClick);
     return () => document.removeEventListener('click', onClick);
   }, [navigate]);
+
+  // Boot splash while the first /api/me call resolves — avoids flashing the
+  // Landing for a logged-in user, or Dashboard for an anonymous visitor.
+  if (loading) {
+    return <BootSplash />;
+  }
+
+  // Anonymous visitor: only Landing renders, no app chrome. The /login route
+  // is a tiny redirect — the visitor hits it, CF Access (NOT bypassed for
+  // /login) intercepts, runs email-OTP, sets the auth cookie, and bounces
+  // them back here; useMe now succeeds and this branch flips to authed.
+  if (!me) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginRedirect />} />
+        <Route path="*" element={<Landing />} />
+      </Routes>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-ink-50 dark:bg-ink-900 text-ink-800 dark:text-ink-200 flex flex-col">
@@ -105,6 +125,7 @@ export default function App() {
           <Route path="/bookmarks" element={<Bookmarks />} />
           <Route path="/wrong" element={<WrongQuestions />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -184,4 +205,21 @@ function NotFound() {
       </Link>
     </div>
   );
+}
+
+function BootSplash() {
+  return (
+    <div className="min-h-screen bg-ink-50 dark:bg-ink-900 flex items-center justify-center">
+      <div className="font-serif text-3xl text-ink-400 dark:text-ink-600 animate-pulse">
+        血專衝衝衝
+      </div>
+    </div>
+  );
+}
+
+function LoginRedirect() {
+  // The visitor hit /login while unauthed; by the time React mounts this,
+  // CF Access has already set the cookie. Send them home — App.tsx will
+  // re-render the authed branch as useMe resolves.
+  return <Navigate to="/" replace />;
 }
