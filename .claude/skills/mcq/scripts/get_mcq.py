@@ -81,7 +81,13 @@ def main() -> None:
     qid = normalize(sys.argv[1])
     req = urllib.request.Request(
         f"{base}/api/mcq/{qid}",
-        headers={"Authorization": f"Bearer {key}", "X-User-Email": email},
+        headers={
+            "Authorization": f"Bearer {key}",
+            "X-User-Email": email,
+            # Cloudflare blocks the default "Python-urllib/x.y" UA (error 1010);
+            # send an explicit UA so the request isn't bounced at the edge.
+            "User-Agent": "mcq-skill/0.1 (+claude-code)",
+        },
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
