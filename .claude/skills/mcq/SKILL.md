@@ -1,6 +1,6 @@
 ---
 name: mcq
-version: 0.2.0
+version: 0.2.1
 description: 血液腫瘤考古題單題(題幹/選項/答案/共筆詳解)。當使用者輸入 /mcq 年-題號(例如 /mcq 114-001、也接受 114-1)時使用。
 ---
 
@@ -8,11 +8,16 @@ description: 血液腫瘤考古題單題(題幹/選項/答案/共筆詳解)。�
 
 使用者給題號(例:`114-001`,也接受 `114-1`)。預設模擬選擇題:**先讓使用者作答,再揭曉答案與共筆詳解**。
 
+腳本就在本技能目錄下,用**絕對路徑**叫它,**別假設 cwd 是 repo 根目錄、也別去翻目錄找它**。
+先把本技能目錄(這段指令開頭的 **Base directory for this skill** 那個路徑)設進變數,後面都用它(`.env` 也在這裡,腳本會自己讀):
+
+    SKILL="<貼上上面的 Base directory for this skill>"
+
 ## 流程
 
-1. 取題目(預設不含答案),從 repo 根目錄執行:
+1. 取題目(預設不含答案):
 
-       python3 .claude/skills/mcq/scripts/get_mcq.py QID
+       python3 "$SKILL/scripts/get_mcq.py" QID
 
    輸出題幹與選項。**先別洩漏答案。**
 
@@ -20,7 +25,7 @@ description: 血液腫瘤考古題單題(題幹/選項/答案/共筆詳解)。�
 
 3. 作答後揭曉答案:
 
-       python3 .claude/skills/mcq/scripts/get_mcq.py QID --answer
+       python3 "$SKILL/scripts/get_mcq.py" QID --answer
 
    比對使用者選的字母與 `✅ 答案`,先說答對/答錯,再附上共筆詳解。
 
