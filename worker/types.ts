@@ -11,9 +11,11 @@ export type Env = {
   // Optional — feedback button is disabled if either is missing.
   GH_FEEDBACK_REPO?: string;  // "owner/repo"
   GH_FEEDBACK_TOKEN?: string; // PAT with issues:write
-  // Shared key for the read-only /api/mcq endpoint (the `/mcq` skill).
-  // Set via `wrangler secret put MCQ_API_KEY`; .dev.vars locally.
-  MCQ_API_KEY?: string;
+  // HMAC secret for per-user keys on the read-only /api/mcq endpoint
+  // (the `/mcq` skill). Each member's key is derived, not stored:
+  //   key = "mcqk_" + b64url(HMAC-SHA256(MCQ_KEY_SECRET, `${email}:${ver}`))
+  // Set via `wrangler secret put MCQ_KEY_SECRET`; .dev.vars locally.
+  MCQ_KEY_SECRET?: string;
   // Question categories. Format: "<label>:<count>,...". Empty / missing
   // falls back to a single "全部:0" group so the app still boots.
   GROUPS?: string;
@@ -47,6 +49,7 @@ export type User = {
   display_name: string;
   avatar_key: string | null;
   bio: string | null;
+  mcq_key_version: number;  // rotation salt for the /mcq skill key (default 1)
   created_at: number;
   updated_at: number;
 };

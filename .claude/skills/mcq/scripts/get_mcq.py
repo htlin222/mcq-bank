@@ -2,7 +2,8 @@
 """Fetch one exam question from the hema-2026 read-only API for the /mcq skill.
 
 Reads config from .claude/skills/mcq/.env (MCQ_API_BASE / MCQ_API_KEY /
-MCQ_USER_EMAIL), sends the shared key + member email, prints the question.
+MCQ_USER_EMAIL), sends the per-user key + member email, prints the question.
+The .env comes pre-baked in the .skill downloaded from /profile.
 Standard library only — no pip install needed.
 """
 import json
@@ -106,7 +107,7 @@ def main() -> None:
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", "replace")
         hints = {
-            401: "金鑰錯誤或未設定 → 檢查 .env 的 MCQ_API_KEY",
+            401: "金鑰錯誤/已重新產生 → 回 /profile 重新下載 .skill",
             403: "email 不在白名單 → 向管理者確認 MCQ_USER_EMAIL 已加入",
             404: "查無此題 → 確認題號格式(年-題號)",
         }
