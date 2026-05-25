@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MessageSquareWarning, X, Loader2, CheckCircle2 } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
 
@@ -76,13 +77,13 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
     }
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-sm flex items-center justify-center p-4"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-lg overflow-hidden">
-        <header className="flex items-center justify-between px-5 py-3 border-b border-ink-100 dark:border-ink-700">
+      <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-lg overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]">
+        <header className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-ink-100 dark:border-ink-700">
           <h2 className="font-serif text-lg text-ink-900 dark:text-ink-100 inline-flex items-center gap-2">
             <MessageSquareWarning size={18} className="text-accent" />
             回報 bug 或意見
@@ -97,7 +98,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
         </header>
 
         {success ? (
-          <div className="p-6 text-center space-y-3">
+          <div className="p-6 text-center space-y-3 overflow-y-auto">
             <CheckCircle2 size={36} className="mx-auto text-emerald-600" />
             <p className="text-ink-800 dark:text-ink-200">
               已建立 issue #{success.number},謝謝!
@@ -120,7 +121,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         ) : (
-          <div className="p-5 space-y-4">
+          <div className="p-5 space-y-4 overflow-y-auto">
             <p className="text-xs text-ink-500">
               送出後會以 GitHub issue 開單,標題與內容、你的 email、目前頁面網址、UA 都會留在 issue。
             </p>
@@ -176,6 +177,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
