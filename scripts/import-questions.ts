@@ -32,6 +32,9 @@
 import { readFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
+import { cfg } from './lib/cfg.mjs';
+
+const IMPORT_AUTHOR = `import@${cfg('project.slug')}`;
 
 const YEAR_MIN = 104;
 const YEAR_MAX = 114;
@@ -133,7 +136,7 @@ async function main() {
 
     const flag = local ? '--local' : '--remote';
     console.log(`  Inserting ${i + 1}..${i + chunk.length} (${flag})`);
-    await sh('wrangler', ['d1', 'execute', 'hema-2026-db', flag, '--file', file]);
+    await sh('wrangler', ['d1', 'execute', cfg('project.d1_db') as string, flag, '--file', file]);
   }
 
   // Tags (one chunk, append-only ON CONFLICT DO NOTHING)
@@ -148,7 +151,7 @@ async function main() {
     for (const tag of tags) {
       tagStatements.push(
         `INSERT INTO question_tags (question_id, tag, created_by, created_at)
-         VALUES ('${id}', '${escape(tag)}', 'import@hema-2026', ${now})
+         VALUES ('${id}', '${escape(tag)}', '${IMPORT_AUTHOR}', ${now})
          ON CONFLICT(question_id, tag) DO NOTHING;`
       );
     }
@@ -158,7 +161,7 @@ async function main() {
     await writeFile(tagsFile, tagStatements.join('\n'), 'utf-8');
     console.log(`  Inserting ${tagStatements.length} tag rows`);
     await sh('wrangler', [
-      'd1', 'execute', 'hema-2026-db', local ? '--local' : '--remote',
+      'd1', 'execute', cfg('project.d1_db') as string, local ? '--local' : '--remote',
       '--file', tagsFile,
     ]);
   }
@@ -170,7 +173,7 @@ async function main() {
                      WHERE id NOT IN (SELECT question_id FROM explanations);`;
   await writeFile('/tmp/qa-ensure-expl.sql', ensureSql, 'utf-8');
   await sh('wrangler', [
-    'd1', 'execute', 'hema-2026-db', local ? '--local' : '--remote',
+    'd1', 'execute', cfg('project.d1_db') as string, local ? '--local' : '--remote',
     '--file', '/tmp/qa-ensure-expl.sql',
   ]);
 

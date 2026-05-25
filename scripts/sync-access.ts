@@ -28,9 +28,11 @@
 import { readFile, writeFile, unlink } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
+import { cfg } from './lib/cfg.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const ENV_PATH = resolve(ROOT, '.env');
+const APP_NAME = `${cfg('project.slug')} 共筆`;
 
 type Env = Record<string, string>;
 
@@ -114,7 +116,7 @@ async function main() {
 }
 
 // ------------------------------------------------------------ D1 user seeding
-const D1_DB_NAME = 'hema-2026-db';
+const D1_DB_NAME = cfg('project.d1_db') as string;
 
 function sqlEscape(s: string): string {
   return s.replace(/'/g, "''");
@@ -260,7 +262,7 @@ async function getApp(env: Env, appId: string) {
 
 async function createApp(env: Env) {
   return cf(env, 'POST', `/accounts/${env.CF_ACCOUNT_ID}/access/apps`, {
-    name: 'hema-2026 共筆',
+    name: APP_NAME,
     domain: env.PAGES_DOMAIN,
     type: 'self_hosted',
     session_duration: '720h',          // 30 days

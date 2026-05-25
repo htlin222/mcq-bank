@@ -1,16 +1,15 @@
 import type { Env } from "../types";
 
-const DEFAULT_ADMIN_EMAILS = ["ppoiu87@gmail.com"];
-
 function normalizeEmail(email: string): string {
 	return email.trim().toLowerCase();
 }
 
+// Admin allow-list comes exclusively from wrangler.toml [vars] ADMIN_EMAILS
+// (or the matching .dev.vars override). Forks just edit that file — no
+// hard-coded fallback so an unconfigured deploy has zero admins.
 export function adminEmails(env?: Pick<Env, "ADMIN_EMAILS">): Set<string> {
 	const configured = env?.ADMIN_EMAILS?.split(",") ?? [];
-	const emails = [...DEFAULT_ADMIN_EMAILS, ...configured]
-		.map(normalizeEmail)
-		.filter(Boolean);
+	const emails = configured.map(normalizeEmail).filter(Boolean);
 	return new Set(emails);
 }
 

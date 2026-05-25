@@ -14,9 +14,12 @@
 
 import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { resolve, basename } from 'node:path';
+import { cfg } from './lib/cfg.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const ENRICH_DIR = resolve(ROOT, 'years/114/enrich');
+const D1_DB = cfg('project.d1_db') as string;
+const SYSTEM_AUTHOR = `system@${cfg('project.slug')}`;
 
 type Rec = {
   id: string;
@@ -68,7 +71,7 @@ async function main() {
         `UPDATE explanations
            SET content_json = '${json}',
                version = version + 1,
-               updated_by = 'system@hema-2026',
+               updated_by = '${SYSTEM_AUTHOR}',
                updated_at = strftime('%s','now')*1000
          WHERE question_id = '${r.id}';`
       );
@@ -85,8 +88,8 @@ async function main() {
   await writeFile(outPath, stmts.join('\n') + '\n', 'utf-8');
   console.log(`✓ Wrote ${outPath}`);
   console.log(`  ${total} explanations to update`);
-  console.log(`  Apply with: wrangler d1 execute hema-2026-db --local --file=${outPath}`);
-  console.log(`              wrangler d1 execute hema-2026-db --remote --file=${outPath}`);
+  console.log(`  Apply with: wrangler d1 execute ${D1_DB} --local --file=${outPath}`);
+  console.log(`              wrangler d1 execute ${D1_DB} --remote --file=${outPath}`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

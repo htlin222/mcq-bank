@@ -1,4 +1,12 @@
-name = "hema-2026-api"
+# Fork-time wrangler template.
+#
+# Copy this file:    cp wrangler.example.toml wrangler.toml
+# Or run setup:      ./scripts/setup.sh    (also writes config.toml + .env)
+#
+# Resource names below should match config.toml [project]. setup.sh keeps
+# them in sync; if you edit by hand, update both files.
+
+name = "my-qa-bank-api"
 main = "worker/index.ts"
 compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
@@ -7,23 +15,23 @@ compatibility_flags = ["nodejs_compat"]
 # /api/* and /img/* on the same host so the browser's Access cookie flows
 # naturally and there's no CORS overhead.
 [[routes]]
-pattern = "hema-2026.hsiehting.com/api/*"
-zone_name = "hsiehting.com"
+pattern = "qa.example.com/api/*"
+zone_name = "example.com"
 
 [[routes]]
-pattern = "hema-2026.hsiehting.com/img/*"
-zone_name = "hsiehting.com"
+pattern = "qa.example.com/img/*"
+zone_name = "example.com"
 
-# DB id filled in by scripts/deploy.sh after `wrangler d1 create hema-2026-db`.
+# database_id is filled in by scripts/deploy.sh after `wrangler d1 create`.
 [[d1_databases]]
 binding = "DB"
-database_name = "hema-2026-db"
-database_id = "d3dbf212-b061-4716-a16d-fa83a269681e"
+database_name = "my-qa-bank-db"
+database_id = "<REPLACE_ME_DB_ID>"
 migrations_dir = "migrations"
 
 [[r2_buckets]]
 binding = "R2"
-bucket_name = "hema-2026-uploads"
+bucket_name = "my-qa-bank-uploads"
 
 # Workers AI (free tier: 10K neurons/day)
 [ai]
@@ -35,11 +43,11 @@ binding = "AI"
 # id = "<REPLACE_ME_KV_ID>"
 
 [vars]
-# Set via `wrangler secret put` (see scripts/setup-access.sh) or .dev.vars locally.
+# Set via `wrangler secret put` (see scripts/sync-access.ts) or .dev.vars locally.
 # CF_ACCESS_TEAM_DOMAIN = "yourteam.cloudflareaccess.com"
 # CF_ACCESS_AUD = "<application audience tag from Access dashboard>"
-GH_FEEDBACK_REPO = "htlin222/hema-2026"
-ADMIN_EMAILS = "ppoiu87@gmail.com"
+GH_FEEDBACK_REPO = "your-github-handle/my-qa-bank"
+ADMIN_EMAILS = "you@example.com"
 # GH_FEEDBACK_TOKEN is a secret — set via:  wrangler secret put GH_FEEDBACK_TOKEN
 
 [observability]

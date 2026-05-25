@@ -20,9 +20,13 @@ import argparse
 import json
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+with (ROOT / "config.toml").open("rb") as _f:
+    _CFG = tomllib.load(_f)
+D1_DB = _CFG["project"]["d1_db"]
 YEARS = list(range(104, 114))
 
 # ---------- TipTap → Markdown converter --------------------------------------
@@ -115,7 +119,7 @@ def tiptap_to_md(doc: dict | str) -> str:
 
 def wrangler_query(sql: str) -> list[dict]:
     """Run a SELECT against remote D1, return list of row dicts."""
-    cmd = ["wrangler", "d1", "execute", "hema-2026-db", "--remote", "--json", "--command", sql]
+    cmd = ["wrangler", "d1", "execute", D1_DB, "--remote", "--json", "--command", sql]
     out = subprocess.run(cmd, check=True, capture_output=True)
     payload = json.loads(out.stdout.decode("utf-8"))
     return payload[0]["results"]

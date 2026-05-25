@@ -2,6 +2,149 @@
 
 This file gives future Claude sessions the context needed to work on this codebase effectively.
 
+## When the user says "setup" or "deploy" on a fresh clone
+
+Treat this as a request for end-to-end guided onboarding. Walk the user
+through the steps below one at a time. Confirm prerequisites first, then
+ask before each step that modifies remote resources. **Don't batch — pause
+for the user's "ok / done / next" after each numbered block.** If a step
+fails, stop and debug; don't paper over with retries.
+
+### 0 — Sanity check (read silently, no need to print)
+- `git rev-parse --show-toplevel` → confirms repo root
+- `which wrangler pnpm node python3` → all required
+- `node -v` ≥ 20, `python3 --version` ≥ 3.11 (for stdlib `tomllib`)
+- Look for existing `config.toml` / `wrangler.toml` / `.env` — if any
+  exist already, ask the user whether they want to reuse, edit, or
+  overwrite (`./scripts/setup.sh --force` overwrites all three).
+
+### 1 — Interactive config
+Run `./scripts/setup.sh`. It prompts for:
+- **Slug** — drives D1 db, R2 bucket, Worker, Pages project names. Must
+  be lowercase + hyphens. Stable: changing later means renaming CF resources.
+- **Public host** — e.g. `qa.example.com`. Must already exist as a zone
+  in the user's Cloudflare account, or be a `*.pages.dev` they'll switch to.
+- **Admin email** — granted in-app admin rights. Becomes `X-Dev-Email`
+  for local dev and the seed CF Access user.
+- **GitHub repo for feedback button** — set `GH_FEEDBACK_TOKEN` in `.env`
+  later (a PAT with `issues:write` on that repo).
+- **Exam date** — drives the homepage countdown; can be any future date.
+
+After this step, `config.toml`, `wrangler.toml`, `.env` all exist (with
+`<REPLACE_ME_DB_ID>` placeholder that `deploy.sh` will fill in).
+
+### 2 — Install deps + local verification
+```bash
+pnpm install
+cd frontend && pnpm install && cd ..
+pnpm db:migrate:local
+pnpm dev                                    # terminal A: wrangler dev
+(cd frontend && pnpm dev)                   # terminal B: vite
+```
+Open `http://localhost:5173`. The Vite proxy injects `X-Dev-Email` and
+the Worker treats `CF_ACCESS_TEAM_DOMAIN === 'localhost'` as bypass. You
+should see the landing page, be able to log in as the dev_email, and
+land in the home dashboard. If anything is broken here, **don't proceed
+to deploy** — fix locally first.
+
+### 3 — Cloudflare prerequisites (manual, in the dashboard)
+Before deploying, the user needs:
+- A **Cloudflare account** (free tier).
+- An **API token** with scopes listed in `.env.example` (Workers Scripts
+  Edit, D1 Edit, R2 Edit, Access Apps+Policies Edit, Pages Edit, Access
+  Organizations/IdP/Groups Read; Zone scopes: DNS Edit, Workers Routes Edit).
+- **Zero Trust** enabled at https://one.dash.cloudflare.com/ (free plan
+  is fine; first-time setup will ask for a team subdomain).
+- If using a custom domain (not `*.pages.dev`), the zone must be on CF.
+
+The user puts the token + account ID into `.env` (setup.sh did this if
+they answered the prompts).
+
+### 4 — Roster
+The deployment whitelists users via a Google Sheet CSV export
+(`ROSTER_CSV_URL` in `.env`). For initial deploy, the user can leave it
+blank — `admin_emails` from `config.toml` will be the sole allowlist.
+For a real cohort:
+- Make a sheet with an email column (currently expected at column
+  index 3 — see `scripts/sync-access.ts:194`; adjust there for a
+  different sheet shape).
+- File → Share → Publish to web → CSV → copy the link into `.env`.
+
+### 5 — First deploy
+```bash
+./scripts/deploy.sh
+```
+Creates the D1 database (and patches `database_id` into `wrangler.toml`),
+applies migrations, creates the R2 bucket, syncs the Access roster,
+deploys the Worker, builds + deploys the Pages frontend. Idempotent.
+
+If it stops with an error, read the context — usually a missing scope on
+the API token, a zone the account doesn't own, or a name collision.
+Don't suggest skipping steps.
+
+### 6 — Cloudflare Access setup
+```bash
+node --experimental-strip-types scripts/sync-access.ts
+```
+Creates the CF Access Application at `PAGES_DOMAIN`, sets the policy
+include[] from merged `ADMIN_EMAILS` + roster, pushes
+`CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD` as Worker secrets, and seeds
+`users` rows so everyone shows up in @mention pickers before first login.
+
+Then `./scripts/setup-public-bypass.sh` creates path-scoped bypass apps
+for the landing page, OG image, favicon, SPA assets, and the auth probe
+— so the public can reach the landing without an Access prompt.
+
+### 7 — Import questions
+The user provides a CSV (see `scripts/sample-questions.csv` for format).
+```bash
+node --experimental-strip-types scripts/import-questions.ts ./questions.csv
+```
+Pre-flight validates year range / group constraints / unique IDs before
+any insert — a single failure aborts the whole batch.
+
+### 8 — Smoke test
+Have the user open `https://<their host>/`, click "登入" / "Sign in",
+receive an email OTP from CF Access, and confirm they land in the
+in-app home dashboard with the admin badge. Also verify:
+- Creating an explanation on a question (lock + save flow)
+- Posting a comment with an @mention (notification badge)
+- Uploading an image (R2 + `/img/<key>` proxy)
+- Starting a mock exam and submitting
+
+If any of those fail, that's the bug to chase before declaring done.
+
+### Common gotchas (mention if the user hits them)
+- `wrangler d1 create` fails with "already exists" — fine, deploy.sh
+  handles this; it greps `wrangler d1 list` for the ID.
+- Pages domain not resolving — Pages takes a few minutes after first
+  deploy; user can use the `*.pages.dev` URL immediately.
+- Access "block" page on local dev — `.dev.vars` must have
+  `CF_ACCESS_TEAM_DOMAIN=localhost` to enable the bypass.
+- `pnpm db:migrate:local` errors about missing `database_id` — fine for
+  local (uses `.wrangler/state/`); only `--remote` needs it.
+
+## Configuration model (for any code that touches resource names)
+
+Per-fork values live in `config.toml` (gitignored; the tracked template
+is `config.example.toml`). All scripts read from there — never hard-code
+a slug, database name, bucket name, host, or admin email.
+
+- **Shell scripts:** `. "$(dirname "$0")/lib/cfg.sh"; v=$(cfg public.host)`
+- **Node / TS scripts:** `import { cfg } from './lib/cfg.mjs'; const v = cfg('project.d1_db')`
+- **Python scripts:** `import tomllib; CFG = tomllib.load(open('config.toml','rb'))`
+- **package.json scripts:** `$(node scripts/lib/cfg.mjs <key.path>)`
+- **Worker code:** reads from env bindings declared in `wrangler.toml [vars]`
+  (e.g. `ADMIN_EMAILS`, `GH_FEEDBACK_REPO`). Never reads `config.toml` —
+  the worker has no FS access at runtime.
+- **Frontend code:** values come from `__APP_CONFIG__` (injected by
+  `frontend/vite.config.ts` at build time from `config.toml`).
+
+When adding a new per-fork value: add it to `[project]` (or another
+relevant section) in **both** `config.toml` and `config.example.toml`,
+then read it via the appropriate helper. Don't add a second source of
+truth.
+
 ## Project Overview
 
 **National exam Q&A study system for 20 internal users.** 1000 questions (10 years × 100/year), with two study modes:

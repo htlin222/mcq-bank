@@ -30,9 +30,14 @@ import subprocess
 import sys
 import tempfile
 import time
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+with (ROOT / "config.toml").open("rb") as _f:
+    _CFG = tomllib.load(_f)
+D1_DB = _CFG["project"]["d1_db"]
+IMPORT_AUTHOR = f"import@{_CFG['project']['slug']}"
 YEARS = list(range(104, 114))
 CHUNK_SIZE = 50  # statements per wrangler call
 
@@ -229,11 +234,11 @@ def main():
                 # UPSERT-style: explanations row may already exist (created empty by the question importer).
                 stmts.append(
                     f"INSERT INTO explanations (question_id, content_json, version, updated_by, updated_at) "
-                    f"VALUES ('{qid}', '{sql_escape(json_str)}', 1, 'import@hema-2026', {now_ms}) "
+                    f"VALUES ('{qid}', '{sql_escape(json_str)}', 1, '{IMPORT_AUTHOR}', {now_ms}) "
                     f"ON CONFLICT(question_id) DO UPDATE SET "
                     f"content_json = excluded.content_json, "
                     f"version = explanations.version + 1, "
-                    f"updated_by = 'import@hema-2026', "
+                    f"updated_by = '{IMPORT_AUTHOR}', "
                     f"updated_at = {now_ms};"
                 )
 
@@ -255,7 +260,7 @@ def main():
         print(f"  Updating {i+1}..{i+len(chunk)} ({flag})", file=sys.stderr)
         try:
             subprocess.run(
-                ["wrangler", "d1", "execute", "hema-2026-db", flag, "--file", tmp_path],
+                ["wrangler", "d1", "execute", D1_DB, flag, "--file", tmp_path],
                 check=True,
                 stdout=subprocess.DEVNULL,  # suppress big JSON wrangler emits
                 stderr=subprocess.PIPE,

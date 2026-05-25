@@ -3,6 +3,12 @@
 .env.local
 .dev.vars
 
+# Per-fork configuration — copy from *.example versions and edit locally.
+# Tracking these would leak per-deploy resource names and cause merge
+# conflicts on `git pull` upstream.
+config.toml
+wrangler.toml
+
 # Wrangler local state (D1 sqlite, KV, R2 caches)
 .wrangler/
 worker-configuration.d.ts

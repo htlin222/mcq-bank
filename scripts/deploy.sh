@@ -1,12 +1,26 @@
 #!/usr/bin/env bash
 # End-to-end deployment script
 # Idempotent: re-running is safe; will skip already-created resources.
+# All resource names come from config.toml [project] — edit there to rebrand.
 
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-echo "▶ hema-2026 deployment"
+# shellcheck source=lib/cfg.sh
+. "$(dirname "$0")/lib/cfg.sh"
+
+if [ ! -f config.toml ] || [ ! -f wrangler.toml ]; then
+  echo "❌ config.toml and/or wrangler.toml missing. Run ./scripts/setup.sh first."
+  exit 1
+fi
+
+SLUG="$(cfg project.slug)"
+D1_DB="$(cfg project.d1_db)"
+R2_BUCKET="$(cfg project.r2_bucket)"
+PAGES_PROJECT="$(cfg project.pages_project)"
+
+echo "▶ $SLUG deployment"
 echo "================================"
 
 # 0. Sanity check
@@ -21,13 +35,13 @@ fi
 
 # 1. D1 database
 echo ""
-echo "▶ Step 1: D1 database"
+echo "▶ Step 1: D1 database ($D1_DB)"
 if grep -q '<REPLACE_ME_DB_ID>' wrangler.toml; then
-  echo "  Creating hema-2026-db..."
-  DB_OUTPUT=$(wrangler d1 create hema-2026-db 2>&1 || echo "EXISTS")
+  echo "  Creating $D1_DB..."
+  DB_OUTPUT=$(wrangler d1 create "$D1_DB" 2>&1 || echo "EXISTS")
   if echo "$DB_OUTPUT" | grep -q "already exists"; then
-    echo "  hema-2026-db already exists; fetching ID..."
-    DB_ID=$(wrangler d1 list --json 2>/dev/null | grep -A1 '"name": "hema-2026-db"' | grep uuid | sed 's/.*"\([a-f0-9-]\{36\}\)".*/\1/' | head -1)
+    echo "  $D1_DB already exists; fetching ID..."
+    DB_ID=$(wrangler d1 list --json 2>/dev/null | grep -A1 "\"name\": \"$D1_DB\"" | grep uuid | sed 's/.*"\([a-f0-9-]\{36\}\)".*/\1/' | head -1)
   else
     DB_ID=$(echo "$DB_OUTPUT" | grep -oE '"database_id"\s*=\s*"[^"]+"' | sed 's/.*"\([^"]\+\)"$/\1/')
   fi
@@ -37,7 +51,7 @@ if grep -q '<REPLACE_ME_DB_ID>' wrangler.toml; then
     exit 1
   fi
 
-  echo "  hema-2026-db ID: $DB_ID"
+  echo "  $D1_DB ID: $DB_ID"
   # macOS/BSD-compatible in-place sed
   sed -i.bak "s/<REPLACE_ME_DB_ID>/$DB_ID/" wrangler.toml && rm wrangler.toml.bak
   echo "  ✅ wrangler.toml updated"
@@ -48,14 +62,14 @@ fi
 # 2. Migrations
 echo ""
 echo "▶ Step 2: D1 migrations"
-wrangler d1 migrations apply hema-2026-db --remote
+wrangler d1 migrations apply "$D1_DB" --remote
 echo "  ✅ Schema applied"
 
 # 3. R2 bucket
 echo ""
-echo "▶ Step 3: R2 bucket"
-if wrangler r2 bucket create hema-2026-uploads 2>&1 | grep -q "already exists\|Created bucket"; then
-  echo "  ✅ hema-2026-uploads ready"
+echo "▶ Step 3: R2 bucket ($R2_BUCKET)"
+if wrangler r2 bucket create "$R2_BUCKET" 2>&1 | grep -q "already exists\|Created bucket"; then
+  echo "  ✅ $R2_BUCKET ready"
 else
   echo "  ⚠️  R2 step may have failed; check manually."
 fi
@@ -74,14 +88,14 @@ echo "  ✅ Worker deployed"
 
 # 6. Frontend
 echo ""
-echo "▶ Step 6: Build & deploy frontend (Pages)"
+echo "▶ Step 6: Build & deploy frontend (Pages → $PAGES_PROJECT)"
 cd frontend
 if [ ! -d node_modules ]; then
   echo "  Installing frontend deps (this can take a minute)..."
   npm install
 fi
 npm run build
-wrangler pages deploy dist --project-name=hema-2026
+wrangler pages deploy dist --project-name="$PAGES_PROJECT"
 cd ..
 echo "  ✅ Frontend deployed"
 

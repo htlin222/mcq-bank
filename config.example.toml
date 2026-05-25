@@ -1,0 +1,67 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Fork-time configuration template.
+#
+# Copy this file:    cp config.example.toml config.toml
+# Or run setup:      ./scripts/setup.sh   (interactive)
+#
+# Every string here is reachable from the running app, scripts, or
+# Cloudflare resource names. Edit, then run setup.sh (or deploy.sh) so
+# wrangler.toml picks up the matching resource names.
+# ──────────────────────────────────────────────────────────────────────────
+
+[project]
+# Short slug. Drives CF resource names. Lowercase, hyphens only.
+# Pick something stable — renaming after first deploy means renaming the
+# D1 database, R2 bucket, Worker, and Pages project as well.
+slug = "my-qa-bank"
+
+# Resource names. Defaults match the slug; override only on collision.
+d1_db = "my-qa-bank-db"
+r2_bucket = "my-qa-bank-uploads"
+worker_name = "my-qa-bank-api"
+pages_project = "my-qa-bank"
+
+# GitHub repo for the in-app feedback button (user reports become issues
+# here). Format: "owner/repo". Set GH_FEEDBACK_TOKEN in .env to enable.
+gh_feedback_repo = "your-github-handle/my-qa-bank"
+
+# Comma-separated emails granted in-app admin rights (separate from the
+# CF Access roster). Mirrored into wrangler.toml [vars] ADMIN_EMAILS.
+admin_emails = "you@example.com"
+
+[brand]
+# Short title — top nav, boot splash, Landing hero.
+short_name = "My Q&A Bank"
+# Year tag rendered alongside short_name.
+year = "2026"
+# Full title — <title>, OG title, Twitter card title.
+long_title = "My Q&A Bank · 2026"
+# Tagline — meta description, OG description, Landing hero subtitle.
+subtitle = "Multiple-choice question bank · collaborative explanations · timed mocks"
+# Shorter tagline shown under the greeting on the home dashboard.
+home_subtitle = "Study together · timed mocks · discussion"
+
+[exam]
+# When the real exam starts — drives the home-page countdown widget.
+# ISO-8601 with timezone offset. Leave a future date if you don't have one.
+date_iso = "2026-12-31T09:00:00+08:00"
+date_label = "2026 / 12 / 31 09:00"
+countdown_label = "Exam countdown"
+
+[public]
+# Public host. Must match the Worker route patterns in wrangler.toml and
+# the Pages custom domain you configure in the CF dashboard.
+host = "qa.example.com"
+# Small footer line on the OG card.
+og_invite_line = "Invite-only · Cloudflare Zero Trust"
+
+[storage]
+# localStorage key for the theme picker — namespaced so forks don't
+# collide on the same browser when developing locally.
+theme_storage_key = "my-qa-bank:theme"
+
+[dev]
+# Identity the Vite dev proxy injects as X-Dev-Email so the Worker
+# (CF_ACCESS_TEAM_DOMAIN === 'localhost') treats local requests as this
+# user. No effect in production — CF Access supplies the real email.
+dev_email = "you@example.com"

@@ -1,11 +1,17 @@
-# hema-2026 共筆題庫
+# Q&A bank — collaborative MCQ study system
 
-血液腫瘤次專科考古題複習 + 共筆系統,**全棧 Cloudflare**。
+Multiple-choice question bank + collaborative wiki-style explanations,
+**full-stack on Cloudflare free tier**. Designed for small invite-only
+study groups (5–50 users). This repo is the 2026 Taiwan hematology
+subspecialty exam ("hema-2026") instance, but every per-fork identifier
+lives in `config.toml` — read **[Forking this codebase](#forking-this-codebase)**
+to spin up your own deployment.
 
-- 民國 104..114 年 (= 2015..2025) × 100 題 / 年 = 1100 題
-- 每年:**70 內科** + **30 共同** (兒科 + 成人共同題)
-- 5–20 人小團體用 (CF Access whitelist)
-- 開發/部署皆在 free tier
+- ~1000 questions, organised by year + category
+- Two study modes: review (single question, collaborative explanation, threads)
+  and full mock exam (timed, scored, error review)
+- 5–50 user small group (CF Access whitelist, email OTP, no passwords)
+- Free tier for development and production
 
 ## 功能
 
@@ -29,33 +35,61 @@
 | AI | Cloudflare Workers AI |
 | 託管 | Cloudflare Pages |
 
-## Production
+## Forking this codebase
 
-| 資源 | 值 |
+Everything fork-specific lives in three files; all three are gitignored
+and shipped as `.example` templates. Either run the interactive helper:
+
+```bash
+./scripts/setup.sh        # asks for slug / host / admin email / CF token
+```
+
+…or copy the templates by hand:
+
+```bash
+cp config.example.toml   config.toml
+cp wrangler.example.toml wrangler.toml
+cp .env.example          .env
+$EDITOR config.toml wrangler.toml .env
+```
+
+What goes where:
+
+| File              | Tracked? | Holds                                                   |
+|-------------------|----------|---------------------------------------------------------|
+| `config.toml`     | ❌       | slug, brand strings, public host, CF resource names     |
+| `wrangler.toml`   | ❌       | Worker bindings (must match `config.toml [project]`)   |
+| `.env`            | ❌       | CF API token, account ID, roster sheet URL, GH PAT      |
+
+After editing, `./scripts/deploy.sh` creates the D1 DB, R2 bucket, Worker,
+and Pages project from those values. Resource names everywhere in scripts
+come from `config.toml [project]` (via `scripts/lib/cfg.mjs` /
+`scripts/lib/cfg.sh`), so changing the slug there propagates.
+
+Reference deployment (this fork):
+
+| Resource | Value |
 |---|---|
 | URL | https://hema-2026.hsiehting.com |
-| Worker | `hema-2026-api` (routes: `/api/*`, `/img/*`) |
-| Pages project | `hema-2026` |
+| Worker | `hema-2026-api` |
 | D1 | `hema-2026-db` |
 | R2 | `hema-2026-uploads` |
-| Access app | `hema-2026 共筆` (session 30d, email OTP) |
 | Access team | `htlin.cloudflareaccess.com` |
-
-Allow-list 自 Google Sheet 同步 (見 `.env` `ROSTER_CSV_URL`)。
 
 ## 本地開發
 
 ```bash
-pnpm install                              # 安裝 worker deps
-cd frontend && pnpm install && cd ..      # 安裝 frontend deps
-pnpm db:migrate:local                     # 建本地 D1 schema + 灌民國 100 年範例
-pnpm dev                                  # 啟動 wrangler dev (:8787)
-cd frontend && pnpm dev                   # 另一 terminal 起 vite (:5173)
+./scripts/setup.sh                        # (first time) writes config/wrangler/.env
+pnpm install                              # worker deps
+cd frontend && pnpm install && cd ..      # frontend deps
+pnpm db:migrate:local                     # local D1 schema + sample data
+pnpm dev                                  # wrangler dev (:8787)
+cd frontend && pnpm dev                   # in another terminal — vite (:5173)
 ```
 
 開瀏覽器到 http://localhost:5173 即可使用,Vite proxy 會把 `/api` 和 `/img` 轉到 :8787 並注入 `X-Dev-Email`。
 
-要改本機登入用的 email,改 `frontend/vite.config.ts`。
+要改本機登入用的 email,改 `config.toml [dev] dev_email`。
 
 ## 部署
 

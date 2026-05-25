@@ -15,6 +15,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# shellcheck source=lib/cfg.sh
+. "$(dirname "$0")/lib/cfg.sh"
+
 DRY_RUN=0
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
 
@@ -30,16 +33,17 @@ done < .env
 : "${CF_API_TOKEN:?missing in .env}"
 : "${CF_ACCOUNT_ID:?missing in .env}"
 
-HOST="hema-2026.hsiehting.com"
+HOST="$(cfg public.host)"
+SLUG="$(cfg project.slug)"
 API="https://api.cloudflare.com/client/v4"
 
 # Path, exact name (must be unique). Order matters for "first to verify".
 PATHS=(
-  "/og-image.png|hema-2026 public · og-image"
-  "/favicon.svg|hema-2026 public · favicon"
-  "/assets/*|hema-2026 public · spa-assets"
-  "/api/me|hema-2026 public · auth-probe"
-  "/|hema-2026 public · landing"
+  "/og-image.png|${SLUG} public · og-image"
+  "/favicon.svg|${SLUG} public · favicon"
+  "/assets/*|${SLUG} public · spa-assets"
+  "/api/me|${SLUG} public · auth-probe"
+  "/|${SLUG} public · landing"
 )
 
 list_apps() {
