@@ -80,7 +80,7 @@ function ExamStart() {
 
       {/* 科別選擇 */}
       <div className="mb-8 flex flex-wrap gap-2 items-center">
-        <span className="text-xs uppercase tracking-wider text-ink-400 mr-1">科別</span>
+        <span className="text-xs uppercase tracking-wider text-ink-400 dark:text-ink-500 mr-1">科別</span>
         <GroupToggle group="內科" active={groups.has('內科')} onClick={() => toggleGroup('內科')} />
         <GroupToggle group="共同" active={groups.has('共同')} onClick={() => toggleGroup('共同')} />
         {totalCount > 0 && (
@@ -95,7 +95,7 @@ function ExamStart() {
       )}
 
       {years.length === 0 ? (
-        <p className="text-ink-400">尚無題庫,請先匯入。</p>
+        <p className="text-ink-400 dark:text-ink-500">尚無題庫,請先匯入。</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {years.map((y) => (
@@ -108,7 +108,7 @@ function ExamStart() {
               <div className="font-serif text-2xl text-ink-900 dark:text-ink-100">
                 {y.year}
                 {y.year === 100 && (
-                  <span className="ml-1 text-xs text-ink-400 align-middle">(模擬)</span>
+                  <span className="ml-1 text-xs text-ink-400 dark:text-ink-500 align-middle">(模擬)</span>
                 )}
               </div>
               <div className="text-xs text-ink-500 dark:text-ink-400 mt-1">{totalCount} 題</div>
@@ -243,7 +243,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
   }, [now, state, submitting]);
 
   if (!state) {
-    return <div className="p-8 text-center text-ink-400">載入中…</div>;
+    return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
   }
 
   const live = state.running_since
@@ -353,7 +353,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
           >
             {overtime ? '超時 ' + fmt(live - state.cap_ms) : fmt(remaining)}
           </span>
-          <span className="text-ink-400">·</span>
+          <span className="text-ink-400 dark:text-ink-500">·</span>
           <span className="text-ink-600 dark:text-ink-300">
             {answered}/{total} 題已答
           </span>
@@ -400,7 +400,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       {isPaused && (
         <div className="bg-ink-50 dark:bg-ink-900 border-b border-ink-200 dark:border-ink-700">
           <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8 text-center">
-            <Pause className="mx-auto text-ink-400" size={48} strokeWidth={1.5} />
+            <Pause className="mx-auto text-ink-400 dark:text-ink-500" size={48} strokeWidth={1.5} />
             <h2 className="font-serif text-xl text-ink-800 dark:text-ink-200 mt-3">已暫停作答</h2>
             <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
               倒數計時已停止。隨時點「繼續」恢復。

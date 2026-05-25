@@ -162,16 +162,16 @@ function ActiveBanner({
             <span className="font-mono font-semibold text-amber-800 dark:text-amber-200">
               {challenge.proposed_answer}
             </span>
-            <span className="text-ink-400">(原 {challenge.original_answer_at_challenge})</span>
+            <span className="text-ink-400 dark:text-ink-500">(原 {challenge.original_answer_at_challenge})</span>
             {statusPill}
           </div>
           <div className="mt-1 text-xs text-ink-500 dark:text-ink-400">
             同意 <span className="font-mono text-emerald-700 dark:text-emerald-300">{challenge.agrees}</span>{' '}
             · 反對 <span className="font-mono text-rose-700 dark:text-rose-300">{challenge.disagrees}</span>
             {challenge.status === 'open' ? (
-              <span className="ml-2 text-ink-400">· 2 票同意 + 0 反對即自動修正答案</span>
+              <span className="ml-2 text-ink-400 dark:text-ink-500">· 2 票同意 + 0 反對即自動修正答案</span>
             ) : (
-              <span className="ml-2 text-ink-400">· 已有反對,需更高共識</span>
+              <span className="ml-2 text-ink-400 dark:text-ink-500">· 已有反對,需更高共識</span>
             )}
           </div>
         </div>
@@ -329,7 +329,7 @@ function FileChallengeModal({
         </p>
 
         <div className="mb-4">
-          <div className="text-xs uppercase tracking-wider text-ink-500 mb-2">主張答案應為</div>
+          <div className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-2">主張答案應為</div>
           <div className="flex gap-2 flex-wrap">
             {candidates.map((L) => (
               <button
@@ -349,7 +349,7 @@ function FileChallengeModal({
         </div>
 
         <div className="mb-4">
-          <div className="text-xs uppercase tracking-wider text-ink-500 mb-2">理由(必填)</div>
+          <div className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-2">理由(必填)</div>
           <RichEditor
             content={doc}
             onChange={setDoc}

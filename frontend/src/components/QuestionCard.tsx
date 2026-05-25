@@ -305,13 +305,13 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
             <span>正解 {currentAnswer}</span>
           )}
           {question.my_progress && question.my_progress.times_seen > 0 && (
-            <span className="text-ink-400">
+            <span className="text-ink-400 dark:text-ink-500">
               · 已看過 {question.my_progress.times_seen} 次,答對{' '}
               {question.my_progress.times_correct} 次
             </span>
           )}
           {stats && stats.attempts > 0 && (
-            <span className="text-ink-400">
+            <span className="text-ink-400 dark:text-ink-500">
               · 全體被作答 {stats.attempts} 次 / 答對 {stats.correct} 次,
               答對率 {stats.accuracy ?? 0}%
             </span>

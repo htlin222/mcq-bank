@@ -114,7 +114,7 @@ export function Bookmarks() {
             active={active === NOTES}
             onClick={() => setActive(NOTES)}
           />
-          <div className="mt-3 mb-1.5 px-2 text-[11px] uppercase tracking-wider text-ink-400">
+          <div className="mt-3 mb-1.5 px-2 text-[11px] uppercase tracking-wider text-ink-400 dark:text-ink-500">
             資料夾
           </div>
           {folders.map((f) => (
@@ -154,9 +154,9 @@ export function Bookmarks() {
         {/* Items */}
         <section>
           {items === null ? (
-            <div className="text-ink-400 text-sm">載入中…</div>
+            <div className="text-ink-400 dark:text-ink-500 text-sm">載入中…</div>
           ) : items.length === 0 ? (
-            <p className="text-ink-400 text-sm">
+            <p className="text-ink-400 dark:text-ink-500 text-sm">
               {active === NOTES
                 ? '尚未為任何題目寫過個人筆記。在題目頁切到「個人筆記」分頁即可開始。'
                 : '這裡還沒有收藏題目。在任何題目右上角點 ▭+ 即可收藏。'}
@@ -215,7 +215,7 @@ function SideItem({
       }
     >
       <span>{label}</span>
-      <span className="text-[11px] text-ink-400">{count}</span>
+      <span className="text-[11px] text-ink-400 dark:text-ink-500">{count}</span>
     </button>
   );
 }
@@ -240,7 +240,7 @@ function FolderItem({
       >
         <Folder size={14} className="shrink-0" />
         <span className="flex-1 truncate">{folder.name}</span>
-        <span className="text-[11px] text-ink-400">{folder.item_count}</span>
+        <span className="text-[11px] text-ink-400 dark:text-ink-500">{folder.item_count}</span>
         <span
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
           className="p-1 opacity-0 group-hover:opacity-100 hover:bg-ink-200 dark:hover:bg-ink-700 rounded"

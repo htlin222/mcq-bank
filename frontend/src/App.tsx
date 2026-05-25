@@ -199,8 +199,8 @@ function BottomItem({
 function NotFound() {
   return (
     <div className="max-w-md mx-auto px-4 py-20 text-center">
-      <h1 className="font-serif text-4xl text-ink-900 mb-3">404</h1>
-      <p className="text-ink-500">找不到頁面</p>
+      <h1 className="font-serif text-4xl text-ink-900 dark:text-ink-100 mb-3">404</h1>
+      <p className="text-ink-500 dark:text-ink-400">找不到頁面</p>
       <Link to="/" className="text-accent hover:text-accent-dark text-sm mt-4 inline-block">
         回首頁
       </Link>

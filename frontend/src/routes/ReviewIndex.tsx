@@ -48,7 +48,7 @@ export function ReviewIndex() {
   return (
     <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2">複習模式</h1>
-      <p className="text-ink-500 text-sm mb-8">
+      <p className="text-ink-500 dark:text-ink-400 text-sm mb-8">
         一題一答 · 可協作編輯詳解 · 留言討論
       </p>
 
@@ -59,7 +59,7 @@ export function ReviewIndex() {
         隨機抽一題開始
       </button>
 
-      <h2 className="font-serif text-xl text-ink-800 mb-4">選擇年度 (民國)</h2>
+      <h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-4">選擇年度 (民國)</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {years.map((y) => {
           const s = statsByYear.get(y.year);
@@ -77,7 +77,7 @@ export function ReviewIndex() {
                 <div className="font-serif text-xl text-ink-900 dark:text-ink-100">
                   {y.year}
                   {y.year === 100 && (
-                    <span className="ml-1 text-xs text-ink-400 align-middle">(模擬)</span>
+                    <span className="ml-1 text-xs text-ink-400 dark:text-ink-500 align-middle">(模擬)</span>
                   )}
                 </div>
                 <div className="text-xs text-ink-500 dark:text-ink-400">{y.count} 題</div>
@@ -94,8 +94,8 @@ export function ReviewIndex() {
               <div className="mt-2 flex items-center justify-between text-[11px]">
                 <span className="text-ink-500 dark:text-ink-400">
                   已複習 <span className="font-mono text-ink-700 dark:text-ink-200">{seen}</span>
-                  <span className="text-ink-400">/{y.count}</span>
-                  <span className="text-ink-400 ml-1">({seenPct}%)</span>
+                  <span className="text-ink-400 dark:text-ink-500">/{y.count}</span>
+                  <span className="text-ink-400 dark:text-ink-500 ml-1">({seenPct}%)</span>
                 </span>
                 {accPct !== null && (
                   <span

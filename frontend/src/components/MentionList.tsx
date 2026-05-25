@@ -47,7 +47,7 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
   if (props.items.length === 0) {
     return (
       <div className="mention-list">
-        <div className="mention-item text-ink-400">沒有結果</div>
+        <div className="mention-item text-ink-400 dark:text-ink-500">沒有結果</div>
       </div>
     );
   }
@@ -64,8 +64,8 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
             <>
               <Avatar email={item.email} avatarKey={item.avatar_key} name={item.display_name} size={24} />
               <div>
-                <div className="font-medium text-ink-800">{item.display_name}</div>
-                <div className="text-xs text-ink-500">{item.email}</div>
+                <div className="font-medium text-ink-800 dark:text-ink-100">{item.display_name}</div>
+                <div className="text-xs text-ink-500 dark:text-ink-400">{item.email}</div>
               </div>
             </>
           ) : (
@@ -74,8 +74,8 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
                 Q
               </div>
               <div className="min-w-0">
-                <div className="font-mono text-sm text-ink-800">{item.id}</div>
-                <div className="text-xs text-ink-500 truncate">{item.stem}</div>
+                <div className="font-mono text-sm text-ink-800 dark:text-ink-100">{item.id}</div>
+                <div className="text-xs text-ink-500 dark:text-ink-400 truncate">{item.stem}</div>
               </div>
             </>
           )}

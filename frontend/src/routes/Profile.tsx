@@ -19,7 +19,7 @@ export function Profile() {
   }, [me?.email]);
 
   if (loading || !me) {
-    return <div className="p-8 text-center text-ink-400">載入中…</div>;
+    return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
   }
 
   async function save() {

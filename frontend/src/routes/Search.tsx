@@ -147,7 +147,7 @@ export function Search() {
         {tagSet.size > 0 && (
           <button
             onClick={() => setTagSet(new Set())}
-            className="text-xs text-ink-500 hover:text-rose-600 inline-flex items-center gap-1"
+            className="text-xs text-ink-500 dark:text-ink-400 hover:text-rose-600 dark:hover:text-rose-400 inline-flex items-center gap-1"
           >
             <XIcon size={12} /> 清除 {tagSet.size} 個 tag
           </button>
@@ -179,9 +179,9 @@ export function Search() {
 
       {/* Results */}
       {hits === null ? (
-        <p className="text-ink-400 text-sm">輸入關鍵字或選 filter 開始搜尋。</p>
+        <p className="text-ink-400 dark:text-ink-500 text-sm">輸入關鍵字或選 filter 開始搜尋。</p>
       ) : hits.length === 0 ? (
-        <p className="text-ink-400 text-sm">沒有符合的題目。</p>
+        <p className="text-ink-400 dark:text-ink-500 text-sm">沒有符合的題目。</p>
       ) : (
         <>
           <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
@@ -221,7 +221,7 @@ export function Search() {
                     type="button"
                     onClick={() => { setSavePromptOpen(false); setFolderName(''); }}
                     disabled={saving}
-                    className="text-xs text-ink-500 hover:text-ink-700"
+                    className="text-xs text-ink-500 dark:text-ink-400 hover:text-ink-700 dark:hover:text-ink-200"
                   >
                     取消
                   </button>

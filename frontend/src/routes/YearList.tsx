@@ -26,7 +26,7 @@ export function YearList() {
   }, [year]);
 
   if (items === null) {
-    return <div className="p-8 text-center text-ink-400">載入中…</div>;
+    return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
   }
 
   const visible = items.filter((q) => {

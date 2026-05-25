@@ -111,15 +111,15 @@ export function Home() {
                 <span className={`text-4xl sm:text-5xl ${daysLeft <= 30 ? 'text-rose-700' : daysLeft <= 60 ? 'text-amber-700' : 'text-accent'}`}>
                   {daysLeft}
                 </span>
-                <span className="text-ink-600 text-base">天</span>
+                <span className="text-ink-600 dark:text-ink-300 text-base">天</span>
                 <span
                   className="font-mono tabular-nums text-ink-600 dark:text-ink-300 text-sm sm:text-base ml-1"
                   aria-live="polite"
                 >
                   {String(countdown.hours).padStart(2, '0')}
-                  <span className="text-ink-400">:</span>
+                  <span className="text-ink-400 dark:text-ink-500">:</span>
                   {String(countdown.minutes).padStart(2, '0')}
-                  <span className="text-ink-400">:</span>
+                  <span className="text-ink-400 dark:text-ink-500">:</span>
                   {String(countdown.seconds).padStart(2, '0')}
                 </span>
                 <span className="ml-2 text-ink-500 dark:text-ink-400 text-xs sm:text-sm">
@@ -178,7 +178,7 @@ export function Home() {
       <section className="mb-10">
         <h2 className="font-serif text-xl text-ink-800 dark:text-ink-200 mb-4">依年度 (民國)</h2>
         {years.length === 0 ? (
-          <p className="text-sm text-ink-400">尚無題目。請使用 import-questions 匯入 CSV。</p>
+          <p className="text-sm text-ink-400 dark:text-ink-500">尚無題目。請使用 import-questions 匯入 CSV。</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
             {years.map((y) => {
@@ -197,7 +197,7 @@ export function Home() {
                     <div className="font-serif text-2xl text-ink-900 dark:text-ink-100">
                       {y.year}
                       {y.year === 100 && (
-                        <span className="ml-1 text-xs text-ink-400 align-middle">(模擬)</span>
+                        <span className="ml-1 text-xs text-ink-400 dark:text-ink-500 align-middle">(模擬)</span>
                       )}
                     </div>
                     <div className="text-xs text-ink-500 dark:text-ink-400">{y.count} 題</div>
@@ -213,7 +213,7 @@ export function Home() {
                   <div className="mt-1.5 flex items-center justify-between text-[11px]">
                     <span className="text-ink-500 dark:text-ink-400">
                       已複習 <span className="font-mono text-ink-700 dark:text-ink-200">{seen}</span>
-                      <span className="text-ink-400">/{y.count}</span>
+                      <span className="text-ink-400 dark:text-ink-500">/{y.count}</span>
                     </span>
                     {accPct !== null && (
                       <span
@@ -290,7 +290,7 @@ export function Home() {
                           {c.proposed_answer}
                         </span>
                       </span>
-                      <span className="text-ink-400">
+                      <span className="text-ink-400 dark:text-ink-500">
                         · 同意 {c.agrees} · 反對 {c.disagrees}
                       </span>
                     </div>
@@ -343,7 +343,7 @@ function StatBlock({
       <div className={`font-serif text-2xl sm:text-3xl ${accent ? 'text-accent' : 'text-ink-900 dark:text-ink-100'}`}>
         {value}
       </div>
-      {sub && <div className="text-[11px] text-ink-400 mt-1">{sub}</div>}
+      {sub && <div className="text-[11px] text-ink-400 dark:text-ink-500 mt-1">{sub}</div>}
     </div>
   );
 }

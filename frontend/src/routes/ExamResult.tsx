@@ -32,7 +32,7 @@ export function ExamResult() {
     api.get<Result>(`/api/exam/${sid}`).then(setData);
   }, [sid]);
 
-  if (!data) return <div className="p-8 text-center text-ink-400">載入中…</div>;
+  if (!data) return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
 
   const total = data.answers.length;
   const correct = data.session.score;

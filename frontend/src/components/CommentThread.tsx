@@ -51,16 +51,16 @@ export function CommentThread({ questionId, currentEmail }: { questionId: string
 
   return (
     <section className="space-y-6">
-      <h3 className="text-lg font-serif font-semibold text-ink-800 border-b border-ink-200 pb-2">
-        討論串 <span className="text-ink-400 text-sm font-sans font-normal">({comments.length})</span>
+      <h3 className="text-lg font-serif font-semibold text-ink-800 dark:text-ink-100 border-b border-ink-200 dark:border-ink-700 pb-2">
+        討論串 <span className="text-ink-400 dark:text-ink-500 text-sm font-sans font-normal">({comments.length})</span>
       </h3>
 
       <NewCommentBox questionId={questionId} onPosted={load} />
 
       {loading ? (
-        <p className="text-ink-400 text-sm">載入中…</p>
+        <p className="text-ink-400 dark:text-ink-500 text-sm">載入中…</p>
       ) : tree.length === 0 ? (
-        <p className="text-ink-400 text-sm italic">還沒有討論。寫第一則吧。</p>
+        <p className="text-ink-400 dark:text-ink-500 text-sm italic">還沒有討論。寫第一則吧。</p>
       ) : (
         <ul className="space-y-4">
           {tree.map((c) => (
@@ -116,7 +116,7 @@ function NewCommentBox({ questionId, parentId, onPosted, onCancel }: {
       />
       <div className="flex justify-end gap-2">
         {onCancel && (
-          <button onClick={onCancel} className="px-3 py-1.5 text-sm text-ink-600 hover:text-ink-800">
+          <button onClick={onCancel} className="px-3 py-1.5 text-sm text-ink-600 dark:text-ink-300 hover:text-ink-800 dark:hover:text-ink-100">
             取消
           </button>
         )}
@@ -170,8 +170,8 @@ function CommentItem({ comment, questionId, currentEmail, onChange, depth }: {
         />
         <div className="flex-1 min-w-0">
           <header className="flex items-baseline gap-2 mb-1">
-            <span className="font-semibold text-ink-800">{comment.display_name}</span>
-            <time className="text-xs text-ink-400">
+            <span className="font-semibold text-ink-800 dark:text-ink-100">{comment.display_name}</span>
+            <time className="text-xs text-ink-400 dark:text-ink-500">
               {new Date(comment.created_at).toLocaleString('zh-TW')}
             </time>
           </header>
@@ -181,7 +181,7 @@ function CommentItem({ comment, questionId, currentEmail, onChange, depth }: {
               <RichEditor content={editContent} onChange={setEditContent} />
               <div className="flex gap-2">
                 <button onClick={saveEdit} className="px-3 py-1 text-sm bg-accent text-white rounded">儲存</button>
-                <button onClick={() => setEditing(false)} className="px-3 py-1 text-sm text-ink-600">取消</button>
+                <button onClick={() => setEditing(false)} className="px-3 py-1 text-sm text-ink-600 dark:text-ink-300">取消</button>
               </div>
             </div>
           ) : (
@@ -190,7 +190,7 @@ function CommentItem({ comment, questionId, currentEmail, onChange, depth }: {
             </div>
           )}
 
-          <footer className="flex gap-3 mt-2 text-xs text-ink-500">
+          <footer className="flex gap-3 mt-2 text-xs text-ink-500 dark:text-ink-400">
             {depth < maxDepth && !editing && (
               <button onClick={() => setReplying(!replying)} className="hover:text-accent">
                 {replying ? '取消回覆' : '回覆'}

@@ -25,7 +25,7 @@ export function Avatar({ email, avatarKey, name, size = 32 }: Props) {
       <img
         src={`/img/${avatarKey}`}
         alt={name || email}
-        className="rounded-full object-cover border border-ink-200"
+        className="rounded-full object-cover border border-ink-200 dark:border-ink-700"
         style={style}
       />
     );

@@ -90,7 +90,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
           </h2>
           <button
             onClick={onClose}
-            className="text-ink-400 hover:text-ink-600"
+            className="text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300"
             aria-label="關閉"
           >
             <X size={18} />
@@ -114,7 +114,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
             <div className="pt-2">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm text-ink-600 hover:text-ink-900"
+                className="px-4 py-2 text-sm text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100"
               >
                 關閉
               </button>
@@ -122,11 +122,11 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           <div className="p-5 space-y-4 overflow-y-auto">
-            <p className="text-xs text-ink-500">
+            <p className="text-xs text-ink-500 dark:text-ink-400">
               送出後會以 GitHub issue 開單,標題與內容、你的 email、目前頁面網址、UA 都會留在 issue。
             </p>
             <div>
-              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1">
                 標題
               </label>
               <input
@@ -139,7 +139,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1">
                 內容
               </label>
               <textarea
@@ -150,7 +150,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
                 maxLength={4000}
                 className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent text-sm font-mono text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
               />
-              <div className="text-right text-[11px] text-ink-400 mt-1">{body.length} / 4000</div>
+              <div className="text-right text-[11px] text-ink-400 dark:text-ink-500 mt-1">{body.length} / 4000</div>
             </div>
             {error && (
               <div className="p-2 rounded bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-sm">
@@ -161,7 +161,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
               <button
                 onClick={onClose}
                 disabled={submitting}
-                className="px-4 py-2 text-sm text-ink-600 hover:text-ink-900"
+                className="px-4 py-2 text-sm text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100"
               >
                 取消
               </button>

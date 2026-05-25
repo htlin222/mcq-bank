@@ -244,7 +244,7 @@ export function Question() {
 					載入失敗:{String(error)}
 				</div>
 			);
-		return <div className="p-8 text-center text-ink-400">載入中…</div>;
+		return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
 	}
 
 	const hasExplanation =
@@ -262,7 +262,7 @@ export function Question() {
 			<header className="flex items-center justify-between mb-6 text-sm">
 				<Link
 					to={`/year/${data.year}`}
-					className="inline-flex items-center gap-1 text-ink-500 hover:text-accent"
+					className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 				>
 					<ChevronLeft size={16} /> 民國 {data.year} 年
 				</Link>
@@ -270,7 +270,7 @@ export function Question() {
 					{neighbors.prev && (
 						<button
 							onClick={() => navigate(`/q/${neighbors.prev}`)}
-							className="inline-flex items-center gap-1 text-ink-500 hover:text-accent"
+							className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 						>
 							<ChevronLeft size={16} /> 上一題
 						</button>
@@ -278,7 +278,7 @@ export function Question() {
 					{neighbors.next && (
 						<button
 							onClick={() => navigate(`/q/${neighbors.next}`)}
-							className="inline-flex items-center gap-1 text-ink-500 hover:text-accent"
+							className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 						>
 							下一題 <ChevronRight size={16} />
 						</button>
@@ -306,7 +306,7 @@ export function Question() {
 						<TabButton active={tab === "note"} onClick={() => setTab("note")}>
 							個人筆記
 							{data.my_note && (
-								<span className="ml-1.5 text-[10px] text-ink-400">●</span>
+								<span className="ml-1.5 text-[10px] text-ink-400 dark:text-ink-500">●</span>
 							)}
 						</TabButton>
 					</div>
@@ -336,7 +336,7 @@ export function Question() {
 								href={buildOpenEvidenceUrl(data)}
 								target="_blank"
 								rel="noopener noreferrer"
-								className="text-sm text-ink-500 hover:text-accent inline-flex items-center gap-1"
+								className="text-sm text-ink-500 dark:text-ink-400 hover:text-accent inline-flex items-center gap-1"
 								title="把題幹+選項丟到 OpenEvidence(不送正解,可當盲解參考)"
 							>
 								<ExternalLink size={14} /> OpenEvidence
@@ -388,7 +388,7 @@ export function Question() {
 								autofocus
 							/>
 							{saveError && (
-								<div className="mt-3 p-2 rounded bg-rose-50 border border-rose-200 text-rose-800 text-sm">
+								<div className="mt-3 p-2 rounded bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-sm">
 									{saveError}
 								</div>
 							)}
@@ -396,7 +396,7 @@ export function Question() {
 								<button
 									onClick={cancelEdit}
 									disabled={saving}
-									className="px-4 py-2 text-sm text-ink-600 hover:text-ink-900"
+									className="px-4 py-2 text-sm text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100"
 								>
 									取消
 								</button>
@@ -477,7 +477,7 @@ export function Question() {
 								autofocus
 							/>
 							{noteError && (
-								<div className="mt-3 p-2 rounded bg-rose-50 border border-rose-200 text-rose-800 text-sm">
+								<div className="mt-3 p-2 rounded bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-sm">
 									{noteError}
 								</div>
 							)}
@@ -485,7 +485,7 @@ export function Question() {
 								<button
 									onClick={cancelNoteEdit}
 									disabled={noteSaving}
-									className="px-4 py-2 text-sm text-ink-600 hover:text-ink-900"
+									className="px-4 py-2 text-sm text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100"
 								>
 									取消
 								</button>
@@ -612,7 +612,7 @@ export function Question() {
 				{me ? (
 					<CommentThread questionId={data.id} currentEmail={me.email} />
 				) : (
-					<p className="text-ink-400 text-sm">載入使用者…</p>
+					<p className="text-ink-400 dark:text-ink-500 text-sm">載入使用者…</p>
 				)}
 			</section>
 		</div>
@@ -661,7 +661,7 @@ function AiActionButton({
 		<button
 			onClick={onClick}
 			disabled={busy || disabled}
-			className="text-sm text-ink-500 hover:text-accent disabled:opacity-40 inline-flex items-center gap-1"
+			className="text-sm text-ink-500 dark:text-ink-400 hover:text-accent disabled:opacity-40 inline-flex items-center gap-1"
 			title={title}
 		>
 			<Sparkles size={14} />
@@ -693,7 +693,7 @@ function AiPanel({
 				</span>
 				<button
 					onClick={onClose}
-					className="text-ink-400 hover:text-ink-600"
+					className="text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300"
 					aria-label="關閉 AI 面板"
 				>
 					<XIcon size={14} />
