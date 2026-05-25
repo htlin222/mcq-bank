@@ -134,7 +134,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="一句話概括"
                 maxLength={200}
-                className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent text-sm"
+                className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent text-sm text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
                 autoFocus
               />
             </div>
@@ -148,7 +148,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
                 placeholder="重現步驟、預期行為、實際行為,或單純的想法/建議"
                 rows={6}
                 maxLength={4000}
-                className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent text-sm font-mono"
+                className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent text-sm font-mono text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
               />
               <div className="text-right text-[11px] text-ink-400 mt-1">{body.length} / 4000</div>
             </div>
