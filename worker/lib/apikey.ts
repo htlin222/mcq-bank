@@ -1,19 +1,27 @@
 import type { MiddlewareHandler } from 'hono';
-import type { AppContext } from '../types';
+import type { AppContext, Env } from '../types';
 
 /**
- * API-key auth for the read-only /api/mcq endpoint used by the `/mcq` skill.
+ * Per-user API-key auth for the read-only /api/mcq endpoint used by the
+ * `/mcq` skill.
  *
  * This path is *bypassed* in Cloudflare Access so external Claude Code /
  * claude.ai requests — which carry no Access session — can reach the Worker.
- * That makes this middleware the ONLY gate, so:
- *   1. The shared key is compared in constant time (SHA-256 + timingSafeEqual)
- *      to avoid leaking it through response timing.
- *   2. The caller must also assert a known member email (X-User-Email) present
- *      in `users`. That email is self-asserted (NOT Access-verified), so it's a
- *      defence-in-depth / audit / soft-revocation layer, not a cryptographic
- *      second factor.
+ * That makes this middleware the ONLY gate.
+ *
+ * Each member's key is HMAC-derived, never stored:
+ *   key = "mcqk_" + b64url(HMAC-SHA256(MCQ_KEY_SECRET, `${email}:${version}`))
+ *
+ * - `MCQ_KEY_SECRET` is one global Worker secret. Leaking the D1 DB leaks no
+ *   keys, because D1 holds only the non-secret `mcq_key_version` salt.
+ * - The caller asserts its email via `X-User-Email`. That email selects the
+ *   user row (→ version + allowlist check) and is bound into the HMAC, so a
+ *   key only works for the email it was minted for.
+ * - Rotating one user = bump `users.mcq_key_version`; their old `.skill` 401s,
+ *   nobody else is affected.
  */
+
+const KEY_PREFIX = 'mcqk_';
 
 // Workers runtime adds timingSafeEqual to SubtleCrypto; the standard lib type
 // doesn't declare it, so widen the type here.
@@ -21,9 +29,41 @@ const subtle = crypto.subtle as SubtleCrypto & {
   timingSafeEqual(a: ArrayBuffer, b: ArrayBuffer): boolean;
 };
 
+function b64url(bytes: ArrayBuffer): string {
+  let bin = '';
+  const arr = new Uint8Array(bytes);
+  for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/**
+ * Derive the stable per-user key. Pure function of (secret, email, version):
+ * the same inputs always reproduce the same key, so the download endpoint can
+ * re-bake a member's `.env` at any time and this middleware can re-validate it.
+ */
+export async function deriveMcqKey(
+  secret: string,
+  email: string,
+  version: number,
+): Promise<string> {
+  const enc = new TextEncoder();
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const sig = await crypto.subtle.sign(
+    'HMAC',
+    cryptoKey,
+    enc.encode(`${email.trim().toLowerCase()}:${version}`),
+  );
+  return KEY_PREFIX + b64url(sig);
+}
+
+/** Constant-time string compare via fixed-length digests. */
 async function safeEqual(a: string, b: string): Promise<boolean> {
-  // Hash both to a fixed 32-byte digest first so a length mismatch can't
-  // short-circuit the comparison and leak timing.
   const enc = new TextEncoder();
   const [ah, bh] = await Promise.all([
     crypto.subtle.digest('SHA-256', enc.encode(a)),
@@ -33,30 +73,37 @@ async function safeEqual(a: string, b: string): Promise<boolean> {
 }
 
 export const apiKeyMiddleware: MiddlewareHandler<AppContext> = async (c, next) => {
-  const configured = c.env.MCQ_API_KEY;
-  if (!configured) {
+  const secret = c.env.MCQ_KEY_SECRET;
+  if (!secret) {
     // Fail closed if the secret was never set.
     return c.json({ error: 'mcq api not configured' }, 503);
   }
 
   const auth = c.req.header('Authorization') ?? '';
   const presented = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (!presented || !(await safeEqual(presented, configured))) {
+  const email = (c.req.header('X-User-Email') ?? '').trim().toLowerCase();
+  if (!presented) return c.json({ error: 'missing bearer key' }, 400);
+  if (!email) return c.json({ error: 'missing X-User-Email' }, 400);
+
+  // The email both selects the user row (allowlist + revocation) and provides
+  // the per-user version that the key is bound to.
+  const row = await c.env.DB.prepare(
+    'SELECT mcq_key_version FROM users WHERE email = ?',
+  )
+    .bind(email)
+    .first<{ mcq_key_version: number }>();
+  if (!row) return c.json({ error: 'email not in allowlist' }, 403);
+
+  const expected = await deriveMcqKey(secret, email, row.mcq_key_version);
+  if (!(await safeEqual(presented, expected))) {
     return c.json({ error: 'unauthorized' }, 401);
   }
 
-  const email = (c.req.header('X-User-Email') ?? '').trim().toLowerCase();
-  if (!email) {
-    return c.json({ error: 'missing X-User-Email' }, 400);
-  }
-  const row = await c.env.DB.prepare('SELECT email FROM users WHERE email = ?')
-    .bind(email)
-    .first<{ email: string }>();
-  if (!row) {
-    return c.json({ error: 'email not in allowlist' }, 403);
-  }
-
-  console.log(`[mcq-api] ${email} → ${c.req.path}`);
+  console.log(`[mcq-api] ${email} (v${row.mcq_key_version}) → ${c.req.path}`);
   c.set('email', email);
   await next();
 };
+
+// Re-export Env so callers can `import type { Env }` alongside the helper if
+// they want; keeps the auth surface in one module.
+export type { Env };

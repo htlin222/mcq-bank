@@ -83,6 +83,9 @@ echo "  ✅ Roster synced"
 # 5. Worker
 echo ""
 echo "▶ Step 5: Deploy Worker"
+# Snapshot the /mcq skill files into worker/generated/ so the per-user
+# .skill download stays in sync with .claude/skills/mcq/.
+node scripts/gen-mcq-bundle.mjs
 wrangler deploy
 echo "  ✅ Worker deployed"
 

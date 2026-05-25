@@ -1,5 +1,9 @@
 import { Hono } from 'hono';
+import type { Context } from 'hono';
+import { zipSync, strToU8 } from 'fflate';
 import type { AppContext, User } from '../types';
+import { deriveMcqKey } from '../lib/apikey';
+import { MCQ_BUNDLE } from '../generated/mcq-bundle';
 
 export const meRoutes = new Hono<AppContext>();
 
@@ -41,6 +45,80 @@ meRoutes.patch('/', async (c) => {
     .first<User>();
 
   return c.json(user);
+});
+
+// ===== /mcq skill key (per-user, HMAC-derived) =============================
+// These run behind Access, so c.var.email is the verified identity — no
+// self-asserted X-User-Email here, unlike the public /api/mcq endpoint.
+
+async function currentKey(c: Context<AppContext>) {
+  const secret = c.env.MCQ_KEY_SECRET;
+  if (!secret) return null;
+  const email = c.var.email;
+  const row = await c.env.DB.prepare(
+    'SELECT mcq_key_version FROM users WHERE email = ?',
+  )
+    .bind(email)
+    .first<{ mcq_key_version: number }>();
+  const version = row?.mcq_key_version ?? 1;
+  const key = await deriveMcqKey(secret, email, version);
+  return { email, version, key };
+}
+
+// GET /api/me/mcq-key — current key + version, for display/copy in /profile.
+meRoutes.get('/mcq-key', async (c) => {
+  const k = await currentKey(c);
+  if (!k) return c.json({ error: 'mcq api not configured' }, 503);
+  return c.json(k);
+});
+
+// POST /api/me/mcq-key/rotate — bump the version salt. Any previously
+// downloaded .skill (carrying the old key) starts returning 401.
+meRoutes.post('/mcq-key/rotate', async (c) => {
+  const secret = c.env.MCQ_KEY_SECRET;
+  if (!secret) return c.json({ error: 'mcq api not configured' }, 503);
+  const email = c.var.email;
+  const row = await c.env.DB.prepare(
+    `UPDATE users SET mcq_key_version = mcq_key_version + 1, updated_at = ?
+     WHERE email = ? RETURNING mcq_key_version`,
+  )
+    .bind(Date.now(), email)
+    .first<{ mcq_key_version: number }>();
+  const version = row?.mcq_key_version ?? 1;
+  const key = await deriveMcqKey(secret, email, version);
+  return c.json({ email, version, key });
+});
+
+// GET /api/me/mcq-skill — download the personalised .skill bundle: the
+// canonical mcq skill files (snapshotted into worker/generated/mcq-bundle.ts)
+// plus a .env baked with this user's API base, derived key, and email. The
+// archive layout mirrors `zip -r x.skill .` from inside the skill folder
+// (SKILL.md + scripts/ at the root), matching the publish-the-skill format.
+meRoutes.get('/mcq-skill', async (c) => {
+  const k = await currentKey(c);
+  if (!k) return c.json({ error: 'mcq api not configured' }, 503);
+
+  const base = new URL(c.req.url).origin;
+  const env =
+    `# Auto-generated for ${k.email} — re-download from /profile anytime.\n` +
+    `# Personal key (v${k.version}); rotating it on /profile invalidates this file.\n` +
+    `MCQ_API_BASE=${base}\n` +
+    `MCQ_API_KEY=${k.key}\n` +
+    `MCQ_USER_EMAIL=${k.email}\n`;
+
+  const files: Record<string, Uint8Array> = { '.env': strToU8(env) };
+  for (const [name, content] of Object.entries(MCQ_BUNDLE)) {
+    files[name] = strToU8(content);
+  }
+
+  const zip = zipSync(files, { level: 6 });
+  return new Response(zip, {
+    headers: {
+      'Content-Type': 'application/zip',
+      'Content-Disposition': 'attachment; filename="mcq.skill"',
+      'Cache-Control': 'no-store',
+    },
+  });
 });
 
 // Allowed avatar MIME types. The client-supplied Content-Type can be

@@ -6,6 +6,7 @@ export type Me = {
   display_name: string;
   avatar_key: string | null;
   bio: string | null;
+  mcq_key_version: number;
   created_at: number;
 };
 

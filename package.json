@@ -4,9 +4,10 @@
 	"private": true,
 	"scripts": {
 		"setup": "./scripts/setup.sh",
-		"dev": "wrangler dev",
+		"gen:mcq-bundle": "node scripts/gen-mcq-bundle.mjs",
+		"dev": "node scripts/gen-mcq-bundle.mjs && wrangler dev",
 		"sync-users": "node --experimental-strip-types scripts/sync-access.ts",
-		"predeploy": "node --experimental-strip-types scripts/sync-access.ts",
+		"predeploy": "node --experimental-strip-types scripts/sync-access.ts && node scripts/gen-mcq-bundle.mjs",
 		"deploy": "wrangler deploy",
 		"tail": "wrangler tail",
 		"db:create": "wrangler d1 create $(node scripts/lib/cfg.mjs project.d1_db)",
@@ -24,6 +25,7 @@
 		"wrangler": "^4.0.0"
 	},
 	"dependencies": {
+		"fflate": "^0.8.3",
 		"hono": "^4.6.0",
 		"jose": "^5.9.0",
 		"ts-fsrs": "^5.4.1"
