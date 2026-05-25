@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import { X as XIcon } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
+import { GROUPS, groupBadgeClass } from '../lib/groups';
 
 type Row = {
   id: string;
   year: number;
   number: number;
   stem: string;
-  group: '內科' | '共同' | null;
+  group: string | null;
   times_seen?: number;
   times_correct?: number;
 };
@@ -74,8 +75,9 @@ export function WrongQuestions() {
           className="px-3 py-1.5 border border-ink-200 dark:border-ink-700 rounded bg-white dark:bg-ink-800 text-ink-800 dark:text-ink-200"
         >
           <option value="">所有 group</option>
-          <option value="內科">內科</option>
-          <option value="共同">共同</option>
+          {GROUPS.map((g) => (
+            <option key={g.label} value={g.label}>{g.label}</option>
+          ))}
         </select>
         {tagSet.size > 0 && (
           <button
@@ -129,9 +131,7 @@ export function WrongQuestions() {
                 {r.group && (
                   <span className={
                     'text-[11px] px-2 py-0.5 rounded shrink-0 self-center ' +
-                    (r.group === '內科'
-                      ? 'bg-amber-100 text-amber-800'
-                      : 'bg-sky-100 text-sky-800')
+                    groupBadgeClass(r.group)
                   }>{r.group}</span>
                 )}
                 {r.times_seen !== undefined && r.times_correct !== undefined && (

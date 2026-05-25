@@ -50,6 +50,20 @@ GH_FEEDBACK_REPO = "your-github-handle/my-qa-bank"
 ADMIN_EMAILS = "you@example.com"
 # GH_FEEDBACK_TOKEN is a secret — set via:  wrangler secret put GH_FEEDBACK_TOKEN
 
+# Question categories — mirrored from config.toml [groups].list by setup.sh.
+# Format: "<label>:<exam_count>,..." in display order.
+GROUPS = "Section A:50,Section B:50"
+
+# AI prompt wording — mirrored from config.toml [ai] by setup.sh.
+AI_SPECIALTY_ZH = "醫學"
+AI_SPECIALTY_EN_LONG = "general medicine"
+AI_TAG_DISEASE_EXAMPLES = "DM, HTN, CKD, COPD, HF"
+AI_TAG_TOPIC_EXAMPLES = "誘導治療,術後照護,門診追蹤,鑑別診斷,藥物副作用"
+AI_QA_QUESTION_EXAMPLES = "甚麼是 X 機轉?;Y 的臨床指引建議?;Z 的鑑別診斷有哪些?"
+AI_QA_TERMINOLOGY_EXAMPLES = "正式藥名保留英文,通用名稱可譯;縮寫首次出現後括號展開"
+AI_QA_MC_BAD_EXAMPLE = "下列何者為 X 的最常見副作用?"
+AI_QA_MC_GOOD_EXAMPLE = "X 常見的副作用有哪些?"
+
 [observability]
 enabled = true
 

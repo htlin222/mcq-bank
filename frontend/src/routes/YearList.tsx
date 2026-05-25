@@ -1,28 +1,46 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { BookOpen, Clock } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
+import { GROUPS, groupBadgeClass } from '../lib/groups';
 
 type QListItem = {
   id: string;
   year: number;
   number: number;
   stem: string;
-  group: '內科' | '共同' | null;
+  group: string | null;
   difficulty: number | null;
+};
+type AnkiDeckStats = {
+  year: number;
+  count: number;
+  due_count: number;
+  new_count: number;
+  due_review_count: number;
+  learning_count: number;
+  review_count: number;
+  studied_count: number;
+  next_due_at: number | null;
 };
 
 export function YearList() {
   const { year } = useParams<{ year: string }>();
   const [items, setItems] = useState<QListItem[] | null>(null);
+  const [ankiDeck, setAnkiDeck] = useState<AnkiDeckStats | null>(null);
   const [filter, setFilter] = useState('');
-  const [groupFilter, setGroupFilter] = useState<'all' | '內科' | '共同'>('all');
+  const [groupFilter, setGroupFilter] = useState<string>('all');
 
   useEffect(() => {
     if (!year) return;
     api
       .get<QListItem[]>(`/api/questions?year=${year}&limit=200`)
       .then(setItems);
+    api
+      .get<AnkiDeckStats[]>('/api/review/anki/decks')
+      .then((decks) => setAnkiDeck(decks.find((d) => String(d.year) === year) ?? null))
+      .catch(() => setAnkiDeck(null));
   }, [year]);
 
   if (items === null) {
@@ -39,27 +57,45 @@ export function YearList() {
     );
   });
 
-  const counts = {
-    內科: items.filter((q) => q.group === '內科').length,
-    共同: items.filter((q) => q.group === '共同').length,
-  };
+  const counts: Record<string, number> = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const g of GROUPS) {
+      out[g.label] = items.filter((q) => q.group === g.label).length;
+    }
+    return out;
+  }, [items]);
+
+  const countsSummary = GROUPS.map((g) => `${g.label} ${counts[g.label]}`).join(' · ');
 
   return (
     <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      <header className="mb-6">
-        <Link to="/review" className="text-sm text-ink-500 dark:text-ink-400 hover:text-accent">
-          ← 回到複習模式
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <Link to="/review" className="text-sm text-ink-500 dark:text-ink-400 hover:text-accent">
+            ← 回到複習模式
+          </Link>
+          <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mt-2">
+            民國 {year} 年 · {items.length} 題
+          </h1>
+          <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{countsSummary}</p>
+        </div>
+        <Link
+          to={`/anki/${year}`}
+          className="inline-flex items-center justify-center gap-2 rounded bg-accent hover:bg-accent-dark text-white px-4 py-2 text-sm font-medium transition"
+        >
+          <BookOpen size={16} />
+          Anki FSRS
+          {ankiDeck && (
+            <span className="inline-flex items-center gap-1 text-xs text-white/80">
+              <Clock size={12} />
+              今日 {ankiDeck.due_count} · 新卡 {ankiDeck.new_count}
+            </span>
+          )}
         </Link>
-        <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mt-2">
-          民國 {year} 年 · {items.length} 題
-        </h1>
-        <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">
-          內科 {counts.內科} · 共同 {counts.共同}
-        </p>
       </header>
 
       <div className="flex gap-2 mb-4">
-        {(['all', '內科', '共同'] as const).map((g) => (
+        {['all', ...GROUPS.map((g) => g.label)].map((g) => (
           <button
             key={g}
             onClick={() => setGroupFilter(g)}
@@ -104,9 +140,7 @@ export function YearList() {
                 <span
                   className={
                     'ml-auto text-[11px] px-2 py-0.5 rounded shrink-0 self-center ' +
-                    (q.group === '內科'
-                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-                      : 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300')
+                    groupBadgeClass(q.group)
                   }
                 >
                   {q.group}

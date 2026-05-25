@@ -8,7 +8,7 @@ type QListItem = {
   year: number;
   number: number;
   stem: string;
-  group: '內科' | '共同' | null;
+  group: string | null;
 };
 type Stats = {
   questions_attempted: number;

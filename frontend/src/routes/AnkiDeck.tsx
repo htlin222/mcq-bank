@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { ReadOnlyContent } from '../components/ReadOnlyContent';
+import { groupBadgeClass } from '../lib/groups';
 
 type RatingKey = 'again' | 'hard' | 'good' | 'easy';
 type DeckStats = {
@@ -49,7 +50,7 @@ type AnkiQuestion = {
   stem: string;
   options: Record<string, string>;
   answer: string;
-  group: '內科' | '共同' | null;
+  group: string | null;
   tags: string[];
   explanation: {
     question_id: string;
@@ -213,9 +214,7 @@ export function AnkiDeck() {
                 <span
                   className={
                     'inline-block px-2 py-0.5 rounded text-xs ' +
-                    (q.group === '內科'
-                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-                      : 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300')
+                    groupBadgeClass(q.group)
                   }
                 >
                   {q.group}

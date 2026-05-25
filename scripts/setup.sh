@@ -126,22 +126,57 @@ else
   WORKER_NAME=$(cfg project.worker_name)
   GH_REPO=$(cfg project.gh_feedback_repo)
   ADMIN_EMAIL=$(cfg project.admin_emails)
+  GROUPS_LIST=$(cfg groups.list)
+  AI_SPECIALTY_ZH=$(cfg ai.specialty_zh)
+  AI_SPECIALTY_EN_LONG=$(cfg ai.specialty_en_long)
+  AI_TAG_DISEASE_EXAMPLES=$(cfg ai.tag_disease_examples)
+  AI_TAG_TOPIC_EXAMPLES=$(cfg ai.tag_topic_examples)
+  AI_QA_QUESTION_EXAMPLES=$(cfg ai.qa_question_examples)
+  AI_QA_TERMINOLOGY_EXAMPLES=$(cfg ai.qa_terminology_examples)
+  AI_QA_MC_BAD_EXAMPLE=$(cfg ai.qa_mc_bad_example)
+  AI_QA_MC_GOOD_EXAMPLE=$(cfg ai.qa_mc_good_example)
 
   # Zone name — second-and-third labels of HOST joined (handles bare domain too)
   ZONE_NAME=$(python3 -c "h='${HOST}'.strip(); parts=h.split('.'); print('.'.join(parts[-2:]))")
 
   cp wrangler.example.toml wrangler.toml
-  python3 - wrangler.toml <<PY
+  python3 - wrangler.toml \
+    "$WORKER_NAME" "$HOST" "$ZONE_NAME" "$D1_DB" "$R2_BUCKET" \
+    "$GH_REPO" "$ADMIN_EMAIL" "$GROUPS_LIST" \
+    "$AI_SPECIALTY_ZH" "$AI_SPECIALTY_EN_LONG" \
+    "$AI_TAG_DISEASE_EXAMPLES" "$AI_TAG_TOPIC_EXAMPLES" \
+    "$AI_QA_QUESTION_EXAMPLES" "$AI_QA_TERMINOLOGY_EXAMPLES" \
+    "$AI_QA_MC_BAD_EXAMPLE" "$AI_QA_MC_GOOD_EXAMPLE" <<'PY'
 import sys, re
 path = sys.argv[1]
+(worker_name, host, zone_name, d1_db, r2_bucket, gh_repo, admin_email,
+ groups_list, ai_specialty_zh, ai_specialty_en_long,
+ ai_tag_disease, ai_tag_topic, ai_qa_questions, ai_qa_terminology,
+ ai_qa_mc_bad, ai_qa_mc_good) = sys.argv[2:18]
 with open(path, 'r', encoding='utf-8') as f: t = f.read()
-t = re.sub(r'^name = "[^"]+"', f'name = "${WORKER_NAME}"', t, count=1, flags=re.M)
-t = re.sub(r'qa\.example\.com', '${HOST}', t)
-t = re.sub(r'zone_name = "[^"]+"', f'zone_name = "${ZONE_NAME}"', t)
-t = re.sub(r'database_name = "[^"]+"', f'database_name = "${D1_DB}"', t)
-t = re.sub(r'bucket_name = "[^"]+"', f'bucket_name = "${R2_BUCKET}"', t)
-t = re.sub(r'GH_FEEDBACK_REPO = "[^"]+"', f'GH_FEEDBACK_REPO = "${GH_REPO}"', t)
-t = re.sub(r'ADMIN_EMAILS = "[^"]+"', f'ADMIN_EMAILS = "${ADMIN_EMAIL}"', t)
+
+def q(v): return v.replace('\\', '\\\\').replace('"', '\\"')
+def keysub(key, value):
+    global t
+    t = re.sub(rf'{key} = "[^"]*"', f'{key} = "{q(value)}"', t, count=1)
+
+t = re.sub(r'^name = "[^"]+"', f'name = "{q(worker_name)}"', t, count=1, flags=re.M)
+t = re.sub(r'qa\.example\.com', host, t)
+t = re.sub(r'zone_name = "[^"]+"', f'zone_name = "{q(zone_name)}"', t)
+t = re.sub(r'database_name = "[^"]+"', f'database_name = "{q(d1_db)}"', t)
+t = re.sub(r'bucket_name = "[^"]+"', f'bucket_name = "{q(r2_bucket)}"', t)
+keysub('GH_FEEDBACK_REPO', gh_repo)
+keysub('ADMIN_EMAILS', admin_email)
+keysub('GROUPS', groups_list)
+keysub('AI_SPECIALTY_ZH', ai_specialty_zh)
+keysub('AI_SPECIALTY_EN_LONG', ai_specialty_en_long)
+keysub('AI_TAG_DISEASE_EXAMPLES', ai_tag_disease)
+keysub('AI_TAG_TOPIC_EXAMPLES', ai_tag_topic)
+keysub('AI_QA_QUESTION_EXAMPLES', ai_qa_questions)
+keysub('AI_QA_TERMINOLOGY_EXAMPLES', ai_qa_terminology)
+keysub('AI_QA_MC_BAD_EXAMPLE', ai_qa_mc_bad)
+keysub('AI_QA_MC_GOOD_EXAMPLE', ai_qa_mc_good)
+
 with open(path, 'w', encoding='utf-8') as f: f.write(t)
 PY
   echo "  ✓ wrote wrangler.toml (database_id still <REPLACE_ME_DB_ID>; deploy.sh fills it in)"

@@ -13,7 +13,7 @@ export const questionsRoutes = new Hono<AppContext>();
 // ------------------------------------------------------------
 questionsRoutes.get("/", async (c) => {
 	const year = c.req.query("year");
-	const group = c.req.query("group"); // '內科' | '共同'
+	const group = c.req.query("group"); // one of the labels from config.toml [groups].list
 	const tags = c.req.query("tags"); // comma-separated, AND-semantics
 	const q = c.req.query("q"); // free text in stem
 	const limit = Math.min(parseInt(c.req.query("limit") || "50"), 200);
@@ -276,7 +276,7 @@ type SimilarRow = {
 	year: number;
 	number: number;
 	stem: string;
-	group: "內科" | "共同" | null;
+	group: string | null;
 	shared_tags: number;
 	source: "tag" | "fts";
 };

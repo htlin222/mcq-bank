@@ -65,3 +65,51 @@ theme_storage_key = "my-qa-bank:theme"
 # (CF_ACCESS_TEAM_DOMAIN === 'localhost') treats local requests as this
 # user. No effect in production — CF Access supplies the real email.
 dev_email = "you@example.com"
+
+[groups]
+# Ordered, comma-separated list of "<label>:<exam_count>" entries that
+# defines the question categories used across the app. The mock-exam
+# composition is the sum of all counts (so for hematology this is 70+30=100;
+# for a single-group bank just write one entry like "全部:50").
+#
+# Effects:
+#   - DB rows in `questions.group` must match one of these labels.
+#   - `Exam.tsx` renders one toggle per entry; per-group counts come from here.
+#   - YearList / Search / Bookmarks / Lists / Question / Anki badges read
+#     colors by position (1st = amber, 2nd = sky, 3rd = violet, 4th = emerald).
+#   - import-questions.ts validates uploaded CSV against this list and
+#     enforces the 1..N number range = first.count, N+1..total = second.count.
+#
+# Mirrored into wrangler.toml [vars] GROUPS by scripts/setup.sh.
+list = "Section A:50,Section B:50"
+
+[ai]
+# Specialty wording injected into the AI prompts in worker/routes/ai.ts.
+# These shape /suggest-tags + /generate-qa output for your subject area.
+#
+# specialty_zh: short Chinese-language specialty name used in system prompts
+#   (e.g. "血液腫瘤", "心臟內科", "感染症"). Leave empty to fall back to a
+#   generic "醫學考題" wording.
+# specialty_en_long: English long form, used as supporting context in the
+#   tag-suggestion prompt (e.g. "adult hematology or pediatric hematology",
+#   "internal medicine subspecialty").
+# tag_disease_examples: comma- or space-separated abbreviations the tag
+#   helper may use. Keep them short (≤6 chars), uppercase preferred.
+# tag_topic_examples: comma-separated 繁體中文 topic tags — treatment
+#   modalities, settings, populations.
+# qa_question_examples: a few high-quality short-answer example questions
+#   in Chinese, separated by ; — drives the style of generated questions.
+# qa_terminology_examples: how to handle bilingual medical terms
+#   (e.g. "GM-CSF 保留 GM-CSF,CXCR4 antagonist 寫 CXCR4 拮抗劑").
+# qa_mc_bad_example / qa_mc_good_example: a "before/after" pair showing
+#   how to abstract a multiple-choice item into a concept question.
+#
+# Mirrored into wrangler.toml [vars] AI_* by scripts/setup.sh.
+specialty_zh = "醫學"
+specialty_en_long = "general medicine"
+tag_disease_examples = "DM, HTN, CKD, COPD, HF"
+tag_topic_examples = "誘導治療,術後照護,門診追蹤,鑑別診斷,藥物副作用"
+qa_question_examples = "甚麼是 X 機轉?;Y 的臨床指引建議?;Z 的鑑別診斷有哪些?"
+qa_terminology_examples = "正式藥名保留英文,通用名稱可譯;縮寫首次出現後括號展開"
+qa_mc_bad_example = "下列何者為 X 的最常見副作用?"
+qa_mc_good_example = "X 常見的副作用有哪些?"

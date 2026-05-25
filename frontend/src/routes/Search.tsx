@@ -4,13 +4,14 @@ import { Search as SearchIcon, X as XIcon, FolderPlus } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
+import { GROUPS, groupBadgeClass } from '../lib/groups';
 
 type Hit = {
   id: string;
   year: number;
   number: number;
   stem: string;
-  group: '內科' | '共同' | null;
+  group: string | null;
   snippet: string;
 };
 type Year = { year: number; count: number };
@@ -141,8 +142,9 @@ export function Search() {
           className="px-3 py-1.5 border border-ink-200 dark:border-ink-700 rounded bg-white dark:bg-ink-800 text-ink-800 dark:text-ink-200"
         >
           <option value="">所有 group</option>
-          <option value="內科">內科</option>
-          <option value="共同">共同</option>
+          {GROUPS.map((g) => (
+            <option key={g.label} value={g.label}>{g.label}</option>
+          ))}
         </select>
         {tagSet.size > 0 && (
           <button
@@ -244,9 +246,7 @@ export function Search() {
                     {h.group && (
                       <span className={
                         'px-1.5 py-0.5 rounded text-[10px] ' +
-                        (h.group === '內科'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-sky-100 text-sky-800')
+                        groupBadgeClass(h.group)
                       }>{h.group}</span>
                     )}
                   </div>

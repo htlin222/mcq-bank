@@ -5,6 +5,7 @@ import type { QuestionFull } from '../hooks/useQuestion';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
 import { useMe } from '../hooks/useMe';
 import { ChallengePanel } from './ChallengePanel';
+import { groupBadgeClass } from '../lib/groups';
 
 type Props = {
   question: QuestionFull;
@@ -182,9 +183,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
             <span
               className={
                 'inline-block px-2 py-0.5 rounded text-xs ' +
-                (question.group === '內科'
-                  ? 'bg-amber-100 text-amber-800'
-                  : 'bg-sky-100 text-sky-800')
+                groupBadgeClass(question.group)
               }
             >
               {question.group}

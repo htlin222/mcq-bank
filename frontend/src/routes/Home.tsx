@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { config } from '../config';
 import { useMe } from '../hooks/useMe';
 import { ActivityHeatmap } from '../components/ActivityHeatmap';
+import { GROUPS, TOTAL_EXAM_COUNT } from '../lib/groups';
 
 type RecentChallenge = {
   id: string;
@@ -169,7 +170,7 @@ export function Home() {
             全真作答
           </h2>
           <p className="text-sm text-ink-500 dark:text-ink-400 mt-2 leading-relaxed">
-            按年度作答模擬考 (70 內科 + 30 共同),完賽看分數與錯題回顧。
+            按年度作答模擬考 ({GROUPS.map((g) => `${g.count} ${g.label}`).join(' + ')},共 {TOTAL_EXAM_COUNT} 題),完賽看分數與錯題回顧。
           </p>
         </Link>
       </section>

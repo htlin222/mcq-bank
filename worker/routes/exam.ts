@@ -1,28 +1,51 @@
 import { Hono } from 'hono';
-import type { AppContext, ExamSession, Question } from '../types';
+import type { AppContext, Env, ExamSession, Question } from '../types';
 import { uuid, optionsToRecord } from '../lib/db';
 
 export const examRoutes = new Hono<AppContext>();
 
-// Real exam pacing: 1 minute per question. 100 questions → 100 min,
-// 內科 only (70) → 70 min, 共同 only (30) → 30 min.
+// Real exam pacing: 1 minute per question. Total cap derives from the
+// group composition declared in config.toml [groups].list — see the
+// GROUPS env var. e.g. "內科:70,共同:30" → 100 min cap when both selected.
 const MS_PER_QUESTION = 60 * 1000;
-const VALID_GROUPS = ['內科', '共同'] as const;
-type Group = (typeof VALID_GROUPS)[number];
 
-// Start a new exam session. `groups` defaults to both 內科 + 共同 for
-// backwards compatibility with older clients that don't send it.
+// Cached per request — parsed lazily so a hot reload of GROUPS picks up.
+function parseGroupsConfig(raw: string | undefined): Array<{ label: string; count: number }> {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const sep = part.lastIndexOf(':');
+      if (sep < 0) return { label: part, count: 0 };
+      return {
+        label: part.slice(0, sep).trim(),
+        count: Number(part.slice(sep + 1).trim()) || 0,
+      };
+    });
+}
+
+function validGroupLabels(env: Env): string[] {
+  // No fallback — if GROUPS is unset, the worker returns 400 from /start so
+  // the operator gets a clear signal that wrangler.toml needs the var.
+  return parseGroupsConfig(env.GROUPS).map((g) => g.label);
+}
+
+// Start a new exam session. `groups` defaults to the full configured set
+// for backwards compatibility with older clients that don't send it.
 examRoutes.post('/start', async (c) => {
   const email = c.var.email;
   const body = await c.req.json<{
     year: number;
     mode?: 'full' | 'partial';
-    groups?: Group[];
+    groups?: string[];
   }>();
 
-  const groups: Group[] = Array.isArray(body.groups) && body.groups.length > 0
-    ? body.groups.filter((g): g is Group => VALID_GROUPS.includes(g))
-    : [...VALID_GROUPS];
+  const validGroups = validGroupLabels(c.env);
+  const groups: string[] = Array.isArray(body.groups) && body.groups.length > 0
+    ? body.groups.filter((g) => validGroups.includes(g))
+    : [...validGroups];
   if (groups.length === 0) {
     return c.json({ error: 'invalid groups' }, 400);
   }
