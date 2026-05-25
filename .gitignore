@@ -48,6 +48,11 @@ Thumbs.db
 .idea/
 *.swp
 
+# Packaged skill bundles / archives (built locally, distributed out-of-band).
+# These can embed live secrets (e.g. a bundled .env) — never commit them.
+*.zip
+*.skill
+
 # Personal tooling — Claude Code / Codex local state, except skills which
 # we DO want shared with the repo so the whole team gets them.
 .claude/*
