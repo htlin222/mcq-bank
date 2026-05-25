@@ -1,37 +1,29 @@
 ---
 name: mcq
-version: 0.1.1
-description: 取得血液腫瘤考古題單題全文(題幹/選項/答案/共筆詳解)。當使用者輸入 /mcq 年-題號(例如 /mcq 114-001、也接受 114-1)時使用。
+version: 0.2.0
+description: 血液腫瘤考古題單題(題幹/選項/答案/共筆詳解)。當使用者輸入 /mcq 年-題號(例如 /mcq 114-001、也接受 114-1)時使用。
 ---
 
-# mcq — 取單題考古題
+# mcq — 單題考古題小測驗
 
-使用者會給一個題號,例如 `114-001`(民國年-題號,也接受 `114-1`)。
+使用者給題號(例:`114-001`,也接受 `114-1`)。預設模擬選擇題:**先讓使用者作答,再揭曉答案與共筆詳解**。
 
-## 你要做的事
+## 流程
 
-從 repo 根目錄執行:
+1. 取題目(預設不含答案),從 repo 根目錄執行:
 
-    python3 .claude/skills/mcq/scripts/get_mcq.py QID
+       python3 .claude/skills/mcq/scripts/get_mcq.py QID
 
-把 `QID` 換成使用者給的題號(例如 114-001)。腳本會自己讀 `.claude/skills/mcq/.env` 的設定、
-帶上 `Authorization: Bearer` 與 `X-User-Email` 兩個 header 去打 API,然後印出
-格式化的題目(題幹、選項、答案、共筆詳解)。
+   輸出題幹與選項。**先別洩漏答案。**
 
-把腳本輸出**原樣**呈現給使用者即可。若出現錯誤:
+2. 呈現題幹與選項,請使用者回覆答案字母(A/B/C/D/E),等他回覆後再繼續。
 
-- `401` — 金鑰錯誤或未設定 → 提醒檢查 `.env` 的 `MCQ_API_KEY`
-- `403` — `MCQ_USER_EMAIL` 不在白名單 → 提醒向管理者確認該 email 已加入
-- `404` — 查無此題 → 確認題號格式為 `年-題號`
+3. 作答後揭曉答案:
 
-## 一次性設定(每位組員各自做一次)
+       python3 .claude/skills/mcq/scripts/get_mcq.py QID --answer
 
-    cp .claude/skills/mcq/.env.example .claude/skills/mcq/.env
+   比對使用者選的字母與 `✅ 答案`,先說答對/答錯,再附上共筆詳解。
 
-然後編輯 `.claude/skills/mcq/.env`,填入三個值:
+若使用者明說「直接看答案 / 不用測驗」,跳過第 2 步,直接用 `--answer` 一次給完整內容。
 
-- `MCQ_API_BASE`   — API host,例如 `https://qa.example.com`
-- `MCQ_API_KEY`    — 共用金鑰(向管理者索取,**切勿**提交進 git)
-- `MCQ_USER_EMAIL` — 你自己的組員 email
-
-`.env` 已被 `.gitignore` 排除,金鑰不會進版本庫。
+腳本輸出已含 401/403/404 錯誤提示,照訊息處理即可。一次性設定見 `.env.example`。
