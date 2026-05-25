@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react';
 
 const CONFIG_PATH = path.resolve(__dirname, '..', 'config.toml');
 
+type GroupSpec = { label: string; count: number };
+
 type AppConfig = {
   brand: {
     short_name: string;
@@ -17,12 +19,15 @@ type AppConfig = {
   public: { host: string; og_invite_line: string };
   storage: { theme_storage_key: string };
   dev: { dev_email: string };
+  // Pre-parsed from [groups].list so frontend code never has to parse
+  // "<label>:<count>,..." at runtime. See frontend/src/lib/groups.ts.
+  groups: GroupSpec[];
 };
 
 // Minimal TOML reader — handles the flat `[section] key = "value"` shape
 // in /config.toml. If config.toml grows arrays / multi-line strings,
 // swap in `smol-toml` as a devDependency.
-function parseToml(input: string): AppConfig {
+function parseToml(input: string): Record<string, Record<string, string>> {
   const out: Record<string, Record<string, string>> = {};
   let section = '';
   for (const rawLine of input.split('\n')) {
@@ -39,11 +44,31 @@ function parseToml(input: string): AppConfig {
       out[section][kv[1]] = kv[2].replace(/\\"/g, '"').replace(/\\\\/g, '\\');
     }
   }
-  return out as unknown as AppConfig;
+  return out;
+}
+
+// Parse `Section A:50,Section B:50` → [{label, count}, ...].
+function parseGroupsList(raw: string): GroupSpec[] {
+  return raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const sep = part.lastIndexOf(':');
+      if (sep < 0) return { label: part, count: 0 };
+      const label = part.slice(0, sep).trim();
+      const count = Number(part.slice(sep + 1).trim()) || 0;
+      return { label, count };
+    });
 }
 
 function loadConfig(): AppConfig {
-  return parseToml(readFileSync(CONFIG_PATH, 'utf8'));
+  const raw = parseToml(readFileSync(CONFIG_PATH, 'utf8'));
+  const groupsRaw = raw.groups?.list ?? '';
+  return {
+    ...(raw as unknown as Omit<AppConfig, 'groups'>),
+    groups: parseGroupsList(groupsRaw),
+  };
 }
 
 // Loaded once at startup so the dev proxy below can reuse the same

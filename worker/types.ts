@@ -14,6 +14,19 @@ export type Env = {
   // Shared key for the read-only /api/mcq endpoint (the `/mcq` skill).
   // Set via `wrangler secret put MCQ_API_KEY`; .dev.vars locally.
   MCQ_API_KEY?: string;
+  // Question categories. Format: "<label>:<count>,...". Empty / missing
+  // falls back to a single "全部:0" group so the app still boots.
+  GROUPS?: string;
+  // AI prompt wording — see config.toml [ai]. Each is optional and has a
+  // generic fallback inside worker/routes/ai.ts so the app boots unset.
+  AI_SPECIALTY_ZH?: string;
+  AI_SPECIALTY_EN_LONG?: string;
+  AI_TAG_DISEASE_EXAMPLES?: string;
+  AI_TAG_TOPIC_EXAMPLES?: string;
+  AI_QA_QUESTION_EXAMPLES?: string;
+  AI_QA_TERMINOLOGY_EXAMPLES?: string;
+  AI_QA_MC_BAD_EXAMPLE?: string;
+  AI_QA_MC_GOOD_EXAMPLE?: string;
 };
 
 // Hono variables injected by auth middleware
@@ -41,11 +54,14 @@ export type User = {
 export type Question = {
   id: string;
   year: number;       // 民國 (e.g. 114 for 2025)
-  number: number;     // 1..70 = 內科, 71..100 = 共同
+  number: number;     // composition follows config.toml [groups].list order
   stem: string;
   options_json: string;
   answer: string;
-  group: '內科' | '共同' | null;
+  // Group label comes from config.toml [groups].list (default for this
+  // fork: "內科"/"共同"). Widened to plain string so a fork can use any
+  // label set without touching code.
+  group: string | null;
   difficulty: number | null;
   source: string | null;
   created_at: number;

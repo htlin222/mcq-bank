@@ -8,7 +8,7 @@ export const searchRoutes = new Hono<AppContext>();
  *   ?q=     full-text query (FTS5 syntax allowed — quotes for phrases,
  *           AND/OR/NOT operators; bare terms are AND'd by FTS5 defaults)
  *   ?year=  filter by 民國 year
- *   ?group= filter by '內科' | '共同'
+ *   ?group= filter by one of the labels from config.toml [groups].list
  *   ?tags=  comma-separated tags, AND-semantics
  *   ?limit= default 30, max 100
  *   ?offset= default 0

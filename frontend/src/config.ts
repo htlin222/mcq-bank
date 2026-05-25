@@ -2,6 +2,8 @@
 // in vite.config.ts. Edit /config.toml (not this file) to rebrand for a
 // new exam — Vite full-reloads on save in dev.
 
+export type GroupSpec = { label: string; count: number };
+
 export type AppConfig = {
   brand: {
     short_name: string;
@@ -13,6 +15,7 @@ export type AppConfig = {
   exam: { date_iso: string; date_label: string; countdown_label: string };
   public: { host: string; og_invite_line: string };
   storage: { theme_storage_key: string };
+  groups: GroupSpec[];
 };
 
 declare const __APP_CONFIG__: AppConfig;

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Pause, Play, ChevronLeft, ChevronRight, AlertTriangle, Flag } from 'lucide-react';
 import { api } from '../lib/api';
+import { GROUPS, groupCounts } from '../lib/groups';
 
 type YearMeta = { year: number; count: number };
 
@@ -28,22 +29,25 @@ export function Exam() {
   return <ExamStart />;
 }
 
-type Group = '內科' | '共同';
-const GROUP_COUNTS: Record<Group, number> = { '內科': 70, '共同': 30 };
+type Group = string;
+const GROUP_COUNTS: Record<string, number> = groupCounts();
 
 function ExamStart() {
   const [years, setYears] = useState<YearMeta[]>([]);
   const [starting, setStarting] = useState<number | null>(null);
-  const [groups, setGroups] = useState<Set<Group>>(new Set(['內科', '共同']));
+  const [groups, setGroups] = useState<Set<Group>>(
+    () => new Set(GROUPS.map((g) => g.label)),
+  );
   const navigate = useNavigate();
 
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
   }, []);
 
-  const totalCount =
-    (groups.has('內科') ? GROUP_COUNTS['內科'] : 0) +
-    (groups.has('共同') ? GROUP_COUNTS['共同'] : 0);
+  const totalCount = GROUPS.reduce(
+    (sum, g) => sum + (groups.has(g.label) ? GROUP_COUNTS[g.label] : 0),
+    0,
+  );
 
   function toggleGroup(g: Group) {
     setGroups((prev) => {
@@ -81,8 +85,14 @@ function ExamStart() {
       {/* 科別選擇 */}
       <div className="mb-8 flex flex-wrap gap-2 items-center">
         <span className="text-xs uppercase tracking-wider text-ink-400 dark:text-ink-500 mr-1">科別</span>
-        <GroupToggle group="內科" active={groups.has('內科')} onClick={() => toggleGroup('內科')} />
-        <GroupToggle group="共同" active={groups.has('共同')} onClick={() => toggleGroup('共同')} />
+        {GROUPS.map((g) => (
+          <GroupToggle
+            key={g.label}
+            group={g.label}
+            active={groups.has(g.label)}
+            onClick={() => toggleGroup(g.label)}
+          />
+        ))}
         {totalCount > 0 && (
           <span className="text-xs text-ink-500 dark:text-ink-400 ml-2">
             共 {totalCount} 題

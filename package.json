@@ -1,30 +1,31 @@
 {
-  "name": "qa-bank-api",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "setup": "./scripts/setup.sh",
-    "dev": "wrangler dev",
-    "sync-users": "node --experimental-strip-types scripts/sync-access.ts",
-    "predeploy": "node --experimental-strip-types scripts/sync-access.ts",
-    "deploy": "wrangler deploy",
-    "tail": "wrangler tail",
-    "db:create": "wrangler d1 create $(node scripts/lib/cfg.mjs project.d1_db)",
-    "db:migrate:local": "wrangler d1 migrations apply $(node scripts/lib/cfg.mjs project.d1_db) --local",
-    "db:migrate:remote": "wrangler d1 migrations apply $(node scripts/lib/cfg.mjs project.d1_db) --remote",
-    "db:seed:local": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --local --file=migrations/0004_hema_sample.sql",
-    "db:seed:remote": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --remote --file=migrations/0004_hema_sample.sql",
-    "r2:create": "wrangler r2 bucket create $(node scripts/lib/cfg.mjs project.r2_bucket)",
-    "typecheck": "tsc --noEmit",
-    "test": "node --test 'worker/**/*.test.ts'"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250501.0",
-    "typescript": "^5.4.0",
-    "wrangler": "^4.0.0"
-  },
-  "dependencies": {
-    "hono": "^4.6.0",
-    "jose": "^5.9.0"
-  }
+	"name": "qa-bank-api",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"setup": "./scripts/setup.sh",
+		"dev": "wrangler dev",
+		"sync-users": "node --experimental-strip-types scripts/sync-access.ts",
+		"predeploy": "node --experimental-strip-types scripts/sync-access.ts",
+		"deploy": "wrangler deploy",
+		"tail": "wrangler tail",
+		"db:create": "wrangler d1 create $(node scripts/lib/cfg.mjs project.d1_db)",
+		"db:migrate:local": "wrangler d1 migrations apply $(node scripts/lib/cfg.mjs project.d1_db) --local",
+		"db:migrate:remote": "wrangler d1 migrations apply $(node scripts/lib/cfg.mjs project.d1_db) --remote",
+		"db:seed:local": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --local --file=migrations/0004_hema_sample.sql",
+		"db:seed:remote": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --remote --file=migrations/0004_hema_sample.sql",
+		"r2:create": "wrangler r2 bucket create $(node scripts/lib/cfg.mjs project.r2_bucket)",
+		"typecheck": "tsc --noEmit",
+		"test": "node --test 'worker/**/*.test.ts'"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250501.0",
+		"typescript": "^5.4.0",
+		"wrangler": "^4.0.0"
+	},
+	"dependencies": {
+		"hono": "^4.6.0",
+		"jose": "^5.9.0",
+		"ts-fsrs": "^5.4.1"
+	}
 }

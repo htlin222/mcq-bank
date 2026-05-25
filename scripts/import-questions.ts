@@ -8,8 +8,10 @@
  *   year,number,group,stem,option_a,option_b,option_c,option_d,option_e,answer,tags,difficulty,source
  *
  *   year      — 民國紀年, integer in [104, 114]
- *   number    — integer 1..100; 1..70 must have group='內科', 71..100 must have group='共同'
- *   group     — '內科' or '共同' (exact)
+ *   number    — integer 1..total, where total = sum of counts in config.toml
+ *               [groups].list. The configured order also partitions which
+ *               numbers belong to which group (first N → first group, etc.).
+ *   group     — one of the labels listed in config.toml [groups].list
  *   answer    — letter (A/B/C/D/E)
  *   tags      — semicolon-delimited free-form tags, optional
  *               e.g. "AML;誘導化療;小兒"
@@ -21,8 +23,8 @@
  *
  * Pre-flight validations (FAIL the whole import on first error):
  *   - year ∈ {104..114}
- *   - group ∈ {'內科','共同'}
- *   - number matches group (1..70=內科, 71..100=共同)
+ *   - group ∈ (config.toml [groups].list)
+ *   - number falls in the configured slice for that group
  *   - (year, number) unique within file
  *   - answer letter present in option_a..option_e
  *
@@ -38,6 +40,44 @@ const IMPORT_AUTHOR = `import@${cfg('project.slug')}`;
 
 const YEAR_MIN = 104;
 const YEAR_MAX = 114;
+
+// Group composition — derived from config.toml [groups].list at startup.
+// Format: "<label>:<count>,...". The configured order defines which range
+// of `number` belongs to which group (e.g. "內科:70,共同:30" → 1..70=內科, 71..100=共同).
+type GroupSpec = { label: string; count: number; startNumber: number; endNumber: number };
+function buildGroupSpec(): { groups: GroupSpec[]; labels: string[]; total: number } {
+  const raw = String(cfg('groups.list') ?? '').trim();
+  if (!raw) {
+    throw new Error(
+      'config.toml [groups].list is empty — set e.g. list = "內科:70,共同:30" first.',
+    );
+  }
+  const groups: GroupSpec[] = [];
+  let cursor = 0;
+  for (const part of raw.split(',').map((s) => s.trim()).filter(Boolean)) {
+    const sep = part.lastIndexOf(':');
+    if (sep < 0) {
+      throw new Error(`Bad [groups].list entry "${part}" — expected "<label>:<count>".`);
+    }
+    const label = part.slice(0, sep).trim();
+    const count = Number(part.slice(sep + 1).trim());
+    if (!label || !Number.isFinite(count) || count < 0) {
+      throw new Error(`Bad [groups].list entry "${part}" — count must be a non-negative number.`);
+    }
+    groups.push({
+      label,
+      count,
+      startNumber: cursor + 1,
+      endNumber: cursor + count,
+    });
+    cursor += count;
+  }
+  return { groups, labels: groups.map((g) => g.label), total: cursor };
+}
+
+const GROUP_SPEC = buildGroupSpec();
+const GROUP_LABELS = new Set(GROUP_SPEC.labels);
+const TOTAL_PER_YEAR = GROUP_SPEC.total;
 
 type Row = Record<string, string>;
 
@@ -61,7 +101,7 @@ async function main() {
   // ---------- Validation ----------
   const errors: string[] = [];
   const seen = new Set<string>();
-  const perYear: Record<number, { 內科: number; 共同: number }> = {};
+  const perYear: Record<number, Record<string, number>> = {};
 
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
@@ -75,19 +115,23 @@ async function main() {
       errors.push(`line ${line}: year must be ${YEAR_MIN}..${YEAR_MAX} (got ${r.year})`);
       continue;
     }
-    if (!Number.isFinite(number) || number < 1 || number > 100) {
-      errors.push(`line ${line}: number must be 1..100 (got ${r.number})`);
+    if (!Number.isFinite(number) || number < 1 || number > TOTAL_PER_YEAR) {
+      errors.push(`line ${line}: number must be 1..${TOTAL_PER_YEAR} (got ${r.number})`);
       continue;
     }
-    if (group !== '內科' && group !== '共同') {
-      errors.push(`line ${line}: group must be 內科 or 共同 (got "${group}")`);
+    if (!group || !GROUP_LABELS.has(group)) {
+      errors.push(
+        `line ${line}: group must be one of ${GROUP_SPEC.labels.join('/')} (got "${group}")`,
+      );
       continue;
     }
-    if (number <= 70 && group !== '內科') {
-      errors.push(`line ${line}: number ${number} must be group=內科, got ${group}`);
-    }
-    if (number > 70 && group !== '共同') {
-      errors.push(`line ${line}: number ${number} must be group=共同, got ${group}`);
+    const expectedGroup = GROUP_SPEC.groups.find(
+      (g) => number >= g.startNumber && number <= g.endNumber,
+    );
+    if (expectedGroup && group !== expectedGroup.label) {
+      errors.push(
+        `line ${line}: number ${number} must be group=${expectedGroup.label}, got ${group}`,
+      );
     }
 
     const key = `${year}-${number}`;
@@ -104,16 +148,23 @@ async function main() {
       errors.push(`line ${line}: answer "${answer}" has no matching option_${answer.toLowerCase()}`);
     }
 
-    perYear[year] ??= { 內科: 0, 共同: 0 };
-    perYear[year][group as '內科' | '共同']++;
+    perYear[year] ??= Object.fromEntries(GROUP_SPEC.labels.map((l) => [l, 0]));
+    if (group in perYear[year]) {
+      perYear[year][group]++;
+    }
   }
 
   for (const [yStr, counts] of Object.entries(perYear)) {
     const y = parseInt(yStr, 10);
-    if (counts.內科 !== 70 || counts.共同 !== 30) {
-      errors.push(
-        `year ${y}: expected 70 內科 + 30 共同, got ${counts.內科} 內科 + ${counts.共同} 共同`
-      );
+    const wrong = GROUP_SPEC.groups.find((g) => counts[g.label] !== g.count);
+    if (wrong) {
+      const expected = GROUP_SPEC.groups
+        .map((g) => `${g.count} ${g.label}`)
+        .join(' + ');
+      const got = GROUP_SPEC.groups
+        .map((g) => `${counts[g.label] ?? 0} ${g.label}`)
+        .join(' + ');
+      errors.push(`year ${y}: expected ${expected}, got ${got}`);
     }
   }
 

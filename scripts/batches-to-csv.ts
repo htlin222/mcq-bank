@@ -19,7 +19,8 @@ import { join } from 'node:path';
 
 type Q = {
   number: number;
-  group: '內科' | '共同';
+  // Group label — must match one of the labels in config.toml [groups].list.
+  group: string;
   stem: string;
   options: Record<string, string>;
   answer: string;

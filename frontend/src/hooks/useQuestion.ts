@@ -3,12 +3,14 @@ import { api } from '../lib/api';
 
 export type Options = { A: string; B: string; C: string; D: string; E?: string };
 
-export type QuestionGroup = '內科' | '共同';
+// Group labels come from config.toml [groups].list — see frontend/src/lib/groups.ts.
+// Widened to plain string so forks can use any label set without touching code.
+export type QuestionGroup = string;
 
 export type QuestionFull = {
   id: string;
   year: number;       // 民國
-  number: number;     // 1..70 = 內科, 71..100 = 共同
+  number: number;     // composition follows config.toml [groups].list order
   stem: string;
   options: Options;
   answer: string;

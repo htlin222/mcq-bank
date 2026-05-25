@@ -26,10 +26,19 @@ type SimilarItem = {
 	year: number;
 	number: number;
 	stem: string;
-	group: "內科" | "共同" | null;
+	group: string | null;
 	shared_tags: number;
 	source: "tag" | "fts";
 };
+
+type AiKind = "summary" | "translate" | "qa";
+type AiQaItem = {
+	question: string;
+	answer: string[];
+};
+type AiOutput =
+	| { kind: "summary" | "translate"; text: string; version: number }
+	| { kind: "qa"; items: AiQaItem[]; version: number };
 
 export function Question() {
 	const { id } = useParams<{ id: string }>();
@@ -49,11 +58,9 @@ export function Question() {
 	const [noteSaving, setNoteSaving] = useState(false);
 	const [noteError, setNoteError] = useState<string | null>(null);
 
-	// AI panel — one shared display for 摘要 / 翻譯.
+	// AI panel — one shared display for 摘要 / 翻譯 / 生成問答.
 	// `version` is the explanation version snapshot so we can invalidate
 	// stale output when the explanation moves forward.
-	type AiKind = "summary" | "translate";
-	type AiOutput = { kind: AiKind; text: string; version: number };
 	const [aiOutput, setAiOutput] = useState<AiOutput | null>(null);
 	const [aiLoading, setAiLoading] = useState<AiKind | null>(null);
 	const [aiError, setAiError] = useState<{
@@ -201,6 +208,22 @@ export function Question() {
 					text: plain,
 				});
 				setAiOutput({ kind, text: r.summary, version });
+			} else if (kind === "qa") {
+				if (!explanationJson) throw new Error("尚無詳解可生成問答");
+				const plain = tiptapToText(explanationJson);
+				if (plain.length < 80) throw new Error("詳解內容太短,無法生成問答。");
+				const r = await api.post<{ items: AiQaItem[] }>(
+					"/api/ai/generate-qa",
+					{
+						stem: data.stem,
+						options: data.options,
+						answer: data.answer,
+						tags: data.tags,
+						explanation: plain,
+					},
+				);
+				if (!r.items?.length) throw new Error("AI 未產生可用問答。");
+				setAiOutput({ kind, items: r.items, version });
 			} else {
 				if (!explanationJson) throw new Error("尚無詳解可翻譯");
 				const plain = tiptapToText(explanationJson);
@@ -320,6 +343,16 @@ export function Question() {
 									disabled={!!aiLoading && aiLoading !== "summary"}
 									onClick={() => runAi("summary")}
 									title="用 AI 產生 2-3 句重點摘要"
+								/>
+							)}
+							{hasExplanation && (
+								<AiActionButton
+									label="AI 生成問答"
+									loadingLabel="生成中…"
+									busy={aiLoading === "qa"}
+									disabled={!!aiLoading && aiLoading !== "qa"}
+									onClick={() => runAi("qa")}
+									title="依題幹與詳解產生高價值複習問答"
 								/>
 							)}
 							{hasExplanation && (
@@ -670,9 +703,10 @@ function AiActionButton({
 	);
 }
 
-const AI_PANEL_HEADINGS: Record<"summary" | "translate", string> = {
+const AI_PANEL_HEADINGS: Record<AiKind, string> = {
 	summary: "AI 摘要 · 僅供快速回顧",
 	translate: "AI 繁中翻譯 · 機器轉換,請核對",
+	qa: "AI 生成問答 · 請核對後使用",
 };
 
 function AiPanel({
@@ -680,8 +714,8 @@ function AiPanel({
 	error,
 	onClose,
 }: {
-	output: { kind: "summary" | "translate"; text: string } | null;
-	error: { kind: "summary" | "translate"; message: string } | null;
+	output: AiOutput | null;
+	error: { kind: AiKind; message: string } | null;
 	onClose: () => void;
 }) {
 	const kind = output?.kind ?? error?.kind ?? "summary";
@@ -701,6 +735,35 @@ function AiPanel({
 			</div>
 			{error ? (
 				<p className="text-rose-700">{error.message}</p>
+			) : output?.kind === "qa" ? (
+				<ol className="mt-3 space-y-4">
+					{output.items.map((item, index) => (
+						<li
+							key={`${item.question}-${index}`}
+							className="grid grid-cols-[1.75rem_1fr] gap-3 border-t border-amber-200/60 dark:border-amber-800/40 pt-4 first:border-t-0 first:pt-0"
+						>
+							<span className="font-semibold tabular-nums text-ink-900 dark:text-ink-100">
+								{index + 1}.
+							</span>
+							<div className="min-w-0">
+								<h3 className="font-semibold leading-snug text-ink-900 dark:text-ink-100">
+									{item.question}
+								</h3>
+								<ul className="mt-2 space-y-1.5">
+									{item.answer.map((line, answerIndex) => (
+										<li
+											key={`${line}-${answerIndex}`}
+											className="grid grid-cols-[0.65rem_1fr] gap-2 leading-relaxed text-ink-800 dark:text-ink-200"
+										>
+											<span className="mt-[0.65em] h-1.5 w-1.5 rounded-full bg-ink-500 dark:bg-ink-400" />
+											<span>{line}</span>
+										</li>
+									))}
+								</ul>
+							</div>
+						</li>
+					))}
+				</ol>
 			) : output ? (
 				<p className="text-ink-800 dark:text-ink-200 whitespace-pre-wrap leading-relaxed">
 					{output.text}
@@ -712,7 +775,7 @@ function AiPanel({
 
 // Flatten a TipTap doc to plain text — paragraphs joined by \n\n, headings prefixed
 // with #, list items with • / 1. We strip image and mention nodes; the AI doesn't
-// need them for a summary and they only inflate the prompt.
+// need them for these prompts and they only inflate the request.
 function tiptapToText(doc: any): string {
 	const parts: string[] = [];
 	function walkInline(node: any): string {

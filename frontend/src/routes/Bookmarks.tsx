@@ -4,6 +4,7 @@ import { Folder, FolderPlus, Trash2, MoreVertical } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
+import { groupBadgeClass } from '../lib/groups';
 
 type Folder = { id: string; name: string; sort: number; item_count: number };
 type FoldersResp = {
@@ -19,7 +20,7 @@ type Item = {
   year: number;
   number: number;
   stem: string;
-  group: '內科' | '共同' | null;
+  group: string | null;
 };
 
 const UNCATEGORIZED = '__uncat__';
@@ -177,9 +178,7 @@ export function Bookmarks() {
                     {it.group && (
                       <span className={
                         'text-[11px] px-2 py-0.5 rounded shrink-0 self-center ' +
-                        (it.group === '內科'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-sky-100 text-sky-800')
+                        groupBadgeClass(it.group)
                       }>{it.group}</span>
                     )}
                   </Link>
