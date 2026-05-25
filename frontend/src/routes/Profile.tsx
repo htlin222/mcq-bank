@@ -212,6 +212,33 @@ function McqKeyCard({ me }: { me: Me }) {
         )}
       </div>
 
+      <div className="mt-5 border-t border-ink-100 dark:border-ink-700 pt-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-ink-400 dark:text-ink-500 mb-2">
+          安裝步驟
+        </p>
+        <ol className="list-decimal list-inside space-y-1.5 text-sm text-ink-600 dark:text-ink-300 leading-relaxed">
+          <li>點上方「⬇ 下載我的 .skill」,存下 <code className="font-mono text-[0.85em]">mcq.skill</code>。</li>
+          <li>
+            開啟{' '}
+            <a
+              href="https://claude.ai/customize/skills"
+              target="_blank"
+              rel="noreferrer"
+              className="text-accent hover:text-accent-dark underline underline-offset-2 break-all"
+            >
+              claude.ai/customize/skills
+            </a>
+            。
+          </li>
+          <li>點「Upload skill」,選剛下載的 <code className="font-mono text-[0.85em]">mcq.skill</code>。</li>
+          <li>回到 Claude 對話,輸入 <code className="font-mono text-[0.85em]">/mcq 114-001</code> 開始測驗。</li>
+        </ol>
+        <p className="text-xs text-ink-400 dark:text-ink-500 mt-2.5">
+          也可解壓 <code className="font-mono text-[0.85em]">.skill</code> 放進 Claude Code 的
+          <code className="font-mono text-[0.85em] mx-1">.claude/skills/</code>;金鑰已寫在 <code className="font-mono text-[0.85em]">.env</code> 裡。
+        </p>
+      </div>
+
       {keyInfo && (
         <div className="mt-4 flex items-center gap-2">
           <code className="flex-1 min-w-0 truncate font-mono text-xs bg-ink-50 dark:bg-ink-900 border border-ink-200 dark:border-ink-700 rounded px-3 py-2 text-ink-700 dark:text-ink-200">
