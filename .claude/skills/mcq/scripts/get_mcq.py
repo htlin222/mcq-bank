@@ -35,12 +35,15 @@ def normalize(qid: str) -> str:
     return f"{int(parts[0])}-{int(parts[1]):03d}"
 
 
-def render(d: dict) -> str:
+def render(d: dict, with_answer: bool = False) -> str:
     out = [f"# {d['id']}（{d.get('group') or '?'}・難度 {d.get('difficulty') or '?'}）", ""]
     out.append(d["stem"])
     out.append("")
     for opt in d.get("options", []):
         out.append(f"({opt['key']}) {opt['text']}")
+    if not with_answer:
+        # Quiz mode (default): question only, answer withheld for the user to attempt.
+        return "\n".join(out)
     out.append("")
     out.append(f"✅ 答案:{d['answer']}")
     if d.get("source"):
@@ -57,8 +60,16 @@ def render(d: dict) -> str:
 
 
 def main() -> None:
-    if len(sys.argv) < 2:
-        sys.exit("用法:get_mcq.py <題號>,例如 get_mcq.py 114-001")
+    args = sys.argv[1:]
+    with_answer = False
+    positional = []
+    for a in args:
+        if a in ("--answer", "-a", "--reveal"):
+            with_answer = True  # reveal answer + 共筆詳解 (the original full output)
+        else:
+            positional.append(a)
+    if not positional:
+        sys.exit("用法:get_mcq.py <題號> [--answer],例如 get_mcq.py 114-001")
     cfg = load_env()
     base = cfg.get("MCQ_API_BASE", "").rstrip("/")
     key = cfg.get("MCQ_API_KEY", "")
@@ -78,7 +89,7 @@ def main() -> None:
             " (可 cp .env.example .env)"
         )
 
-    qid = normalize(sys.argv[1])
+    qid = normalize(positional[0])
     req = urllib.request.Request(
         f"{base}/api/mcq/{qid}",
         headers={
@@ -103,7 +114,7 @@ def main() -> None:
     except urllib.error.URLError as e:
         sys.exit(f"連線失敗:{e.reason} — 檢查 MCQ_API_BASE 是否正確")
 
-    print(render(data))
+    print(render(data, with_answer=with_answer))
 
 
 if __name__ == "__main__":
