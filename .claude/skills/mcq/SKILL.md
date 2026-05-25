@@ -1,7 +1,7 @@
 ---
 name: mcq
-version: 0.1.0
-description: 取得血液腫瘤考古題單題全文(題幹/選項/答案/共筆詳解)。當使用者輸入 /mcq <年>-<題號>(例如 /mcq 114-001、也接受 114-1)時使用。
+version: 0.1.1
+description: 取得血液腫瘤考古題單題全文(題幹/選項/答案/共筆詳解)。當使用者輸入 /mcq 年-題號(例如 /mcq 114-001、也接受 114-1)時使用。
 ---
 
 # mcq — 取單題考古題
@@ -12,9 +12,9 @@ description: 取得血液腫瘤考古題單題全文(題幹/選項/答案/共筆
 
 從 repo 根目錄執行:
 
-    python3 .claude/skills/mcq/scripts/get_mcq.py "<題號>"
+    python3 .claude/skills/mcq/scripts/get_mcq.py QID
 
-把 `<題號>` 換成使用者給的值。腳本會自己讀 `.claude/skills/mcq/.env` 的設定、
+把 `QID` 換成使用者給的題號(例如 114-001)。腳本會自己讀 `.claude/skills/mcq/.env` 的設定、
 帶上 `Authorization: Bearer` 與 `X-User-Email` 兩個 header 去打 API,然後印出
 格式化的題目(題幹、選項、答案、共筆詳解)。
 
@@ -22,7 +22,7 @@ description: 取得血液腫瘤考古題單題全文(題幹/選項/答案/共筆
 
 - `401` — 金鑰錯誤或未設定 → 提醒檢查 `.env` 的 `MCQ_API_KEY`
 - `403` — `MCQ_USER_EMAIL` 不在白名單 → 提醒向管理者確認該 email 已加入
-- `404` — 查無此題 → 確認題號格式為 `<年>-<題號>`
+- `404` — 查無此題 → 確認題號格式為 `年-題號`
 
 ## 一次性設定(每位組員各自做一次)
 
