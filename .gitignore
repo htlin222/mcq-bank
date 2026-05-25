@@ -27,6 +27,11 @@ frontend/tsconfig.tsbuildinfo
 years/
 *.pdf
 
+# Auto-generated DB-fix SQL written by scripts/apply-oe-verdicts.py etc.
+# These embed real user emails and question IDs — never commit to a
+# public repo. Re-run the generator if you need to regenerate them.
+scripts/apply-oe-*.sql
+
 # Smoke/screenshot scratch from headless Chrome runs
 .smoke/
 

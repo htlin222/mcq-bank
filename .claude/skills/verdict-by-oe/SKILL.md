@@ -1,6 +1,9 @@
 ---
 name: verdict-by-oe
-description: Use when auditing or fixing hema-2026 question answers with OpenEvidence MCP: read the question from D1, ask OpenEvidence for a verdict, report pending answer/explanation changes for user approval, then update D1 with history.
+description: >
+  Use when auditing or fixing hema-2026 question answers with OpenEvidence MCP:
+  read the question from D1, ask OpenEvidence for a verdict, report pending
+  answer/explanation changes for user approval, then update D1 with history.
 ---
 
 # Verdict By OE
@@ -69,7 +72,6 @@ verdict, or fix a question answer using OpenEvidence.
    otherwise handle questions one at a time.
 
 3. Normalize the verdict before reporting it.
-
    - `agree`: OE supports the current answer with coherent reasoning.
    - `disagree`: OE identifies a different valid option with coherent reasoning.
    - `uncertain`: evidence is incomplete, conflicting, or low confidence.
@@ -79,7 +81,6 @@ verdict, or fix a question answer using OpenEvidence.
 4. Report the pending result to the user before any write.
 
    Include:
-
    - Question id.
    - Current DB answer.
    - Proposed answer, if any.
