@@ -1,0 +1,49 @@
+name: Package mcq skill
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.claude/skills/mcq/**'
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create tag + release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build .skill package
+        run: |
+          set -euo pipefail
+          SKILL_DIR=.claude/skills/mcq
+          # Belt-and-suspenders: never ship a key even if a local .env slipped in.
+          rm -f "$SKILL_DIR/.env"
+          VER=$(grep -m1 '^version:' "$SKILL_DIR/SKILL.md" | sed 's/version:[[:space:]]*//')
+          VER=${VER:-0.0.0}
+          echo "TAG=mcq-v$VER" >> "$GITHUB_ENV"
+          mkdir -p dist
+          # zip with the mcq/ folder at the archive root; exclude the gitignored .env
+          ( cd .claude/skills && zip -r "$GITHUB_WORKSPACE/dist/mcq.skill" mcq -x 'mcq/.env' )
+          echo "Built dist/mcq.skill ($(du -h dist/mcq.skill | cut -f1)), tag=mcq-v$VER"
+
+      - name: Create / update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTE=$(cat <<EOF
+          mcq skill — build ${GITHUB_SHA::7}
+
+          安裝:下載 mcq.skill,解壓到 repo 的 .claude/skills/(會產生 .claude/skills/mcq/),
+          然後 \`cp .claude/skills/mcq/.env.example .claude/skills/mcq/.env\` 並填入
+          MCQ_API_BASE / MCQ_API_KEY / MCQ_USER_EMAIL。在 repo 內開 Claude Code 即可使用 /mcq。
+
+          本次變更:${{ github.event.head_commit.message }}
+          EOF
+          )
+          # Same version re-push replaces the existing release (keeps it reproducible).
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" dist/mcq.skill --title "$TAG" --notes "$NOTE" --target "$GITHUB_SHA"

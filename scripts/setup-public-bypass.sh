@@ -43,6 +43,10 @@ PATHS=(
   "/favicon.svg|${SLUG} public · favicon"
   "/assets/*|${SLUG} public · spa-assets"
   "/api/me|${SLUG} public · auth-probe"
+  # Read-only question API for the /mcq skill. Access-bypassed so external
+  # Claude Code / claude.ai (no Access session) can reach it; the Worker's
+  # apiKeyMiddleware (timing-safe key + email allowlist) is the sole gate.
+  "/api/mcq/*|${SLUG} public · mcq-api"
   "/|${SLUG} public · landing"
 )
 

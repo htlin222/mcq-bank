@@ -11,6 +11,9 @@ export type Env = {
   // Optional — feedback button is disabled if either is missing.
   GH_FEEDBACK_REPO?: string;  // "owner/repo"
   GH_FEEDBACK_TOKEN?: string; // PAT with issues:write
+  // Shared key for the read-only /api/mcq endpoint (the `/mcq` skill).
+  // Set via `wrangler secret put MCQ_API_KEY`; .dev.vars locally.
+  MCQ_API_KEY?: string;
   // Question categories. Format: "<label>:<count>,...". Empty / missing
   // falls back to a single "全部:0" group so the app still boots.
   GROUPS?: string;

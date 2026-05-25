@@ -21,6 +21,7 @@ import { foldersRoutes } from './routes/folders';
 import { bookmarksRoutes } from './routes/bookmarks';
 import { feedbackRoutes } from './routes/feedback';
 import { challengesRoutes, questionChallengeRoutes } from './routes/challenges';
+import { mcqRoutes } from './routes/mcq';
 
 const app = new Hono<AppContext>();
 
@@ -39,6 +40,11 @@ app.use(
 
 // Health check (no auth)
 app.get('/api/health', (c) => c.json({ ok: true, ts: Date.now() }));
+
+// Read-only question API for the `/mcq` skill. Has its own API-key auth
+// (worker/lib/apikey.ts) and is registered BEFORE the Access middleware so it
+// never inherits Access gating — the path is Access-bypassed at the edge.
+app.route('/api/mcq', mcqRoutes);
 
 // All other routes require Access auth
 app.use('/api/*', authMiddleware);
