@@ -93,7 +93,7 @@ export function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={open ? () => setOpen(false) : openPanel}
-        className="relative w-9 h-9 grid place-items-center rounded-full hover:bg-ink-100 transition text-ink-600"
+        className="relative w-9 h-9 grid place-items-center rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 transition text-ink-600 dark:text-ink-300"
         aria-label="通知"
       >
         <Bell size={18} />
@@ -105,9 +105,9 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 w-80 max-w-[calc(100vw-2rem)] bg-white border border-ink-200 rounded-lg shadow-lg overflow-hidden z-50 animate-fade-in">
-          <header className="flex items-center justify-between px-4 py-3 border-b border-ink-100">
-            <h3 className="font-serif text-base text-ink-800">通知</h3>
+        <div className="absolute right-0 top-11 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-lg overflow-hidden z-50 animate-fade-in">
+          <header className="flex items-center justify-between px-4 py-3 border-b border-ink-100 dark:border-ink-700">
+            <h3 className="font-serif text-base text-ink-800 dark:text-ink-100">通知</h3>
             {count > 0 && (
               <button
                 onClick={markAllRead}
@@ -119,7 +119,7 @@ export function NotificationBell() {
           </header>
           <div className="max-h-96 overflow-y-auto">
             {items.length === 0 ? (
-              <div className="px-4 py-10 text-center text-sm text-ink-400">
+              <div className="px-4 py-10 text-center text-sm text-ink-400 dark:text-ink-500">
                 沒有未讀通知
               </div>
             ) : (
@@ -128,19 +128,19 @@ export function NotificationBell() {
                   key={n.id}
                   to={n.question_id ? `/q/${n.question_id}` : '/'}
                   onClick={() => setOpen(false)}
-                  className="block px-4 py-3 border-b border-ink-50 hover:bg-ink-50 last:border-0"
+                  className="block px-4 py-3 border-b border-ink-50 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-700 last:border-0"
                 >
-                  <div className="text-sm text-ink-700">
+                  <div className="text-sm text-ink-700 dark:text-ink-200">
                     {n.actor_email && (
-                      <span className="font-medium text-ink-900">{n.actor_email}</span>
+                      <span className="font-medium text-ink-900 dark:text-ink-100">{n.actor_email}</span>
                     )}
                     {n.actor_email ? ' ' : ''}
                     {notificationLabel(n)}
                   </div>
-                  <div className="text-xs text-ink-500 mt-1 line-clamp-2">
+                  <div className="text-xs text-ink-500 dark:text-ink-400 mt-1 line-clamp-2">
                     {n.preview}
                   </div>
-                  <time className="text-[11px] text-ink-400 mt-1 block">
+                  <time className="text-[11px] text-ink-400 dark:text-ink-500 mt-1 block">
                     {new Date(n.created_at).toLocaleString('zh-TW')}
                   </time>
                 </Link>

@@ -176,7 +176,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
   return (
     <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper p-5 sm:p-7">
       <header className="flex items-start justify-between gap-3 mb-4">
-        <div className="text-sm text-ink-500 font-medium flex items-center flex-wrap gap-x-2 gap-y-1">
+        <div className="text-sm text-ink-500 dark:text-ink-400 font-medium flex items-center flex-wrap gap-x-2 gap-y-1">
           <span>民國 {question.year} 年 · 第 {question.number} 題</span>
           {question.group && (
             <span
@@ -195,7 +195,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
               {question.tags.map((t) => (
                 <span
                   key={t}
-                  className="inline-block bg-ink-100 text-ink-700 px-2 py-0.5 rounded text-[11px]"
+                  className="inline-block bg-ink-100 dark:bg-ink-700 text-ink-700 dark:text-ink-200 px-2 py-0.5 rounded text-[11px]"
                 >
                   #{t}
                 </span>
@@ -277,7 +277,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
         <div className="mt-6 flex gap-3 justify-end">
           <button
             onClick={() => setRevealed(true)}
-            className="text-ink-500 px-4 py-2 text-sm hover:text-ink-700"
+            className="text-ink-500 dark:text-ink-400 px-4 py-2 text-sm hover:text-ink-700 dark:hover:text-ink-200"
           >
             略過 / 直接看答案
           </button>
@@ -292,7 +292,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
       )}
 
       {revealed && (
-        <div className="mt-6 pt-4 border-t border-ink-100 text-sm text-ink-600 flex items-center gap-3 flex-wrap">
+        <div className="mt-6 pt-4 border-t border-ink-100 dark:border-ink-700 text-sm text-ink-600 dark:text-ink-300 flex items-center gap-3 flex-wrap">
           {chosen === currentAnswer ? (
             <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
               <Check size={16} /> 答對了
@@ -342,7 +342,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
             <button
               onClick={clearProgress}
               disabled={clearing}
-              className="inline-flex items-center gap-1 text-xs text-ink-400 hover:text-rose-600 disabled:opacity-40"
+              className="inline-flex items-center gap-1 text-xs text-ink-400 dark:text-ink-500 hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-40"
               title="只清除你自己在本題的作答紀錄"
             >
               <RotateCcw size={12} />
@@ -512,7 +512,7 @@ function BookmarkButton({
           setOpen((v) => !v);
           if (!open && !folders) load();
         }}
-        className="text-2xl leading-none transition hover:scale-110 text-ink-500 hover:text-accent"
+        className="text-2xl leading-none transition hover:scale-110 text-ink-500 dark:text-ink-400 hover:text-accent"
         aria-label={bookmarked ? '管理收藏' : '收藏 (右鍵選資料夾)'}
         title={bookmarked ? '管理收藏 (右鍵選資料夾)' : '收藏 (右鍵選資料夾)'}
       >
@@ -525,17 +525,17 @@ function BookmarkButton({
 
       {open && (
         <div className="absolute right-0 top-9 w-56 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded shadow-lg z-30 py-1 text-sm">
-          <div className="px-3 py-2 text-xs text-ink-500 uppercase tracking-wider border-b border-ink-100">
+          <div className="px-3 py-2 text-xs text-ink-500 dark:text-ink-400 uppercase tracking-wider border-b border-ink-100 dark:border-ink-700">
             收藏到資料夾
           </div>
           {folders === null ? (
-            <div className="px-3 py-2 text-ink-400">載入中…</div>
+            <div className="px-3 py-2 text-ink-400 dark:text-ink-500">載入中…</div>
           ) : (
             <>
               <button
                 onClick={() => { onMoveToFolder(null); setOpen(false); }}
-                className={`w-full text-left px-3 py-1.5 hover:bg-ink-50 ${
-                  bookmarked && currentFolderId === null ? 'text-accent font-medium' : 'text-ink-700'
+                className={`w-full text-left px-3 py-1.5 hover:bg-ink-50 dark:hover:bg-ink-700 ${
+                  bookmarked && currentFolderId === null ? 'text-accent font-medium' : 'text-ink-700 dark:text-ink-200'
                 }`}
               >
                 未分類
@@ -544,15 +544,15 @@ function BookmarkButton({
                 <button
                   key={f.id}
                   onClick={() => { onMoveToFolder(f.id); setOpen(false); }}
-                  className={`w-full text-left px-3 py-1.5 hover:bg-ink-50 flex items-center justify-between ${
-                    bookmarked && currentFolderId === f.id ? 'text-accent font-medium' : 'text-ink-700'
+                  className={`w-full text-left px-3 py-1.5 hover:bg-ink-50 dark:hover:bg-ink-700 flex items-center justify-between ${
+                    bookmarked && currentFolderId === f.id ? 'text-accent font-medium' : 'text-ink-700 dark:text-ink-200'
                   }`}
                 >
                   <span>{f.name}</span>
-                  <span className="text-[11px] text-ink-400">{f.item_count}</span>
+                  <span className="text-[11px] text-ink-400 dark:text-ink-500">{f.item_count}</span>
                 </button>
               ))}
-              <div className="border-t border-ink-100 mt-1 pt-1">
+              <div className="border-t border-ink-100 dark:border-ink-700 mt-1 pt-1">
                 {creating ? (
                   <form
                     onSubmit={(e) => { e.preventDefault(); createFolder(); }}
@@ -563,14 +563,14 @@ function BookmarkButton({
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
                       placeholder="資料夾名稱"
-                      className="flex-1 px-2 py-1 border border-ink-200 rounded text-xs focus:outline-none focus:border-accent"
+                      className="flex-1 px-2 py-1 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500 rounded text-xs focus:outline-none focus:border-accent"
                     />
                     <button type="submit" className="px-2 text-xs text-accent hover:text-accent-dark">建</button>
                   </form>
                 ) : (
                   <button
                     onClick={() => setCreating(true)}
-                    className="w-full text-left px-3 py-1.5 hover:bg-ink-50 text-ink-600 inline-flex items-center gap-1.5"
+                    className="w-full text-left px-3 py-1.5 hover:bg-ink-50 dark:hover:bg-ink-700 text-ink-600 dark:text-ink-300 inline-flex items-center gap-1.5"
                   >
                     <FolderPlus size={14} /> 新增資料夾
                   </button>
@@ -579,7 +579,7 @@ function BookmarkButton({
               {bookmarked && (
                 <button
                   onClick={() => { onToggle(); setOpen(false); }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-rose-50 text-rose-700 border-t border-ink-100 mt-1 pt-1"
+                  className="w-full text-left px-3 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-t border-ink-100 dark:border-ink-700 mt-1 pt-1"
                 >
                   取消收藏
                 </button>

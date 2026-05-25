@@ -530,22 +530,22 @@ export function Question() {
 			{/* 相似題目 — tag-overlap with BM25 fallback, hidden when empty */}
 			{similar.length > 0 && (
 				<section className="mt-8">
-					<h2 className="font-serif text-lg text-ink-800 mb-3">相似題目</h2>
+					<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100 mb-3">相似題目</h2>
 					<ul className="space-y-1.5">
 						{similar.map((s) => (
 							<li
 								key={s.id}
-								className="bg-white border border-ink-200 rounded p-3 flex items-start gap-3 hover:border-accent transition"
+								className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 flex items-start gap-3 hover:border-accent transition"
 							>
 								<Link
 									to={`/q/${s.id}`}
 									className="flex-1 flex items-start gap-3 min-w-0"
 								>
-									<span className="font-mono text-sm text-ink-500 shrink-0">
+									<span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0">
 										{s.year}-{String(s.number).padStart(3, "0")}
 									</span>
 									<BookmarkBadge questionId={s.id} className="mt-1" />
-									<span className="text-ink-700 line-clamp-1 flex-1">
+									<span className="text-ink-700 dark:text-ink-200 line-clamp-1 flex-1">
 										{s.stem}
 									</span>
 								</Link>
@@ -553,8 +553,8 @@ export function Question() {
 									className={
 										"text-[11px] px-2 py-0.5 rounded shrink-0 self-center " +
 										(s.source === "tag"
-											? "bg-emerald-50 text-emerald-800"
-											: "bg-ink-100 text-ink-600")
+											? "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+											: "bg-ink-100 text-ink-600 dark:bg-ink-700 dark:text-ink-300")
 									}
 									title={s.source === "tag" ? "共用標籤數" : "文字相似 (BM25)"}
 								>
@@ -571,32 +571,32 @@ export function Question() {
 			{/* Back-references — appears only when other questions/comments cite this one */}
 			{data.back_refs.length > 0 && (
 				<section className="mt-10">
-					<h2 className="font-serif text-lg text-ink-800 mb-3 inline-flex items-center gap-2">
-						<LinkIcon size={16} className="text-ink-400" /> 被引用 (
+					<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100 mb-3 inline-flex items-center gap-2">
+						<LinkIcon size={16} className="text-ink-400 dark:text-ink-500" /> 被引用 (
 						{data.back_refs.length})
 					</h2>
 					<ul className="space-y-1.5">
 						{data.back_refs.map((r) => (
 							<li
 								key={`${r.source_type}:${r.source_question_id}:${r.created_at}`}
-								className="bg-white border border-ink-200 rounded p-3 flex items-start gap-3 hover:border-accent transition"
+								className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 flex items-start gap-3 hover:border-accent transition"
 							>
 								<Link
 									to={`/q/${r.source_question_id}`}
 									className="flex-1 flex items-start gap-3 min-w-0"
 								>
-									<span className="font-mono text-sm text-ink-500 shrink-0">
+									<span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0">
 										{r.source_question_id}
 									</span>
 									<BookmarkBadge
 										questionId={r.source_question_id}
 										className="mt-1"
 									/>
-									<span className="text-ink-700 line-clamp-1 flex-1">
+									<span className="text-ink-700 dark:text-ink-200 line-clamp-1 flex-1">
 										{r.source_stem}
 									</span>
 								</Link>
-								<span className="text-xs text-ink-400 shrink-0 self-center">
+								<span className="text-xs text-ink-400 dark:text-ink-500 shrink-0 self-center">
 									{r.source_type === "comment" ? "留言" : "詳解"} ·{" "}
 									{r.by_email.split("@")[0]}
 								</span>
@@ -608,7 +608,7 @@ export function Question() {
 
 			{/* Comments */}
 			<section className="mt-12">
-				<h2 className="font-serif text-xl text-ink-800 mb-3">討論</h2>
+				<h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-3">討論</h2>
 				{me ? (
 					<CommentThread questionId={data.id} currentEmail={me.email} />
 				) : (

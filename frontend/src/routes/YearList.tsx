@@ -47,13 +47,13 @@ export function YearList() {
   return (
     <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <header className="mb-6">
-        <Link to="/review" className="text-sm text-ink-500 hover:text-accent">
+        <Link to="/review" className="text-sm text-ink-500 dark:text-ink-400 hover:text-accent">
           ← 回到複習模式
         </Link>
         <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mt-2">
           民國 {year} 年 · {items.length} 題
         </h1>
-        <p className="text-xs text-ink-500 mt-1">
+        <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">
           內科 {counts.內科} · 共同 {counts.共同}
         </p>
       </header>
@@ -67,7 +67,7 @@ export function YearList() {
               'px-3 py-1 rounded text-sm border transition ' +
               (groupFilter === g
                 ? 'bg-accent text-white border-accent'
-                : 'bg-white text-ink-700 border-ink-200 hover:border-ink-400')
+                : 'bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 border-ink-200 dark:border-ink-700 hover:border-ink-400 dark:hover:border-ink-500')
             }
           >
             {g === 'all' ? '全部' : g}
@@ -83,7 +83,7 @@ export function YearList() {
         placeholder="篩選題號、關鍵字…"
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="w-full border border-ink-200 rounded px-4 py-2 mb-6 focus:outline-none focus:border-accent"
+        className="w-full border border-ink-200 dark:border-ink-700 dark:bg-ink-800 rounded px-4 py-2 mb-6 focus:outline-none focus:border-accent text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
       />
 
       <ol className="space-y-2">
@@ -93,7 +93,7 @@ export function YearList() {
               to={`/q/${q.id}`}
               className="flex gap-3 items-start bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
             >
-              <span className="font-mono text-sm text-ink-500 shrink-0 w-10 text-right">
+              <span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0 w-10 text-right">
                 {q.number}.
               </span>
               <BookmarkBadge questionId={q.id} className="mt-1" />
@@ -105,8 +105,8 @@ export function YearList() {
                   className={
                     'ml-auto text-[11px] px-2 py-0.5 rounded shrink-0 self-center ' +
                     (q.group === '內科'
-                      ? 'bg-amber-100 text-amber-800'
-                      : 'bg-sky-100 text-sky-800')
+                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                      : 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300')
                   }
                 >
                   {q.group}

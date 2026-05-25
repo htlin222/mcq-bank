@@ -46,9 +46,9 @@ export function Profile() {
 
   return (
     <div className="max-w-2xl md:max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-serif text-3xl text-ink-900 mb-8">個人資料</h1>
+      <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-8">個人資料</h1>
 
-      <div className="bg-white border border-ink-200 rounded-lg p-6 sm:p-8 shadow-paper">
+      <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper">
         <div className="flex items-center gap-5 mb-8">
           <Avatar
             email={me.email}
@@ -57,7 +57,7 @@ export function Profile() {
             size={72}
           />
           <div>
-            <label className="inline-block bg-ink-900 hover:bg-ink-700 text-white px-4 py-2 rounded text-sm cursor-pointer transition">
+            <label className="inline-block bg-ink-900 hover:bg-ink-700 dark:bg-ink-700 dark:hover:bg-ink-600 text-white px-4 py-2 rounded text-sm cursor-pointer transition">
               {uploading ? '上傳中…' : '更換頭像'}
               <input
                 type="file"
@@ -71,7 +71,7 @@ export function Profile() {
                 }}
               />
             </label>
-            <p className="text-xs text-ink-400 mt-2">最大 2 MB,自動裁切</p>
+            <p className="text-xs text-ink-400 dark:text-ink-500 mt-2">最大 2 MB,自動裁切</p>
           </div>
         </div>
 
@@ -80,7 +80,7 @@ export function Profile() {
             <input
               value={me.email}
               disabled
-              className="w-full px-3 py-2 border border-ink-200 rounded bg-ink-50 text-ink-500"
+              className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 rounded bg-ink-50 dark:bg-ink-900 text-ink-500 dark:text-ink-400"
             />
           </Field>
 
@@ -88,7 +88,7 @@ export function Profile() {
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-3 py-2 border border-ink-200 rounded focus:outline-none focus:border-accent"
+              className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
             />
           </Field>
 
@@ -97,7 +97,7 @@ export function Profile() {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-ink-200 rounded focus:outline-none focus:border-accent font-serif resize-y"
+              className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent font-serif resize-y text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
               placeholder="e.g. Fellow 1, 2, 3, 某某醫院"
             />
           </Field>
@@ -105,7 +105,7 @@ export function Profile() {
 
         <div className="mt-6 flex items-center gap-3 justify-end">
           {savedAt && (
-            <span className="text-xs text-emerald-700">
+            <span className="text-xs text-emerald-700 dark:text-emerald-400">
               ✓ 已儲存 ({new Date(savedAt).toLocaleTimeString('zh-TW')})
             </span>
           )}
@@ -125,7 +125,7 @@ export function Profile() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-sm text-ink-600 mb-1.5 inline-block">{label}</span>
+      <span className="text-sm text-ink-600 dark:text-ink-300 mb-1.5 inline-block">{label}</span>
       {children}
     </label>
   );
