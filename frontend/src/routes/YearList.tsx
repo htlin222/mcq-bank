@@ -43,6 +43,18 @@ export function YearList() {
       .catch(() => setAnkiDeck(null));
   }, [year]);
 
+  // NOTE: this hook must stay ABOVE the early return below. A hook called
+  // after a conditional return runs a different number of times between the
+  // loading render (items === null) and the loaded render → React error #310.
+  const counts: Record<string, number> = useMemo(() => {
+    const out: Record<string, number> = {};
+    if (!items) return out;
+    for (const g of GROUPS) {
+      out[g.label] = items.filter((q) => q.group === g.label).length;
+    }
+    return out;
+  }, [items]);
+
   if (items === null) {
     return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
   }
@@ -56,14 +68,6 @@ export function YearList() {
       (q.group ?? '').includes(filter)
     );
   });
-
-  const counts: Record<string, number> = useMemo(() => {
-    const out: Record<string, number> = {};
-    for (const g of GROUPS) {
-      out[g.label] = items.filter((q) => q.group === g.label).length;
-    }
-    return out;
-  }, [items]);
 
   const countsSummary = GROUPS.map((g) => `${g.label} ${counts[g.label]}`).join(' · ');
 
