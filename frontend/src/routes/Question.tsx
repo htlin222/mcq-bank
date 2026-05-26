@@ -281,7 +281,7 @@ export function Question() {
 		);
 
 	return (
-		<div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-32">
+		<div className="max-w-3xl md:max-w-4xl lg:max-w-6xl xl:max-w-[88rem] 2xl:max-w-[104rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-32">
 			<header className="flex items-center justify-between mb-6 text-sm">
 				<Link
 					to={`/year/${data.year}`}
@@ -309,15 +309,24 @@ export function Question() {
 				</div>
 			</header>
 
+			{/* Two-column on wide screens (≥lg): question left, everything else right.
+			    Collapses to a single stacked column below lg. */}
+			<div className="lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8 lg:items-start">
+			{/* Left: question stem / options / answer — pinned in view while the right scrolls */}
+			<div className="lg:sticky lg:top-20 lg:self-start">
 			<QuestionCard
 				key={data.id}
 				question={data}
 				onAnswered={reload}
 				onProgressCleared={reload}
 			/>
+			</div>
+
+			{/* Right: 詳解共筆 / 個人筆記 tabs → 相似題目 → 被引用 → 討論 */}
+			<div className="mt-8 lg:mt-0">
 
 			{/* 詳解 / 個人筆記 tabs */}
-			<section className="mt-8">
+			<section className="mt-0">
 				<div className="flex items-center justify-between mb-3 gap-3">
 					<div className="inline-flex border-b border-ink-200 dark:border-ink-700">
 						<TabButton
@@ -648,6 +657,8 @@ export function Question() {
 					<p className="text-ink-400 dark:text-ink-500 text-sm">載入使用者…</p>
 				)}
 			</section>
+			</div>{/* /right column */}
+			</div>{/* /two-column grid */}
 		</div>
 	);
 }
