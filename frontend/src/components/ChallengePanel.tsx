@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, Check, X, MessageSquare } from 'lucide-react';
 import { ApiError } from '../lib/api';
 import { useChallenge, type ActiveChallenge, type ResolvedChallenge } from '../hooks/useChallenge';
@@ -316,8 +317,14 @@ function FileChallengeModal({
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+  // Portal to <body> so the overlay escapes the question column's `lg:sticky`
+  // stacking context — otherwise z-index is scoped to that context and the
+  // modal renders behind the sticky header on wide screens (issue #10).
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+    >
       <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-xl max-w-2xl w-full p-5 sm:p-6 max-h-[90vh] overflow-y-auto">
         <h3 className="font-serif text-lg text-ink-900 dark:text-ink-100 mb-3">
           發起答案挑戰
@@ -381,6 +388,7 @@ function FileChallengeModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
