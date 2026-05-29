@@ -1,23 +1,28 @@
-// Render a DOM node to a PNG and put it on the clipboard when the browser
-// supports it, otherwise fall back to triggering a download. Exceptions
-// (including the explicit 截圖失敗) propagate to the caller, which toasts.
-import { toBlob } from "html-to-image";
+// Put a PNG Blob on the clipboard when the browser supports image clipboard
+// writes, otherwise fall back to triggering a download. Exceptions propagate to
+// the caller, which toasts.
+//
+// The Blob is produced by EmbedPDF's pdfium render capability (page rendered
+// WITH annotations) rather than DOM-rasterising the wasm-rendered page — the
+// latter (html-to-image) chokes on the page's blob: bitmap + cross-origin CSS.
 
-export async function snapshotToClipboard(
-	node: HTMLElement,
+export async function blobToClipboard(
+	blob: Blob,
 	filename = "slide.png",
 ): Promise<"clipboard" | "download"> {
-	const blob = await toBlob(node, { pixelRatio: 2, cacheBust: true });
-	if (!blob) throw new Error("截圖失敗");
-
 	if (
 		typeof (window as any).ClipboardItem !== "undefined" &&
 		navigator.clipboard?.write
 	) {
-		await navigator.clipboard.write([
-			new ClipboardItem({ "image/png": blob }),
-		]);
-		return "clipboard";
+		try {
+			await navigator.clipboard.write([
+				new ClipboardItem({ "image/png": blob }),
+			]);
+			return "clipboard";
+		} catch {
+			// Some browsers reject image clipboard writes (permissions / headless);
+			// fall through to a download so the user still gets the image.
+		}
 	}
 
 	const url = URL.createObjectURL(blob);

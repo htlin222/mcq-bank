@@ -25,7 +25,11 @@ import {
 } from "@embedpdf/plugin-document-manager/react";
 import { ViewportPluginPackage, Viewport } from "@embedpdf/plugin-viewport/react";
 import { ScrollPluginPackage, Scroller, useScrollCapability } from "@embedpdf/plugin-scroll/react";
-import { RenderPluginPackage, RenderLayer } from "@embedpdf/plugin-render/react";
+import {
+	RenderPluginPackage,
+	RenderLayer,
+	useRenderCapability,
+} from "@embedpdf/plugin-render/react";
 import { TilingPluginPackage, TilingLayer } from "@embedpdf/plugin-tiling/react";
 import { ZoomPluginPackage, useZoomCapability } from "@embedpdf/plugin-zoom/react";
 import {
@@ -121,6 +125,12 @@ export interface EmbedPDFViewerHandle {
 	importAnnotations(items: AnnotationTransferItem[]): void;
 	/** Delete an annotation by id on a given 0-based page. */
 	deleteAnnotation(page: number, id: string): void;
+	/**
+	 * Render a page (default = current) to a PNG Blob WITH annotations baked in,
+	 * via pdfium. Used for the snapshot feature — far more robust than
+	 * DOM-rasterising the wasm-rendered page. Resolves `null` on failure.
+	 */
+	renderPageToBlob(page?: number): Promise<Blob | null>;
 }
 
 // ── Plugin set (shared by every lecture document) ─────────────────────────
@@ -206,6 +216,7 @@ function ViewerInner({
 	const { provides: annotation } = useAnnotationCapability();
 	const { provides: scroll } = useScrollCapability();
 	const { provides: zoom } = useZoomCapability();
+	const { provides: render } = useRenderCapability();
 
 	// Latest known selection, kept in a ref so the imperative handle and the
 	// highlight action can read it synchronously.
@@ -358,8 +369,25 @@ function ViewerInner({
 				if (!annotation || !docId) return;
 				annotation.forDocument(docId).deleteAnnotation(page, id);
 			},
+			renderPageToBlob(page?: number) {
+				if (!render || !docId) return Promise.resolve(null);
+				const pageIndex =
+					page ??
+					(scroll
+						? Math.max(0, scroll.forDocument(docId).getCurrentPage() - 1)
+						: 0);
+				return new Promise<Blob | null>((resolve) => {
+					render.forDocument(docId).renderPage({
+						pageIndex,
+						options: { scaleFactor: 2, withAnnotations: true },
+					}).wait(
+						(blob) => resolve(blob),
+						() => resolve(null),
+					);
+				});
+			},
 		}),
-		[scroll, zoom, annotation, docId, createHighlightFromSelection],
+		[scroll, zoom, annotation, render, docId, createHighlightFromSelection],
 	);
 
 	if (!activeDocumentId) {

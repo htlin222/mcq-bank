@@ -21,7 +21,7 @@ import { LecturePanel } from "../components/lecture/LecturePanel";
 import { useLectureNotes } from "../hooks/useLectureNotes";
 import { useLectureAnnotations } from "../hooks/useLectureAnnotations";
 import { getLecture, type LectureDoc } from "../lib/lectureApi";
-import { snapshotToClipboard } from "../lib/snapshot";
+import { blobToClipboard } from "../lib/snapshot";
 
 type Toast = { kind: "ok" | "err"; msg: string } | null;
 
@@ -130,17 +130,17 @@ export default function LectureReader() {
 		});
 	}, []);
 
-	// Rasterise the current page wrapper (RenderLayer canvas + AnnotationLayer
-	// overlay live inside it, so highlights are captured) to the clipboard.
+	// Render the current page (with annotations baked in) to a PNG via pdfium and
+	// put it on the clipboard (download fallback).
 	const snapshot = useCallback(async () => {
-		const node = pageNodeRef.current;
-		if (!node) {
-			setToast({ kind: "err", msg: "截圖失敗" });
-			return;
-		}
 		try {
-			const where = await snapshotToClipboard(
-				node,
+			const blob = await viewerRef.current?.renderPageToBlob();
+			if (!blob) {
+				setToast({ kind: "err", msg: "截圖失敗" });
+				return;
+			}
+			const where = await blobToClipboard(
+				blob,
 				`${slug}-p${currentPage + 1}.png`,
 			);
 			setToast({
