@@ -96,8 +96,12 @@ lectureRoutes.patch('/:slug/annotations/:id', async (c) => {
   const body = await c.req.json<{ payload_json?: any; page?: number }>();
 
   const now = Date.now();
-  const sets: string[] = ['payload_json = ?', 'updated_at = ?'];
-  const binds: any[] = [JSON.stringify(body.payload_json), now];
+  const sets: string[] = ['updated_at = ?'];
+  const binds: any[] = [now];
+  if ('payload_json' in body) {
+    sets.push('payload_json = ?');
+    binds.push(JSON.stringify(body.payload_json));
+  }
   if (typeof body.page === 'number') {
     sets.push('page = ?');
     binds.push(body.page);
