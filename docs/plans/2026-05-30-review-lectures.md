@@ -16,14 +16,20 @@
 
 **Files:** Modify `frontend/package.json`, `package.json` (root, for import script dev dep).
 
-**Step 1:** In `frontend/`, install EmbedPDF + snapshot:
-```bash
-cd frontend && pnpm add @embedpdf/core @embedpdf/engines \
-  @embedpdf/plugin-loader @embedpdf/plugin-viewport @embedpdf/plugin-scroll \
-  @embedpdf/plugin-render @embedpdf/plugin-zoom @embedpdf/plugin-selection \
-  @embedpdf/plugin-annotation html-to-image
+**Step 1:** DONE by controller. Installed EmbedPDF **v2.14.3** set + snapshot:
 ```
-(If a `@embedpdf/plugin-document-manager` / `@embedpdf/plugin-tiling` is required by peer deps, add it — confirm against `node_modules/@embedpdf/core/package.json` peerDependencies.)
+@embedpdf/core @embedpdf/engines @embedpdf/plugin-document-manager
+@embedpdf/plugin-viewport @embedpdf/plugin-scroll @embedpdf/plugin-render
+@embedpdf/plugin-tiling @embedpdf/plugin-zoom @embedpdf/plugin-selection
+@embedpdf/plugin-annotation @embedpdf/plugin-interaction-manager html-to-image
+```
+NOTE: v2 uses `plugin-document-manager` for loading (NOT the stale `plugin-loader@1.5`). `plugin-interaction-manager` + `plugin-tiling` are required peers for selection/annotation/render.
+**Confirmed real React API** (probed from installed `dist`):
+- `@embedpdf/engines/react`: `usePdfiumEngine`
+- `@embedpdf/core/react`: `EmbedPDF`, `useCapability`, `usePlugin`
+- `@embedpdf/plugin-selection/react`: `useSelectionCapability`, `useSelectionPlugin`, `SelectionLayer`, `MarqueeSelection`, `CopyToClipboard`
+- `@embedpdf/plugin-annotation/react`: `useAnnotation`, `useAnnotationCapability`, `AnnotationLayer`, `getSelectedAnnotation`, `isHighlight`, `defineAnnotationTool`
+- `@embedpdf/plugin-render/react`: `RenderLayer`; `plugin-viewport/react`: `Viewport`; `plugin-scroll/react`: `Scroller`
 
 **Step 2:** Root, for the import script PDF page count:
 ```bash
