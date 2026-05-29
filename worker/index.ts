@@ -23,6 +23,7 @@ import { bookmarksRoutes } from './routes/bookmarks';
 import { feedbackRoutes } from './routes/feedback';
 import { challengesRoutes, questionChallengeRoutes } from './routes/challenges';
 import { mcqRoutes } from './routes/mcq';
+import { lectureRoutes } from './routes/lectures';
 
 const app = new Hono<AppContext>();
 
@@ -71,6 +72,7 @@ app.route('/api/search', searchRoutes);
 app.route('/api/folders', foldersRoutes);
 app.route('/api/bookmarks', bookmarksRoutes);
 app.route('/api/feedback', feedbackRoutes);
+app.route('/api/lectures', lectureRoutes);
 
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 
