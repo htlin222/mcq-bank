@@ -21,6 +21,7 @@ import { LecturePanel } from "../components/lecture/LecturePanel";
 import { useLectureNotes } from "../hooks/useLectureNotes";
 import { useLectureAnnotations } from "../hooks/useLectureAnnotations";
 import { getLecture, type LectureDoc } from "../lib/lectureApi";
+import { snapshotToClipboard } from "../lib/snapshot";
 
 type Toast = { kind: "ok" | "err"; msg: string } | null;
 
@@ -129,9 +130,27 @@ export default function LectureReader() {
 		});
 	}, []);
 
-	const snapshot = useCallback(() => {
-		// Wired in Task 10.
-	}, []);
+	// Rasterise the current page wrapper (RenderLayer canvas + AnnotationLayer
+	// overlay live inside it, so highlights are captured) to the clipboard.
+	const snapshot = useCallback(async () => {
+		const node = pageNodeRef.current;
+		if (!node) {
+			setToast({ kind: "err", msg: "截圖失敗" });
+			return;
+		}
+		try {
+			const where = await snapshotToClipboard(
+				node,
+				`${slug}-p${currentPage + 1}.png`,
+			);
+			setToast({
+				kind: "ok",
+				msg: where === "clipboard" ? "已複製到剪貼簿" : "已下載截圖",
+			});
+		} catch {
+			setToast({ kind: "err", msg: "截圖失敗" });
+		}
+	}, [slug, currentPage]);
 
 	// ── Selection popup actions ──
 	const dismissPopup = useCallback(() => {
