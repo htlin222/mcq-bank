@@ -67,6 +67,28 @@ aiRoutes.post("/summarize", async (c) => {
 	return c.json({ summary: (out as any).response });
 });
 
+// Concise zh-TW explanation of a selected lecture-slide fragment
+// (powers the PDF reader's text-selection popup → "AI 解釋").
+aiRoutes.post("/explain-selection", async (c) => {
+	const body = await c.req.json<{ text: string }>();
+	if (!body.text || body.text.length < 10) {
+		return c.json({ error: "text too short" }, 400);
+	}
+
+	const out = await c.env.AI.run(TEXT_MODEL, {
+		messages: [
+			{
+				role: "system",
+				content:
+					"你是醫學教學助手。請用繁體中文簡潔解釋以下投影片片段的重點,2-4 句,必要時補充臨床意義。只輸出解釋,不要重述原文。",
+			},
+			{ role: "user", content: body.text.slice(0, 4000) },
+		],
+	});
+
+	return c.json({ text: (out as any).response });
+});
+
 // Generate a curated study Q&A list from a question and its explanation.
 // The frontend renders this as numbered questions with bullet answers.
 aiRoutes.post("/generate-qa", async (c) => {
