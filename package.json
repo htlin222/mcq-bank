@@ -16,6 +16,7 @@
 		"db:seed:local": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --local --file=migrations/0004_hema_sample.sql",
 		"db:seed:remote": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --remote --file=migrations/0004_hema_sample.sql",
 		"r2:create": "wrangler r2 bucket create $(node scripts/lib/cfg.mjs project.r2_bucket)",
+		"import:lectures": "node --experimental-strip-types scripts/import-lectures.ts",
 		"typecheck": "tsc --noEmit",
 		"test": "node --test 'worker/**/*.test.ts'"
 	},
