@@ -28,7 +28,10 @@ import { ScrollPluginPackage, Scroller, useScrollCapability } from "@embedpdf/pl
 import { RenderPluginPackage, RenderLayer } from "@embedpdf/plugin-render/react";
 import { TilingPluginPackage, TilingLayer } from "@embedpdf/plugin-tiling/react";
 import { ZoomPluginPackage, useZoomCapability } from "@embedpdf/plugin-zoom/react";
-import { InteractionManagerPluginPackage } from "@embedpdf/plugin-interaction-manager/react";
+import {
+	InteractionManagerPluginPackage,
+	PagePointerProvider,
+} from "@embedpdf/plugin-interaction-manager/react";
 import {
 	SelectionPluginPackage,
 	SelectionLayer,
@@ -387,12 +390,28 @@ function ViewerInner({
 						}}
 						style={{ width, height, position: "relative" }}
 					>
-						{/* Layers omit scale/rotation → they read the document's current
+						{/* PagePointerProvider is REQUIRED for text selection +
+						    annotation pointer interactions to work — it wires the
+						    InteractionManager's pointer handlers to this page and maps
+						    client points into PDF page coords. Without it the
+						    SelectionLayer/AnnotationLayer render but never receive input.
+						    Layers omit scale/rotation → they read the document's current
 						    state (zoom level, page rotation) automatically. */}
-						<RenderLayer documentId={activeDocumentId} pageIndex={pageIndex} />
-						<TilingLayer documentId={activeDocumentId} pageIndex={pageIndex} />
-						<SelectionLayer documentId={activeDocumentId} pageIndex={pageIndex} />
-						<AnnotationLayer documentId={activeDocumentId} pageIndex={pageIndex} />
+						<PagePointerProvider
+							documentId={activeDocumentId}
+							pageIndex={pageIndex}
+							style={{
+								position: "absolute",
+								inset: 0,
+								width,
+								height,
+							}}
+						>
+							<RenderLayer documentId={activeDocumentId} pageIndex={pageIndex} />
+							<TilingLayer documentId={activeDocumentId} pageIndex={pageIndex} />
+							<SelectionLayer documentId={activeDocumentId} pageIndex={pageIndex} />
+							<AnnotationLayer documentId={activeDocumentId} pageIndex={pageIndex} />
+						</PagePointerProvider>
 					</div>
 				)}
 			/>
