@@ -1,6 +1,298 @@
-// Placeholder — replaced by Task 9 (reader: toolbar, selection popup,
-// notebook & annotation panel). Kept minimal so the lazy route + build stay
-// green while Task 7/8 land first.
+// 複習班講義 reader. Layout: ReaderToolbar (top) + EmbedPDFViewer (main) +
+// LecturePanel (right on desktop / bottom-sheet on mobile).
+//
+// Personal highlights + a page-anchored notebook persist via the lecture API.
+// Text selection raises a SelectionPopup anchored at the pointer-up point
+// (page-coord rects are NOT usable for client placement — see the viewer
+// contract). Snapshot rasterises the current page wrapper (canvas + annotation
+// overlay) to the clipboard.
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
+import {
+	EmbedPDFViewer,
+	type EmbedPDFViewerHandle,
+	type ViewerSelection,
+	type AnnotationTransferItem,
+} from "../components/lecture/EmbedPDFViewer";
+import { ReaderToolbar } from "../components/lecture/ReaderToolbar";
+import { SelectionPopup } from "../components/lecture/SelectionPopup";
+import { LecturePanel } from "../components/lecture/LecturePanel";
+import { useLectureNotes } from "../hooks/useLectureNotes";
+import { useLectureAnnotations } from "../hooks/useLectureAnnotations";
+import { getLecture, type LectureDoc } from "../lib/lectureApi";
+
+type Toast = { kind: "ok" | "err"; msg: string } | null;
+
 export default function LectureReader() {
-	return <div className="p-8 text-ink-500 dark:text-ink-400">講義閱讀器（建置中）</div>;
+	const { slug = "" } = useParams<{ slug: string }>();
+	const [doc, setDoc] = useState<LectureDoc | null>(null);
+	const [loadError, setLoadError] = useState<string | null>(null);
+
+	const viewerRef = useRef<EmbedPDFViewerHandle>(null);
+	const pageNodeRef = useRef<HTMLElement | null>(null);
+	// Pointer-up location (client px) — the anchor for the selection popup.
+	const pointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+	const [currentPage, setCurrentPage] = useState(0);
+	const [highlightActive, setHighlightActive] = useState(false);
+	const [panelOpen, setPanelOpen] = useState(true);
+	const [selection, setSelection] = useState<ViewerSelection | null>(null);
+	const [popupAnchor, setPopupAnchor] = useState<{ x: number; y: number } | null>(
+		null,
+	);
+	const [pendingNote, setPendingNote] = useState<{ text: string; page: number } | null>(
+		null,
+	);
+	const [toast, setToast] = useState<Toast>(null);
+
+	const notes = useLectureNotes(slug);
+	const annos = useLectureAnnotations(slug);
+
+	// Fetch lecture metadata (incl. pdf_url).
+	useEffect(() => {
+		let alive = true;
+		setDoc(null);
+		setLoadError(null);
+		getLecture(slug)
+			.then((d) => {
+				if (alive) setDoc(d);
+			})
+			.catch((e) => {
+				if (alive) setLoadError(e?.message || "載入講義失敗");
+			});
+		return () => {
+			alive = false;
+		};
+	}, [slug]);
+
+	// Auto-dismiss toasts.
+	useEffect(() => {
+		if (!toast) return;
+		const t = setTimeout(() => setToast(null), 2400);
+		return () => clearTimeout(t);
+	}, [toast]);
+
+	// Import persisted highlights once, after both the viewer is mounted and the
+	// rows have finished loading.
+	const importedRef = useRef(false);
+	useEffect(() => {
+		if (importedRef.current) return;
+		if (annos.loading || !doc) return;
+		const v = viewerRef.current;
+		if (!v) return;
+		if (annos.initialItems.length > 0) {
+			v.importAnnotations(annos.initialItems);
+		}
+		importedRef.current = true;
+	}, [annos.loading, annos.initialItems, doc]);
+
+	// ── Stable viewer callbacks (the viewer re-subscribes on identity change) ──
+	const onPageChange = useCallback((p: number) => setCurrentPage(p), []);
+
+	const onSelectionChange = useCallback((sel: ViewerSelection | null) => {
+		setSelection(sel);
+		if (sel && sel.text.trim()) {
+			setPopupAnchor({ ...pointerRef.current });
+		} else {
+			setPopupAnchor(null);
+		}
+	}, []);
+
+	const onPageContainer = useCallback((el: HTMLElement | null) => {
+		pageNodeRef.current = el;
+	}, []);
+
+	// Remember the pointer-up location so the popup can anchor there.
+	const onPointerUp = useCallback((e: React.PointerEvent | React.MouseEvent) => {
+		pointerRef.current = { x: e.clientX, y: e.clientY };
+	}, []);
+
+	// ── Toolbar actions ──
+	const prev = useCallback(() => {
+		const v = viewerRef.current;
+		if (v) v.scrollToPage(Math.max(0, v.getCurrentPage() - 1));
+	}, []);
+	const next = useCallback(() => {
+		const v = viewerRef.current;
+		if (v) v.scrollToPage(v.getCurrentPage() + 1);
+	}, []);
+	const zoomIn = useCallback(() => viewerRef.current?.zoomIn(), []);
+	const zoomOut = useCallback(() => viewerRef.current?.zoomOut(), []);
+	const zoomFit = useCallback(() => viewerRef.current?.zoomFit(), []);
+
+	const toggleHighlight = useCallback(() => {
+		setHighlightActive((active) => {
+			const nextActive = !active;
+			viewerRef.current?.setActiveTool(nextActive ? "highlight" : null);
+			return nextActive;
+		});
+	}, []);
+
+	const snapshot = useCallback(() => {
+		// Wired in Task 10.
+	}, []);
+
+	// ── Selection popup actions ──
+	const dismissPopup = useCallback(() => {
+		setPopupAnchor(null);
+		setSelection(null);
+	}, []);
+
+	const doHighlight = useCallback(async () => {
+		const v = viewerRef.current;
+		if (!v) return;
+		try {
+			const anno = await v.createHighlightFromSelection();
+			if (!anno) {
+				setToast({ kind: "err", msg: "沒有可標記的選取" });
+				return;
+			}
+			// Persist exactly what importAnnotations consumes: pull the transfer
+			// item for the new annotation out of the fresh export.
+			const items = await v.exportAnnotations();
+			const item: AnnotationTransferItem | undefined =
+				items.find((i) => i.annotation.id === anno.id) ?? { annotation: anno };
+			await annos.persistHighlight(item);
+			setToast({ kind: "ok", msg: "已標記" });
+		} catch {
+			setToast({ kind: "err", msg: "標記失敗" });
+		} finally {
+			dismissPopup();
+		}
+	}, [annos, dismissPopup]);
+
+	const copyToNote = useCallback(
+		(text: string, page: number) => {
+			setPanelOpen(true);
+			setPendingNote({ text, page });
+			dismissPopup();
+		},
+		[dismissPopup],
+	);
+
+	// ── Panel actions ──
+	const jumpToAnnotation = useCallback((page: number) => {
+		viewerRef.current?.scrollToPage(page);
+	}, []);
+
+	const deleteAnnotationRow = useCallback(
+		(id: string, page: number) => {
+			viewerRef.current?.deleteAnnotation(page, id);
+			void annos.removeAnnotation(id, page);
+		},
+		[annos],
+	);
+
+	if (loadError) {
+		return (
+			<div className="p-8 text-center text-rose-600 dark:text-rose-400">
+				無法載入講義：{loadError}
+				<div className="mt-4">
+					<Link to="/lectures" className="text-accent hover:underline">
+						← 返回講義列表
+					</Link>
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex h-[calc(100vh-3.5rem)] flex-col md:h-[calc(100vh-4rem)]">
+			{/* Title bar */}
+			<div className="flex items-center gap-3 border-b border-ink-200 px-3 py-2 dark:border-ink-700">
+				<Link
+					to="/lectures"
+					className="inline-flex shrink-0 items-center gap-1 text-sm text-ink-500 hover:text-accent dark:text-ink-400"
+				>
+					<ChevronLeft size={16} /> 講義
+				</Link>
+				<h1 className="truncate font-serif text-lg text-ink-900 dark:text-ink-100">
+					{doc?.title ?? "載入中…"}
+				</h1>
+			</div>
+
+			<ReaderToolbar
+				currentPage={currentPage}
+				pageCount={doc?.page_count ?? 0}
+				highlightActive={highlightActive}
+				panelOpen={panelOpen}
+				onPrev={prev}
+				onNext={next}
+				onZoomIn={zoomIn}
+				onZoomOut={zoomOut}
+				onZoomFit={zoomFit}
+				onToggleHighlight={toggleHighlight}
+				onSnapshot={snapshot}
+				onTogglePanel={() => setPanelOpen((o) => !o)}
+			/>
+
+			{/* Body: viewer + panel */}
+			<div className="flex min-h-0 flex-1">
+				<div
+					className="relative min-w-0 flex-1"
+					onPointerUp={onPointerUp}
+					onMouseUp={onPointerUp}
+				>
+					{doc?.pdf_url ? (
+						<EmbedPDFViewer
+							ref={viewerRef}
+							pdfUrl={doc.pdf_url}
+							onSelectionChange={onSelectionChange}
+							onPageChange={onPageChange}
+							pageContainerRef={onPageContainer}
+						/>
+					) : (
+						<div className="flex h-full items-center justify-center font-serif text-2xl text-ink-300 dark:text-ink-600">
+							載入講義中…
+						</div>
+					)}
+				</div>
+
+				<LecturePanel
+					open={panelOpen}
+					onClose={() => setPanelOpen(false)}
+					currentPage={currentPage}
+					pageCount={doc?.page_count ?? 0}
+					notes={notes.notes}
+					notesLoading={notes.loading}
+					onCreateNote={notes.createNote}
+					onUpdateNote={notes.updateNote}
+					onRemoveNote={notes.removeNote}
+					annotations={annos.annotations}
+					onJumpToAnnotation={jumpToAnnotation}
+					onDeleteAnnotation={deleteAnnotationRow}
+					pendingNote={pendingNote}
+					onConsumePending={() => setPendingNote(null)}
+				/>
+			</div>
+
+			{/* Selection popup */}
+			{popupAnchor && selection && (
+				<SelectionPopup
+					anchor={popupAnchor}
+					selection={selection}
+					currentPage={currentPage}
+					onHighlight={doHighlight}
+					onCopyToNote={copyToNote}
+					onDismiss={dismissPopup}
+				/>
+			)}
+
+			{/* Toast */}
+			{toast && (
+				<div
+					className={
+						"fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-fade-in rounded-lg px-4 py-2 text-sm font-medium shadow-paper " +
+						(toast.kind === "ok"
+							? "bg-ink-800 text-ink-50 dark:bg-ink-100 dark:text-ink-900"
+							: "bg-rose-600 text-white")
+					}
+					role="status"
+				>
+					{toast.msg}
+				</div>
+			)}
+		</div>
+	);
 }
