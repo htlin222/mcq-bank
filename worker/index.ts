@@ -11,6 +11,7 @@ import { notesRoutes } from './routes/notes';
 import { commentsRoutes } from './routes/comments';
 import { uploadRoutes } from './routes/upload';
 import { imagesRoutes } from './routes/images';
+import { pdfRoutes } from './routes/pdf';
 import { examRoutes } from './routes/exam';
 import { reviewRoutes } from './routes/review';
 import { aiRoutes } from './routes/ai';
@@ -49,6 +50,7 @@ app.route('/api/mcq', mcqRoutes);
 // All other routes require Access auth
 app.use('/api/*', authMiddleware);
 app.use('/img/*', authMiddleware);
+app.use('/pdf/*', authMiddleware);
 
 app.route('/api/me', meRoutes);
 app.route('/api/users', usersRoutes);
@@ -60,6 +62,7 @@ app.route('/api/questions', questionChallengeRoutes); // /:id/challenges*
 app.route('/api/challenges', challengesRoutes);  // /:cid/votes etc.
 app.route('/api/upload', uploadRoutes);
 app.route('/img', imagesRoutes);
+app.route('/pdf', pdfRoutes);
 app.route('/api/exam', examRoutes);
 app.route('/api/review', reviewRoutes);
 app.route('/api/ai', aiRoutes);
