@@ -1,7 +1,7 @@
 // Sticky reader toolbar: page nav + indicator, zoom, highlight toggle,
 // snapshot, and the side-panel toggle. Scholarly ink/cream styling to match
 // the rest of the app — no SaaS gradients.
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -23,6 +23,8 @@ export interface ReaderToolbarProps {
 	onToggleThumbnails(): void;
 	onPrev(): void;
 	onNext(): void;
+	/** Jump to a 0-based page (from typing in the page indicator). */
+	onGoToPage(page: number): void;
 	onZoomIn(): void;
 	onZoomOut(): void;
 	onZoomFit(): void;
@@ -52,13 +54,11 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 			<TBtn label="上一頁" onClick={props.onPrev} disabled={atStart}>
 				<ChevronLeft size={18} />
 			</TBtn>
-			<span className="select-none whitespace-nowrap px-1 font-mono text-xs text-ink-600 dark:text-ink-300 sm:text-sm">
-				p.{props.currentPage + 1}
-				<span className="text-ink-400 dark:text-ink-500">
-					{" "}
-					/ {props.pageCount || "—"}
-				</span>
-			</span>
+			<PageIndicator
+				currentPage={props.currentPage}
+				pageCount={props.pageCount}
+				onGoToPage={props.onGoToPage}
+			/>
 			<TBtn label="下一頁" onClick={props.onNext} disabled={atEnd}>
 				<ChevronRight size={18} />
 			</TBtn>
@@ -103,6 +103,75 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 				<PanelRight size={17} />
 			</TBtn>
 		</div>
+	);
+}
+
+// Click to type a page number (digits only); Enter jumps, Esc/blur cancels.
+function PageIndicator({
+	currentPage,
+	pageCount,
+	onGoToPage,
+}: {
+	currentPage: number;
+	pageCount: number;
+	onGoToPage(page: number): void;
+}) {
+	const [editing, setEditing] = useState(false);
+	const [val, setVal] = useState("");
+	const inputRef = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		if (editing) {
+			setVal(String(currentPage + 1));
+			// select after the value is set
+			requestAnimationFrame(() => inputRef.current?.select());
+		}
+	}, [editing, currentPage]);
+
+	function commit() {
+		const n = parseInt(val, 10);
+		if (!Number.isNaN(n) && n >= 1 && pageCount > 0 && n <= pageCount) {
+			onGoToPage(n - 1);
+		}
+		setEditing(false);
+	}
+
+	if (editing) {
+		return (
+			<span className="whitespace-nowrap px-1 font-mono text-xs text-ink-600 dark:text-ink-300 sm:text-sm">
+				p.
+				<input
+					ref={inputRef}
+					type="text"
+					inputMode="numeric"
+					value={val}
+					onChange={(e) => setVal(e.target.value.replace(/[^0-9]/g, ""))}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") commit();
+						else if (e.key === "Escape") setEditing(false);
+					}}
+					onBlur={() => setEditing(false)}
+					aria-label="跳到頁面"
+					className="w-10 rounded border border-accent bg-white px-1 py-0.5 text-center text-ink-900 outline-none dark:bg-ink-900 dark:text-ink-100"
+				/>
+				<span className="text-ink-400 dark:text-ink-500"> / {pageCount || "—"}</span>
+			</span>
+		);
+	}
+
+	return (
+		<button
+			type="button"
+			onClick={() => setEditing(true)}
+			title="點擊輸入頁碼跳頁"
+			className="whitespace-nowrap rounded px-1 font-mono text-xs text-ink-600 transition hover:bg-ink-100 hover:text-accent dark:text-ink-300 dark:hover:bg-ink-700 sm:text-sm"
+		>
+			p.{currentPage + 1}
+			<span className="text-ink-400 dark:text-ink-500">
+				{" "}
+				/ {pageCount || "—"}
+			</span>
+		</button>
 	);
 }
 

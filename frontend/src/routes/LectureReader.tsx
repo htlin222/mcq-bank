@@ -203,6 +203,13 @@ export default function LectureReader() {
 		const v = viewerRef.current;
 		if (v) v.scrollToPage(v.getCurrentPage() + 1);
 	}, []);
+	const goToPage = useCallback(
+		(p: number) => {
+			const max = Math.max(0, (doc?.page_count ?? 1) - 1);
+			viewerRef.current?.scrollToPage(Math.min(Math.max(0, p), max));
+		},
+		[doc?.page_count],
+	);
 	const zoomIn = useCallback(() => viewerRef.current?.zoomIn(), []);
 	const zoomOut = useCallback(() => viewerRef.current?.zoomOut(), []);
 	const zoomFit = useCallback(() => viewerRef.current?.zoomFit(), []);
@@ -339,6 +346,7 @@ export default function LectureReader() {
 				onToggleThumbnails={() => setThumbsOpen((o) => !o)}
 				onPrev={prev}
 				onNext={next}
+				onGoToPage={goToPage}
 				onZoomIn={zoomIn}
 				onZoomOut={zoomOut}
 				onZoomFit={zoomFit}
