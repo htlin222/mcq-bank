@@ -15,6 +15,7 @@ import {
 	useImperativeHandle,
 	useMemo,
 	useRef,
+	useState,
 } from "react";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
 import { EmbedPDF } from "@embedpdf/core/react";
@@ -31,6 +32,11 @@ import {
 	useRenderCapability,
 } from "@embedpdf/plugin-render/react";
 import { TilingPluginPackage, TilingLayer } from "@embedpdf/plugin-tiling/react";
+import {
+	ThumbnailPluginPackage,
+	ThumbnailsPane,
+	ThumbImg,
+} from "@embedpdf/plugin-thumbnail/react";
 import { ZoomPluginPackage, useZoomCapability } from "@embedpdf/plugin-zoom/react";
 import {
 	InteractionManagerPluginPackage,
@@ -95,6 +101,8 @@ export interface EmbedPDFViewerProps {
 	 * with `null` on unmount.
 	 */
 	pageContainerRef?: (el: HTMLElement | null) => void;
+	/** Show the left thumbnail navigation rail. */
+	showThumbnails?: boolean;
 }
 
 export interface EmbedPDFViewerHandle {
@@ -144,6 +152,7 @@ function buildPlugins(pdfUrl: string) {
 		createPluginRegistration(ScrollPluginPackage),
 		createPluginRegistration(RenderPluginPackage),
 		createPluginRegistration(TilingPluginPackage),
+		createPluginRegistration(ThumbnailPluginPackage, { width: 120 }),
 		createPluginRegistration(ZoomPluginPackage, {
 			defaultZoomLevel: ZoomMode.FitWidth,
 		}),
@@ -208,6 +217,7 @@ function ViewerInner({
 	onSelectionChange,
 	onPageChange,
 	pageContainerRef,
+	showThumbnails,
 }: EmbedPDFViewerProps & {
 	forwardedRef: React.ForwardedRef<EmbedPDFViewerHandle>;
 }) {
@@ -217,6 +227,9 @@ function ViewerInner({
 	const { provides: scroll } = useScrollCapability();
 	const { provides: zoom } = useZoomCapability();
 	const { provides: render } = useRenderCapability();
+	// Local copy of the current page (0-based) for highlighting the active
+	// thumbnail; kept in sync via the same scroll page-change subscription.
+	const [activePage, setActivePage] = useState(0);
 
 	// Latest known selection, kept in a ref so the imperative handle and the
 	// highlight action can read it synchronously.
@@ -274,13 +287,16 @@ function ViewerInner({
 		return unsub;
 	}, [selection, docId, onSelectionChange, readSelection]);
 
-	// Subscribe to page changes.
+	// Subscribe to page changes (drives both the outward callback and the local
+	// active-page state used to highlight the current thumbnail).
 	useEffect(() => {
-		if (!scroll || !docId || !onPageChange) return;
+		if (!scroll || !docId) return;
 		const unsub = scroll.onPageChange((evt) => {
 			if (evt.documentId !== docId) return;
 			// PageChangeEvent.pageNumber is 1-based; expose 0-based.
-			onPageChange(Math.max(0, evt.pageNumber - 1));
+			const p = Math.max(0, evt.pageNumber - 1);
+			setActivePage(p);
+			onPageChange?.(p);
 		});
 		return unsub;
 	}, [scroll, docId, onPageChange]);
@@ -395,10 +411,20 @@ function ViewerInner({
 	}
 
 	return (
-		<Viewport
-			documentId={activeDocumentId}
-			className="h-full w-full overflow-auto bg-ink-100 dark:bg-ink-900"
-		>
+		<div className="flex h-full w-full">
+			{showThumbnails && (
+				<ThumbnailRail
+					documentId={activeDocumentId}
+					activePage={activePage}
+					onJump={(p) =>
+						scroll?.forDocument(activeDocumentId).scrollToPage({ pageNumber: p + 1 })
+					}
+				/>
+			)}
+			<Viewport
+				documentId={activeDocumentId}
+				className="h-full min-w-0 flex-1 overflow-auto bg-ink-100 dark:bg-ink-900"
+			>
 			<Scroller
 				documentId={activeDocumentId}
 				renderPage={({ pageIndex, width, height }) => (
@@ -454,7 +480,73 @@ function ViewerInner({
 					</div>
 				)}
 			/>
-		</Viewport>
+			</Viewport>
+		</div>
+	);
+}
+
+// Left thumbnail navigation rail (desktop). Virtualised via ThumbnailsPane:
+// the render-prop yields one ThumbMeta per visible page, positioned absolutely
+// at `meta.top` within the pane's scroll content.
+function ThumbnailRail({
+	documentId,
+	activePage,
+	onJump,
+}: {
+	documentId: string;
+	activePage: number;
+	onJump(page: number): void;
+}) {
+	return (
+		<aside className="hidden h-full w-40 shrink-0 overflow-hidden border-r border-ink-200 bg-white md:block dark:border-ink-700 dark:bg-ink-900">
+			<ThumbnailsPane
+				documentId={documentId}
+				style={{ height: "100%", overflowY: "auto", position: "relative" }}
+			>
+				{(m: any) => (
+					<div
+						key={m.pageIndex}
+						style={{
+							position: "absolute",
+							top: m.top,
+							height: m.wrapperHeight,
+							left: 0,
+							right: 0,
+						}}
+						className="flex flex-col items-center"
+					>
+						<button
+							type="button"
+							onClick={() => onJump(m.pageIndex)}
+							aria-label={`第 ${m.pageIndex + 1} 頁`}
+							title={`第 ${m.pageIndex + 1} 頁`}
+							className={
+								"overflow-hidden rounded border-2 bg-white shadow-sm transition " +
+								(m.pageIndex === activePage
+									? "border-accent"
+									: "border-ink-200/60 hover:border-ink-400 dark:border-ink-700 dark:hover:border-ink-500")
+							}
+						>
+							<ThumbImg
+								documentId={documentId}
+								meta={m}
+								style={{ display: "block" }}
+							/>
+						</button>
+						<span
+							className={
+								"mt-0.5 text-[11px] " +
+								(m.pageIndex === activePage
+									? "font-medium text-accent"
+									: "text-ink-400 dark:text-ink-500")
+							}
+						>
+							{m.pageIndex + 1}
+						</span>
+					</div>
+				)}
+			</ThumbnailsPane>
+		</aside>
 	);
 }
 

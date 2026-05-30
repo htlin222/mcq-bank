@@ -47,6 +47,7 @@ export default function LectureReader() {
 	const [currentPage, setCurrentPage] = useState(0);
 	const [highlightActive, setHighlightActive] = useState(false);
 	const [panelOpen, setPanelOpen] = useState(true);
+	const [thumbsOpen, setThumbsOpen] = useState(true);
 	// Desktop panel width (px). Persisted as a UI layout pref (not app state).
 	const [panelWidth, setPanelWidth] = useState<number>(() => {
 		const raw =
@@ -306,6 +307,8 @@ export default function LectureReader() {
 				pageCount={doc?.page_count ?? 0}
 				highlightActive={highlightActive}
 				panelOpen={panelOpen}
+				thumbnailsOpen={thumbsOpen}
+				onToggleThumbnails={() => setThumbsOpen((o) => !o)}
 				onPrev={prev}
 				onNext={next}
 				onZoomIn={zoomIn}
@@ -330,6 +333,7 @@ export default function LectureReader() {
 							onSelectionChange={onSelectionChange}
 							onPageChange={onPageChange}
 							pageContainerRef={onPageContainer}
+							showThumbnails={thumbsOpen}
 						/>
 					) : (
 						<div className="flex h-full items-center justify-center font-serif text-2xl text-ink-300 dark:text-ink-600">

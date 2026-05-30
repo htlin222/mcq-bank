@@ -11,6 +11,7 @@ import {
 	Highlighter,
 	Camera,
 	PanelRight,
+	PanelLeft,
 } from "lucide-react";
 
 export interface ReaderToolbarProps {
@@ -18,6 +19,8 @@ export interface ReaderToolbarProps {
 	pageCount: number;
 	highlightActive: boolean;
 	panelOpen: boolean;
+	thumbnailsOpen: boolean;
+	onToggleThumbnails(): void;
 	onPrev(): void;
 	onNext(): void;
 	onZoomIn(): void;
@@ -34,6 +37,17 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 
 	return (
 		<div className="sticky top-0 z-20 flex items-center gap-1 border-b border-ink-200 dark:border-ink-700 bg-ink-50/95 dark:bg-ink-900/95 px-2 py-1.5 backdrop-blur sm:gap-2 sm:px-3">
+			{/* Thumbnail rail toggle (desktop) */}
+			<TBtn
+				label="頁面縮圖"
+				onClick={props.onToggleThumbnails}
+				active={props.thumbnailsOpen}
+			>
+				<PanelLeft size={17} />
+			</TBtn>
+
+			<Divider />
+
 			{/* Page nav */}
 			<TBtn label="上一頁" onClick={props.onPrev} disabled={atStart}>
 				<ChevronLeft size={18} />

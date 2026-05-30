@@ -18,6 +18,7 @@
 		"@embedpdf/plugin-render": "^2.14.3",
 		"@embedpdf/plugin-scroll": "^2.14.3",
 		"@embedpdf/plugin-selection": "^2.14.3",
+		"@embedpdf/plugin-thumbnail": "^2.14.3",
 		"@embedpdf/plugin-tiling": "^2.14.3",
 		"@embedpdf/plugin-viewport": "^2.14.3",
 		"@embedpdf/plugin-zoom": "^2.14.3",
