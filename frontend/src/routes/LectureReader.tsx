@@ -41,8 +41,13 @@ export default function LectureReader() {
 
 	const viewerRef = useRef<EmbedPDFViewerHandle>(null);
 	const pageNodeRef = useRef<HTMLElement | null>(null);
-	// Pointer-up location (client px) — the anchor for the selection popup.
-	const pointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+	// Pointer-RELEASE location (client px) — the anchor for the selection popup.
+	const releaseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+	// True while a pointer is held down (a drag-select in progress). We only show
+	// the popup once the pointer is released, anchored at the release point.
+	const draggingRef = useRef(false);
+	// Reader-side mirror of the latest selection (selection-change is async).
+	const selectionRef = useRef<ViewerSelection | null>(null);
 
 	const [currentPage, setCurrentPage] = useState(0);
 	const [highlightActive, setHighlightActive] = useState(false);
@@ -149,11 +154,19 @@ export default function LectureReader() {
 	const onPageChange = useCallback((p: number) => setCurrentPage(p), []);
 
 	const onSelectionChange = useCallback((sel: ViewerSelection | null) => {
+		selectionRef.current = sel;
 		setSelection(sel);
-		if (sel && sel.text.trim()) {
-			setPopupAnchor({ ...pointerRef.current });
-		} else {
+		if (!sel || !sel.text.trim()) {
+			// Selection cleared → hide popup.
 			setPopupAnchor(null);
+			return;
+		}
+		// Selection settled. Only show the popup if the pointer is already
+		// released (e.g. the async text read resolved just after pointer-up);
+		// while still dragging we wait for release so we can anchor at the
+		// release point, not where the drag started.
+		if (!draggingRef.current) {
+			setPopupAnchor({ ...releaseRef.current });
 		}
 	}, []);
 
@@ -161,9 +174,24 @@ export default function LectureReader() {
 		pageNodeRef.current = el;
 	}, []);
 
-	// Remember the pointer-up location so the popup can anchor there.
+	// Pointer down = a (possible) drag-select begins: hide any open popup.
+	const onPointerDown = useCallback(() => {
+		draggingRef.current = true;
+		setPopupAnchor(null);
+	}, []);
+
+	// Pointer up = release: record the release point and, if there's already a
+	// non-empty selection, show the popup there.
 	const onPointerUp = useCallback((e: React.PointerEvent | React.MouseEvent) => {
-		pointerRef.current = { x: e.clientX, y: e.clientY };
+		draggingRef.current = false;
+		releaseRef.current = { x: e.clientX, y: e.clientY };
+		// Defer a frame so a click that CLEARS the selection (its synchronous
+		// selection-change → null) runs first and we don't briefly flash the
+		// popup with a stale selection.
+		requestAnimationFrame(() => {
+			const sel = selectionRef.current;
+			if (sel && sel.text.trim()) setPopupAnchor({ ...releaseRef.current });
+		});
 	}, []);
 
 	// ── Toolbar actions ──
@@ -323,6 +351,7 @@ export default function LectureReader() {
 			<div className="flex min-h-0 flex-1">
 				<div
 					className="relative min-w-0 flex-1"
+					onPointerDown={onPointerDown}
 					onPointerUp={onPointerUp}
 					onMouseUp={onPointerUp}
 				>
