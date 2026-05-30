@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import {
 	Routes,
 	Route,
@@ -35,6 +35,10 @@ import { Profile } from "./routes/Profile";
 import { WrongQuestions } from "./routes/Lists";
 import { Bookmarks } from "./routes/Bookmarks";
 import { Search } from "./routes/Search";
+
+// Lazy — keeps EmbedPDF's pdfium-wasm bundle off every other route.
+const Lectures = lazy(() => import("./routes/Lectures"));
+const LectureReader = lazy(() => import("./routes/LectureReader"));
 
 export default function App() {
 	const { me, loading } = useMe();
@@ -99,6 +103,7 @@ export default function App() {
 						<NavItem to="/search">搜尋</NavItem>
 						<NavItem to="/bookmarks">收藏</NavItem>
 						<NavItem to="/wrong">錯題</NavItem>
+						<NavItem to="/lectures">講義</NavItem>
 					</nav>
 
 					<div className="ml-auto flex items-center gap-2">
@@ -141,6 +146,22 @@ export default function App() {
 					<Route path="/search" element={<Search />} />
 					<Route path="/bookmarks" element={<Bookmarks />} />
 					<Route path="/wrong" element={<WrongQuestions />} />
+					<Route
+						path="/lectures"
+						element={
+							<Suspense fallback={<BootSplash />}>
+								<Lectures />
+							</Suspense>
+						}
+					/>
+					<Route
+						path="/lectures/:slug"
+						element={
+							<Suspense fallback={<BootSplash />}>
+								<LectureReader />
+							</Suspense>
+						}
+					/>
 					<Route path="/profile" element={<Profile />} />
 					<Route path="/login" element={<Navigate to="/" replace />} />
 					<Route path="*" element={<NotFound />} />

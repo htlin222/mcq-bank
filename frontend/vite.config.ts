@@ -121,6 +121,11 @@ export default defineConfig({
         changeOrigin: true,
         headers: { 'X-Dev-Email': bootConfig.dev.dev_email },
       },
+      '/pdf': {
+        target: 'http://localhost:8787',
+        changeOrigin: true,
+        headers: { 'X-Dev-Email': bootConfig.dev.dev_email },
+      },
     },
   },
   build: {

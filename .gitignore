@@ -27,6 +27,12 @@ frontend/tsconfig.tsbuildinfo
 years/
 *.pdf
 
+# Lecture-class source PDFs (複習班講義). ~78MB of decks that live in R2;
+# scripts/import-lectures.ts reads them from here (often a symlink to the
+# real PDFs outside the worktree). Must NOT be committed or deployed.
+pdf/
+pdf
+
 # Auto-generated DB-fix SQL written by scripts/apply-oe-verdicts.py etc.
 # These embed real user emails and question IDs — never commit to a
 # public repo. Re-run the generator if you need to regenerate them.

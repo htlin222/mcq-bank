@@ -150,7 +150,7 @@ export function Home() {
       </section>
 
       {/* Mode cards */}
-      <section className="grid sm:grid-cols-2 gap-4 mb-10">
+      <section className="grid sm:grid-cols-3 gap-4 mb-10">
         <Link
           to="/review"
           className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 shadow-paper hover:shadow-md hover:border-accent transition group"
@@ -171,6 +171,17 @@ export function Home() {
           </h2>
           <p className="text-sm text-ink-500 dark:text-ink-400 mt-2 leading-relaxed">
             按年度作答模擬考 ({GROUPS.map((g) => `${g.count} ${g.label}`).join(' + ')},共 {TOTAL_EXAM_COUNT} 題),完賽看分數與錯題回顧。
+          </p>
+        </Link>
+        <Link
+          to="/lectures"
+          className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 shadow-paper hover:shadow-md hover:border-accent transition group"
+        >
+          <h2 className="font-serif text-xl text-ink-900 dark:text-ink-100 group-hover:text-accent transition">
+            複習班講義
+          </h2>
+          <p className="text-sm text-ink-500 dark:text-ink-400 mt-2 leading-relaxed">
+            線上閱讀講義 PDF,可螢光標記、頁面筆記 (支援 @114-001 引用題目)、選取文字 AI 解釋與截圖。
           </p>
         </Link>
       </section>

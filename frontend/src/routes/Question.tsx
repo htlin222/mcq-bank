@@ -10,6 +10,7 @@ import {
 	ExternalLink,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
+import { buildOpenEvidenceUrl } from "../lib/openevidence";
 import { useQuestion } from "../hooks/useQuestion";
 import { useLock } from "../hooks/useLock";
 import { useMe } from "../hooks/useMe";
@@ -661,29 +662,6 @@ export function Question() {
 			</div>{/* /two-column grid */}
 		</div>
 	);
-}
-
-// Build a blind-solving query for OpenEvidence: stem + options only, no answer.
-// We send a labelled multi-option prompt so OpenEvidence can frame its reply as
-// a choice analysis, not just a tangent. Truncate generously to avoid hitting
-// URL length limits on either OpenEvidence or the user's browser.
-function buildOpenEvidenceUrl(data: {
-	stem: string;
-	options: Record<string, string>;
-}): string {
-	const optionLines = ["A", "B", "C", "D", "E"]
-		.map((L) => (data.options[L] ? `(${L}) ${data.options[L]}` : null))
-		.filter(Boolean)
-		.join("\n");
-	const query =
-		`${data.stem}\n\nOptions:\n${optionLines}\n\nWhich option is best supported by current evidence, and why?`.slice(
-			0,
-			1800,
-		);
-	const url = new URL("https://www.openevidence.com/ask");
-	url.searchParams.set("query", query);
-	url.searchParams.set("configName", "prod");
-	return url.toString();
 }
 
 function AiActionButton({

@@ -11,6 +11,7 @@ import { notesRoutes } from './routes/notes';
 import { commentsRoutes } from './routes/comments';
 import { uploadRoutes } from './routes/upload';
 import { imagesRoutes } from './routes/images';
+import { pdfRoutes } from './routes/pdf';
 import { examRoutes } from './routes/exam';
 import { reviewRoutes } from './routes/review';
 import { aiRoutes } from './routes/ai';
@@ -22,6 +23,7 @@ import { bookmarksRoutes } from './routes/bookmarks';
 import { feedbackRoutes } from './routes/feedback';
 import { challengesRoutes, questionChallengeRoutes } from './routes/challenges';
 import { mcqRoutes } from './routes/mcq';
+import { lectureRoutes } from './routes/lectures';
 
 const app = new Hono<AppContext>();
 
@@ -49,6 +51,7 @@ app.route('/api/mcq', mcqRoutes);
 // All other routes require Access auth
 app.use('/api/*', authMiddleware);
 app.use('/img/*', authMiddleware);
+app.use('/pdf/*', authMiddleware);
 
 app.route('/api/me', meRoutes);
 app.route('/api/users', usersRoutes);
@@ -60,6 +63,7 @@ app.route('/api/questions', questionChallengeRoutes); // /:id/challenges*
 app.route('/api/challenges', challengesRoutes);  // /:cid/votes etc.
 app.route('/api/upload', uploadRoutes);
 app.route('/img', imagesRoutes);
+app.route('/pdf', pdfRoutes);
 app.route('/api/exam', examRoutes);
 app.route('/api/review', reviewRoutes);
 app.route('/api/ai', aiRoutes);
@@ -68,6 +72,7 @@ app.route('/api/search', searchRoutes);
 app.route('/api/folders', foldersRoutes);
 app.route('/api/bookmarks', bookmarksRoutes);
 app.route('/api/feedback', feedbackRoutes);
+app.route('/api/lectures', lectureRoutes);
 
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 
