@@ -404,6 +404,11 @@ function ViewerInner({
 				renderPage={({ pageIndex, width, height }) => (
 					<div
 						key={pageIndex}
+						// The pdfium-rendered page is an <img>, which is natively
+						// draggable — a mouse-drag would start HTML5 image drag-and-drop
+						// (a ghost of the whole slide) and preempt EmbedPDF text
+						// selection. Cancel dragstart so drag = select text, not drag image.
+						onDragStart={(e) => e.preventDefault()}
 						ref={(el) => {
 							// Surface the visible page's wrapper (canvas + annotation
 							// overlay) so the snapshot tool can rasterise both. We only
