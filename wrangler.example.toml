@@ -12,14 +12,19 @@ compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
 
 # Same-origin routes — Pages serves the SPA at the apex, Worker handles
-# /api/* and /img/* on the same host so the browser's Access cookie flows
-# naturally and there's no CORS overhead.
+# /api/*, /img/* and /pdf/* on the same host so the browser's Access cookie
+# flows naturally and there's no CORS overhead.
 [[routes]]
 pattern = "qa.example.com/api/*"
 zone_name = "example.com"
 
 [[routes]]
 pattern = "qa.example.com/img/*"
+zone_name = "example.com"
+
+# Lecture PDF proxy (複習班講義) — streams from R2 with Range support.
+[[routes]]
+pattern = "qa.example.com/pdf/*"
 zone_name = "example.com"
 
 # database_id is filled in by scripts/deploy.sh after `wrangler d1 create`.
