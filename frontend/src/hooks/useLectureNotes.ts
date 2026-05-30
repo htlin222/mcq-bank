@@ -9,6 +9,7 @@ import {
 	createNote as apiCreateNote,
 	updateNote as apiUpdateNote,
 	deleteNote as apiDeleteNote,
+	putPageNote as apiPutPageNote,
 	type LectureNote,
 } from "../lib/lectureApi";
 
@@ -25,6 +26,10 @@ export interface UseLectureNotes {
 		patch: { content_json?: any; page?: number | null },
 	): Promise<void>;
 	removeNote(id: string): Promise<void>;
+	/** The single note for a page (newest wins if old data has duplicates). */
+	noteForPage(page: number): LectureNote | undefined;
+	/** Optimistically upsert the one note for `page`. */
+	savePageNote(page: number, content_json: any): Promise<void>;
 }
 
 function byNewest(a: LectureNote, b: LectureNote) {
@@ -122,5 +127,66 @@ export function useLectureNotes(slug: string): UseLectureNotes {
 		[slug, notes],
 	);
 
-	return { notes, loading, error, createNote, updateNote, removeNote };
+	const noteForPage = useCallback(
+		(page: number) => {
+			// Newest wins if legacy data left more than one row for a page.
+			let found: LectureNote | undefined;
+			for (const n of notes) {
+				if (n.page !== page) continue;
+				if (!found || n.created_at > found.created_at) found = n;
+			}
+			return found;
+		},
+		[notes],
+	);
+
+	const savePageNote = useCallback(
+		async (page: number, content_json: any) => {
+			const before = notes;
+			const existing = before.find((n) => n.page === page);
+			const now = Date.now();
+			// Optimistic: dedupe to at most one row per page, update or insert.
+			setNotes((prev) => {
+				const others = prev.filter((n) => n.page !== page);
+				if (existing) {
+					return [
+						{ ...existing, content_json, updated_at: now },
+						...others,
+					].sort(byNewest);
+				}
+				const tempId = `tmp-${now}-${Math.random().toString(36).slice(2)}`;
+				const optimistic: LectureNote = {
+					id: tempId,
+					slug,
+					page,
+					content_json,
+					created_at: now,
+					updated_at: now,
+				};
+				return [optimistic, ...others].sort(byNewest);
+			});
+			try {
+				const saved = await apiPutPageNote(slug, page, content_json);
+				// Replace whatever we have for this page with the server row.
+				setNotes((prev) =>
+					[saved, ...prev.filter((n) => n.page !== page)].sort(byNewest),
+				);
+			} catch (e) {
+				setNotes(before);
+				setError(e instanceof Error ? e.message : String(e));
+			}
+		},
+		[slug, notes],
+	);
+
+	return {
+		notes,
+		loading,
+		error,
+		createNote,
+		updateNote,
+		removeNote,
+		noteForPage,
+		savePageNote,
+	};
 }

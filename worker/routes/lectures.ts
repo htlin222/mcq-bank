@@ -186,6 +186,61 @@ lectureRoutes.post('/:slug/notes', async (c) => {
   });
 });
 
+// Upsert exactly one note for (user, slug, page). No DB unique constraint
+// exists, so this is an app-level read-then-write.
+lectureRoutes.put('/:slug/notes/by-page/:page', async (c) => {
+  const slug = c.req.param('slug');
+  const page = Number(c.req.param('page'));
+  const email = c.var.email;
+  const { content_json } = await c.req.json<{ content_json: any }>();
+
+  const now = Date.now();
+  const content = JSON.stringify(content_json);
+
+  const existing = await c.env.DB
+    .prepare(
+      'SELECT id, created_at FROM lecture_notes WHERE user_email = ? AND slug = ? AND page = ?'
+    )
+    .bind(email, slug, page)
+    .first<{ id: string; created_at: number }>();
+
+  if (existing) {
+    await c.env.DB
+      .prepare('UPDATE lecture_notes SET content_json = ?, updated_at = ? WHERE id = ?')
+      .bind(content, now, existing.id)
+      .run();
+    return c.json({
+      id: existing.id,
+      user_email: email,
+      slug,
+      page,
+      content_json,
+      created_at: existing.created_at,
+      updated_at: now,
+    });
+  }
+
+  const id = crypto.randomUUID();
+  await c.env.DB
+    .prepare(
+      `INSERT INTO lecture_notes
+         (id, user_email, slug, page, content_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(id, email, slug, page, content, now, now)
+    .run();
+
+  return c.json({
+    id,
+    user_email: email,
+    slug,
+    page,
+    content_json,
+    created_at: now,
+    updated_at: now,
+  });
+});
+
 // Update a note's content (and page if provided). Ownership-checked.
 lectureRoutes.patch('/:slug/notes/:id', async (c) => {
   const id = c.req.param('id');

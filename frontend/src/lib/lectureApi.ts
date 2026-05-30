@@ -105,6 +105,17 @@ export function deleteNote(slug: string, id: string): Promise<{ ok: true }> {
 	return api.del<{ ok: true }>(`/api/lectures/${slug}/notes/${id}`);
 }
 
+// Upsert the single note for a given page (1 note per user/slug/page).
+export function putPageNote(
+	slug: string,
+	page: number,
+	content_json: any,
+): Promise<LectureNote> {
+	return api.put<LectureNote>(`/api/lectures/${slug}/notes/by-page/${page}`, {
+		content_json,
+	});
+}
+
 // ── AI ───────────────────────────────────────────────────────────────
 
 // Explain a free-text slide selection via Workers AI.
