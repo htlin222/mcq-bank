@@ -246,6 +246,20 @@ export default function LectureReader() {
 		[dismissPopup],
 	);
 
+	const copyText = useCallback(
+		async (text: string) => {
+			try {
+				await navigator.clipboard.writeText(text);
+				setToast({ kind: "ok", msg: "已複製" });
+			} catch {
+				setToast({ kind: "err", msg: "複製失敗" });
+			} finally {
+				dismissPopup();
+			}
+		},
+		[dismissPopup],
+	);
+
 	// ── Panel actions ──
 	const jumpToAnnotation = useCallback((page: number) => {
 		viewerRef.current?.scrollToPage(page);
@@ -361,6 +375,7 @@ export default function LectureReader() {
 					currentPage={currentPage}
 					onHighlight={doHighlight}
 					onCopyToNote={copyToNote}
+					onCopyText={copyText}
 					onDismiss={dismissPopup}
 				/>
 			)}

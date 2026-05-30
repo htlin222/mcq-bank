@@ -11,6 +11,7 @@ import {
 	Sparkles,
 	ExternalLink,
 	NotebookPen,
+	Copy,
 	X as XIcon,
 } from "lucide-react";
 import type { ViewerSelection } from "./EmbedPDFViewer";
@@ -25,6 +26,8 @@ export interface SelectionPopupProps {
 	currentPage: number;
 	onHighlight(): void;
 	onCopyToNote(text: string, page: number): void;
+	/** Yank the raw selected text to the clipboard. */
+	onCopyText(text: string): void;
 	onDismiss(): void;
 }
 
@@ -36,6 +39,7 @@ export function SelectionPopup({
 	currentPage,
 	onHighlight,
 	onCopyToNote,
+	onCopyText,
 	onDismiss,
 }: SelectionPopupProps) {
 	const ref = useRef<HTMLDivElement>(null);
@@ -119,6 +123,11 @@ export function SelectionPopup({
 			</div>
 
 			<div className="flex flex-wrap gap-1 p-1.5">
+				<Action
+					icon={<Copy size={14} />}
+					label="複製"
+					onClick={() => onCopyText(selection.text)}
+				/>
 				<Action icon={<Highlighter size={14} />} label="螢光標記" onClick={onHighlight} />
 				<Action
 					icon={<Sparkles size={14} />}

@@ -442,7 +442,13 @@ function ViewerInner({
 						>
 							<RenderLayer documentId={activeDocumentId} pageIndex={pageIndex} />
 							<TilingLayer documentId={activeDocumentId} pageIndex={pageIndex} />
-							<SelectionLayer documentId={activeDocumentId} pageIndex={pageIndex} />
+							<SelectionLayer
+							documentId={activeDocumentId}
+							pageIndex={pageIndex}
+							// Default is an opaque rgba(33,150,243); soften it so selected
+							// text stays readable underneath.
+							textStyle={{ background: "rgba(33,150,243,0.28)" }}
+						/>
 							<AnnotationLayer documentId={activeDocumentId} pageIndex={pageIndex} />
 						</PagePointerProvider>
 					</div>
