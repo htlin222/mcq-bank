@@ -25,6 +25,15 @@ import { blobToClipboard } from "../lib/snapshot";
 
 type Toast = { kind: "ok" | "err"; msg: string } | null;
 
+const PANEL_MIN = 280;
+const PANEL_MAX = 640;
+const PANEL_DEFAULT = 384;
+const PANEL_WIDTH_KEY = "lecture-panel-width";
+
+function clampPanelWidth(w: number) {
+	return Math.min(PANEL_MAX, Math.max(PANEL_MIN, w));
+}
+
 export default function LectureReader() {
 	const { slug = "" } = useParams<{ slug: string }>();
 	const [doc, setDoc] = useState<LectureDoc | null>(null);
@@ -38,6 +47,15 @@ export default function LectureReader() {
 	const [currentPage, setCurrentPage] = useState(0);
 	const [highlightActive, setHighlightActive] = useState(false);
 	const [panelOpen, setPanelOpen] = useState(true);
+	// Desktop panel width (px). Persisted as a UI layout pref (not app state).
+	const [panelWidth, setPanelWidth] = useState<number>(() => {
+		const raw =
+			typeof localStorage !== "undefined"
+				? localStorage.getItem(PANEL_WIDTH_KEY)
+				: null;
+		const n = raw ? Number(raw) : NaN;
+		return Number.isFinite(n) ? clampPanelWidth(n) : PANEL_DEFAULT;
+	});
 	const [selection, setSelection] = useState<ViewerSelection | null>(null);
 	const [popupAnchor, setPopupAnchor] = useState<{ x: number; y: number } | null>(
 		null,
@@ -73,6 +91,44 @@ export default function LectureReader() {
 		const t = setTimeout(() => setToast(null), 2400);
 		return () => clearTimeout(t);
 	}, [toast]);
+
+	// Persist the panel width pref.
+	useEffect(() => {
+		try {
+			localStorage.setItem(PANEL_WIDTH_KEY, String(panelWidth));
+		} catch {
+			/* ignore quota/availability errors */
+		}
+	}, [panelWidth]);
+
+	// Drag-to-resize the desktop panel. Dragging the handle left widens it.
+	const onResizeStart = useCallback(
+		(e: React.PointerEvent<HTMLDivElement>) => {
+			e.preventDefault();
+			const startX = e.clientX;
+			const startWidth = panelWidth;
+			const handle = e.currentTarget;
+			handle.setPointerCapture(e.pointerId);
+			document.body.style.userSelect = "none";
+			document.body.style.cursor = "col-resize";
+
+			const onMove = (ev: PointerEvent) => {
+				setPanelWidth(clampPanelWidth(startWidth + (startX - ev.clientX)));
+			};
+			const onUp = (ev: PointerEvent) => {
+				handle.releasePointerCapture?.(ev.pointerId);
+				handle.removeEventListener("pointermove", onMove);
+				handle.removeEventListener("pointerup", onUp);
+				handle.removeEventListener("pointercancel", onUp);
+				document.body.style.userSelect = "";
+				document.body.style.cursor = "";
+			};
+			handle.addEventListener("pointermove", onMove);
+			handle.addEventListener("pointerup", onUp);
+			handle.addEventListener("pointercancel", onUp);
+		},
+		[panelWidth],
+	);
 
 	// Import persisted highlights once, after both the viewer is mounted and the
 	// rows have finished loading.
@@ -268,16 +324,27 @@ export default function LectureReader() {
 					)}
 				</div>
 
+				{/* Drag handle (desktop only, when panel open). Sits between the
+				    viewer and the panel; dragging left widens the panel. */}
+				{panelOpen && (
+					<div
+						onPointerDown={onResizeStart}
+						role="separator"
+						aria-orientation="vertical"
+						aria-label="調整面板寬度"
+						className="hidden w-1.5 shrink-0 cursor-col-resize bg-ink-200 transition-colors hover:bg-accent dark:bg-ink-700 md:block"
+					/>
+				)}
+
 				<LecturePanel
 					open={panelOpen}
 					onClose={() => setPanelOpen(false)}
+					width={panelWidth}
 					currentPage={currentPage}
 					pageCount={doc?.page_count ?? 0}
-					notes={notes.notes}
 					notesLoading={notes.loading}
-					onCreateNote={notes.createNote}
-					onUpdateNote={notes.updateNote}
-					onRemoveNote={notes.removeNote}
+					noteForPage={notes.noteForPage}
+					onSavePageNote={notes.savePageNote}
 					annotations={annos.annotations}
 					onJumpToAnnotation={jumpToAnnotation}
 					onDeleteAnnotation={deleteAnnotationRow}

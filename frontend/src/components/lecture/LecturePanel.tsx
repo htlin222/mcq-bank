@@ -3,8 +3,8 @@
 //   標註  — highlight list; click a row to jump, delete to remove
 //
 // Notes/annotations are per-user, so every row here is editable/deletable.
-import { useEffect, useMemo, useState } from "react";
-import { Trash2, Pencil, MapPin, X as XIcon, Plus } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Trash2, X as XIcon } from "lucide-react";
 import { RichEditor } from "../RichEditor";
 import type { LectureNote, LectureAnnotation } from "../../lib/lectureApi";
 
@@ -24,20 +24,22 @@ function paragraphsFromText(text: string) {
 export interface LecturePanelProps {
 	open: boolean;
 	onClose(): void;
+	/** Desktop panel width in px (applied at md+). Ignored on mobile sheet. */
+	width: number;
 	currentPage: number; // 0-based
 	pageCount: number;
 
-	notes: LectureNote[];
 	notesLoading: boolean;
-	onCreateNote(input: { page: number | null; content_json: any }): Promise<unknown>;
-	onUpdateNote(id: string, patch: { content_json?: any }): Promise<void> | void;
-	onRemoveNote(id: string): Promise<void> | void;
+	/** The single note for a page, if any. */
+	noteForPage(page: number): LectureNote | undefined;
+	/** Upsert the one note for `page`. */
+	onSavePageNote(page: number, content_json: any): void | Promise<void>;
 
 	annotations: LectureAnnotation[];
 	onJumpToAnnotation(page: number): void;
 	onDeleteAnnotation(id: string, page: number): void;
 
-	/** A 複製到筆記 request from the selection popup; opens a prefilled new note. */
+	/** A 複製到筆記 request from the selection popup; appended to the current page note. */
 	pendingNote: { text: string; page: number } | null;
 	onConsumePending(): void;
 }
@@ -56,13 +58,16 @@ export function LecturePanel(props: LecturePanelProps) {
 				/>
 			)}
 			<aside
+				style={{ width: props.open ? props.width : 0 }}
 				className={
 					"z-30 flex flex-col border-ink-200 bg-white dark:border-ink-700 dark:bg-ink-800 " +
-					// Desktop: in-flow right column that collapses to width 0 when closed.
-					"md:relative md:h-full md:border-l md:transition-[width] " +
-					(props.open ? "md:w-80 lg:w-96" : "md:w-0 md:overflow-hidden md:border-l-0") +
-					// Mobile: bottom sheet.
-					" fixed inset-x-0 bottom-0 max-h-[70vh] rounded-t-2xl border-t shadow-paper transition-transform md:inset-auto md:max-h-none md:rounded-none md:border-t-0 md:shadow-none " +
+					// Desktop: in-flow right column; width is driven by inline style so
+					// drag-resize stays smooth (no width transition). On mobile the inline
+					// width is neutralised (!w-auto) so the bottom sheet stays full-width.
+					"max-md:!w-auto md:relative md:h-full md:border-l " +
+					(props.open ? "" : "md:overflow-hidden md:border-l-0") +
+					// Mobile: bottom sheet (inline width is overridden by inset-x-0 below).
+					" fixed inset-x-0 bottom-0 max-h-[70vh] rounded-t-2xl border-t shadow-paper transition-transform md:inset-auto md:bottom-auto md:max-h-none md:rounded-none md:border-t-0 md:shadow-none " +
 					(props.open ? "translate-y-0" : "translate-y-full md:translate-y-0")
 				}
 			>
@@ -71,9 +76,6 @@ export function LecturePanel(props: LecturePanelProps) {
 					<div className="flex">
 						<TabBtn active={tab === "notes"} onClick={() => setTab("notes")}>
 							筆記
-							{props.notes.length > 0 && (
-								<Count n={props.notes.length} />
-							)}
 						</TabBtn>
 						<TabBtn
 							active={tab === "annotations"}
@@ -109,200 +111,139 @@ export function LecturePanel(props: LecturePanelProps) {
 
 // ── 筆記 ────────────────────────────────────────────────────────────────
 
+// Exactly one note per page, always editable inline. Switching pages remounts
+// the editor (key={currentPage}) so its content resets cleanly to the new
+// page's note without tripping RichEditor's focused-sync edge cases.
 function NotesTab(props: LecturePanelProps) {
-	const { notes, currentPage } = props;
-	const [filter, setFilter] = useState<"all" | "page">("all");
-	// New-note composer state.
-	const [composing, setComposing] = useState(false);
-	const [draft, setDraft] = useState<any>(EMPTY_DOC);
-	const [draftPage, setDraftPage] = useState<number | null>(currentPage);
-	const [saving, setSaving] = useState(false);
-	// Edit-existing state.
-	const [editId, setEditId] = useState<string | null>(null);
-	const [editDraft, setEditDraft] = useState<any>(EMPTY_DOC);
+	const { currentPage } = props;
+	return (
+		<div className="p-3">
+			<PageNoteEditor
+				key={currentPage}
+				currentPage={currentPage}
+				loaded={props.noteForPage(currentPage)}
+				notesLoading={props.notesLoading}
+				onSave={props.onSavePageNote}
+				pendingNote={props.pendingNote}
+				onConsumePending={props.onConsumePending}
+			/>
+		</div>
+	);
+}
 
-	// Handle a 複製到筆記 request: open the composer prefilled.
+type SaveStatus = "idle" | "saving" | "saved";
+
+function PageNoteEditor({
+	currentPage,
+	loaded,
+	notesLoading,
+	onSave,
+	pendingNote,
+	onConsumePending,
+}: {
+	currentPage: number;
+	loaded: LectureNote | undefined;
+	notesLoading: boolean;
+	onSave(page: number, content_json: any): void | Promise<void>;
+	pendingNote: { text: string; page: number } | null;
+	onConsumePending(): void;
+}) {
+	const loadedDoc = loaded?.content_json ?? EMPTY_DOC;
+	const [draft, setDraft] = useState<any>(loadedDoc);
+	const [status, setStatus] = useState<SaveStatus>("idle");
+	// The last doc we know is persisted (server or loaded), to skip no-op saves.
+	const savedRef = useRef<string>(JSON.stringify(loadedDoc));
+	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const savedFadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const persist = useCallback(
+		async (doc: any) => {
+			const serialized = JSON.stringify(doc);
+			if (serialized === savedRef.current) return; // no-op / untouched
+			savedRef.current = serialized;
+			setStatus("saving");
+			try {
+				await onSave(currentPage, doc);
+				setStatus("saved");
+				if (savedFadeRef.current) clearTimeout(savedFadeRef.current);
+				savedFadeRef.current = setTimeout(() => setStatus("idle"), 1500);
+			} catch {
+				// hook surfaces the error; allow a retry by clearing the cached state
+				savedRef.current = "";
+				setStatus("idle");
+			}
+		},
+		[currentPage, onSave],
+	);
+
+	// Debounced autosave on edits.
+	const onChange = useCallback((doc: any) => {
+		setDraft(doc);
+		if (debounceRef.current) clearTimeout(debounceRef.current);
+		debounceRef.current = setTimeout(() => {
+			void persist(doc);
+		}, 800);
+	}, [persist]);
+
+	// Save immediately on blur (flush any pending debounce).
+	const onBlur = useCallback(() => {
+		if (debounceRef.current) clearTimeout(debounceRef.current);
+		void persist(draft);
+	}, [draft, persist]);
+
+	// 複製到筆記: append the copied text to the current page's note, then save.
+	// The popup copies from the page the reader is on, so we always append to
+	// the current draft regardless of pendingNote.page.
 	useEffect(() => {
-		if (!props.pendingNote) return;
-		setEditId(null);
-		setDraft(paragraphsFromText(props.pendingNote.text));
-		setDraftPage(props.pendingNote.page);
-		setComposing(true);
-		props.onConsumePending();
-	}, [props.pendingNote]);
+		if (!pendingNote) return;
+		const appended = paragraphsFromText(pendingNote.text).content;
+		const base = Array.isArray(draft?.content) ? draft.content : [];
+		const nextDoc = { type: "doc", content: [...base, ...appended] };
+		setDraft(nextDoc);
+		void persist(nextDoc);
+		onConsumePending();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [pendingNote]);
 
-	const filtered = useMemo(() => {
-		if (filter === "all") return notes;
-		return notes.filter((n) => n.page === currentPage);
-	}, [notes, filter, currentPage]);
+	// Cleanup timers on unmount.
+	useEffect(() => {
+		return () => {
+			if (debounceRef.current) clearTimeout(debounceRef.current);
+			if (savedFadeRef.current) clearTimeout(savedFadeRef.current);
+		};
+	}, []);
 
-	async function saveNew() {
-		if (saving) return;
-		setSaving(true);
-		try {
-			await props.onCreateNote({ page: draftPage, content_json: draft });
-			setComposing(false);
-			setDraft(EMPTY_DOC);
-		} finally {
-			setSaving(false);
-		}
-	}
-
-	async function saveEdit(id: string) {
-		await props.onUpdateNote(id, { content_json: editDraft });
-		setEditId(null);
+	if (notesLoading && !loaded) {
+		return (
+			<p className="py-6 text-center text-sm text-ink-400 dark:text-ink-500">
+				載入中…
+			</p>
+		);
 	}
 
 	return (
-		<div className="p-3">
-			{/* Filter + add */}
-			<div className="mb-3 flex items-center justify-between gap-2">
-				<div className="inline-flex rounded border border-ink-200 text-xs dark:border-ink-700">
-					<FilterBtn active={filter === "all"} onClick={() => setFilter("all")}>
-						全部
-					</FilterBtn>
-					<FilterBtn active={filter === "page"} onClick={() => setFilter("page")}>
-						本頁 p.{currentPage + 1}
-					</FilterBtn>
-				</div>
-				{!composing && (
-					<button
-						type="button"
-						onClick={() => {
-							setEditId(null);
-							setDraft(EMPTY_DOC);
-							setDraftPage(currentPage);
-							setComposing(true);
-						}}
-						className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-accent/10"
-					>
-						<Plus size={13} /> 新增筆記
-					</button>
-				)}
+		<div>
+			<div className="mb-2 flex items-center justify-between">
+				<span className="inline-flex items-center gap-1 rounded bg-ink-100 px-1.5 py-0.5 text-[11px] text-ink-600 dark:bg-ink-700 dark:text-ink-300">
+					📄 p.{currentPage + 1} 筆記
+				</span>
+				<span
+					className={
+						"text-[11px] text-ink-400 transition-opacity duration-500 dark:text-ink-500 " +
+						(status === "idle" ? "opacity-0" : "opacity-100")
+					}
+				>
+					{status === "saving" ? "儲存中…" : status === "saved" ? "已儲存" : ""}
+				</span>
 			</div>
-
-			{/* Composer */}
-			{composing && (
-				<div className="mb-4 rounded-lg border-2 border-accent/40 bg-white p-2 dark:bg-ink-800">
-					<div className="mb-2 flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
-						<label className="inline-flex items-center gap-1">
-							<MapPin size={12} />
-							<select
-								value={draftPage === null ? "all" : String(draftPage)}
-								onChange={(e) =>
-									setDraftPage(
-										e.target.value === "all" ? null : Number(e.target.value),
-									)
-								}
-								className="rounded border border-ink-200 bg-white px-1 py-0.5 dark:border-ink-700 dark:bg-ink-900"
-							>
-								<option value={String(currentPage)}>本頁 p.{currentPage + 1}</option>
-								<option value="all">整份講義</option>
-							</select>
-						</label>
-					</div>
-					<RichEditor
-						content={draft}
-						onChange={setDraft}
-						placeholder="可輸入 @114-001 連結到題目"
-						autofocus
-					/>
-					<div className="mt-2 flex justify-end gap-2">
-						<button
-							type="button"
-							onClick={() => setComposing(false)}
-							disabled={saving}
-							className="px-3 py-1 text-sm text-ink-600 hover:text-ink-900 dark:text-ink-300 dark:hover:text-ink-100"
-						>
-							取消
-						</button>
-						<button
-							type="button"
-							onClick={saveNew}
-							disabled={saving}
-							className="rounded bg-accent px-4 py-1 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-40"
-						>
-							{saving ? "儲存中…" : "儲存"}
-						</button>
-					</div>
-				</div>
-			)}
-
-			{/* List */}
-			{props.notesLoading ? (
-				<p className="py-6 text-center text-sm text-ink-400 dark:text-ink-500">
-					載入筆記中…
-				</p>
-			) : filtered.length === 0 ? (
-				<p className="py-6 text-center text-sm text-ink-400 dark:text-ink-500">
-					{filter === "page" ? "本頁尚無筆記。" : "尚無筆記。"}
-				</p>
-			) : (
-				<ul className="space-y-3">
-					{filtered.map((n) => (
-						<li
-							key={n.id}
-							className="rounded-lg border border-ink-200 bg-white p-3 dark:border-ink-700 dark:bg-ink-800"
-						>
-							<div className="mb-1.5 flex items-center justify-between">
-								<span className="inline-flex items-center gap-1 rounded bg-ink-100 px-1.5 py-0.5 text-[11px] text-ink-600 dark:bg-ink-700 dark:text-ink-300">
-									{n.page === null ? "整份" : `📄 p.${n.page + 1}`}
-								</span>
-								{editId !== n.id && (
-									<div className="flex items-center gap-1">
-										<IconAction
-											label="編輯"
-											onClick={() => {
-												setComposing(false);
-												setEditId(n.id);
-												setEditDraft(n.content_json || EMPTY_DOC);
-											}}
-										>
-											<Pencil size={13} />
-										</IconAction>
-										<IconAction
-											label="刪除"
-											onClick={() => props.onRemoveNote(n.id)}
-										>
-											<Trash2 size={13} />
-										</IconAction>
-									</div>
-								)}
-							</div>
-							{editId === n.id ? (
-								<>
-									<RichEditor
-										content={editDraft}
-										onChange={setEditDraft}
-										placeholder="可輸入 @114-001 連結到題目"
-										autofocus
-									/>
-									<div className="mt-2 flex justify-end gap-2">
-										<button
-											type="button"
-											onClick={() => setEditId(null)}
-											className="px-3 py-1 text-sm text-ink-600 hover:text-ink-900 dark:text-ink-300 dark:hover:text-ink-100"
-										>
-											取消
-										</button>
-										<button
-											type="button"
-											onClick={() => saveEdit(n.id)}
-											className="rounded bg-accent px-4 py-1 text-sm font-medium text-white hover:bg-accent-dark"
-										>
-											儲存
-										</button>
-									</div>
-								</>
-							) : (
-								<div className="lecture-note-readonly text-sm">
-									<RichEditor content={n.content_json || EMPTY_DOC} editable={false} />
-								</div>
-							)}
-						</li>
-					))}
-				</ul>
-			)}
+			<div onBlur={onBlur}>
+				<RichEditor
+					content={draft}
+					onChange={onChange}
+					placeholder="直接輸入本頁筆記，可用 @114-001 連結題目"
+					autofocus={false}
+				/>
+			</div>
 		</div>
 	);
 }
@@ -402,31 +343,6 @@ function Count({ n }: { n: number }) {
 		<span className="ml-1.5 rounded-full bg-ink-100 px-1.5 text-[11px] text-ink-500 dark:bg-ink-700 dark:text-ink-400">
 			{n}
 		</span>
-	);
-}
-
-function FilterBtn({
-	active,
-	onClick,
-	children,
-}: {
-	active: boolean;
-	onClick(): void;
-	children: React.ReactNode;
-}) {
-	return (
-		<button
-			type="button"
-			onClick={onClick}
-			className={
-				"px-2 py-1 transition first:rounded-l last:rounded-r " +
-				(active
-					? "bg-accent/15 text-accent"
-					: "text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-700")
-			}
-		>
-			{children}
-		</button>
 	);
 }
 
