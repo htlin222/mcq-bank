@@ -236,6 +236,7 @@ export function Search() {
               <li key={h.id}>
                 <Link
                   to={`/q/${h.id}`}
+                  state={{ fromSearch: `?${sp.toString()}` }}
                   className="block bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
                 >
                   <div className="flex items-center gap-2 text-xs mb-1.5">

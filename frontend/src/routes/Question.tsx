@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import {
 	ChevronLeft,
 	ChevronRight,
 	Pencil,
 	LinkIcon,
 	Sparkles,
+	Search as SearchIcon,
 	X as XIcon,
 	ExternalLink,
 } from "lucide-react";
@@ -116,6 +117,14 @@ export function Question() {
 	}, [data?.id]);
 
 	const navigate = useNavigate();
+	const location = useLocation();
+	// When the user reached this page from /search, the Search route stashes the
+	// original query string in history state so we can offer a "回搜尋結果" link
+	// alongside the year link. Survives refresh (history.state) and prev/next
+	// navigation (we re-pass state below), but a fresh deep-link won't have it —
+	// which is correct: there's no search to go back to.
+	const fromSearch = (location.state as { fromSearch?: string } | null)
+		?.fromSearch;
 
 	// Prev/next in same year
 	const [neighbors, setNeighbors] = useState<{ prev?: string; next?: string }>(
@@ -283,17 +292,30 @@ export function Question() {
 
 	return (
 		<div className="max-w-3xl md:max-w-4xl lg:max-w-6xl xl:max-w-[88rem] 2xl:max-w-[104rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-32">
-			<header className="flex items-center justify-between mb-6 text-sm">
-				<Link
-					to={`/year/${data.year}`}
-					className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
-				>
-					<ChevronLeft size={16} /> 民國 {data.year} 年
-				</Link>
+			<header className="flex items-center justify-between mb-6 text-sm gap-3">
+				<div className="flex items-center gap-3 flex-wrap">
+					{fromSearch && (
+						<Link
+							to={`/search${fromSearch}`}
+							className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
+						>
+							<ChevronLeft size={16} />
+							<SearchIcon size={13} /> 搜尋結果
+						</Link>
+					)}
+					<Link
+						to={`/year/${data.year}`}
+						className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
+					>
+						<ChevronLeft size={16} /> 民國 {data.year} 年
+					</Link>
+				</div>
 				<div className="flex gap-3">
 					{neighbors.prev && (
 						<button
-							onClick={() => navigate(`/q/${neighbors.prev}`)}
+							onClick={() =>
+								navigate(`/q/${neighbors.prev}`, { state: location.state })
+							}
 							className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 						>
 							<ChevronLeft size={16} /> 上一題
@@ -301,7 +323,9 @@ export function Question() {
 					)}
 					{neighbors.next && (
 						<button
-							onClick={() => navigate(`/q/${neighbors.next}`)}
+							onClick={() =>
+								navigate(`/q/${neighbors.next}`, { state: location.state })
+							}
 							className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 						>
 							下一題 <ChevronRight size={16} />
