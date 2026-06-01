@@ -7,6 +7,7 @@ import {
 	LinkIcon,
 	Sparkles,
 	Search as SearchIcon,
+	Eye,
 	X as XIcon,
 	ExternalLink,
 } from "lucide-react";
@@ -53,6 +54,10 @@ export function Question() {
 	const [draft, setDraft] = useState<any>(null);
 	const [saving, setSaving] = useState(false);
 	const [saveError, setSaveError] = useState<string | null>(null);
+	// 詳解 spoiler guard — start blurred on every question so users don't see
+	// the answer before attempting. CSS-only blur on the already-rendered
+	// ReadOnlyContent, so no extra render pass and no content duplication.
+	const [revealedExp, setRevealedExp] = useState(false);
 
 	// Note tab — has its own edit lifecycle (no lock, no version)
 	const [noteEditing, setNoteEditing] = useState(false);
@@ -96,6 +101,13 @@ export function Question() {
 			setAiError(null);
 		}
 	}, [data?.explanation?.version, aiOutput]);
+
+	// Re-blur the 詳解 whenever the user navigates to a different question
+	// (prev/next, similar, back-refs, deep link). Same component instance, so
+	// useState alone wouldn't reset.
+	useEffect(() => {
+		setRevealedExp(false);
+	}, [data?.id]);
 
 	// 相似題目 — lazy-loaded after the main question payload arrives.
 	// Kept off the hot /api/questions/:id path so navigation stays snappy.
@@ -489,7 +501,36 @@ export function Question() {
 								/>
 							)}
 							<article className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
-								<ReadOnlyContent content={explanationJson} />
+								<div
+									className={
+										"relative " + (revealedExp ? "" : "min-h-[6rem]")
+									}
+								>
+									<div
+										className={
+											"transition-[filter] duration-200 " +
+											(revealedExp
+												? ""
+												: "blur-md select-none pointer-events-none")
+										}
+										aria-hidden={!revealedExp}
+									>
+										<ReadOnlyContent content={explanationJson} />
+									</div>
+									{!revealedExp && (
+										<button
+											type="button"
+											onClick={() => setRevealedExp(true)}
+											className="absolute inset-0 flex items-start justify-center pt-10 sm:pt-14 group"
+											aria-label="顯示詳解"
+											title="點擊顯示詳解(避免一進來就看到答案)"
+										>
+											<span className="bg-accent group-hover:bg-accent-dark text-white px-4 py-2 rounded-full text-sm shadow-paper transition inline-flex items-center gap-1.5">
+												<Eye size={14} /> 點擊顯示詳解
+											</span>
+										</button>
+									)}
+								</div>
 								<footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
 									最近更新:{data.explanation?.updated_by ?? "—"}
 									{data.explanation?.updated_at && (
