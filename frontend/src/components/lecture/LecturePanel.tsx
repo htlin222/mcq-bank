@@ -116,12 +116,18 @@ export function LecturePanel(props: LecturePanelProps) {
 // page's note without tripping RichEditor's focused-sync edge cases.
 function NotesTab(props: LecturePanelProps) {
 	const { currentPage } = props;
+	// currentPage is the viewer's 0-based page index. lecture_notes /
+	// lecture_default_notes / lecture_pages are all stored as 1-based PDF page
+	// numbers (per the seed-script filenames page_001_note.md, page_002_note.md…
+	// and pdfjs's 1-based page numbering). Translate at the API boundary so the
+	// note for PDF page 1 lines up with currentPage = 0.
+	const pdfPage = currentPage + 1;
 	return (
 		<div className="p-3">
 			<PageNoteEditor
-				key={currentPage}
-				currentPage={currentPage}
-				loaded={props.noteForPage(currentPage)}
+				key={pdfPage}
+				pdfPage={pdfPage}
+				loaded={props.noteForPage(pdfPage)}
 				notesLoading={props.notesLoading}
 				onSave={props.onSavePageNote}
 				pendingNote={props.pendingNote}
@@ -134,14 +140,15 @@ function NotesTab(props: LecturePanelProps) {
 type SaveStatus = "idle" | "saving" | "saved";
 
 function PageNoteEditor({
-	currentPage,
+	pdfPage,
 	loaded,
 	notesLoading,
 	onSave,
 	pendingNote,
 	onConsumePending,
 }: {
-	currentPage: number;
+	/** 1-based PDF page number — already translated from the viewer's 0-based currentPage. */
+	pdfPage: number;
 	loaded: LectureNote | undefined;
 	notesLoading: boolean;
 	onSave(page: number, content_json: any): void | Promise<void>;
@@ -163,7 +170,7 @@ function PageNoteEditor({
 			savedRef.current = serialized;
 			setStatus("saving");
 			try {
-				await onSave(currentPage, doc);
+				await onSave(pdfPage, doc);
 				setStatus("saved");
 				if (savedFadeRef.current) clearTimeout(savedFadeRef.current);
 				savedFadeRef.current = setTimeout(() => setStatus("idle"), 1500);
@@ -173,7 +180,7 @@ function PageNoteEditor({
 				setStatus("idle");
 			}
 		},
-		[currentPage, onSave],
+		[pdfPage, onSave],
 	);
 
 	// Debounced autosave on edits.
@@ -225,7 +232,7 @@ function PageNoteEditor({
 		<div>
 			<div className="mb-2 flex items-center justify-between">
 				<span className="inline-flex items-center gap-1 rounded bg-ink-100 px-1.5 py-0.5 text-[11px] text-ink-600 dark:bg-ink-700 dark:text-ink-300">
-					📄 p.{currentPage + 1} 筆記
+					📄 p.{pdfPage} 筆記
 				</span>
 				<span
 					className={

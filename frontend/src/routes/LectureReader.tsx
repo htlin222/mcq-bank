@@ -231,13 +231,13 @@ export default function LectureReader() {
 		const v = viewerRef.current;
 		if (v) v.scrollToPage(v.getCurrentPage() + 1);
 	}, []);
-	const goToPage = useCallback(
-		(p: number) => {
-			const max = Math.max(0, (doc?.page_count ?? 1) - 1);
-			viewerRef.current?.scrollToPage(Math.min(Math.max(0, p), max));
-		},
-		[doc?.page_count],
-	);
+	// Stable identity (empty deps) so children that capture this prop in inline
+	// handlers don't get a stale clamp from a render where doc was still null.
+	// The viewer's scrollToPage handles bounds internally, so the explicit clamp
+	// here only needs to guard against negative targets.
+	const goToPage = useCallback((p: number) => {
+		viewerRef.current?.scrollToPage(Math.max(0, p));
+	}, []);
 	const zoomIn = useCallback(() => viewerRef.current?.zoomIn(), []);
 	const zoomOut = useCallback(() => viewerRef.current?.zoomOut(), []);
 	const zoomFit = useCallback(() => viewerRef.current?.zoomFit(), []);
