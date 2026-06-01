@@ -23,6 +23,7 @@ import { useLectureNotes } from "../hooks/useLectureNotes";
 import { useLectureAnnotations } from "../hooks/useLectureAnnotations";
 import { getLecture, type LectureDoc } from "../lib/lectureApi";
 import { blobToClipboard } from "../lib/snapshot";
+import { PDFPageSkeleton } from "../components/Skeleton";
 
 type Toast = { kind: "ok" | "err"; msg: string } | null;
 
@@ -361,7 +362,9 @@ export default function LectureReader() {
 					<ChevronLeft size={16} /> 講義
 				</Link>
 				<h1 className="truncate font-serif text-lg text-ink-900 dark:text-ink-100 shrink min-w-0">
-					{doc?.title ?? "載入中…"}
+					{doc?.title ?? (
+						<span className="inline-block h-5 w-48 max-w-full animate-pulse rounded bg-ink-200/80 align-middle dark:bg-ink-700/60" />
+					)}
 				</h1>
 				{slug && (
 					<LectureSearchBox slug={slug} onJumpToPage={goToPage} />
@@ -405,9 +408,10 @@ export default function LectureReader() {
 							showThumbnails={thumbsOpen}
 						/>
 					) : (
-						<div className="flex h-full items-center justify-center font-serif text-2xl text-ink-300 dark:text-ink-600">
-							載入講義中…
-						</div>
+						/* Slide-shaped skeleton until the lecture metadata returns.
+						   Matches the EmbedPDFViewer's own loading state below so
+						   the user sees one consistent placeholder, not two. */
+						<PDFPageSkeleton label="載入講義中…" />
 					)}
 				</div>
 

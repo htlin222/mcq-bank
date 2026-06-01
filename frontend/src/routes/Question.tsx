@@ -21,6 +21,7 @@ import { RichEditor } from "../components/RichEditor";
 import { ReadOnlyContent } from "../components/ReadOnlyContent";
 import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
+import { QuestionDetailSkeleton } from "../components/Skeleton";
 
 type Tab = "explanation" | "note" | "discussion";
 
@@ -316,7 +317,9 @@ export function Question() {
 					載入失敗:{String(error)}
 				</div>
 			);
-		return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
+		// First-load skeleton — same outer dimensions as the loaded layout so
+		// the header + question card + tab strip don't jump on hydration.
+		return <QuestionDetailSkeleton />;
 	}
 
 	const hasExplanation =

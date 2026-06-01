@@ -3,6 +3,7 @@ import { api } from '../lib/api';
 import { Avatar } from './Avatar';
 import { RichEditor } from './RichEditor';
 import { ReadOnlyContent } from './ReadOnlyContent';
+import { CommentListSkeleton } from './Skeleton';
 
 type Comment = {
   id: string;
@@ -69,7 +70,7 @@ export function CommentThread({
       <NewCommentBox questionId={questionId} onPosted={load} />
 
       {loading ? (
-        <p className="text-ink-400 dark:text-ink-500 text-sm">載入中…</p>
+        <CommentListSkeleton count={3} />
       ) : tree.length === 0 ? (
         <p className="text-ink-400 dark:text-ink-500 text-sm italic">還沒有討論。寫第一則吧。</p>
       ) : (

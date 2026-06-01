@@ -53,6 +53,7 @@ import {
 	useAnnotationCapability,
 } from "@embedpdf/plugin-annotation/react";
 import { ZoomMode } from "@embedpdf/plugin-zoom";
+import { PDFPageSkeleton } from "../Skeleton";
 
 // `@embedpdf/models` is a transitive dep that pnpm does not hoist to the app's
 // node_modules, so it is not directly importable from app code (neither tsc
@@ -210,13 +211,10 @@ export const EmbedPDFViewer = forwardRef<EmbedPDFViewerHandle, EmbedPDFViewerPro
 );
 
 function ViewerSkeleton() {
-	return (
-		<div className="flex h-full w-full items-center justify-center">
-			<div className="font-serif text-2xl text-ink-300 dark:text-ink-600 animate-pulse">
-				載入講義中…
-			</div>
-		</div>
-	);
+	// Slide-shaped placeholder while the WASM pdfium engine boots and the
+	// initial document binary is fetched. Reuses the shared skeleton so the
+	// pre-engine state and the LectureReader's pre-doc state look identical.
+	return <PDFPageSkeleton label="初始化 PDF 引擎…" />;
 }
 
 // Rendered INSIDE <EmbedPDF>, so the plugin context / capability hooks resolve.

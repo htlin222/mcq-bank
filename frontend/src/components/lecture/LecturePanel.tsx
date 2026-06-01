@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Trash2, X as XIcon } from "lucide-react";
 import { RichEditor } from "../RichEditor";
+import { NotesSkeleton } from "../Skeleton";
 import type { LectureNote, LectureAnnotation } from "../../lib/lectureApi";
 
 type Tab = "notes" | "annotations";
@@ -221,11 +222,7 @@ function PageNoteEditor({
 	}, []);
 
 	if (notesLoading && !loaded) {
-		return (
-			<p className="py-6 text-center text-sm text-ink-400 dark:text-ink-500">
-				載入中…
-			</p>
-		);
+		return <NotesSkeleton />;
 	}
 
 	return (

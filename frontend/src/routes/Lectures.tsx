@@ -9,6 +9,10 @@ import {
 	type LectureSearchScope,
 } from "../lib/lectureApi";
 import { HighlightedSnippet } from "../components/lecture/HighlightedSnippet";
+import {
+	LectureCardSkeletonGrid,
+	LectureSearchResultSkeleton,
+} from "../components/Skeleton";
 
 // Wait this long after the last keystroke before firing the search request.
 const SEARCH_DEBOUNCE_MS = 250;
@@ -98,7 +102,7 @@ export default function Lectures() {
 					無法載入講義:{error}
 				</p>
 			) : docs === null ? (
-				<div className="text-ink-400 dark:text-ink-500 text-sm">載入中…</div>
+				<LectureCardSkeletonGrid count={6} />
 			) : docs.length === 0 ? (
 				<p className="text-ink-400 dark:text-ink-500 text-sm">
 					目前還沒有任何講義。
@@ -213,9 +217,7 @@ function SearchResults({
 	error: string | null;
 }) {
 	if (results === null && loading) {
-		return (
-			<div className="text-ink-400 dark:text-ink-500 text-sm">搜尋中…</div>
-		);
+		return <LectureSearchResultSkeleton count={4} />;
 	}
 	if (error) {
 		return (
