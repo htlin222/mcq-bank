@@ -96,6 +96,14 @@ export interface EmbedPDFViewerProps {
 	/** Fired when the visible page changes (0-based). */
 	onPageChange?: (page: number) => void;
 	/**
+	 * Fired exactly once per document load, after the PDF layout is ready and
+	 * `scrollToPage` is safe to call. Backed by the scroll plugin's
+	 * `onLayoutReady` event with `isInitial: true`. Used by callers that want
+	 * to apply a deep-link page (e.g. /lectures/:slug?page=N) — `onPageChange`
+	 * doesn't fire on initial load (the page didn't change, it started there).
+	 */
+	onReady?: () => void;
+	/**
 	 * Receives the DOM node that wraps the rendered page canvas + annotation
 	 * layer, so a later snapshot (Task 10) can rasterise both together. Called
 	 * with `null` on unmount.
@@ -216,6 +224,7 @@ function ViewerInner({
 	forwardedRef,
 	onSelectionChange,
 	onPageChange,
+	onReady,
 	pageContainerRef,
 	showThumbnails,
 }: EmbedPDFViewerProps & {
@@ -300,6 +309,21 @@ function ViewerInner({
 		});
 		return unsub;
 	}, [scroll, docId, onPageChange]);
+
+	// Fire the outward onReady callback exactly once per document load. The SDK
+	// emits `onLayoutReady` with `isInitial: true` after the first layout pass —
+	// the first moment scrollToPage() is safe to call. We can't piggy-back on
+	// onPageChange for this because the doc opens at page 1 and stays there, so
+	// no page-change event fires.
+	useEffect(() => {
+		if (!scroll || !docId || !onReady) return;
+		const unsub = scroll.onLayoutReady((evt) => {
+			if (evt.documentId !== docId) return;
+			if (!evt.isInitial) return;
+			onReady();
+		});
+		return unsub;
+	}, [scroll, docId, onReady]);
 
 	// Build a highlight annotation object from the current selection geometry.
 	const createHighlightFromSelection = useCallback(async (): Promise<PdfAnnotationObject | null> => {

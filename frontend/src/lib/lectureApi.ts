@@ -69,12 +69,18 @@ export interface LectureSearchResponse {
 	q: string;
 }
 
+/**
+ * @param slug  Optional — when set, results are restricted to a single lecture.
+ *              Used by the in-reader search box on /lectures/:slug.
+ */
 export function searchLectures(
 	q: string,
 	scope: LectureSearchScope = "pdf",
 	limit = 20,
+	slug?: string,
 ): Promise<LectureSearchResponse> {
 	const u = new URLSearchParams({ q, scope, limit: String(limit) });
+	if (slug) u.set("slug", slug);
 	return api.get<LectureSearchResponse>(`/api/lectures/search?${u.toString()}`);
 }
 
