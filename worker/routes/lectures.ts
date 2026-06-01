@@ -45,6 +45,10 @@ lectureRoutes.get('/search', async (c) => {
     50,
     Math.max(1, parseInt(c.req.query('limit') ?? '20', 10) || 20),
   );
+  // Optional slug filter — used by the in-reader search box on /lectures/:slug
+  // to restrict results to the lecture currently being read.
+  const slugFilter = (c.req.query('slug') ?? '').trim();
+  const hasSlug = slugFilter.length > 0;
 
   if (qRaw.length === 0) {
     return c.json({ results: [], scope, q: qRaw });
@@ -67,45 +71,47 @@ lectureRoutes.get('/search', async (c) => {
   let results: unknown[];
   if (scope === 'notes') {
     const email = c.var.email;
-    const r = await c.env.DB
-      .prepare(
-        `SELECT
-           n.slug AS slug,
-           CAST(n.page AS INTEGER) AS page,
-           d.title AS title,
-           d.instructor AS instructor,
-           snippet(lecture_notes_fts, 3, char(1), char(2), '…', 16) AS snippet
-         FROM lecture_notes_fts n
-         JOIN lecture_docs d ON d.slug = n.slug
-         WHERE lecture_notes_fts MATCH ?1
-           AND n.user_email = ?2
-         ORDER BY bm25(lecture_notes_fts), d.sort_order, n.page
-         LIMIT ?3`,
-      )
-      .bind(ftsQuery, email, limit)
-      .all();
+    const sql = `SELECT
+       n.slug AS slug,
+       CAST(n.page AS INTEGER) AS page,
+       d.title AS title,
+       d.instructor AS instructor,
+       snippet(lecture_notes_fts, 3, char(1), char(2), '…', 16) AS snippet
+     FROM lecture_notes_fts n
+     JOIN lecture_docs d ON d.slug = n.slug
+     WHERE lecture_notes_fts MATCH ?1
+       AND n.user_email = ?2
+       ${hasSlug ? 'AND n.slug = ?3' : ''}
+     ORDER BY bm25(lecture_notes_fts), d.sort_order, n.page
+     LIMIT ${hasSlug ? '?4' : '?3'}`;
+    const stmt = c.env.DB.prepare(sql);
+    const r = await (hasSlug
+      ? stmt.bind(ftsQuery, email, slugFilter, limit)
+      : stmt.bind(ftsQuery, email, limit)
+    ).all();
     results = r.results ?? [];
   } else {
-    const r = await c.env.DB
-      .prepare(
-        `SELECT
-           p.slug AS slug,
-           CAST(p.page AS INTEGER) AS page,
-           d.title AS title,
-           d.instructor AS instructor,
-           snippet(lecture_pages_fts, 2, char(1), char(2), '…', 16) AS snippet
-         FROM lecture_pages_fts p
-         JOIN lecture_docs d ON d.slug = p.slug
-         WHERE lecture_pages_fts MATCH ?1
-         ORDER BY bm25(lecture_pages_fts), d.sort_order, p.page
-         LIMIT ?2`,
-      )
-      .bind(ftsQuery, limit)
-      .all();
+    const sql = `SELECT
+       p.slug AS slug,
+       CAST(p.page AS INTEGER) AS page,
+       d.title AS title,
+       d.instructor AS instructor,
+       snippet(lecture_pages_fts, 2, char(1), char(2), '…', 16) AS snippet
+     FROM lecture_pages_fts p
+     JOIN lecture_docs d ON d.slug = p.slug
+     WHERE lecture_pages_fts MATCH ?1
+       ${hasSlug ? 'AND p.slug = ?2' : ''}
+     ORDER BY bm25(lecture_pages_fts), d.sort_order, p.page
+     LIMIT ${hasSlug ? '?3' : '?2'}`;
+    const stmt = c.env.DB.prepare(sql);
+    const r = await (hasSlug
+      ? stmt.bind(ftsQuery, slugFilter, limit)
+      : stmt.bind(ftsQuery, limit)
+    ).all();
     results = r.results ?? [];
   }
 
-  return c.json({ results, scope, q: qRaw });
+  return c.json({ results, scope, q: qRaw, slug: hasSlug ? slugFilter : undefined });
 });
 
 // Single doc metadata + derived /pdf URL.

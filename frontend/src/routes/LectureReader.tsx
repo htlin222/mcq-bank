@@ -18,6 +18,7 @@ import {
 import { ReaderToolbar } from "../components/lecture/ReaderToolbar";
 import { SelectionPopup } from "../components/lecture/SelectionPopup";
 import { LecturePanel } from "../components/lecture/LecturePanel";
+import { LectureSearchBox } from "../components/lecture/LectureSearchBox";
 import { useLectureNotes } from "../hooks/useLectureNotes";
 import { useLectureAnnotations } from "../hooks/useLectureAnnotations";
 import { getLecture, type LectureDoc } from "../lib/lectureApi";
@@ -165,16 +166,18 @@ export default function LectureReader() {
 	}, [annos.loading, annos.initialItems, doc]);
 
 	// ── Stable viewer callbacks (the viewer re-subscribes on identity change) ──
-	const onPageChange = useCallback((p: number) => {
-		setCurrentPage(p);
-		// First page-change after viewer mount is our cue that scrollToPage is
-		// safe to call. If the URL carried ?page=N, apply it exactly once now.
-		if (!initialJumpDoneRef.current) {
-			initialJumpDoneRef.current = true;
-			const target = initialPageRef.current;
-			if (target !== null && target !== p) {
-				viewerRef.current?.scrollToPage(target);
-			}
+	const onPageChange = useCallback((p: number) => setCurrentPage(p), []);
+
+	// Apply the deep-link ?page= once the viewer signals the PDF layout is
+	// ready — onPageChange doesn't fire on initial load (the page didn't change,
+	// it started at 1), so the previous gating on it left the URL param
+	// silently ignored.
+	const onViewerReady = useCallback(() => {
+		if (initialJumpDoneRef.current) return;
+		initialJumpDoneRef.current = true;
+		const target = initialPageRef.current;
+		if (target !== null && target > 0) {
+			viewerRef.current?.scrollToPage(target);
 		}
 	}, []);
 
@@ -357,9 +360,12 @@ export default function LectureReader() {
 				>
 					<ChevronLeft size={16} /> 講義
 				</Link>
-				<h1 className="truncate font-serif text-lg text-ink-900 dark:text-ink-100">
+				<h1 className="truncate font-serif text-lg text-ink-900 dark:text-ink-100 shrink min-w-0">
 					{doc?.title ?? "載入中…"}
 				</h1>
+				{slug && (
+					<LectureSearchBox slug={slug} onJumpToPage={goToPage} />
+				)}
 			</div>
 
 			<ReaderToolbar
@@ -394,6 +400,7 @@ export default function LectureReader() {
 							pdfUrl={doc.pdf_url}
 							onSelectionChange={onSelectionChange}
 							onPageChange={onPageChange}
+							onReady={onViewerReady}
 							pageContainerRef={onPageContainer}
 							showThumbnails={thumbsOpen}
 						/>
