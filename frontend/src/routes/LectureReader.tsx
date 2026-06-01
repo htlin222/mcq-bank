@@ -7,7 +7,7 @@
 // contract). Snapshot rasterises the current page wrapper (canvas + annotation
 // overlay) to the clipboard.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import {
 	EmbedPDFViewer,
@@ -38,6 +38,20 @@ export default function LectureReader() {
 	const { slug = "" } = useParams<{ slug: string }>();
 	const [doc, setDoc] = useState<LectureDoc | null>(null);
 	const [loadError, setLoadError] = useState<string | null>(null);
+
+	// Deep-link page from /lectures/:slug?page=N (used by lecture search). Snapped
+	// at mount so navigating to a different page later doesn't re-jump. Kept in
+	// a ref alongside an "applied" flag so we trigger scrollToPage exactly once,
+	// on the first onPageChange (which is the viewer's signal that it's ready).
+	const [searchParams] = useSearchParams();
+	const initialPageRef = useRef<number | null>(
+		(() => {
+			const raw = searchParams.get("page");
+			const n = raw ? parseInt(raw, 10) : NaN;
+			return Number.isFinite(n) && n >= 1 ? n - 1 : null; // 0-indexed
+		})(),
+	);
+	const initialJumpDoneRef = useRef(false);
 
 	const viewerRef = useRef<EmbedPDFViewerHandle>(null);
 	const pageNodeRef = useRef<HTMLElement | null>(null);
@@ -151,7 +165,18 @@ export default function LectureReader() {
 	}, [annos.loading, annos.initialItems, doc]);
 
 	// ── Stable viewer callbacks (the viewer re-subscribes on identity change) ──
-	const onPageChange = useCallback((p: number) => setCurrentPage(p), []);
+	const onPageChange = useCallback((p: number) => {
+		setCurrentPage(p);
+		// First page-change after viewer mount is our cue that scrollToPage is
+		// safe to call. If the URL carried ?page=N, apply it exactly once now.
+		if (!initialJumpDoneRef.current) {
+			initialJumpDoneRef.current = true;
+			const target = initialPageRef.current;
+			if (target !== null && target !== p) {
+				viewerRef.current?.scrollToPage(target);
+			}
+		}
+	}, []);
 
 	const onSelectionChange = useCallback((sel: ViewerSelection | null) => {
 		selectionRef.current = sel;

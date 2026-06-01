@@ -46,6 +46,38 @@ export function getLecture(slug: string): Promise<LectureDoc> {
 	return api.get<LectureDoc>(`/api/lectures/${slug}`);
 }
 
+// ── Search ───────────────────────────────────────────────────────────
+//
+// Snippet is the FTS5 snippet() output with `` / `` as the
+// match-highlight markers. Render via <HighlightedSnippet> on the client
+// — the markers map to <mark> / </mark> as React elements, so the snippet
+// never reaches dangerouslySetInnerHTML.
+
+export type LectureSearchScope = "pdf" | "notes";
+
+export interface LectureSearchHit {
+	slug: string;
+	page: number;
+	title: string;
+	instructor: string;
+	snippet: string;
+}
+
+export interface LectureSearchResponse {
+	results: LectureSearchHit[];
+	scope: LectureSearchScope;
+	q: string;
+}
+
+export function searchLectures(
+	q: string,
+	scope: LectureSearchScope = "pdf",
+	limit = 20,
+): Promise<LectureSearchResponse> {
+	const u = new URLSearchParams({ q, scope, limit: String(limit) });
+	return api.get<LectureSearchResponse>(`/api/lectures/search?${u.toString()}`);
+}
+
 // ── Annotations ──────────────────────────────────────────────────────
 
 export function listAnnotations(slug: string): Promise<LectureAnnotation[]> {
