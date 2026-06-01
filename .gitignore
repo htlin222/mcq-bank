@@ -68,3 +68,8 @@ Thumbs.db
 
 # git worktrees (isolated workspaces, never committed)
 .worktrees/
+
+# Generated slide study-notes and rasterized slide images (built locally,
+# large/derivable — not committed). Source PDFs in pdf/ are kept.
+pdf/**/page_*_note.md
+pdf/**/img/

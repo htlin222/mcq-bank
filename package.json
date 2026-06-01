@@ -17,12 +17,16 @@
 		"db:seed:remote": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --remote --file=migrations/0004_hema_sample.sql",
 		"r2:create": "wrangler r2 bucket create $(node scripts/lib/cfg.mjs project.r2_bucket)",
 		"import:lectures": "node --experimental-strip-types scripts/import-lectures.ts",
+		"seed:lecture-notes": "node --experimental-strip-types scripts/seed-lecture-notes.ts",
 		"typecheck": "tsc --noEmit",
 		"test": "node --test 'worker/**/*.test.ts'"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250501.0",
+		"@types/markdown-it": "^14.1.2",
+		"markdown-it": "^14.1.0",
 		"pdf-lib": "^1.17.1",
+		"pdfjs-dist": "^6.0.227",
 		"typescript": "^5.4.0",
 		"wrangler": "^4.0.0"
 	},

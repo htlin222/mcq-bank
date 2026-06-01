@@ -1,12 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Highlighter, NotebookPen } from "lucide-react";
-import { listLectures, type LectureDoc } from "../lib/lectureApi";
+import { Highlighter, NotebookPen, Search } from "lucide-react";
+import {
+	listLectures,
+	searchLectures,
+	type LectureDoc,
+	type LectureSearchHit,
+	type LectureSearchScope,
+} from "../lib/lectureApi";
+
+// Wait this long after the last keystroke before firing the search request.
+const SEARCH_DEBOUNCE_MS = 250;
+
+// Control-char markers emitted by FTS5 snippet() on the server side
+// (see worker/routes/lectures.ts — char(1)/char(2)). Kept as constants so
+// the React renderer below stays self-documenting.
+const MARK_START = String.fromCharCode(0x01);
+const MARK_END = String.fromCharCode(0x02);
 
 export default function Lectures() {
 	const [docs, setDocs] = useState<LectureDoc[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
+	// Search state
+	const [query, setQuery] = useState("");
+	const [scope, setScope] = useState<LectureSearchScope>("pdf");
+	const [results, setResults] = useState<LectureSearchHit[] | null>(null);
+	const [searching, setSearching] = useState(false);
+	const [searchError, setSearchError] = useState<string | null>(null);
+
+	const trimmed = query.trim();
+	const searchMode = trimmed.length > 0;
+
+	// Initial registry load — unchanged from the pre-search version.
 	useEffect(() => {
 		let alive = true;
 		listLectures()
@@ -21,15 +47,60 @@ export default function Lectures() {
 		};
 	}, []);
 
+	// Debounced search. The cleanup races a stale request: if the query
+	// changes while a fetch is in flight, we ignore its result.
+	useEffect(() => {
+		if (!searchMode) {
+			setResults(null);
+			setSearching(false);
+			setSearchError(null);
+			return;
+		}
+		setSearching(true);
+		setSearchError(null);
+		let alive = true;
+		const t = window.setTimeout(async () => {
+			try {
+				const r = await searchLectures(trimmed, scope, 30);
+				if (alive) setResults(r.results);
+			} catch (e: any) {
+				if (alive) {
+					setResults([]);
+					setSearchError(e?.message || "搜尋失敗");
+				}
+			} finally {
+				if (alive) setSearching(false);
+			}
+		}, SEARCH_DEBOUNCE_MS);
+		return () => {
+			alive = false;
+			window.clearTimeout(t);
+		};
+	}, [trimmed, scope, searchMode]);
+
 	return (
 		<div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 py-8">
 			<h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-6">
 				複習班講義
 			</h1>
 
-			{error ? (
+			<SearchBar
+				query={query}
+				onQuery={setQuery}
+				scope={scope}
+				onScope={setScope}
+				busy={searching}
+			/>
+
+			{searchMode ? (
+				<SearchResults
+					results={results}
+					loading={searching}
+					error={searchError}
+				/>
+			) : error ? (
 				<p className="text-rose-600 dark:text-rose-400 text-sm">
-					無法載入講義：{error}
+					無法載入講義:{error}
 				</p>
 			) : docs === null ? (
 				<div className="text-ink-400 dark:text-ink-500 text-sm">載入中…</div>
@@ -47,6 +118,202 @@ export default function Lectures() {
 		</div>
 	);
 }
+
+// ── Search bar + scope toggle ─────────────────────────────────────────
+
+function SearchBar({
+	query,
+	onQuery,
+	scope,
+	onScope,
+	busy,
+}: {
+	query: string;
+	onQuery: (q: string) => void;
+	scope: LectureSearchScope;
+	onScope: (s: LectureSearchScope) => void;
+	busy: boolean;
+}) {
+	return (
+		<div className="mb-6 flex flex-col sm:flex-row gap-3">
+			<div className="relative flex-1">
+				<Search
+					size={16}
+					className={
+						"absolute left-3 top-1/2 -translate-y-1/2 " +
+						(busy
+							? "text-accent animate-pulse"
+							: "text-ink-400 dark:text-ink-500")
+					}
+					aria-hidden="true"
+				/>
+				<input
+					type="search"
+					value={query}
+					onChange={(e) => onQuery(e.target.value)}
+					placeholder={
+						scope === "pdf"
+							? "搜尋講義 PDF 內文…"
+							: "搜尋你的筆記內容…"
+					}
+					aria-label="搜尋講義"
+					className="w-full border border-ink-200 dark:border-ink-700 dark:bg-ink-800 rounded pl-9 pr-4 py-2 focus:outline-none focus:border-accent text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
+				/>
+			</div>
+			<div
+				className="inline-flex rounded border border-ink-200 dark:border-ink-700 overflow-hidden self-start sm:self-auto"
+				role="group"
+				aria-label="搜尋範圍"
+			>
+				<ScopeButton
+					active={scope === "pdf"}
+					onClick={() => onScope("pdf")}
+					label="PDF 內文"
+				/>
+				<ScopeButton
+					active={scope === "notes"}
+					onClick={() => onScope("notes")}
+					label="筆記"
+				/>
+			</div>
+		</div>
+	);
+}
+
+function ScopeButton({
+	active,
+	onClick,
+	label,
+}: {
+	active: boolean;
+	onClick: () => void;
+	label: string;
+}) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			aria-pressed={active}
+			className={
+				"px-3 py-2 text-sm transition " +
+				(active
+					? "bg-accent text-white"
+					: "bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700")
+			}
+		>
+			{label}
+		</button>
+	);
+}
+
+// ── Search results ────────────────────────────────────────────────────
+
+function SearchResults({
+	results,
+	loading,
+	error,
+}: {
+	results: LectureSearchHit[] | null;
+	loading: boolean;
+	error: string | null;
+}) {
+	if (results === null && loading) {
+		return (
+			<div className="text-ink-400 dark:text-ink-500 text-sm">搜尋中…</div>
+		);
+	}
+	if (error) {
+		return (
+			<p className="text-rose-600 dark:text-rose-400 text-sm">
+				搜尋失敗:{error}
+			</p>
+		);
+	}
+	if (!results || results.length === 0) {
+		return (
+			<p className="text-ink-400 dark:text-ink-500 text-sm">
+				沒有找到符合的內容。
+			</p>
+		);
+	}
+	return (
+		<ul className="space-y-2">
+			{results.map((r, i) => (
+				<li key={`${r.slug}-${r.page}-${i}`}>
+					<Link
+						to={`/lectures/${r.slug}?page=${r.page}`}
+						className="block bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
+					>
+						<div className="flex items-baseline gap-3 mb-1">
+							<span className="font-serif text-ink-900 dark:text-ink-100">
+								{r.title}
+							</span>
+							{r.instructor && (
+								<span className="text-xs text-ink-500 dark:text-ink-400">
+									{r.instructor}
+								</span>
+							)}
+							<span className="ml-auto text-xs font-mono text-ink-500 dark:text-ink-400 shrink-0">
+								p.{r.page}
+							</span>
+						</div>
+						<p className="text-sm leading-relaxed text-ink-700 dark:text-ink-200">
+							<HighlightedSnippet text={r.snippet} />
+						</p>
+					</Link>
+				</li>
+			))}
+		</ul>
+	);
+}
+
+// Render a snippet whose match boundaries are demarcated by control chars
+// 0x01 (start) and 0x02 (end), as emitted by the worker's snippet() call.
+// Pure React — never goes through dangerouslySetInnerHTML, so user PDF
+// content can't smuggle in HTML/JS.
+function HighlightedSnippet({ text }: { text: string }) {
+	const parts = useMemo(() => parseSnippet(text), [text]);
+	return (
+		<>
+			{parts.map((p, i) =>
+				p.mark ? (
+					<mark
+						key={i}
+						className="bg-amber-200/70 dark:bg-amber-500/30 text-ink-900 dark:text-ink-100 rounded px-0.5"
+					>
+						{p.text}
+					</mark>
+				) : (
+					<span key={i}>{p.text}</span>
+				),
+			)}
+		</>
+	);
+}
+
+function parseSnippet(text: string): { mark: boolean; text: string }[] {
+	const out: { mark: boolean; text: string }[] = [];
+	let i = 0;
+	while (i < text.length) {
+		const start = text.indexOf(MARK_START, i);
+		if (start === -1) {
+			out.push({ mark: false, text: text.slice(i) });
+			break;
+		}
+		if (start > i) out.push({ mark: false, text: text.slice(i, start) });
+		const end = text.indexOf(MARK_END, start + 1);
+		if (end === -1) {
+			// Unterminated — treat the rest as plain text.
+			out.push({ mark: false, text: text.slice(start + 1) });
+			break;
+		}
+		out.push({ mark: true, text: text.slice(start + 1, end) });
+		i = end + 1;
+	}
+	return out;
+}
+
+// ── Existing card (unchanged) ─────────────────────────────────────────
 
 function LectureCard({ doc }: { doc: LectureDoc }) {
 	return (

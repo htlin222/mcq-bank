@@ -33,6 +33,11 @@ import { resolve, join } from 'node:path';
 import { PDFDocument } from 'pdf-lib';
 import { cfg } from './lib/cfg.mjs';
 
+// pdfjs-dist legacy build for Node — used to extract per-page text content
+// for the lecture_pages_fts search index (migration 0016). pdf-lib doesn't
+// do text extraction; pdfjs is the canonical option.
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 const D1_DB = cfg('project.d1_db') as string;
 const R2_BUCKET = cfg('project.r2_bucket') as string;
 
@@ -63,6 +68,8 @@ type LectureRow = {
   r2Key: string;
   pageCount: number;
   bytes: number;
+  // Per-page extracted plaintext (index = page - 1). Length === pageCount.
+  pagesText: string[];
 };
 
 async function main() {
@@ -132,6 +139,7 @@ async function main() {
 
     let bytes: number;
     let pageCount: number;
+    let pagesText: string[];
     try {
       const st = await stat(filePath);
       if (!st.isFile()) {
@@ -142,6 +150,16 @@ async function main() {
       const data = await readFile(filePath);
       const pdf = await PDFDocument.load(data, { updateMetadata: false });
       pageCount = pdf.getPageCount();
+      // Extract per-page text for the FTS index. Done here in pre-flight so
+      // a failure in any one PDF aborts the whole batch (matches the existing
+      // "validate everything before any side effect" contract).
+      pagesText = await extractPagesText(data, fileName);
+      if (pagesText.length !== pageCount) {
+        errors.push(
+          `"${fileName}": pdf-lib reports ${pageCount} pages but pdfjs extracted ${pagesText.length}`,
+        );
+        continue;
+      }
     } catch (e: any) {
       errors.push(`"${fileName}": failed to read/parse PDF: ${e.message}`);
       continue;
@@ -158,6 +176,7 @@ async function main() {
       r2Key: `lectures/${slug}.pdf`,
       pageCount,
       bytes,
+      pagesText,
     });
   }
 
@@ -193,13 +212,32 @@ async function main() {
     }
   }
 
-  // ---------- Upsert lecture_docs ----------
+  // ---------- Upsert lecture_docs + replace lecture_pages ----------
+  // One SQL file for the whole batch: upsert lecture_docs (idempotent), then
+  // for each lecture DELETE its existing lecture_pages rows and re-insert
+  // current per-page text. The migration 0016 triggers fan out into
+  // lecture_pages_fts automatically — we never touch the FTS table directly.
   const now = Date.now();
-  const statements = rows.map((r) => buildUpsert(r, now));
+  const statements: string[] = [];
+  let totalPages = 0;
+  for (const r of rows) {
+    statements.push(buildUpsert(r, now));
+    statements.push(`DELETE FROM lecture_pages WHERE slug = '${escape(r.slug)}';`);
+    for (let i = 0; i < r.pagesText.length; i++) {
+      const page = i + 1;
+      const text = r.pagesText[i] ?? '';
+      statements.push(
+        `INSERT INTO lecture_pages (slug, page, text) VALUES ('${escape(r.slug)}', ${page}, '${escape(text)}');`,
+      );
+      totalPages++;
+    }
+  }
   const sqlFile = '/tmp/import-lectures.sql';
   const { writeFile } = await import('node:fs/promises');
   await writeFile(sqlFile, statements.join('\n'), 'utf-8');
-  console.log(`\n  D1 upsert ${rows.length} lecture_docs row(s) (${mode})`);
+  console.log(
+    `\n  D1 upsert ${rows.length} lecture_docs row(s) + ${totalPages} lecture_pages row(s) (${mode})`,
+  );
   await sh('wrangler', ['d1', 'execute', D1_DB, mode, '--file', sqlFile]);
 
   // ---------- Summary ----------
@@ -251,6 +289,44 @@ function sh(cmd: string, args: string[]): Promise<void> {
     const p = spawn(cmd, args, { stdio: 'inherit' });
     p.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`${cmd} exited ${code}`))));
   });
+}
+
+/**
+ * Extract per-page plaintext from a PDF using pdfjs-dist's Node-friendly
+ * legacy build. Returns one string per page; multi-whitespace collapsed.
+ * Used to populate lecture_pages (which fans out to lecture_pages_fts via
+ * the trigger added in migration 0016).
+ *
+ * Worker: the legacy build runs with a fake worker by default in Node, so
+ * no GlobalWorkerOptions.workerSrc is required. We disable font/eval paths
+ * we don't need for text-only extraction.
+ */
+async function extractPagesText(buffer: Buffer, fileName: string): Promise<string[]> {
+  const loadingTask = getDocument({
+    data: new Uint8Array(buffer),
+    useSystemFonts: false,
+    disableFontFace: true,
+    verbosity: 0,
+  });
+  const pdf = await loadingTask.promise;
+  const out: string[] = [];
+  try {
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const tc = await page.getTextContent();
+      const text = tc.items
+        .map((it: any) => (typeof it.str === 'string' ? it.str : ''))
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      out.push(text);
+    }
+  } catch (e: any) {
+    throw new Error(`pdfjs text extraction failed on "${fileName}" page ${out.length + 1}: ${e.message}`);
+  } finally {
+    await pdf.cleanup();
+  }
+  return out;
 }
 
 main().catch((e) => {

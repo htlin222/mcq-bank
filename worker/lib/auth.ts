@@ -102,4 +102,32 @@ async function upsertUser(db: D1Database, email: string) {
     )
     .bind(now, email, cutoff)
     .run();
+
+  await seedDefaultLectureNotes(db, email, now);
+}
+
+// One-time gift: copy the shared default lecture notes into this user's
+// private notebook the first time we see them. The `lecture_defaults_seeded`
+// flag is claimed atomically (UPDATE … WHERE … IS NULL) so the copy runs at
+// most once even across concurrent first requests; if `lecture_default_notes`
+// is empty (e.g. local dev / not yet seeded) the copy is a harmless no-op.
+async function seedDefaultLectureNotes(db: D1Database, email: string, now: number) {
+  const claim = await db
+    .prepare(
+      `UPDATE users SET lecture_defaults_seeded = ?
+       WHERE email = ? AND lecture_defaults_seeded IS NULL`
+    )
+    .bind(now, email)
+    .run();
+
+  if ((claim.meta?.changes ?? 0) === 0) return; // already seeded
+
+  await db
+    .prepare(
+      `INSERT INTO lecture_notes (id, user_email, slug, page, content_json, created_at, updated_at)
+       SELECT lower(hex(randomblob(16))), ?, slug, page, content_json, ?, ?
+       FROM lecture_default_notes`
+    )
+    .bind(email, now, now)
+    .run();
 }

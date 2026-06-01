@@ -23,6 +23,91 @@ lectureRoutes.get('/', async (c) => {
   return c.json(results ?? []);
 });
 
+// ── Search ──────────────────────────────────────────────────────────
+//
+// Full-text search across lecture content (migration 0016). Two scopes:
+//
+//   scope=pdf    → lecture_pages_fts (shared across users)
+//   scope=notes  → lecture_notes_fts filtered by caller email (per-user)
+//
+// Each result is a (slug, page) match with a snippet. FTS5's snippet()
+// wraps matches with char(1)/char(2) markers (instead of <mark>/</mark>)
+// so the client can render them as React elements without exposing PDF
+// or note text to dangerouslySetInnerHTML — XSS-safe by construction.
+// Results are joined back to lecture_docs for title/instructor display.
+// Frontend uses (slug, page) to deep-link via /lectures/:slug?page=N.
+//
+// Declared BEFORE the /:slug route so it isn't swallowed by the param.
+lectureRoutes.get('/search', async (c) => {
+  const qRaw = (c.req.query('q') ?? '').trim();
+  const scope = c.req.query('scope') === 'notes' ? 'notes' : 'pdf';
+  const limit = Math.min(
+    50,
+    Math.max(1, parseInt(c.req.query('limit') ?? '20', 10) || 20),
+  );
+
+  if (qRaw.length === 0) {
+    return c.json({ results: [], scope, q: qRaw });
+  }
+
+  // FTS5 query sanitisation: strip operator chars and wrap each token as a
+  // phrase so user input can't trigger syntax errors or unexpected boolean
+  // behaviour. Tokens implicitly AND. Empty → no match → []
+  const ftsQuery = qRaw
+    .replace(/["()*:]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t) => '"' + t + '"')
+    .join(' ');
+
+  if (ftsQuery.length === 0) {
+    return c.json({ results: [], scope, q: qRaw });
+  }
+
+  let results: unknown[];
+  if (scope === 'notes') {
+    const email = c.var.email;
+    const r = await c.env.DB
+      .prepare(
+        `SELECT
+           n.slug AS slug,
+           CAST(n.page AS INTEGER) AS page,
+           d.title AS title,
+           d.instructor AS instructor,
+           snippet(lecture_notes_fts, 3, char(1), char(2), '…', 16) AS snippet
+         FROM lecture_notes_fts n
+         JOIN lecture_docs d ON d.slug = n.slug
+         WHERE lecture_notes_fts MATCH ?1
+           AND n.user_email = ?2
+         ORDER BY bm25(lecture_notes_fts), d.sort_order, n.page
+         LIMIT ?3`,
+      )
+      .bind(ftsQuery, email, limit)
+      .all();
+    results = r.results ?? [];
+  } else {
+    const r = await c.env.DB
+      .prepare(
+        `SELECT
+           p.slug AS slug,
+           CAST(p.page AS INTEGER) AS page,
+           d.title AS title,
+           d.instructor AS instructor,
+           snippet(lecture_pages_fts, 2, char(1), char(2), '…', 16) AS snippet
+         FROM lecture_pages_fts p
+         JOIN lecture_docs d ON d.slug = p.slug
+         WHERE lecture_pages_fts MATCH ?1
+         ORDER BY bm25(lecture_pages_fts), d.sort_order, p.page
+         LIMIT ?2`,
+      )
+      .bind(ftsQuery, limit)
+      .all();
+    results = r.results ?? [];
+  }
+
+  return c.json({ results, scope, q: qRaw });
+});
+
 // Single doc metadata + derived /pdf URL.
 lectureRoutes.get('/:slug', async (c) => {
   const slug = c.req.param('slug');
