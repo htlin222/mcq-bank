@@ -98,7 +98,7 @@ questionsRoutes.get("/:id", async (c) => {
 		.bind(id)
 		.all<{ tag: string }>();
 
-	const [progress, bookmark, note, backRefRows, activeChallenge] = await Promise.all([
+	const [progress, bookmark, note, backRefRows, activeChallenge, commentCountRow] = await Promise.all([
 		c.env.DB.prepare(
 			"SELECT times_seen, times_correct, last_chosen, last_correct FROM review_progress WHERE user_email = ? AND question_id = ?",
 		)
@@ -137,6 +137,13 @@ questionsRoutes.get("/:id", async (c) => {
 				source_stem: string;
 			}>(),
 		getActiveChallenge(c.env.DB, id, email),
+		// Comment count for the 討論串 tab badge — cheap COUNT(*), runs in parallel
+		// with everything else so it adds no latency.
+		c.env.DB.prepare(
+			"SELECT COUNT(*) AS n FROM comments WHERE question_id = ?",
+		)
+			.bind(id)
+			.first<{ n: number } | null>(),
 	]);
 
 	const my_progress =
@@ -168,6 +175,7 @@ questionsRoutes.get("/:id", async (c) => {
 		my_note: note || null,
 		back_refs,
 		active_challenge: activeChallenge,
+		comment_count: commentCountRow?.n ?? 0,
 		can_edit_answer: isAdminEmail(email, c.env),
 	});
 });

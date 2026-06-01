@@ -31,7 +31,17 @@ function buildTree(items: Comment[]): Tree[] {
   return roots;
 }
 
-export function CommentThread({ questionId, currentEmail }: { questionId: string; currentEmail: string }) {
+export function CommentThread({
+  questionId,
+  currentEmail,
+  onCountChange,
+}: {
+  questionId: string;
+  currentEmail: string;
+  // Optional callback so a parent (e.g., Question.tsx) can refresh a tab badge
+  // when comments are added/edited/deleted without re-fetching the question.
+  onCountChange?: (n: number) => void;
+}) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,6 +50,7 @@ export function CommentThread({ questionId, currentEmail }: { questionId: string
     try {
       const data = await api.get<Comment[]>(`/api/questions/${questionId}/comments`);
       setComments(data);
+      onCountChange?.(data.length);
     } finally {
       setLoading(false);
     }

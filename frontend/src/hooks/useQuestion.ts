@@ -47,6 +47,9 @@ export type QuestionFull = {
     by_email: string;
     created_at: number;
   }>;
+  // Total threaded comments under this question — drives the 討論串 tab badge
+  // so we don't have to mount CommentThread just to know how many there are.
+  comment_count: number;
 };
 
 export function useQuestion(id: string | undefined) {

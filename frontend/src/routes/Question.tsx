@@ -22,7 +22,7 @@ import { ReadOnlyContent } from "../components/ReadOnlyContent";
 import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 
-type Tab = "explanation" | "note";
+type Tab = "explanation" | "note" | "discussion";
 
 type SimilarItem = {
 	id: string;
@@ -58,6 +58,11 @@ export function Question() {
 	// the answer before attempting. CSS-only blur on the already-rendered
 	// ReadOnlyContent, so no extra render pass and no content duplication.
 	const [revealedExp, setRevealedExp] = useState(false);
+	// Live comment count for the 討論串 tab badge. Seeded from the question
+	// API's comment_count (so the badge is correct on first paint without
+	// mounting CommentThread), then kept fresh by CommentThread's onCountChange
+	// whenever a comment is added/edited/deleted.
+	const [commentCount, setCommentCount] = useState(0);
 
 	// Note tab — has its own edit lifecycle (no lock, no version)
 	const [noteEditing, setNoteEditing] = useState(false);
@@ -108,6 +113,28 @@ export function Question() {
 	useEffect(() => {
 		setRevealedExp(false);
 	}, [data?.id]);
+
+	// Seed/refresh the comment-count badge from the question payload. Kept in
+	// sync via onCountChange when CommentThread is mounted.
+	useEffect(() => {
+		if (typeof data?.comment_count === "number") {
+			setCommentCount(data.comment_count);
+		}
+	}, [data?.id, data?.comment_count]);
+
+	// If the user is on the discussion tab and the viewport shrinks below lg
+	// (where the tab is hidden), snap them back to the explanation tab so they
+	// aren't stuck on an invisible tab with no content.
+	useEffect(() => {
+		if (tab !== "discussion") return;
+		const mq = window.matchMedia("(min-width: 1024px)");
+		const sync = () => {
+			if (!mq.matches) setTab("explanation");
+		};
+		sync();
+		mq.addEventListener("change", sync);
+		return () => mq.removeEventListener("change", sync);
+	}, [tab]);
 
 	// 相似題目 — lazy-loaded after the main question payload arrives.
 	// Kept off the hot /api/questions/:id path so navigation stays snappy.
@@ -378,6 +405,19 @@ export function Question() {
 								<span className="ml-1.5 text-[10px] text-ink-400 dark:text-ink-500">●</span>
 							)}
 						</TabButton>
+						{/* Discussion tab — only appears in two-pane (lg+) view; on
+						    mobile the 討論 section still lives at the bottom of the
+						    right column (see `lg:hidden` on that section below). */}
+						<TabButton
+							active={tab === "discussion"}
+							onClick={() => setTab("discussion")}
+							className="hidden lg:inline-flex"
+						>
+							討論串
+							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
+								({commentCount})
+							</span>
+						</TabButton>
 					</div>
 					{tab === "explanation" && !editing && (
 						<div className="flex items-center gap-3 flex-wrap justify-end">
@@ -521,11 +561,18 @@ export function Question() {
 										<button
 											type="button"
 											onClick={() => setRevealedExp(true)}
-											className="absolute inset-0 flex items-start justify-center pt-10 sm:pt-14 group"
+											// appearance-none + bg-transparent + outline-none kill the
+											// native button rectangle / focus outline that otherwise
+											// shows behind the rounded pill on the inset-0 hit target.
+											className="absolute inset-0 flex items-start justify-center pt-10 sm:pt-14 group appearance-none bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-none"
 											aria-label="顯示詳解"
 											title="點擊顯示詳解(避免一進來就看到答案)"
 										>
-											<span className="bg-accent group-hover:bg-accent-dark text-white px-4 py-2 rounded-full text-sm shadow-paper transition inline-flex items-center gap-1.5">
+											{/* No box-shadow on the pill: shadow-paper's negative
+											    spread can leave a visible rectangular fringe behind
+											    a rounded-full element. The solid accent contrasts
+											    enough against the blurred backdrop on its own. */}
+											<span className="bg-accent group-hover:bg-accent-dark text-white px-4 py-2 rounded-full text-sm transition inline-flex items-center gap-1.5 ring-1 ring-accent-dark/20">
 												<Eye size={14} /> 點擊顯示詳解
 											</span>
 										</button>
@@ -633,6 +680,27 @@ export function Question() {
 							</button>
 						</div>
 					))}
+
+				{/* Discussion tab panel — lg-only. On mobile the discussion lives
+				    in its own section at the bottom (Comments below). The effect
+				    above forces tab back to "explanation" if the viewport drops
+				    below lg while this tab is active, so we never land in a state
+				    where the tab is set to "discussion" but invisible. */}
+				{tab === "discussion" && (
+					<div className="hidden lg:block mt-2">
+						{me ? (
+							<CommentThread
+								questionId={data.id}
+								currentEmail={me.email}
+								onCountChange={setCommentCount}
+							/>
+						) : (
+							<p className="text-ink-400 dark:text-ink-500 text-sm">
+								載入使用者…
+							</p>
+						)}
+					</div>
+				)}
 			</section>
 
 			{/* 相似題目 — tag-overlap with BM25 fallback, hidden when empty */}
@@ -714,11 +782,18 @@ export function Question() {
 				</section>
 			)}
 
-			{/* Comments */}
-			<section className="mt-12">
+			{/* Comments — mobile only. At lg+ this content is shown inside the
+			    詳解共筆 / 個人筆記 / 討論串 tab strip above (the 討論串 tab is
+			    `hidden lg:inline-flex`), so we hide this bottom section there to
+			    avoid rendering CommentThread twice and double-fetching. */}
+			<section className="mt-12 lg:hidden">
 				<h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-3">討論</h2>
 				{me ? (
-					<CommentThread questionId={data.id} currentEmail={me.email} />
+					<CommentThread
+						questionId={data.id}
+						currentEmail={me.email}
+						onCountChange={setCommentCount}
+					/>
 				) : (
 					<p className="text-ink-400 dark:text-ink-500 text-sm">載入使用者…</p>
 				)}
@@ -876,10 +951,15 @@ function TabButton({
 	active,
 	onClick,
 	children,
+	className = "",
 }: {
 	active: boolean;
 	onClick: () => void;
 	children: React.ReactNode;
+	// Caller-supplied responsive classes (e.g. "hidden lg:inline-flex") for
+	// tabs that should only appear at certain breakpoints. Appended to the
+	// base styling rather than replacing it.
+	className?: string;
 }) {
 	return (
 		<button
@@ -888,7 +968,8 @@ function TabButton({
 				"px-4 py-2 -mb-px border-b-2 font-serif text-base transition " +
 				(active
 					? "border-accent text-ink-900 dark:text-ink-100"
-					: "border-transparent text-ink-500 hover:text-ink-700 dark:hover:text-ink-300")
+					: "border-transparent text-ink-500 hover:text-ink-700 dark:hover:text-ink-300") +
+				(className ? " " + className : "")
 			}
 		>
 			{children}
