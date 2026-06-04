@@ -8,6 +8,14 @@ export type Env = {
   CF_ACCESS_TEAM_DOMAIN: string;
   CF_ACCESS_AUD: string;
   ADMIN_EMAILS?: string;
+  // Daily roster-sync Cron Trigger (worker/lib/roster-sync.ts). CF_API_TOKEN
+  // is a secret (needs Access Apps+Policies Edit); the rest are [vars].
+  // All optional — if unset the scheduled() handler throws and that cron run
+  // is marked failed, but the fetch handler is unaffected.
+  CF_API_TOKEN?: string;
+  CF_ACCOUNT_ID?: string;
+  ACCESS_APP_ID?: string;
+  ROSTER_CSV_URL?: string;
   // Optional — feedback button is disabled if either is missing.
   GH_FEEDBACK_REPO?: string;  // "owner/repo"
   GH_FEEDBACK_TOKEN?: string; // PAT with issues:write

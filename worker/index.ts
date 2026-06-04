@@ -2,7 +2,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { authMiddleware } from './lib/auth';
-import type { AppContext } from './types';
+import { syncRoster } from './lib/roster-sync';
+import type { AppContext, Env } from './types';
 
 import { meRoutes } from './routes/me';
 import { questionsRoutes } from './routes/questions';
@@ -81,4 +82,24 @@ app.onError((err, c) => {
   return c.json({ error: 'internal error', detail: String(err) }, 500);
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  // Cron Trigger (wrangler.toml [triggers].crons) — daily roster → Access
+  // policy + D1 users sync. New people in the Google Sheet get login access
+  // and a seeded users row without anyone running scripts/sync-access.ts.
+  // Revoke-on-removal: the policy include[] is replaced with the merged list.
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext) {
+    ctx.waitUntil(
+      syncRoster(env)
+        .then((r) =>
+          console.log(
+            `[cron roster-sync] ok: ${r.roster} sheet + ${r.admins} admin → ${r.merged} merged (policy ${r.policyId})`,
+          ),
+        )
+        .catch((e) => {
+          console.error('[cron roster-sync] failed', e);
+          throw e; // surface as a failed cron invocation in observability
+        }),
+    );
+  },
+};
