@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, Check, X, MessageSquare } from 'lucide-react';
+import { AlertTriangle, Check, X } from 'lucide-react';
 import { ApiError } from '../lib/api';
 import { useChallenge, type ActiveChallenge, type ResolvedChallenge } from '../hooks/useChallenge';
 import { RichEditor } from './RichEditor';
@@ -127,7 +127,6 @@ function ActiveBanner({
   onRetract: () => void | Promise<void>;
   onWithdraw: () => void | Promise<void>;
 }) {
-  const [showRationale, setShowRationale] = useState(false);
   const isProposer = meEmail !== null && meEmail === challenge.proposer_email;
   const proposerLabel =
     challenge.proposer_name && challenge.proposer_name.trim().length > 0
@@ -209,15 +208,9 @@ function ActiveBanner({
             撤回挑戰
           </button>
         )}
-        <button
-          onClick={() => setShowRationale((v) => !v)}
-          className="ml-auto text-xs text-ink-600 dark:text-ink-300 hover:text-accent inline-flex items-center gap-1"
-        >
-          <MessageSquare size={12} /> {showRationale ? '收起理由' : '查看挑戰理由'}
-        </button>
       </div>
 
-      {showRationale && !!rationaleDoc && (
+      {!!rationaleDoc && (
         <article className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-700/60 prose-tight">
           <ReadOnlyContent content={rationaleDoc} />
         </article>
