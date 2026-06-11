@@ -333,7 +333,7 @@ export function Question() {
 		);
 
 	return (
-		<div className="max-w-3xl md:max-w-4xl lg:max-w-6xl xl:max-w-[88rem] 2xl:max-w-[104rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-32">
+		<div className="max-w-3xl md:max-w-4xl lg:max-w-6xl xl:max-w-[88rem] 2xl:max-w-[104rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-32 lg:pb-0">
 			<header className="flex items-center justify-between mb-6 text-sm gap-3">
 				<div className="flex items-center gap-3 flex-wrap">
 					{fromSearch && (
@@ -377,13 +377,13 @@ export function Question() {
 			</header>
 
 			{/* Two-column on wide screens (≥lg): question left, everything else right.
-			    Collapses to a single stacked column below lg. */}
-			<div className="lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8 lg:items-start">
-			{/* Left: question stem / options / answer — pinned in view while the right
-			    scrolls with the page. The pane is its own scroll container so a long
-			    question (challenge panel, many options) can be scrolled independently
-			    instead of being cut off at the viewport edge. */}
-			<div className="lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
+			    Collapses to a single stacked column below lg. On lg+ the grid is
+			    pinned to the remaining viewport height and each pane is its own
+			    scroll container, so the two sides scroll fully independently —
+			    the page itself no longer scrolls. */}
+			<div className="lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8 lg:h-[calc(100vh-9.5rem)]">
+			{/* Left: question stem / options / answer */}
+			<div className="lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8">
 			<QuestionCard
 				key={data.id}
 				question={data}
@@ -393,7 +393,7 @@ export function Question() {
 			</div>
 
 			{/* Right: 詳解共筆 / 個人筆記 tabs → 相似題目 → 被引用 → 討論 */}
-			<div className="mt-8 lg:mt-0">
+			<div className="mt-8 lg:mt-0 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8">
 
 			{/* 詳解 / 個人筆記 tabs */}
 			<section className="mt-0">
