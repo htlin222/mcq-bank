@@ -137,7 +137,7 @@ export function Home() {
         <div className="lg:shrink-0">
           <ActivityHeatmap />
         </div>
-        <div className="flex-1 grid grid-cols-3 gap-3 sm:gap-5">
+        <div className="flex-1 grid grid-cols-3 lg:grid-cols-1 lg:grid-rows-3 gap-3 sm:gap-4">
           <StatBlock label="總題數" value={totalQuestions} />
           <StatBlock
             label="已複習"
@@ -350,12 +350,16 @@ function StatBlock({
   accent?: boolean;
 }) {
   return (
-    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 sm:p-5 text-center shadow-paper flex flex-col justify-center">
-      <div className="text-xs text-ink-500 dark:text-ink-400 mb-1">{label}</div>
-      <div className={`font-serif text-2xl sm:text-3xl ${accent ? 'text-accent' : 'text-ink-900 dark:text-ink-100'}`}>
-        {value}
+    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 sm:p-5 lg:px-6 lg:py-3 shadow-paper flex flex-col justify-center text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
+      <div className="text-xs text-ink-500 dark:text-ink-400 mb-1 lg:mb-0">{label}</div>
+      <div className="lg:text-right">
+        <div className={`font-serif text-2xl sm:text-3xl ${accent ? 'text-accent' : 'text-ink-900 dark:text-ink-100'}`}>
+          {value}
+          {sub && (
+            <span className="font-sans text-xs text-ink-400 dark:text-ink-500 ml-2">{sub}</span>
+          )}
+        </div>
       </div>
-      {sub && <div className="text-[11px] text-ink-400 dark:text-ink-500 mt-1">{sub}</div>}
     </div>
   );
 }
