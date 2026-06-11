@@ -45,7 +45,7 @@ export function ActivityHeatmap() {
   }, []);
 
   return (
-    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 overflow-x-auto">
+    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 overflow-x-auto h-full">
       <div className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">
         最近 3 個月活動
       </div>

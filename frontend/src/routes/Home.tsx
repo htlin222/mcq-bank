@@ -132,21 +132,21 @@ export function Home() {
         </div>
       </section>
 
-      {/* Activity heatmap */}
-      <section className="mb-8">
-        <ActivityHeatmap />
-      </section>
-
-      {/* Stats summary */}
-      <section className="grid grid-cols-3 gap-3 sm:gap-5 mb-10">
-        <StatBlock label="總題數" value={totalQuestions} />
-        <StatBlock
-          label="已複習"
-          value={seen}
-          sub={`${overallPct}%`}
-          accent
-        />
-        <StatBlock label="準確率" value={`${correctPct}%`} sub={`${stats?.total_correct ?? 0}/${stats?.total_attempts ?? 0}`} />
+      {/* Activity heatmap + stats summary */}
+      <section className="mb-10 flex flex-col lg:flex-row gap-4 sm:gap-5 lg:items-stretch">
+        <div className="lg:shrink-0">
+          <ActivityHeatmap />
+        </div>
+        <div className="flex-1 grid grid-cols-3 gap-3 sm:gap-5">
+          <StatBlock label="總題數" value={totalQuestions} />
+          <StatBlock
+            label="已複習"
+            value={seen}
+            sub={`${overallPct}%`}
+            accent
+          />
+          <StatBlock label="準確率" value={`${correctPct}%`} sub={`${stats?.total_correct ?? 0}/${stats?.total_attempts ?? 0}`} />
+        </div>
       </section>
 
       {/* Mode cards */}
@@ -350,7 +350,7 @@ function StatBlock({
   accent?: boolean;
 }) {
   return (
-    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 sm:p-5 text-center shadow-paper">
+    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 sm:p-5 text-center shadow-paper flex flex-col justify-center">
       <div className="text-xs text-ink-500 dark:text-ink-400 mb-1">{label}</div>
       <div className={`font-serif text-2xl sm:text-3xl ${accent ? 'text-accent' : 'text-ink-900 dark:text-ink-100'}`}>
         {value}
