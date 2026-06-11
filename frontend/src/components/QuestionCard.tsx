@@ -235,7 +235,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
           const selected = chosen === L;
           const isCorrect = L === currentAnswer;
           let cls =
-            'flex gap-3 items-start p-3 rounded border cursor-pointer transition select-none';
+            'flex gap-3 items-start p-3 rounded border cursor-pointer transition';
           if (!revealed) {
             cls += selected
               ? ' border-accent bg-accent/5 dark:bg-accent/15'
@@ -251,7 +251,13 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
             <li
               key={L}
               className={cls}
-              onClick={() => !revealed && setChosen(L)}
+              onClick={() => {
+                if (revealed) return;
+                // Drag-selecting option text fires a click on mouseup — don't
+                // treat that as choosing the option.
+                if (window.getSelection()?.toString()) return;
+                setChosen(L);
+              }}
             >
               <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
                 {L}

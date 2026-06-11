@@ -379,8 +379,11 @@ export function Question() {
 			{/* Two-column on wide screens (≥lg): question left, everything else right.
 			    Collapses to a single stacked column below lg. */}
 			<div className="lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8 lg:items-start">
-			{/* Left: question stem / options / answer — pinned in view while the right scrolls */}
-			<div className="lg:sticky lg:top-20 lg:self-start">
+			{/* Left: question stem / options / answer — pinned in view while the right
+			    scrolls with the page. The pane is its own scroll container so a long
+			    question (challenge panel, many options) can be scrolled independently
+			    instead of being cut off at the viewport edge. */}
+			<div className="lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
 			<QuestionCard
 				key={data.id}
 				question={data}
