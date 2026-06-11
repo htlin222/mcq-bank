@@ -174,6 +174,30 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     .filter((o) => !!o.text);
   const canEditAnswer = question.can_edit_answer === true;
 
+  // Keyboard shortcut: A–E picks an option, unless the user is typing in an
+  // input / textarea / contenteditable (TipTap) or holding a modifier.
+  useEffect(() => {
+    if (revealed) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.tagName === 'INPUT' ||
+          t.tagName === 'TEXTAREA' ||
+          t.tagName === 'SELECT' ||
+          t.isContentEditable)
+      )
+        return;
+      const L = e.key.toUpperCase() as (typeof LETTERS)[number];
+      if (!(LETTERS as readonly string[]).includes(L)) return;
+      if (!question.options[L]) return;
+      setChosen(L);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [revealed, question]);
+
   return (
     <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper p-5 sm:p-7">
       <header className="flex items-start justify-between gap-3 mb-4">
