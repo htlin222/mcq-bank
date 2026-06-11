@@ -1,0 +1,13 @@
+{
+ "id": "113-028",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "transfusion", "AIHA", "warm-AIHA", "alloantibody", "autoadsorption", "differential-adsorption", "adsorption-elution", "DAT", "DTT", "daratumumab", "immunohematology"],
+ "enrich_html": "<b>📌 考點</b>:warm AIHA 血清含 panreactive autoantibody，會與所有 panel cells 反應使抗體篩檢全陽性、<u>掩蓋底下的 alloantibody</u>。最直接的解法是<b>吸附（adsorption）＋洗脫（elution）</b>:先洗脫 RBC 上的 autoAb 騰出抗原位置，再以同一自身 RBC 於 37&deg;C 吸附血清 autoAb，alloAb 不與自身抗原反應而留在血清供篩檢。<br><b>🏥 臨床意義</b>:約 12&ndash;40%（常引用 &asymp;32%）warm AIHA 病人合併 clinically significant alloantibody。漏判 → 輸入帶該抗原血液引發 acute/delayed HTR，且易被誤歸咎於 autoAb 而延誤。<br><b>⭐ High-yield</b>:近期（約 3 個月內）輸過血者<u>不可用 autoadsorption</u>（殘留 donor RBC 會連 alloAb 一起吸掉漏判）→ 改用 <b>allogeneic / differential adsorption</b>（多種已知 phenotype 同種紅血球分別吸附，例如 Jk(a-) cell 去 autoAb 但保留 anti-Jka）。<br><b>🔬 實證</b>:warm autoadsorption 為偵測 alloAb 的最佳血清學法（Garratty, Transfusion 2002;42:1390）;recently-transfused/嚴重貧血者首選 differential adsorption（PMC5345282, 2017）。",
+ "cards": [
+  {"kind":"basic","front":"warm AIHA 病人血清抗體篩檢對所有 panel cells 全陽性，想找出底下被掩蓋的 alloantibody，最直接的免疫血液學方法是哪一類?","back":"Adsorption-elution（吸附-洗脫），即 warm autoadsorption<hr>warm AIHA 的 panreactive autoantibody 與所有紅血球反應，掩蓋 alloantibody。先洗脫病人 RBC 上的 autoAb、再以該自身 RBC 於 37&deg;C 吸附血清中的 autoAb;alloAb 因不與自身抗原反應而留在血清，後續即可進行篩檢/鑑定。"},
+  {"kind":"basic","front":"warm autoadsorption（自身吸附）為何能去除 autoantibody 卻保留 alloantibody?","back":"alloantibody 不與病人「自身」紅血球抗原反應，故不被吸附<hr>autoAb 針對自身抗原 → 被 autologous RBC 吸附移除;alloAb 針對病人本身缺乏的外來抗原 → 自身 RBC 上沒有該抗原，無法吸附，因而留在血清中被檢出。"},
+  {"kind":"basic","front":"近期（約 3 個月內）有輸血史的 warm AIHA 病人，為何不能用 autologous（自身）adsorption?需改用什麼?","back":"循環中殘留 donor RBC 會把 alloantibody 一起吸掉而漏判 → 改用 allogeneic / differential adsorption<hr>輸入的 donor 紅血球帶有外來抗原，若拿混有 donor RBC 的「自身」紅血球吸附，會連 alloAb 也一併吸走。此時用數種已知 phenotype 的同種紅血球分別吸附（例如 Jk(a-) cell 可去 autoAb 但保留 anti-Jka）。"},
+  {"kind":"basic","front":"warm AIHA 病人中合併 clinically significant alloantibody 的比例約多少?臨床為何重要?","back":"約 12&ndash;40%（常引用 &asymp;32%）<hr>比例不低，若 alloAb 被 autoAb 掩蓋而漏判，輸入帶該抗原血液會引發 acute/delayed hemolytic transfusion reaction，且容易被誤歸咎於 autoAb 而延誤處置。故 AIHA 輸血前須設法排除潛藏 alloAb。"},
+  {"kind":"basic","front":"輸血/發血檢驗中，DTT（dithiothreitol）預處理紅血球的主要用途為何?有何副作用須注意?","back":"破壞紅血球膜上 CD38 → 消除 anti-CD38 單株抗體（daratumumab）造成的抗體篩檢/交叉配血假陽性<hr>daratumumab 結合 panel cells 上的 CD38 會使篩檢全陽性，DTT 處理後可解除。副作用:DTT 同時破壞 Kell 系統抗原，故需另以 Kell 陰性紅血球確認有無 anti-K。並非辨識 alloantibody 的方法。"}
+ ]
+}

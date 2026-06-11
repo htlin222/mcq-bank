@@ -1,0 +1,13 @@
+{
+ "id": "114-021",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "Castleman-disease", "MCD", "iMCD", "iMCD-TAFRO", "HHV-8", "KSHV", "IL-6", "vIL-6", "siltuximab", "tocilizumab", "rituximab", "CDCN", "gp130"],
+ "enrich_html": "<b>📌 考點</b>:iMCD-TAFRO 是 idiopathic MCD 中<u>最嚴重、爆發性 (aggressive) 的亞型</u>,以災難性 cytokine storm 為核心,絕非 indolent。雙重誘餌:把病程說成 indolent、且把血小板寫成 thrombocytosis(實為 thrombocyto<b>penia</b>);TAFRO 的 R 指 <b>R</b>eticulin fibrosis / <b>R</b>enal dysfunction。<br><b>🏥 臨床意義</b>:TAFRO 進展快速,可在數日內進展至全身水腫、腎衰竭、需重症照護;5 年存活率約 65%,較 iMCD-NOS 差,須積極治療(IL-6 阻斷 + 高劑量類固醇,難治者 cyclosporine / JAKi / sirolimus)。<br><b>⭐ High-yield</b>:iMCD 一線 = anti-IL-6 siltuximab(無法取得→ tocilizumab,抗 IL-6R)｜HHV-8 陽性 MCD 一線 = rituximab｜vIL-6 可不依賴 IL-6Rα 直接結合 gp130｜iMCD 為排除性診斷,須排除 HHV-8/HIV/autoimmune/lymphoma/POEMS。<br><b>🔬 實證</b>:CDCN 2017 診斷準則 + CDCN 2018 evidence-based 治療指引;siltuximab 為唯一 FDA 核准的 iMCD 藥物。(Fajgenbaum et al., Blood 2018;132:2115;AJH 2025 review, PMC12516665)",
+ "cards": [
+  {"kind":"basic","front":"HHV-8 編碼的 viral IL-6 (vIL-6) 在訊號傳遞上,與人類 IL-6 有何關鍵差異?","back":"vIL-6 可不依賴 IL-6Rα,直接結合 gp130 啟動訊號<hr>人類 IL-6 須先結合 IL-6Rα 才能與 gp130 形成複合體;vIL-6 則可繞過 IL-6Rα 直接活化 gp130,因此能在更廣泛的細胞上觸發 JAK/STAT3 訊號,造成血管增生、漿細胞增生與急性期反應 (CRP↑)。這也是 HHV-8 陽性 MCD 的核心致病機轉。"},
+  {"kind":"cloze","text":"iMCD-TAFRO 的縮寫代表: {{c1::Thrombocytopenia(血小板「低下」)}}、{{c2::Anasarca / ascites(全身水腫 / 腹水)}}、{{c3::Fever(發燒)}}、{{c4::Reticulin fibrosis / Renal dysfunction(骨髓網狀纖維化 / 腎功能不全)}}、{{c5::Organomegaly(器官腫大)}}","extra":"陷阱:T 是 thrombocytoPENIA(血小板低下),不是 thrombocytosis;R 同時涵蓋 reticulin fibrosis 與 renal dysfunction。相對地,iMCD-NOS 常見 thrombocytosis 與 polyclonal hypergammaglobulinemia。"},
+  {"kind":"basic","front":"iMCD-TAFRO 的臨床病程是 indolent 還是 aggressive?其預後如何?","back":"Aggressive(爆發/侵襲性),非 indolent;5 年存活率約 65%<hr>iMCD-TAFRO 是 iMCD 中最嚴重的亞型,以災難性 cytokine storm 為特徵,可在數日內進展至全身水腫、急性腎衰竭、需重症照護,預後較 iMCD-NOS 差。把 TAFRO 描述為 indolent 是常見的錯誤敘述。"},
+  {"kind":"basic","front":"CDCN 2017 診斷 idiopathic MCD (iMCD) 的兩項主要準則,以及它屬於哪一類診斷?","back":"主要準則:(1) 多區域淋巴結腫大 (≥2 個淋巴結區);(2) 淋巴結病理符合 iMCD spectrum。iMCD 為排除性診斷<hr>兩項主要準則須同時滿足,再加 ≥2 項次要準則(11 項中含 6 項實驗室 + 5 項臨床,且至少 1 項為實驗室異常,如 CRP/ESR↑、anemia、thrombocytopenia、renal dysfunction、polyclonal hypergammaglobulinemia)。並須排除 HHV-8/HIV、自體免疫 (SLE/RA/IgG4-RD) 與惡性淋巴增生 (lymphoma/POEMS)。"},
+  {"kind":"basic","front":"HHV-8 陽性 MCD 與 HHV-8 陰性 (idiopathic) MCD 的第一線治療有何不同?","back":"HHV-8 陽性 → rituximab 為核心;HHV-8 陰性 iMCD → anti-IL-6 siltuximab 為一線<hr>HHV-8 陽性 MCD 常見於 HIV 患者,rituximab 清除帶病毒的 CD20+ plasmablasts(常合併抗反轉錄病毒治療)。iMCD 由 IL-6 軸驅動,故以 IL-6 阻斷為一線:siltuximab(抗 IL-6,唯一 FDA 核准用於 iMCD)無法取得時改用 tocilizumab(抗 IL-6 受體),重度者合併高劑量 corticosteroids。"}
+ ]
+}

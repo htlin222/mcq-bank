@@ -1,0 +1,13 @@
+{
+  "id": "114-079",
+  "topic_index": 5,
+  "extra_tags": ["enriched", "eltrombopag", "aplastic anemia", "SAA", "TPO-RA", "c-MPL", "thrombopoietin receptor agonist", "RACE trial", "IST", "ATG", "cyclosporine", "clonal evolution", "monosomy 7"],
+  "enrich_html": "<b>📌 考點</b>：Eltrombopag 為口服 thrombopoietin receptor (c-MPL/TPO-R) agonist，結合於 receptor 的 transmembrane domain（與內生 TPO 結合位點不同，故可加成），<u>不</u>透過 SCF/c-Kit。在 SAA 它刺激殘存 HSC/progenitor 而促 trilineage（三系）造血，非僅升 platelet。<br><b>🏥 臨床意義</b>：First-line 加在 horse ATG + cyclosporine 上可顯著提升反應；refractory SAA 則單用 dose escalation 50→150 mg/day。最須監測的安全性問題 = clonal evolution（約 19%，多在 6 個月內，常見 -7/del(7q)，且多為治療無反應者）→ 須定期骨髓 + cytogenetics。<br><b>⭐ High-yield</b>：起始 50 mg/day、最高 150 mg/day｜東亞族群因暴露高常下調起始劑量 (25 mg)｜空腹服、與多價陽離子 (Ca/Fe/Mg/Al) 間隔 ≥2–4 hr｜副作用：肝功能異常、白內障、thromboembolism。<br><b>🔬 實證</b>：RACE trial (Peffault de Latour, NEJM 2022;386:11) front-line hATG+CsA±eltrombopag → 3mo CR 22% vs 10%、6mo ORR 68% vs 41%；refractory 適應症源自 Olnes NEJM 2012;367:11。",
+  "cards": [
+    {"kind":"basic","front":"Eltrombopag 的藥理機轉是什麼（包含結合位點）？","back":"口服的 thrombopoietin receptor (c-MPL/TPO-R) agonist。<hr>它結合在 TPO receptor 的 transmembrane domain，與內生性 TPO 的結合位點不同，因此可與內生 TPO 產生加成效果，刺激 megakaryocyte 及造血幹/前驅細胞增生。"},
+    {"kind":"basic","front":"在 severe aplastic anemia (SAA) 中，eltrombopag 為何能改善的不只是血小板，而是紅、白、血小板三系血球？","back":"因為它直接刺激殘存的 hematopoietic stem/progenitor cells，促進 trilineage hematopoiesis。<hr>TPO receptor (c-MPL) 不僅表現於 megakaryocyte，也表現在 hematopoietic stem cell 上；eltrombopag 透過此受體驅動 HSC，故能同時改善紅血球、嗜中性球與血小板。其機轉並非激動 SCF/c-Kit receptor。"},
+    {"kind":"cloze","text":"Eltrombopag 治療 SAA：作用於 {{c1::TPO receptor (c-MPL)}}、結合 transmembrane domain；起始劑量 {{c2::50 mg/day}}、最高 {{c3::150 mg/day}}；newly diagnosed SAA 第一線可與標準 IST {{c4::horse ATG + cyclosporine}} 併用以提升反應率與深度。","extra":"東亞族群因藥物暴露較高，起始劑量常下調 (25 mg)；須空腹服用，與含多價陽離子 (Ca/Fe/Mg/Al) 的食物或制酸劑間隔 ≥2–4 小時以免螯合影響吸收。Refractory 病人 50 mg 12 週無反應時應 dose escalation 至 150 mg 並延長療程，部分屬 24 週才達標的延遲反應，不宜過早判定失敗。"},
+    {"kind":"basic","front":"RACE trial（NEJM 2022）比較 horse ATG + cyclosporine ± eltrombopag 作為 SAA 第一線治療，主要結果為何？","back":"加入 eltrombopag 顯著提升反應：3 個月 complete response 22% vs 10%；6 個月 overall response rate 68% vs 41%。<hr>RACE 為前瞻性隨機 phase 3 試驗，確立 eltrombopag 加在標準 IST 上作為 front-line 的角色，提升 CR 與 ORR。"},
+    {"kind":"basic","front":"Eltrombopag 治療 SAA 時，最須警覺、影響預後最大的長期安全性問題是什麼？最常見的染色體異常為何？","back":"Clonal evolution（細胞遺傳異常 / MDS-AML 轉化），約 19%；最常見為第 7 號染色體缺失 monosomy 7 (-7) 或 del(7q)。<hr>多數 clonal evolution 發生於開始 eltrombopag 後 6 個月內，且多發生在對 eltrombopag 無反應的病人，預後較差，須定期骨髓檢查與 cytogenetics 監測。其他須監測的副作用包含肝功能異常、白內障與 thromboembolism。"}
+  ]
+}

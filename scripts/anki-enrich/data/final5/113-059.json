@@ -1,0 +1,33 @@
+{
+  "id": "113-059",
+  "topic_index": 1,
+  "extra_tags": ["enriched", "ET", "MPN", "IPSET-Thrombosis", "JAK2-V617F", "CALR", "MPL", "thrombosis-risk", "acquired-vWS", "hydroxyurea"],
+  "enrich_html": "<b>📌 考點</b>：Revised IPSET-Thrombosis（ET 血栓風險分層）只納入三項變數 — age &gt;60、prior thrombosis、JAK2 V617F。<u>CALR mutation 不是危險因子</u>（亦不含 MPL）。誘餌設計：CALR 與 JAK2 並列易誤選；但多變項分析僅 JAK2 V617F（HR≈1.8）與血栓病史（HR≈2.1）獨立預測血栓，age &gt;60 為附加修飾。<br><b>🏥 臨床意義</b>：分四層 — very low（無因子）、low（僅 JAK2+）、intermediate（僅 age &gt;60）、high（有血栓病史，或 age &gt;60＋JAK2+）。high-risk 必須 cytoreduction（首選 hydroxyurea 或 peg-IFNα）＋low-dose aspirin；low 給 aspirin；very-low 三陰性可僅觀察。<br><b>⭐ High-yield</b>：CALR 突變 ET 血栓風險低於 JAK2、但血小板數更高且 aspirin 無益反增出血；plt &gt;1000–1500×10⁹/L 須警覺 acquired von Willebrand syndrome（約 20%），plt &gt;1500 時 aspirin 為禁忌、須先降血小板。<br><b>🔬 實證</b>：四層年化血栓率約 very-low 0.44–1.05%、low 1.6–2.6%、intermediate 1.4–1.6%、high 2.4–4.2% 病人-年。(Barbui et al., Blood 2012;120:5128；Tefferi, Am J Hematol 2024 ET update)",
+  "cards": [
+    {
+      "kind": "cloze",
+      "text": "Revised IPSET-Thrombosis（essential thrombocythemia 血栓風險分層）只納入三項危險因子: {{c1::age > 60 歲}}、{{c2::prior thrombosis（血栓病史）}}、{{c3::JAK2 V617F mutation}}。",
+      "extra": "CALR 與 MPL mutation 皆不列入。多變項分析中僅 JAK2 V617F（HR≈1.8）與血栓病史（HR≈2.1）為獨立預測因子，age >60 為附加修飾因子。(Barbui, Blood 2012)"
+    },
+    {
+      "kind": "basic",
+      "front": "在 Revised IPSET-Thrombosis 中，CALR mutation 是不是 ET 的血栓危險因子?",
+      "back": "不是<hr>該評分只納入 age >60、prior thrombosis、JAK2 V617F 三項；CALR（與 MPL）未被列入。臨床上 CALR 突變的 ET 血栓風險反而低於 JAK2 V617F 突變者，但血小板數通常更高，且 aspirin 無血栓預防益處、反增出血。"
+    },
+    {
+      "kind": "basic",
+      "front": "Revised IPSET-Thrombosis 的 high-risk ET 如何定義、如何治療?",
+      "back": "定義: 有血栓病史，或 age >60 歲且 JAK2 V617F 陽性（符合其一即為 high risk）<hr>治療: cytoreductive therapy（首選 hydroxyurea 或 pegylated interferon-α，二線 busulfan）合併 low-dose aspirin。對照: low（僅 JAK2+）給 aspirin；intermediate（僅 age >60）cytoreduction 為選項；very-low（三陰性）可僅觀察。"
+    },
+    {
+      "kind": "basic",
+      "front": "ET 血小板極度增高（如 >1000–1500×10⁹/L）時，為何反而要小心出血、並避免貿然給 aspirin?",
+      "back": "因易併發 acquired von Willebrand syndrome (aVWS)<hr>大量血小板異常吸附高分子量 vWF multimers，使血漿 vWF 活性下降而出血，約 20% ET 可見。plt ≥1000 應排除 aVWS（查 ristocetin cofactor / vWF multimer）；plt >1500 時 aspirin 為禁忌，須先 cytoreduction 降血小板。"
+    },
+    {
+      "kind": "cloze",
+      "text": "WHO 2022 診斷 ET 的主要條件: {{c1::持續 platelet ≥450×10⁹/L}}、{{c2::骨髓見大而成熟、核分葉增多的巨核細胞增生（無顯著顆粒球或紅血球系增生）}}、{{c3::不符合 CML/PV/PMF/MDS 等其他髓性腫瘤標準}}、{{c4::帶 JAK2、CALR 或 MPL mutation}}。",
+      "extra": "次要條件: 存在其他 clonal marker。需符合全部四項主要條件，或前三項主要條件＋一項次要條件。三個 driver mutation 互斥，約 10–15% 為 triple-negative。"
+    }
+  ]
+}

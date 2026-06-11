@@ -1,0 +1,13 @@
+{
+  "id": "112-018",
+  "topic_index": 2,
+  "extra_tags": ["enriched", "MCL", "Follicular lymphoma", "Marginal zone lymphoma", "DLBCL", "CCND1", "BCL2", "cyclin D1", "SOX11", "Polatuzumab vedotin", "CD79b", "MMAE", "CAR-T", "POLARIX"],
+  "enrich_html": "<b>📌 考點</b>:B-cell lymphoma 特徵性易位是高頻送分/送命題。<u>MCL = t(11;14)(q13;q32),並置 CCND1(11q13) 與 IGH enhancer(14q32) → cyclin D1 過表現</u>;<u>FL = t(14;18)(q32;q21),並置 BCL2(18q21) 與 IGH → 抗凋亡</u>。誘餌常把兩者對調(把 t(14;18)/BCL2 安到 MCL 頭上),只要記住「11/14→cyclin D1、14/18→BCL2」即可破解。<br><b>🏥 臨床意義</b>:cyclin D1-negative MCL(約 5%)仍可帶 t(11;14),此時靠 <b>SOX11+</b> 確診(PMC4778333)。MCL 不良預後因子:blastoid variant、Ki67 &ge;30%、TP53/p53 異常 → 中位 OS 約 19 vs 57 個月,需 2nd/3rd-gen BTKi 為主之強化治療。<br><b>⭐ High-yield</b>:Polatuzumab vedotin = anti-CD79b ADC,payload <b>MMAE</b>(微管抑制劑)→ peripheral neuropathy。POLARIX trial 以 <u>Pola-R-CHP 取代 R-CHOP 的 vincristine</u>(避開重疊神經毒性),CR 率約 77%,為 20 年來首個一線 DLBCL 新藥。<br><b>🔬 實證</b>:t(8;14)/MYC→Burkitt;t(11;14)/CCND1→MCL;t(14;18)/BCL2→FL。CAR-T(axi-cel/tisa-cel/liso-cel)皆靶向 CD19、核准 R/R DLBCL,毒性 CRS+ICANS。(Tilly et al., POLARIX, N Engl J Med 2022;386:351;WHO/ICC 2022)",
+  "cards": [
+    {"kind": "basic", "front": "Mantle cell lymphoma (MCL) 的特徵性染色體易位、所涉基因與蛋白標記為何?", "back": "t(11;14)(q13;q32) → cyclin D1 過度表現<hr>將 11q13 的 <b>CCND1</b>(BCL-1 / PRAD-1)與 14q32 的 IGH enhancer 並置,使 cyclin D1 去管制性過表現。診斷依據:FISH 測 t(11;14) 或 IHC cyclin D1+、SOX11+。"},
+    {"kind": "basic", "front": "「t(14;18) 將 BCL2 與 IGH 並置、造成 BCL2 去管制性過度表現」是哪一種淋巴瘤的特徵?(常被誤植到 MCL)", "back": "Follicular lymphoma (FL)<hr>t(14;18)(q32;q21) 使 18q21 的 <b>BCL2</b> 受 IGH enhancer 驅動而過表現,抑制凋亡,見於約 85% FL。把此敘述安到 MCL 頭上即為錯誤——MCL 是 t(11;14)/cyclin D1。"},
+    {"kind": "cloze", "text": "B-cell lymphoma 特徵性易位配對:MCL → {{c1::t(11;14),CCND1/cyclin D1}};Follicular lymphoma → {{c2::t(14;18),BCL2}};Burkitt lymphoma → {{c3::t(8;14),MYC}}。", "extra": "三者皆與 IGH locus(14q32)並置,差別在被去管制的致癌基因。記憶:11/14→cyclin D1、14/18→BCL2、8/14→MYC。"},
+    {"kind": "basic", "front": "抗體藥物共軛體 (ADC) Polatuzumab vedotin 的標靶與 payload 各是什麼?其特徵性不良反應為何?(POLARIX 如何據此改造 R-CHOP?)", "back": "標靶 CD79b;payload 為 monomethyl auristatin E (MMAE);特徵不良反應為 peripheral neuropathy<hr>Pola-V 結合 CD79b → BCR 內吞 → 酸性囊泡釋放 MMAE(微管抑制劑)殺死腫瘤細胞。因 MMAE 與 vincristine 周邊神經毒性重疊,POLARIX 以 Pola-R-CHP 取代 R-CHOP 的 vincristine,CR 率約 77%,為 20 年來首個改善一線 DLBCL 之新方案。(N Engl J Med 2022;386:351)"},
+    {"kind": "basic", "front": "MCL 的不良預後因子有哪些?blastoid variant 與哪個基因異常高度相關?", "back": "blastoid variant、Ki67 &ge;30%、高 MIPI/MIPI-c、TP53(p53)異常<hr>blastoid variant 約 70% 帶 TP53 mutation,中位 OS 約 19 個月 vs 非 blastoid 約 57 個月。高危族群建議以 2nd/3rd-gen BTK inhibitor 為主之強化治療。"}
+  ]
+}

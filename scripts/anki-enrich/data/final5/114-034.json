@@ -1,0 +1,13 @@
+{
+ "id": "114-034",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "cold-agglutinin-disease", "AIHA", "IgM", "complement-classical-pathway", "C3d", "extravascular-hemolysis", "sutimlimab", "PNH", "CD55", "CD59"],
+ "enrich_html": "<b>📌 考點</b>：Cold agglutinin disease (CAD) 的致病抗體是 <u>IgM</u>(非 IgG)。IgM 為五聚體、補體活化效率高，在低溫(依 thermal amplitude，通常 &lt;30°C 起)結合 RBC 表面 I/i 多醣抗原 → 固定 C1q → 啟動 <b>classical pathway</b>(非 alternative)。誘餌「最可能 Ig 為 IgG」其實描述的是 warm AIHA。<br><b>🏥 臨床意義</b>：補體多停在 C3b → 紅血球被肝臟 Kupffer cells 吞噬(<b>extravascular hemolysis</b>)；DAT 典型為 C3d(+)、IgG(-)。CAD 血栓事件風險上升(PMC7292660)。首要照護是<b>保暖避寒</b>;類固醇與脾切除對 cold AIHA 效果差(與 warm AIHA 相反)。<br><b>⭐ High-yield</b>：anti-I → Mycoplasma pneumoniae｜anti-i → EBV｜慢性原發型常合併單株 IgM(lymphoplasmacytic/MGUS)｜<u>thermal amplitude(反應上限溫度)比 titer 更能預測溶血嚴重度</u>。PNH 對比：CD55/CD59 缺失(GPI-anchor defect)→ 補體介導<b>血管內</b>溶血，非抗體驅動。<br><b>🔬 實證</b>：sutimlimab(anti-C1s)2022 核可、為 CAD 唯一適應症藥物，CARDINAL/CADENZA phase 3 顯示 &gt;80% 改善溶血與貧血,但對冷誘發肢端症狀無效。(Berentsen, Blood 2013;122:1114；CADENZA, Blood 2022;140:980)",
+ "cards": [
+   {"kind":"basic","front":"Cold agglutinin disease (CAD) 的致病自體抗體是哪一型免疫球蛋白?為何不是 IgG?","back":"IgM(非 IgG)<hr>CAD 的冷凝集素為 IgM 自體抗體,在低溫下結合紅血球表面多醣抗原。IgM 為五聚體、單一分子即可有效固定 C1q 活化補體,是 cold AIHA 的標誌。IgG 主導的是 warm AIHA(體溫下作用)。考題常以「最可能為 IgG」當誘餌。"},
+   {"kind":"basic","front":"Cold AIHA(如 CAD)的 direct antiglobulin test (DAT) 典型陽性模式為何?其補體途徑與溶血部位為何?","back":"C3d 陽性、IgG 陰性<hr>IgM 結合 RBC 抗原後固定 C1q,啟動<b>古典(classical)途徑</b>(非抗體無關的 alternative 途徑)。補體多停在 C3b,被覆的紅血球在肝臟由 Kupffer cells 吞噬清除(以<b>血管外溶血</b>為主)。IgM 在體溫下解離、僅留 C3d,故 DAT 偵測到的是補體而非 IgG;warm AIHA 則為 IgG±C3d 陽性。"},
+   {"kind":"basic","front":"CAD 中冷凝集素的抗原專一性 anti-I 與 anti-i 分別最常續發於哪種感染?","back":"anti-I → Mycoplasma pneumoniae;anti-i → EBV(infectious mononucleosis)<hr>感染後產生的多株冷凝集素可在感染期及清除後短期內介導溶血。慢性原發型 CAD 則常合併低度 B-cell lymphoproliferative disorder(lymphoplasmacytic lymphoma/Waldenström、IgM 型 MGUS)而產生單株 IgM(常 kappa)。"},
+   {"kind":"basic","front":"CAD 的治療策略為何?為什麼類固醇與脾切除效果差?sutimlimab 的標靶與限制是什麼?","back":"首重保暖避寒;藥物針對 B-cell clone(rituximab ± bendamustine)或補體抑制劑 sutimlimab(anti-C1s)<hr>類固醇與脾切除對 cold AIHA 效果差——溶血主在肝臟(Kupffer cells)而非脾臟,且 IgM 由瀰漫性 B-cell clone 產生(與 warm AIHA 相反,後者類固醇為一線、脾切除有效)。sutimlimab 為 anti-C1s 單株抗體、選擇性抑制古典途徑,2022 核可、為 CAD 唯一適應症藥物;CARDINAL/CADENZA phase 3 顯示 >80% 改善溶血與貧血,但對<b>冷誘發的肢端發紺等周邊症狀無效</b>(屬凝集而非補體溶血)。"},
+   {"kind":"cloze","text":"溶血機轉鑑別:cold AIHA/CAD 由 {{c1::IgM}} 抗體經 {{c2::classical}} 補體途徑、以 {{c3::血管外(extravascular)}} 溶血為主,DAT 呈 {{c4::C3d}} 陽性;warm AIHA 則為 IgG 介導;PNH 則因 {{c5::CD55/CD59}} 缺失(GPI-anchor defect)導致補體介導的血管內溶血。","extra":"三者皆可表現溶血性貧血,但抗體型別、補體途徑、溶血部位與 DAT 模式不同。thermal amplitude(反應上限溫度)比 titer 更能預測溶血嚴重度;CAD 病人血栓事件風險上升。"}
+ ]
+}

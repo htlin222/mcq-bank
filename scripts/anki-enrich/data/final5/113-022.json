@@ -1,0 +1,13 @@
+{
+ "id": "113-022",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "MDS", "SF3B1", "Luspatercept", "ESA", "EPO", "ring-sideroblast", "IPSS-R", "lower-risk-MDS", "COMMANDS-trial", "MEDALIST"],
+ "enrich_html": "<b>📌 考點</b>:lower-risk non-del(5q) MDS 合併症狀性貧血,治療選擇取決於 <u>血清 EPO 閾值 500 mU/mL</u>。EPO ≤500 → ESA 一線;EPO &gt;500 → ESA 反應率低,改以 Luspatercept。SF3B1-mutated（VAF WHO ≥5%／ICC ≥10%、blast &lt;5%、無 del(5q)/-7/complex、無 biallelic TP53、ICC 另需無 RUNX1）在 WHO5/ICC 各亞型中預後最佳。<br><b>🏥 臨床意義</b>:Luspatercept 為 ActRIIB-IgG1 Fc 融合蛋白,扣押 <u>TGF-β superfamily</u> ligands、抑制 Smad2/3,促進晚期紅血球成熟（非 EPO 樣的早期前驅刺激,亦非 TNF-α superfamily）。MDS 的高 ferritin 來自輸血／無效造血／發炎,口服鐵劑無效;chelation 門檻為累計約 20-50 U RBC 且 ferritin &gt;1000-2500 ng/mL。<br><b>⭐ High-yield</b>:COMMANDS 一線 Luspatercept RBC-TI ≥12wk + Hb↑≥1.5 = 58.5% vs Epoetin alfa 31.2%（P&lt;.0001）;2023/08 FDA 核准 ESA-naive 一線,不分 RS 狀態。IPSS-R 細胞遺傳 trisomy 8 = Intermediate = 2 分（易被誤記為 good）。<br><b>🔬 實證</b>:COMMANDS（Platzbecker, Lancet 2023;402:373-385,一線 ESA-naive）｜MEDALIST（NEJM 2020;382:140-151,RS+ ESA-refractory）｜分類 PMC11049163(2024)。",
+ "cards": [
+  {"kind":"basic","front":"Lower-risk non-del(5q) MDS 合併症狀性貧血、血清 EPO &gt;500 mU/mL 時,首選治療藥物是什麼?","back":"Luspatercept<hr>EPO &gt;500 mU/mL 時內源性 EPO 已偏高,ESA（erythropoiesis-stimulating agents）反應率低、無效益,改用 Luspatercept。對 non-del(5q)、有 ring sideroblast 和／或 SF3B1 mutation 的 lower-risk MDS,證據來自 MEDALIST（NEJM 2020）與 COMMANDS（Lancet 2023）。"},
+  {"kind":"basic","front":"MDS 患者使用 ESA（erythropoiesis-stimulating agents）治療貧血的血清 EPO 閾值是多少?","back":"血清 EPO ≤500 mU/mL 才適用 ESA<hr>EPO &gt;500 mU/mL 時內源性 EPO 已高,再給 ESA 反應率低、無效益,應改用 Luspatercept。此閾值是 lower-risk MDS 貧血治療分流的關鍵數值。"},
+  {"kind":"basic","front":"Luspatercept 的分子結構與作用機轉為何?","back":"重組融合蛋白:human ActRIIB 胞外域 + human IgG1 Fc,結合 TGF-β superfamily ligands<hr>扣押 TGF-β 超家族配體、抑制 Smad2/3 訊號,促進晚期（late-stage）紅血球成熟。關鍵 distractor:結合的是 TGF-β superfamily,並非 TNF-α superfamily;機轉也不同於 EPO（後者刺激早期紅血球前驅細胞增生）。"},
+  {"kind":"basic","front":"COMMANDS trial 比較一線 Luspatercept vs Epoetin alfa 於 lower-risk MDS,主要療效結果為何?","back":"RBC 輸血獨立 ≥12 週合併 Hb 升 ≥1.5 g/dL:Luspatercept 58.5% vs Epoetin alfa 31.2%（P<.0001）<hr>族群為 ESA-naive、transfusion-dependent、IPSS-R lower-risk、blasts <5%、sEPO <500 U/L。中位輸血獨立期 126.6 vs 77 週。據此 2023/08 FDA 核准 Luspatercept 為 ESA-naive 一線,不分 ring sideroblast 狀態。(Platzbecker, Lancet 2023;402:373-385)"},
+  {"kind":"cloze","text":"IPSS-R 細胞遺傳風險:trisomy 8（+8）屬 {{c1::Intermediate}} 組,得 {{c2::2}} 分;對照 Good 組（normal、del(5q)、del(20q)）得 {{c3::1}} 分,Very Good（-Y、del(11q)）得 0 分,Poor（-7、complex 3 項）得 3 分。","extra":"常見陷阱:誤把 +8 當成「good／0 分」。IPSS-R 五分項為 cytogenetics、BM blast %、Hb、ANC、platelet。Hb <8 g/dL 得 1.5 分;BM blasts ≤2% 得 0 分。"}
+ ]
+}

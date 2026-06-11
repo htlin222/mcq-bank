@@ -1,0 +1,33 @@
+{
+  "id": "114-005",
+  "topic_index": 5,
+  "extra_tags": ["enriched", "PNH", "paroxysmal-nocturnal-hemoglobinuria", "thrombosis", "anticoagulation", "complement-inhibitor", "eculizumab", "ravulizumab", "apixaban", "DOAC"],
+  "enrich_html": "<b>📌 考點</b>:PNH 病人已發生血栓並開始 anti-C5 補體抑制劑(ravulizumab)+ apixaban 後,Hgb 上升、LDH 下降,<u>不代表既有血栓已消解</u>—溶血控制與血栓消解是兩條獨立時間軸。正確管理:抗凝維持至血栓消解或補體抑制劑起始後至少 3–6 個月;治療中再發血栓亦不可停抗凝。誤區選項「只要 ravulizumab 改善貧血就立即停抗凝」屬過早停藥,增加血栓復發。<br><b>🏥 臨床意義</b>:PNH 血栓好發於非典型靜脈(Budd-Chiari / hepatic vein、腦靜脈竇、腹腔靜脈),為 PNH 首要死因。急性血栓處置:立即 LMWH/heparin + 立即啟動 anti-C5(若尚未使用),兩者併用以抑制血栓延伸與復發。<br><b>⭐ High-yield</b>:Primary prophylaxis(從未血栓者)在已用 C5 inhibitor 下<u>不建議</u>—補體抑制大幅降低血栓風險;warfarin primary prophylaxis 是 pre-complement era 策略(Hall 2003:大 PNH clone 不抗凝者 10 年血栓率 36.5%)。已建立 complement inhibition、無其他危險因子者是否需無限期次級抗凝仍無共識,須個別化。<br><b>🔬 實證</b>:機轉—free Hb 清除 NO、補體活化血小板與內皮、impaired fibrinolysis;ravulizumab 為長效 anti-C5(約每 8 週給藥)。(Thrombosis in PNH 綜述, PMC11594924, 2024;Thrombosis in PNH: largely gone but not forgotten, Blood 2024;144:125;Hall et al., Blood 2003;102:3587)",
+  "cards": [
+    {
+      "kind": "basic",
+      "front": "PNH 病人發生血栓並使用 anti-C5 補體抑制劑後,Hgb 上升、LDH 下降—可否「只要貧血改善就立即停用抗凝劑」?",
+      "back": "不可,屬過早停藥的錯誤管理。<hr>LDH 正常化只代表 intravascular hemolysis 受控,<b>不等於既有血栓已消解</b>。溶血控制與血栓消解是兩條獨立時間軸;過早停抗凝會增加血栓延伸與復發。"
+    },
+    {
+      "kind": "basic",
+      "front": "PNH 相關血栓在開始補體抑制劑(eculizumab/ravulizumab)後,抗凝劑建議至少維持多久?",
+      "back": "至少維持至血栓消解,或補體抑制劑起始後至少 3–6 個月。<hr>PNH 血栓屬 disease-provoked;補體抑制控制 hemolysis 後血栓驅動因子才逐漸消退,抗凝需橋接到病情穩定—不應僅憑 Hgb/LDH 改善就停藥。"
+    },
+    {
+      "kind": "basic",
+      "front": "PNH 急性血栓事件的「即刻處置」原則為何?",
+      "back": "立即給予 LMWH / unfractionated heparin 抗凝,並立即啟動或維持 anti-C5 補體抑制劑(eculizumab / ravulizumab)。<hr>兩者併用可抑制血栓延伸與復發。急性期過後再轉為口服抗凝(warfarin,或選定病例用 DOAC)維持。"
+    },
+    {
+      "kind": "basic",
+      "front": "從未發生血栓的 PNH 病人,在已使用 C5 補體抑制劑時,是否仍需常規 primary prophylaxis 抗凝?",
+      "back": "不建議常規 primary prophylaxis。<hr>補體抑制劑已大幅降低血栓風險。Warfarin primary prophylaxis 屬 pre-complement era 策略(Hall 2003:大 PNH clone 不抗凝者 10 年血栓率 36.5%),現多保留給等待/無法取得補體抑制劑者。"
+    },
+    {
+      "kind": "basic",
+      "front": "PNH 為何高度 thrombophilic?血栓的好發部位與臨床重要性為何?",
+      "back": "機轉:補體介導血管內溶血釋出 free hemoglobin 清除 NO、活化血小板與內皮、microparticle 釋放、impaired fibrinolysis。<hr>好發於非典型靜脈:hepatic vein / Budd-Chiari、腹腔靜脈(門脈、脾、腸繫膜)、腦靜脈竇,表現不典型易延誤;血栓為 PNH 首要死因,遇 PNH 病人腹痛或神經症狀須高度懷疑靜脈血栓。"
+    }
+  ]
+}

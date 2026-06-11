@@ -1,0 +1,13 @@
+{
+ "id": "112-061",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "TA-GVHD", "transfusion", "gamma-irradiation", "leukoreduction", "T-lymphocyte", "HLA-homozygous", "one-way-HLA-match", "blood-products", "marrow-aplasia"],
+ "enrich_html": "<b>📌 考點</b>：TA-GVHD 預防的<u>唯一標準</u>是 gamma-irradiation(細胞性血品中心劑量 &ge;25 Gy、邊緣 &ge;15 Gy)，使捐者 T lymphocytes 失去增殖能力。Leukoreduction 雖將每單位白血球降低 10³–10⁵、改善整體輸血安全，<u>仍殘留具活性 T cells 而不足以單獨預防</u>——故「leukoreduced 血品不含活性 T lymphocytes」為錯誤敘述。<br><b>🏥 臨床意義</b>：TA-GVHD 與經典 HSCT-GVHD 最大不同在於<u>攻擊受血者自身骨髓</u> → marrow aplasia/pancytopenia，致死率 &gt;90%，多死於 1–3 週內的感染/出血;發病常於輸血後 2–30 天，表現 rash(80%)、fever(67%)、liver enzyme↑(66%)、diarrhea(43%)。<br><b>⭐ High-yield</b>：機轉核心為 one-way HLA match——捐者對某 HLA haplotype 為 homozygous 且受血者 heterozygous(共享該 haplotype)，受血者無法辨識捐者 lymphocytes 為外來;故近親(尤其一等親)指定捐血、HLA-matched platelets、族群 HLA 同質性高(如日本)風險最高。FFP/cryoprecipitate 經凍融已使 T cells 失活，不需 irradiation。<br><b>🔬 實證</b>：治療(corticosteroids/ATG/cyclosporine/growth factors)皆 minimal success;重點全在 pretransfusion irradiation 預防。(Blood 2015;126:406 systematic review;BJH 2022 irradiation guideline)",
+ "cards": [
+  {"kind":"basic","front":"Transfusion-associated GVHD (TA-GVHD) 的致病機轉是什麼?","back":"輸入血品中具活性的捐血者 T lymphocytes 在受血者體內增殖、攻擊受血者組織。<hr>受血者免疫系統無法清除這些捐血者 lymphocytes(因免疫抑制，或捐受雙方 HLA 相似使受血者無法辨識為外來)，導致移植物對抗宿主反應。即使 immunocompetent 病人也可能發生。"},
+  {"kind":"basic","front":"TA-GVHD 機轉中的 「one-way HLA match」 是什麼意思?為何特別危險?","back":"捐者對某 HLA haplotype 為 homozygous，而受血者為 heterozygous 且共享該 haplotype。<hr>受血者的 HLA 與捐者「看起來相同」，免疫系統無法辨識捐者 lymphocytes 為外來物而不予清除;但捐者的 lymphocytes 卻能辨識受血者另一條 haplotype 為外來並加以攻擊 → 單向(one-way)反應引發 TA-GVHD。這也是近親(尤其一等親)指定捐血、族群 HLA 同質性高(如日本)風險最高的原因。"},
+  {"kind":"basic","front":"預防 TA-GVHD 的唯一標準方法與劑量為何?","back":"輸血前對細胞性血品進行 gamma-irradiation，中心劑量 &ge;25 Gy、邊緣 &ge;15 Gy。<hr>放射線使捐者 T lymphocytes 失去增殖能力(mitogenic response)，且對 red cell、platelet、granulocyte 功能影響甚微。實施 universal irradiation 後無新增 TA-GVHD 案例。FFP/cryoprecipitate 經凍融已使 T cells 失活，不需 irradiation。"},
+  {"kind":"basic","front":"為何 leukoreduction(減白)不足以單獨預防 TA-GVHD?","back":"減白僅能將每單位白血球降低 10³–10⁵，無法完全清除具活性的 T lymphocytes，殘餘活性 T cells 仍可在受血者體內增殖。<hr>因此「leukoreduced 紅血球/血小板不含活性、有免疫力的 T lymphocytes」是錯誤敘述。對高風險族群仍須以 irradiation 才算足夠預防。"},
+  {"kind":"basic","front":"TA-GVHD 與經典 HSCT(移植後)GVHD 在「血液學表現」上最關鍵的差異是什麼?","back":"TA-GVHD 會攻擊受血者「自身骨髓」→ marrow aplasia / pancytopenia;HSCT-GVHD 不會，因為骨髓本身就是來自捐者的移植物。<hr>這使 TA-GVHD 致死率 &gt;90%，多死於骨髓衰竭引發的感染與出血。藥物治療(corticosteroids/ATG/cyclosporine)成效有限，重點全在 pretransfusion irradiation 預防。"}
+ ]
+}

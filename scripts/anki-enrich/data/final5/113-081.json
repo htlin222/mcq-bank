@@ -1,0 +1,33 @@
+{
+ "id": "113-081",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "B-ALL", "Ph-negative-ALL", "Blinatumomab", "Inotuzumab-ozogamicin", "CAR-T", "Pediatric-inspired-protocol", "AYA", "Rituximab", "VOD", "CD19", "CD22", "CD20"],
+ "enrich_html": "<b>📌 考點</b>：Adult Ph- B-ALL 治療策略與免疫療法標的／毒性配對是高頻考點。關鍵反向陷阱：AYA（17–39 歲）採 pediatric-inspired regimen <u>顯著改善</u> EFS/OS（並非「增加毒性卻無改善」），故「無改善」的敘述為錯。<br><b>🏥 臨床意義</b>：CALGB 10403 顯示 AYA 用 pediatric regimen 3-yr EFS 59%、3-yr OS 73%（median EFS 78.1 月 vs 歷史對照 30 月，TRM 僅 3%）；CR1 以化療續治療優於 myeloablative allo-HCT（3-yr OS 77% vs 53%），故 AYA 不再常規於 CR1 移植。<br><b>⭐ High-yield</b>：標的記憶—Blinatumomab=CD3×CD19 BiTE｜Inotuzumab=anti-CD22 ADC(calicheamicin)｜Rituximab=anti-CD20｜CAR-T(tisagenlecleucel)=anti-CD19（≤25 歲）。特徵毒性—T-cell-redirecting（blinatumomab/CAR-T）→CRS+ICANS；inotuzumab→VOD/SOS（allo-HCT 後最高）。<br><b>🔬 實證</b>：TOWER median OS 7.7 vs 4.0 月（HR 0.71, P=0.012, NEJM 2017）；INO-VATE OS 7.7 vs 6.7 月、2-yr 22.8% vs 10%（NEJM 2016）；GRAALL-2005/R 於 CD20≥20% 改善 EFS；E1910 frontline blinatumomab consolidation 於 MRD-negative 3-yr OS 85% vs 68%（NEJM 2024;391:320，FDA 2024 核准）。(Stock et al., Blood 2019;133:1548)",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "17–40 歲 AYA 的 Ph-negative B-ALL，採 pediatric-inspired protocol 相較傳統 adult protocol，療效與毒性如何？",
+   "back": "顯著改善 EFS/OS，毒性可接受（並非「增加毒性卻無改善」）<hr>CALGB 10403（Blood 2019;133:1548）：median 年齡 24 歲，pediatric regimen 達 3-yr EFS 59%、3-yr OS 73%，median EFS 78.1 月（歷史對照僅 30 月），treatment-related mortality 僅 3%。特點為高劑量 asparaginase、vincristine、glucocorticoid 與強化 CNS 預防、較少倚賴 HSCT，已成 AYA ALL 標準。「採 pediatric regimen 無法改善預後」是常見錯誤敘述。"
+  },
+  {
+   "kind": "basic",
+   "front": "AYA Ph-negative B-ALL 於第一次完全緩解（CR1），pediatric-style 化療續治療 vs myeloablative allogeneic HCT，何者存活較佳？",
+   "back": "化療續治療優於 myeloablative allo-HCT<hr>3-yr OS 約 77%（化療）vs 約 53%（myeloablative allo-HCT）。故 AYA Ph- B-ALL 在 CR1 不常規進行移植，移植保留給高危／MRD 持續陽性／復發者。"
+  },
+  {
+   "kind": "cloze",
+   "text": "Ph- B-ALL 免疫治療標的對照：Blinatumomab 靶向 {{c1::CD19}}（與 CD3，為 BiTE）；Inotuzumab ozogamicin 靶向 {{c2::CD22}}（ADC，payload calicheamicin）；Rituximab 靶向 {{c3::CD20}}；CAR-T（tisagenlecleucel）靶向 {{c4::CD19}}。",
+   "extra": "CD19/CD22 為 B-ALL 免疫治療最常用標的。Blinatumomab=雙特異 T-cell engager，inotuzumab=抗體藥物複合體，rituximab=裸抗體，CAR-T=基因改造自體 T cell（tisagenlecleucel 適用 ≤25 歲 R/R）。Rituximab 用於 CD20≥20% 表現者並改善 EFS（GRAALL-2005/R）。"
+  },
+  {
+   "kind": "cloze",
+   "text": "B-ALL 免疫治療毒性配對：Blinatumomab → {{c1::CRS 與 neurotoxicity（ICANS）}}；Inotuzumab ozogamicin → {{c2::veno-occlusive disease（VOD/SOS），尤其 allo-HCT 後}}；CAR-T → {{c3::CRS、ICANS（neurotoxicity）}}。",
+   "extra": "VOD/SOS 為 inotuzumab（ADC）特有，inotuzumab 治療後接續 allo-HCT 風險最高，需控制療程數與移植間隔。CRS/ICANS 為 T-cell-redirecting 療法（blinatumomab、CAR-T）共有；CRS 重症用 tocilizumab，ICANS 用 corticosteroid。"
+  },
+  {
+   "kind": "basic",
+   "front": "新診斷（frontline）Ph- B-ALL 達 MRD-negative remission 的成人，於 consolidation 加入 blinatumomab 的效益為何？",
+   "back": "顯著改善 overall survival（E1910 trial）<hr>ECOG-ACRIN E1910（NEJM 2024;391:320）：30–70 歲新診斷 Ph- B-ALL 於 MRD-negative 後加 blinatumomab consolidation，3-yr OS 85% vs 化療 68%（MRD-neg 族群 HR 0.42）。據此 FDA 於 2024 核准 blinatumomab 用於 CD19+ Ph- B-ALL consolidation，將免疫治療推進至 frontline。"
+  }
+ ]
+}

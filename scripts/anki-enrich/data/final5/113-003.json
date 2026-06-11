@@ -1,0 +1,33 @@
+{
+  "id": "113-003",
+  "topic_index": 5,
+  "extra_tags": ["enriched", "aplastic anemia", "inherited bone marrow failure", "dyskeratosis congenita", "Fanconi anemia", "Diamond-Blackfan anemia", "Seckel syndrome", "colchicine", "telomere", "pure red cell aplasia", "Camitta criteria"],
+  "enrich_html": "<b>📌 考點</b>：判斷哪些疾病/物質與 aplastic anemia(全骨髓衰竭、三系減少)相關時，關鍵在於區分「真正影響三系造血」與「只影響單一系」。Dyskeratosis congenita(端粒缺陷)、Colchicine(微管抑制骨髓毒性)、Seckel syndrome(鳥頭侏儒，marrow hypoplasia)三者均有與 AA/骨髓衰竭相關的文獻；唯獨 Diamond-Blackfan anemia 是 pure red cell aplasia(只缺紅系)，為本組例外。<br><b>🏥 臨床意義</b>：診斷 AA 必須先排除 inherited bone marrow failure syndromes(IBMFS)，因為它們<u>禁用或不適合一線 IST</u>，且需要降低強度的 conditioning 才能 HSCT。5-10% 成人 AA 其實帶 telomerase 突變、半數 AA 病人 telomere 過短，年輕 AA 務必篩 telomere length + Fanconi chromosome breakage test。<br><b>⭐ High-yield</b>：SAA(Camitta/IAASG)= marrow cellularity &lt;25% + ≥2 項(ANC &lt;0.5×10⁹/L、platelet &lt;20×10⁹/L、reticulocyte &lt;20×10⁹/L)；VSAA 為 ANC &lt;0.2×10⁹/L｜一線 IST = horse ATG + cyclosporine(±eltrombopag)，反應率 60-80%｜&lt;40 歲且有 matched sibling donor → 首選 allogeneic HSCT。<br><b>🔬 實證</b>：horse ATG 優於 rabbit ATG(NIH RCT)；加 eltrombopag 提升反應與 CR 率。(ASH Education Program 2010；Nature Bone Marrow Transplant 2024, s41409-024-02377-1；Frontiers Oncol 2022, PMC9453478)",
+  "cards": [
+    {
+      "kind": "basic",
+      "front": "用 Camitta/IAASG 標準，severe aplastic anemia (SAA) 與 very severe (VSAA) 如何定義?",
+      "back": "SAA：marrow cellularity &lt;25% + 周邊血至少 2 項符合：ANC &lt;0.5×10⁹/L、platelet &lt;20×10⁹/L、reticulocyte &lt;20×10⁹/L(corrected &lt;1%)；VSAA：同上但 ANC &lt;0.2×10⁹/L<hr>未達此門檻者為 non-severe AA。嚴重度直接決定治療急迫性與是否盡早 HSCT。陷阱：ANC 500/platelet 20,000/reticulocyte 60,000/μL 那組數字是『血液學反應 (response)』標準，不是診斷分層標準，勿混淆。"
+    },
+    {
+      "kind": "basic",
+      "front": "Severe aplastic anemia 的一線治療如何選擇(年齡與配對供者的角色)?",
+      "back": "年輕(約 &lt;40 歲)且有 HLA-matched sibling donor → 首選 allogeneic HSCT；其餘 → 一線 immunosuppressive therapy = horse ATG + cyclosporine，常加 eltrombopag<hr>IST 反應率 60-80%；cyclosporine 維持約 12 個月達輸血脫離後再緩慢減量。Horse ATG 在 NIH RCT 中反應與存活優於 rabbit ATG。加 eltrombopag(TPO-RA)可提升整體反應與 CR 率。一線 IST 失敗者考慮二線 IST 或 alternative-donor HSCT。"
+    },
+    {
+      "kind": "basic",
+      "front": "Fanconi anemia (FA) 的致病通路、確診試驗與主要惡性風險為何?",
+      "back": "通路：FA/BRCA DNA crosslink 修復通路缺陷(終點是 FANCD2 monoubiquitination)；確診試驗：chromosome breakage test(細胞對 diepoxybutane DEB 或 mitomycin C 過度敏感而染色體斷裂增加)；主要惡性：AML(及實體癌如頭頸鱗癌)<hr>FA 為 autosomal recessive，臨床有 thumb/radial 骨骼異常、矮小、café-au-lait 斑、泌尿道與顏面畸形，進行性 pancytopenia。年輕 AA 病人務必做 DEB/MMC breakage test 以排除 FA。"
+    },
+    {
+      "kind": "basic",
+      "front": "Dyskeratosis congenita (DC) 與 aplastic anemia 在分子層次有何共同點?其臨床三聯徵為何?",
+      "back": "兩者都源於 telomere/telomerase 缺陷；DC 與一部分 AA 病人帶 telomerase 相關基因突變(TERC/hTR、TERT、DKC1)。黏膜皮膚三聯徵：nail dystrophy(指甲失養)、reticular skin pigmentation(網狀皮膚色素沉著)、oral leukoplakia(口腔白斑)<hr>DC 屬 telomere biology disorder 類的 inherited bone marrow failure syndrome，端粒過短使 HSC 過早耗竭而進展為骨髓衰竭。約 5-10% 成人 AA 帶 telomerase 突變、半數 AA 病人 telomere 偏短。雄性素(androgens)可能對部分病人有益。"
+    },
+    {
+      "kind": "basic",
+      "front": "Diamond-Blackfan anemia (DBA) 造成 pure red cell aplasia 還是 aplastic anemia?機轉為何?為何屬鑑別中的例外?",
+      "back": "Pure red cell aplasia (PRCA)，只缺紅系前驅細胞，並非三系減少的 aplastic anemia<hr>DBA 是先天性 ribosomopathy(ribosomal protein 基因如 RPS19 突變)，多在出生第一年表現：macrocytic anemia、reticulocytopenia、骨髓紅系前驅細胞稀少，常合併先天畸形(如 triphalangeal thumb)。因僅影響紅系而不造成全骨髓衰竭，故在『與 aplastic anemia 相關』的鑑別中屬例外，被排除。"
+    }
+  ]
+}

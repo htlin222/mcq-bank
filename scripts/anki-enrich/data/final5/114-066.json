@@ -1,0 +1,33 @@
+{
+ "id": "114-066",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "von Willebrand disease", "VWF", "VWF:GPIbM", "VWF:RCo", "VWF:CB", "ASH-ISTH-NHF-WFH-2021", "type 2 VWD", "diagnosis"],
+ "enrich_html": "<b>📌 考點</b>：2021 ASH/ISTH/NHF/WFH 指南的 VWD 診斷 cutoff 是 <u>無出血 VWF &lt;0.30 IU/mL、有 abnormal bleeding VWF &lt;0.50 IU/mL</u>（演算法簡寫 30–50 IU/dL）；30–50 IU/dL + 出血史歸為 \"low VWF\" 而非確診 VWD。<br><b>🏥 臨床意義</b>：VWF 為 acute-phase reactant，受運動、壓力、發炎、懷孕、雌激素、年齡、ABO 血型（O 型約低 25–35%）影響而大幅波動 → 臨界低值須於穩定期重測確認；單一數值不可定診。<br><b>⭐ High-yield</b>：VWF:GPIbM/VWF:GPIbR 取代 VWF:RCo（conditional，低值準確）｜VWF:CB/VWF:Ag &lt;0.7（cutoff 0.6–0.62）見於失 HMWM 的 2A/2B｜VWF activity &gt;100 IU/mL NPV &gt;95% 可排除、通常免重測｜兒童期 low VWF 約 1/3 成年正常化。<br><b>🔬 實證</b>：診斷 cutoff 與 assay 建議出自 Blood Adv 2021;5:280；&gt;100 IU/dL 之高 NPV 見 systematic review Blood Adv 2022;6:62。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "依 2021 ASH/ISTH/NHF/WFH guidelines，診斷 type 1 VWD 的 VWF level cutoff 各是多少（有/無 abnormal bleeding）？",
+   "back": "無出血者：VWF &lt;0.30 IU/mL（30 IU/dL）即可診斷；有 abnormal bleeding 者：VWF &lt;0.50 IU/mL（50 IU/dL）即可確診。<hr>VWF level 指 VWF:Ag 與/或 platelet-dependent activity（如 VWF:GPIbM）。演算法為簡化常寫成 30–50 IU/dL。VWF 30–50 IU/dL 且有出血史者歸類為 \"low VWF\"，非正式 type 1 VWD。"
+  },
+  {
+   "kind": "basic",
+   "front": "VWF activity（如 VWF:RCo/VWF:GPIbM）明顯偏高（>100 IU/mL，未治療）時，對排除 VWD 代表什麼？NPV 約多少？",
+   "back": "negative predictive value 極高（>95%），基本可排除 VWD，通常不需為排除診斷而反覆重測。<hr>VWD 本質是 VWF 量不足或功能異常；VWF 充足且功能正常時診斷可能性極低。例外：若於急性出血、嚴重貧血、急病或懷孕期間測得且僅 >50 IU/dL 者，仍應於穩定期重測。（systematic review，Blood Adv 2022;6:62）"
+  },
+  {
+   "kind": "basic",
+   "front": "2021 VWD 指南對於檢測 VWF platelet-binding activity，建議用哪些較新的 assay 取代 VWF:RCo？等級為何？",
+   "back": "VWF:GPIbM 與 VWF:GPIbR，屬 conditional recommendation。<hr>VWF:RCo（ristocetin cofactor）變異度高、在低濃度時準確度差。新一代 assay 不依賴 ristocetin，直接測 VWF 與 GPIb 的結合活性，變異度較低、低值準確度較佳。僅給 conditional（非 strong），因證據確定性低且當時於美國尚未廣泛 FDA 核准。"
+  },
+  {
+   "kind": "basic",
+   "front": "VWF:CB（collagen binding）在 type 2A 與 2B VWD 為何下降，且 VWF:CB/VWF:Ag ratio 降低？ratio 的判讀 cutoff？",
+   "back": "因 2A/2B 缺乏 high-molecular-weight multimers（HMWM）；VWF:CB/VWF:Ag ratio 常 &lt;0.7（文獻 cutoff 約 0.6–0.62）。<hr>HMWM 是 VWF 結合 collagen 與 platelet 最有效的形式，流失 HMWM 會使 VWF:CB 與 platelet-binding activity 不成比例地下降，而 VWF:Ag 相對保留 → ratio 降低。VWF:CB/VWF:Ag ratio 與 multimer analysis 用於 type 2 subtyping，但 VWF:CB 本身不能區分 2A vs 2B。"
+  },
+  {
+   "kind": "basic",
+   "front": "VWD 診斷常見陷阱：將 cutoff 一刀切成「VWF antigen 或 activity &lt;30 IU/mL 才可診斷 VWD」，錯在哪？",
+   "back": "錯。依 2021 ASH/ISTH/NHF/WFH 指南，有 abnormal bleeding 者 VWF &lt;0.50 IU/mL 即可確診，並非一律須 &lt;0.30 IU/mL；&lt;0.30 IU/mL 適用於無出血者。<hr>任何臨界低值須於穩定期重複測試確認、不可單次定診。其餘與指南一致的正確敘述：用 VWF:GPIbM/GPIbR 取代 VWF:RCo、VWF:CB 在 2A/2B 下降、VWF &gt;100 IU/mL 高 NPV、約 1/3 兒童期 low VWF 成年正常化。"
+  }
+ ]
+}

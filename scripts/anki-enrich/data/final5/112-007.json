@@ -1,0 +1,13 @@
+{
+ "id": "112-007",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "AML", "FLT3", "FLT3-ITD", "FLT3-TKD", "FLT3i", "gilteritinib", "MORPHO-trial", "ADMIRAL", "RATIFY", "QuANTUM-First", "HSCT", "MRD", "ELN-2022"],
+ "enrich_html": "<b>📌 考點</b>:FLT3-ITD AML 的四大高頻誘餌——(1) FLT3 突變好發 FAB <u>M5</u>(非 M1);(2) FLT3-ITD <u>不</u>影響初始 CR rate(惡化的是復發/OS);(3) 預後衝擊在 <u>≤60 歲</u>較顯著(非 &gt;70 歲);(4) MORPHO trial「<u>未</u>」達主要終點 RFS。<br><b>🏥 臨床意義</b>:MORPHO 的真正訊息是「MRD 引導維持」——僅 peri-HCT FLT3-ITD MRD 陽性者從移植後 gilteritinib 獲益,MRD 陰性者無獲益,故不宜對所有移植後病人一律給藥。<br><b>⭐ High-yield</b>:ELN 2022 將 FLT3-ITD 不論 allelic ratio 與 NPM1 一律歸 <b>intermediate</b>(allelic ratio 標準化困難 + FLT3i 之 disease-modifying effect)｜type I FLT3i (midostaurin/gilteritinib) 抑 ITD+TKD;type II (quizartinib/sorafenib) 對 TKD 無效。<br><b>🔬 實證</b>:MORPHO HR 0.679 (95% CI 0.459–1.005, P=0.0518)(Levis, JCO 2024;42:1766)｜Frohling, Blood 2002;99:4326｜ELN 2022 (Dohner, Blood 2022;140:1345)｜ADMIRAL CR 54% vs 22% (Perl, NEJM 2019)。",
+ "cards": [
+  {"kind":"cloze","text":"FLT3-ITD AML 的四大高頻誘餌:FLT3 突變好發 FAB {{c1::M5}}(非 M1);FLT3-ITD {{c2::不影響}}初始 CR rate(惡化的是復發率與 OS);預後衝擊在 {{c3::≤60 歲}}較顯著(非 &gt;70 歲)。","extra":"Frohling, Blood 2002 (979 例):ITD+ vs ITD− CR rate 71.2% vs 66.8%(相近)。FLT3-ITD 為活化型 receptor tyrosine kinase 突變,好發 normal-karyotype AML,合併高週邊芽細胞數。"},
+  {"kind":"basic","front":"Gilteritinib 異體移植後維持治療 FLT3-ITD AML 的 phase 3 試驗,主要終點 RFS 結果為何?哪一類病人真正獲益?","back":"MORPHO trial (BMT CTN 1506):主要終點 RFS「未達」統計顯著(HR 0.679, 95% CI 0.459–1.005, P=0.0518,擦邊);僅 peri-HCT FLT3-ITD MRD 陽性者獲益,MRD 陰性者無獲益<hr>臨床啟示為「MRD 引導維持治療」,不宜對所有移植後病人一律給藥。「MORPHO 達主要終點」為錯誤敘述。(Levis, JCO 2024)"},
+  {"kind":"basic","front":"ELN 2022 如何將帶 FLT3-ITD 的 AML 進行 risk stratification?","back":"一律歸 intermediate risk——不論 allelic ratio 高低、不論是否合併 NPM1 mutation<hr>原因:(1) FLT3-ITD allelic ratio 跨實驗室標準化困難;(2) FLT3 inhibitor 的 disease-modifying effect 改變了過去 high allelic ratio = adverse 的觀念。對照 ELN 2017 曾依 allelic ratio 與 NPM1 細分。"},
+  {"kind":"basic","front":"FLT3 inhibitor 的 type I 與 type II 在結合構型與 TKD 活性上有何差異?各包含哪些藥?","back":"type I 結合 active + inactive 構型 → 對 ITD 與 TKD 皆有效(midostaurin、gilteritinib、crenolanib);type II 僅結合 inactive 構型 → 對 TKD (如 D835) 無效(quizartinib、sorafenib)<hr>D835 activation-loop 突變使 kinase 偏 active 構型,故對 type II 抗藥。此差異決定 quizartinib 限用於 FLT3-ITD 陽性病人。"},
+  {"kind":"cloze","text":"三大新診斷 FLT3 AML 一線 FLT3i 試驗:midostaurin → {{c1::RATIFY}}(EFS 8.2 vs 3.0 月);quizartinib → {{c2::QuANTUM-First}}(OS 31.9 vs 15.1 月,限 ITD+)。R/R 救援單藥 gilteritinib → {{c3::ADMIRAL}}(CR 54% vs 22%,OS 9.3 vs 5.6 月)。","extra":"midostaurin/gilteritinib 為 type I(ITD+TKD);quizartinib 為 type II(僅 ITD),故 QuANTUM-First 限 FLT3-ITD 陽性。midostaurin 須與 induction/consolidation 化療併用。"}
+ ]
+}

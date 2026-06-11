@@ -1,0 +1,13 @@
+{
+ "id": "112-070",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "PCH", "Paroxysmal cold hemoglobinuria", "Donath-Landsteiner antibody", "biphasic hemolysin", "anti-P", "cold AIHA", "cold agglutinin disease", "hemolysis"],
+ "enrich_html": "<b>📌 考點</b>:PCH (Donath-Landsteiner hemolytic anemia) 的核心是「冷結合、暖溶血」的 biphasic 機制——D-L IgG 抗體在 ~4°C 結合紅血球 anti-P 並固定 early complement,回溫 37°C 時 IgG 解離但補體串聯完成 (MAC) → 血管內溶血。故「冷環境下溶血、回溫後減緩」方向完全相反 (回溫才溶血),為典型誘餌。<br><b>🏥 臨床意義</b>:現代 PCH 以<u>兒童 post-viral 急性自限型</u>為主 (麻疹/mumps/EBV/CMV/流感後),寒冷暴露後出現陣發性醬色血紅素尿;歷史上成人慢性型與 tertiary/congenital syphilis 相關。治療以避寒+支持療法、必要時輸血;嚴重採類固醇/IVIG,難治案例有 eculizumab 補體抑制成功報告。<br><b>⭐ High-yield</b>:D-L antibody = IgG、anti-P 專一性、biphasic;DAT 特徵 <u>C3d 陽性、IgG 陰性</u> (IgG 在 37°C 已解離,僅補體留存);確診靠 Donath-Landsteiner test (兩溫度相)。對比 CAD = IgM、單相 cold agglutinin、anti-I/anti-i、高 thermal amplitude、血管外為主。<br><b>🔬 實證</b>:PCH 占小兒 AIHA 顯著比例,典型 self-limited;DAT 在 4°C 致敏→37°C incubate 時 anti-C3 陽性而 anti-IgG/IgM 陰性。(Wikipedia PCH; StatPearls Laboratory Evaluation of Immune Hemolytic Anemias 2024; ASH Blood Adv 2019;3:3575)",
+ "cards": [
+  {"kind":"basic","front":"為何 Paroxysmal cold hemoglobinuria (PCH) 的 Donath-Landsteiner antibody 被稱為 biphasic hemolysin (雙相溶血素)?","back":"它需要兩個溫度相位:低溫 (~4°C) 結合紅血球並固定 early complement，回溫至 37°C 時補體串聯完成才造成溶血<hr>第一相 (cold)：IgG 抗體結合紅血球 anti-P 並固定早期補體成分。第二相 (warm, 37°C)：IgG 解離但補體繼續串聯至 membrane attack complex → 血管內溶血 → hemoglobinuria。這正是 Donath-Landsteiner test 的原理。"},
+  {"kind":"basic","front":"PCH 的直接抗球蛋白試驗 (DAT/Coombs) 典型呈現什麼模式?為何 IgG 常為陰性?","back":"C3d (anti-C3) 陽性、IgG (anti-IgG) 陰性<hr>D-L IgG 抗體在體溫 (37°C) 已從紅血球解離，只留下補體成分附著於紅血球表面，故 DAT 偵測到的是 C3d 而非 IgG。確診需用兩溫度相的 Donath-Landsteiner test (4°C 致敏 → 37°C incubate) 才能展現 biphasic 溶血。"},
+  {"kind":"cloze","text":"冷抗體溶血性貧血鑑別——PCH:抗體 {{c1::IgG}}、專一性 {{c2::anti-P}}、{{c3::biphasic}} hemolysin、確診靠 {{c4::Donath-Landsteiner test}};CAD:抗體 {{c5::IgM}}、專一性 {{c6::anti-I (或 anti-i)}}、單相 cold agglutinin、靠 cold agglutinin titer 診斷。","extra":"兩者 DAT 皆可 C3d 陽性、IgG 陰性。PCH 多為兒童 post-viral 急性自限;CAD 多為成人慢性 (可續發於 Mycoplasma、EBV、淋巴增生疾病)。溶血型態 PCH 為血管內、CAD 多血管外。"},
+  {"kind":"basic","front":"敘述「PCH 通常在冷環境下溶血，回溫後就減緩」為何錯誤?","back":"方向相反——PCH 是低溫時抗體結合並固定補體，回溫至 37°C 時才完成補體介導的血管內溶血<hr>biphasic 機制:cold phase 結合 (binding)、warm phase 溶血 (hemolysis)。臨床典型為寒冷暴露後、身體回暖時出現陣發性醬色血紅素尿，而非冷環境當下溶血、回溫減緩。"},
+  {"kind":"basic","front":"PCH 的治療原則為何?","back":"避免寒冷暴露 + 支持療法 (含保暖、必要時輸血) 為主;多為自限性<hr>兒童 post-viral 型常在支持療法下數天至數週自行緩解。嚴重溶血可用 IV methylprednisolone、IVIG;難治案例有 complement inhibition (eculizumab) 成功報告。輸血時應使用加溫血液並維持病人保暖。類固醇對 PCH 的反應不如對 warm AIHA。"}
+ ]
+}

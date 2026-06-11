@@ -1,0 +1,13 @@
+{
+ "id": "112-064",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "Factor XIII deficiency", "clot solubility test", "umbilical cord bleeding", "intracranial hemorrhage", "transglutaminase", "fibrin cross-linking", "rFXIII", "coagulation factor deficiency"],
+ "enrich_html": "<b>📌 考點</b>：Factor XIII (fibrin-stabilizing factor) 作用在凝血瀑布<u>最後一步</u>——以 transglutaminase 活性交聯 fibrin，故 PT/aPTT/TT 全正常、唯有凝塊穩定度受損；篩檢用 clot solubility test (5M urea 中溶解) 異常，確診需定量 FXIII activity。考題常以「三、四歲才發病」「腦出血很少見」設陷阱：實際上出生後不久即以臍帶殘端出血表現 (近 80%)，ICH 反而高達約 30% 且為主要死因。<br><b>🏥 臨床意義</b>：autosomal recessive (多 F13A1/A subunit type 2，少 F13B 較輕)；嚴重型 activity 通常 ≤1%。治療止血/手術/孕產只需 trough 達 3–5%，因半衰期長 (約 9–14 天)，每月一次預防性補充即可，是少數需「常規預防」的凝血因子缺乏。<br><b>⭐ High-yield</b>：「嚴重出血但 PT/aPTT/TT/platelet 全正常」→ 先想 FXIII 缺乏 (與 mild vWD、血小板功能異常、α2-antiplasmin/PAI-1 缺乏鑑別)；臍帶殘端延遲出血幾乎是 FXIII 缺乏的招牌；傷口癒合不良與習慣性流產亦為特徵。<br><b>🔬 實證</b>：FDA 已核准 Corifact (plasma-derived FXIII concentrate, 2011) 與 Tretten/recombinant FXIII-A2 (2013) 作常規預防。(StatPearls NBK557467；Clin Hematol Int 2024, PMC12825037；Inbal et al., Blood 2012;119:5111)",
+ "cards": [
+  {"kind":"basic","front":"病人有明顯出血，但 PT、aPTT、thrombin time 與血小板計數全部正常，為何要先想到 Factor XIII 缺乏？","back":"因為 Factor XIII 作用在凝血瀑布最後一步 (交聯已形成的 fibrin)，不影響 fibrin 形成速度，只影響凝塊穩定度，故標準凝血篩檢全部正常<hr>PT/aPTT/TT 測 fibrin 形成的時間、platelet count 測血小板數量，Factor XIII 都不在這些測定的路徑上。「嚴重出血但所有初篩全正常」是 FXIII 缺乏最重要的招牌情境，須加做 clot solubility test 與定量 FXIII activity。"},
+  {"kind":"basic","front":"先天性 Factor XIII 缺乏的顱內出血 (intracranial hemorrhage) 風險有何特殊之處？","back":"遠比其他先天性出血疾患更常見，約 30% 患者曾發生自發性顱內出血，且為主要死因<hr>這是 Factor XIII 缺乏的一大臨床特徵，故「突發性腦出血很少見」的說法錯誤。高顱內出血風險正是須長期預防性補充 Factor XIII 的最重要理由。"},
+  {"kind":"basic","front":"先天性 Factor XIII 缺乏最典型、最早期的出血表現是什麼？","back":"出生後不久的臍帶殘端延遲出血 (bleeding from the umbilical cord remnant)，見於近 80% 患者<hr>Factor XIII 缺乏是少數會在新生兒期即表現的先天性出血疾病，臍帶殘端延遲出血是經典臨床線索；故「嬰兒出生時正常、三、四歲才開始發病」的說法錯誤——出血在出生後不久即可出現。"},
+  {"kind":"basic","front":"診斷 Factor XIII 缺乏的傳統篩檢試驗為何？異常結果是什麼？確診靠什麼？","back":"Clot solubility test (凝塊溶解試驗) 異常——凝塊在 5M urea 或稀酸中溶解；因敏感度差，確診需定量 FXIII activity (嚴重者通常 ≤1%)<hr>Factor XIII 負責交聯 (cross-link) fibrin 使凝塊穩定；缺乏時凝塊未交聯，易被 urea/酸溶解 (正常交聯凝塊不溶解)。clot solubility test 僅在 activity 極低時才陽性，故須以定量 activity 確診，採血取 trough。"},
+  {"kind":"basic","front":"治療/預防 Factor XIII 缺乏出血，FXIII activity 需達到多少 trough level？多久補充一次？首選製劑為何？","back":"trough 達約 3–5% 即足以止血；半衰期長 (約 9–14 天)，每月預防性補充一次即可；FDA 核准 Corifact (plasma-derived, 2011) 與 Tretten (recombinant FXIII-A2, 2013)<hr>FXIII 是少數需「常規預防」的凝血因子缺乏 (因 ICH 風險高)。所需止血濃度極低 (3–5%) 加上長半衰期，使每月一次給藥成為可行的標準預防方案；recombinant rFXIII-A2 只補 A subunit，適用於最常見的 A subunit 缺乏型。"}
+ ]
+}

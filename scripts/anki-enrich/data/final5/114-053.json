@@ -1,0 +1,13 @@
+{
+  "id": "114-053",
+  "topic_index": 2,
+  "extra_tags": ["enriched", "multiple-myeloma", "R-ISS", "R2-ISS", "FISH", "cytogenetics", "high-risk", "del17p", "t(4;14)", "t(14;16)", "1q-gain", "prognosis", "ISS"],
+  "enrich_html": "<b>📌 考點</b>:R-ISS(2015)定義 multiple myeloma 高危細胞遺傳學只有三項 — t(4;14)、t(14;16)、del(17p),任一存在即判為高危。常見誘餌 del(13q) 與 t(6;14) <u>皆不列入</u>:del(13q) 多由 FISH 偵測、在新藥時代預後意義已淡化;t(6;14)(CCND3)屬標準風險。<br><b>🏥 臨床意義</b>:高危 FISH → R-ISS 升級 → 較短 PFS/OS;t(4;14)、del(17p) 病人應以 proteasome inhibitor(bortezomib)為基礎並考慮維持治療強化。<br><b>⭐ High-yield</b>:R-ISS = 原 ISS 期別(β2-microglobulin + albumin)＋ 高危 FISH ＋ LDH。R2-ISS(2022)再加 1q gain/amp(+1q21)且剔除 t(14;16),採加總計分(ISS-II +1、ISS-III +1.5、del17p +1、LDH↑ +1、t(4;14) +1、1q+ +0.5),分四組以解決 R-ISS-II 過度集中的異質性。<br><b>🔬 實證</b>:R-ISS 原始定義 Palumbo et al., JCO 2015;33:2863;R2-ISS EMN HARMONY 報告 D'Agostino et al., JCO 2022;40:3406(R2-ISS-IV median OS 約 33.9 個月)。",
+  "cards": [
+    {"kind":"cloze","text":"R-ISS 定義的 multiple myeloma 高危細胞遺傳學異常(FISH)為三項:{{c1::t(4;14)}}、{{c2::t(14;16)}}、{{c3::del(17p)}}。","extra":"任一項存在即視為高危 cytogenetics。R-ISS(2015)由原 ISS(β2-microglobulin + albumin)再加上高危 FISH 與 LDH 升高整合而成。"},
+    {"kind":"basic","front":"del(13q) 與 t(6;14) 是否屬於 R-ISS 定義的 multiple myeloma 高危細胞遺傳學異常?","back":"否,兩者皆非 R-ISS 高危特徵。<hr>del(13q)(尤其單獨以 FISH 偵測時)在新藥時代預後意義已大幅減弱,不列入 R-ISS;t(6;14)(CCND3)屬標準風險。R-ISS 高危僅限 t(4;14)、t(14;16)、del(17p)。"},
+    {"kind":"basic","front":"R-ISS 在原本 ISS 三期系統之外,額外納入了哪兩類預後因子來分層 multiple myeloma?","back":"高危細胞遺傳學異常(FISH)與血清 LDH。<hr>原 ISS 僅用 serum β2-microglobulin 與 serum albumin 分三期(ISS-I:β2M &lt;3.5 mg/L 且 albumin ≥3.5 g/dL;ISS-III:β2M ≥5.5 mg/L)。R-ISS(2015)整合:① ISS 期別 ② 高危 FISH[t(4;14)/t(14;16)/del(17p)] ③ LDH 是否升高。"},
+    {"kind":"cloze","text":"R-ISS(2015)將 multiple myeloma 分為三期:R-ISS-I 預後{{c1::最佳}}、R-ISS-III 預後{{c2::最差}};R-ISS-II 涵蓋多數病人故{{c3::異質性大}}。","extra":"R-ISS-I:ISS-I + 無高危 FISH + LDH 正常;R-ISS-III:ISS-III 且(高危 FISH 或 LDH 升高);其餘為 R-ISS-II。R-ISS-II 病人過度集中、混雜 0、1、甚至多個高危特徵,正是 R2-ISS 想解決的問題。"},
+    {"kind":"basic","front":"R2-ISS(2022, EMN HARMONY)相較 R-ISS 在細胞遺傳學上新增與剔除了哪個項目?採何種計分方式?","back":"新增 1q gain/amplification(+1q21);剔除 t(14;16);改為加總式計分。<hr>R2-ISS 計分:ISS-II +1、ISS-III +1.5、del(17p) +1、LDH↑ +1、t(4;14) +1、1q gain/amp +0.5,依總分分四組(I=0、II=0.5–1、III=1.5–2.5、IV=3–5),以計入多重高危的疊加效應、細分 R-ISS-II 異質族群。1q gain(3 copies)/amp(≥4 copies)為獨立不良預後。(D'Agostino, JCO 2022)"}
+  ]
+}

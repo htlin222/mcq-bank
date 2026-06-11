@@ -1,0 +1,33 @@
+{
+  "id": "112-076",
+  "topic_index": 1,
+  "extra_tags": ["enriched", "AML", "ELN2022", "FLT3-ITD", "CEBPA", "bZIP", "complex_karyotype", "MDS_related_mutations", "NPM1", "risk_stratification"],
+  "enrich_html": "<b>📌 考點</b>：ELN 2022 相較 ELN 2017 的四大變更裡，最常考的兩個「對」是 — FLT3-ITD allelic ratio 不再納入分類，且 CEBPA 改以 bZIP region in-frame mutation(不分 mono-/biallelic)定 favorable；兩個常見「誘餌錯敘述」是 — 稱僅含 trisomies 的 hyperdiploid 算 complex karyotype(錯，明確被排除)、以及稱 MDS-related gene mutations 不算 adverse(錯，正好新增為 adverse)。<br><b>🏥 臨床意義</b>：FLT3-ITD AML 不論 allelic ratio 一律 intermediate-risk → 仍建議加 FLT3 inhibitor(midostaurin/quizartinib)並依 CR 後 MRD 與整體風險評估 allogeneic HSCT；NPM1mut+FLT3-ITD 由 ELN 2017 的偏好轉為 intermediate，治療仍積極。<br><b>⭐ High-yield</b>：9 個 MDS-related adverse genes＝ASXL1、BCOR、EZH2、RUNX1、SF3B1、SRSF2、STAG2、U2AF1、ZRSR2(無 favorable 病變時才作數)｜NPM1mut 一旦合併 adverse cytogenetics 即歸 adverse｜Complex karyotype＝≥3 個不相關異常但排除單純多 trisomy 的 hyperdiploid。<br><b>🔬 實證</b>：ELN 2022 國際專家共識，並經多個真實世界 cohort(PETHEMA、Alliance、中國 cohort)驗證其優於 ELN 2017 的預後區辨力。(Döhner et al., Blood 2022;140:1345)",
+  "cards": [
+    {
+      "kind": "basic",
+      "front": "ELN 2022 相較 ELN 2017，FLT3-ITD 的 allelic ratio 在 AML 風險分類中的角色有何改變?",
+      "back": "不再納入風險分類<hr>ELN 2017 曾依 FLT3-ITD allelic ratio(high vs low)及是否合併 NPM1 mutation 來分層；ELN 2022 取消此設計。現在所有帶 FLT3-ITD(且無其他 adverse-risk 病變)的 AML 一律歸為 intermediate-risk，不論 allelic ratio 高低、不論是否合併 NPM1 mutation。原因：allelic ratio 量測難以標準化，且在 FLT3 inhibitor(midostaurin)時代其分層意義下降。(Blood 2022;140:1345)"
+    },
+    {
+      "kind": "basic",
+      "front": "ELN 2022 中，CEBPA mutation 要符合哪一種形式才被歸為 favorable risk?",
+      "back": "位於 bZIP region 的 in-frame mutation，且不分 mono- 或 biallelic<hr>ELN 2017 要求 biallelic(雙等位)CEBPA mutation 才算 favorable。ELN 2022 改為：只要是 bZIP(basic leucine zipper)region 的 in-frame mutation，無論 monoallelic 或 biallelic 皆歸 favorable。重點是突變的「位置(bZIP)＋形式(in-frame)」賦予良好預後，而非單純看等位基因數目。"
+    },
+    {
+      "kind": "cloze",
+      "text": "ELN 2022 列為 adverse-risk 的 9 個 myelodysplasia-related gene mutations 為：{{c1::ASXL1}}、{{c2::BCOR}}、{{c3::EZH2}}、{{c4::RUNX1}}、{{c5::SF3B1}}、{{c6::SRSF2}}、{{c7::STAG2}}、{{c8::U2AF1}}、{{c9::ZRSR2}}。",
+      "extra": "這 9 個基因(splicing factors 如 SF3B1/SRSF2/U2AF1/ZRSR2 與 chromatin/transcription regulators 如 ASXL1/BCOR/EZH2/RUNX1/STAG2)在無 favorable 病變時，將 AML 歸為 adverse-risk。RUNX1 與 ASXL1 在 ELN 2017 已是 adverse；其餘 7 個為 ELN 2022 新增。"
+    },
+    {
+      "kind": "basic",
+      "front": "ELN 2022 中，僅帶多條 trisomy/polysomy(無結構性異常)的 hyperdiploid karyotype 是否算 complex karyotype 而歸 adverse risk?",
+      "back": "否，不算 complex karyotype，不歸 adverse<hr>Complex karyotype 定義為 ≥3 個不相關的染色體異常。但 ELN 明確排除「僅有多條 trisomies/polysomies 而無結構性(structural)異常」的 hyperdiploid 核型 — 此類不符合 complex karyotype 定義。這是常見的考試誘餌敘述。"
+    },
+    {
+      "kind": "basic",
+      "front": "整理 ELN 2022 相較 ELN 2017 的「四大實質變更」?",
+      "back": "(1) 移除 FLT3-ITD allelic ratio(所有 FLT3-ITD 無 adverse 病變者一律 intermediate)；(2) CEBPA 改以 bZIP in-frame mutation 定 favorable(不分 mono-/biallelic)；(3) 新增 9 個 MDS-related gene mutations 為 adverse；(4) NPM1mut 合併 adverse cytogenetics 歸 adverse<hr>常見誘餌：把「hyperdiploid 多 trisomy 當 complex karyotype」(錯，被排除)、或「MDS-related mutations 不算 adverse」(錯，正好新增為 adverse)當成變更內容。(Döhner et al., Blood 2022;140:1345)"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+ "id": "113-092",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "hyperleukocytosis", "leukostasis", "leukapheresis", "APL", "AML", "ALL", "acute_leukemia", "DIC", "platelet_transfusion"],
+ "enrich_html": "<b>📌 考點</b>：hyperleukocytosis 支持性治療的<b>唯一陷阱在 APL</b>。leukapheresis 在 APL 屬<u>特殊禁忌</u>──機械性 apheresis 使 promyelocyte 溶解、釋出促凝顆粒、惡化 DIC/coagulopathy 並誘發 cytokine storm，多數接受 leukapheresis 的 APL 病人發生致命或近致命大出血；故「APL WBC &gt;8 萬就建議 leukapheresis」是錯的，APL 急症首選 ATRA(±ATO)+anthracycline。<br><b>🏥 臨床意義</b>：非 APL AML 即使 WBC &gt;100k、有 leukostasis，leukapheresis <u>不降低 early mortality</u>，最關鍵是盡速啟動 induction chemotherapy(根本 cytoreduction);PRBC 輸注須限制(升 hematocrit/viscosity 加重 leukostasis),利尿劑亦須謹慎避免血液濃縮。<br><b>⭐ High-yield</b>：leukostasis 可發生於 WBC &lt;100k｜prophylactic platelet 目標約 20,000-30,000/µL(抗凝時 50k)，APL/DIC 則維持 platelet &gt;50k、fibrinogen &gt;120-150mg/dL｜hyperleukocytosis 三大併發症 = leukostasis、tumor lysis syndrome、DIC。<br><b>🔬 實證</b>：APL leukapheresis 多數致命出血、不建議常規使用;非 APL AML leukapheresis 無 early-mortality 益處。(Röllig & Ehninger, Blood 2015;125:3246 How I treat;Blood 2019;133:1630;Ali et al., Hematol Oncol 2016)",
+ "cards": [
+  {"kind":"basic","front":"APL(acute promyelocytic leukemia)合併 hyperleukocytosis 時，為何 leukapheresis 應避免使用、被列為特殊禁忌？","back":"會誘發致命或近致命大出血<hr>機械性 apheresis 使 abnormal promyelocyte 溶解、釋出促凝顆粒(procoagulant granules)、惡化既有 DIC/coagulopathy 並引發 cytokine storm。多數接受 leukapheresis 的 APL 病人發生 fatal/near-fatal hemorrhage，故 APL 不建議常規 leukapheresis;這與其他 AML 亞型可考慮 leukapheresis 不同。"},
+  {"kind":"basic","front":"APL 病人初診合併高白血球(hyperleukocytosis)，急症處置的首選治療是什麼？","back":"立即啟動 ATRA(±arsenic trioxide)併用 anthracycline-based chemotherapy，並積極輸血矯正凝血<hr>APL 急症重點不是 leukapheresis(禁忌)，而是盡速分化/cytoreduction 治療,同時維持 platelet &gt;50,000/µL、fibrinogen &gt;120-150mg/dL 以防致命出血;ATRA 可同時改善 differentiation 並降低出血風險。"},
+  {"kind":"basic","front":"非 APL 的 AML 合併 WBC &gt;100,000/mm³ 與 leukostasis 時，最根本且最有效的治療是什麼？","back":"盡快開始有效的 induction chemotherapy(cytoreduction)<hr>降低 blast 負荷才能根本解除 leukostasis。Leukapheresis 只是暫時降白血球的支持性手段,研究顯示它<b>不降低 early mortality</b>,不能取代化療;確診後應盡速給予該疾病有效的 chemotherapy。"},
+  {"kind":"cloze","text":"hyperleukocytosis 的常用白血球數定義為:ALL {{c1::&gt;300,000/mm³}}、AML {{c2::&gt;100,000/mm³}}(惟此切點各文獻不一)。","extra":"hyperleukocytosis 多以 WBC &gt;100,000/µL 概括定義,但 ALL 因 lymphoblast 較小、leukostasis 風險低,常用較高門檻;leukostasis 為臨床診斷而非僅看數值,故門檻僅供參考。"},
+  {"kind":"cloze","text":"hyperleukocytosis 的三大致命併發症為 {{c1::leukostasis(微血管淤積、器官缺氧)}}、{{c2::tumor lysis syndrome(TLS)}} 與 {{c3::DIC(瀰漫性血管內凝血)}}。","extra":"大量幼稚白血球阻塞微循環並競爭氧氣(leukostasis);快速崩解釋出 K/PO4/uric acid(TLS,以 allopurinol/rasburicase + 水化處理);組織因子釋放觸發凝血(DIC,以 platelet/cryoprecipitate/fibrinogen 支持)。"}
+ ]
+}

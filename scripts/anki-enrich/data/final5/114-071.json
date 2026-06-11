@@ -1,0 +1,13 @@
+{
+  "id": "114-071",
+  "topic_index": 1,
+  "extra_tags": ["enriched", "ALL", "B-ALL", "T-ALL", "immunophenotype", "mediastinal-mass", "prognosis", "ETV6-RUNX1", "hyperdiploidy", "Ph-positive"],
+  "enrich_html": "<b>📌 考點</b>:T-cell ALL vs B-precursor ALL 的臨床對比為高頻考點。T-ALL 起源於 thymus 前驅 T 細胞 → 前縱隔腫塊、高 WBC (hyperleukocytosis)、診斷時 CNS 侵犯較多;B-precursor ALL 則 WBC 較低、縱隔腫塊與 CNS 侵犯較少、預後較佳。故四特徵中「lower WBC + favorable outcome」屬 B-ALL,正解為 (2)+(4)。<br><b>🏥 臨床意義</b>:T-ALL 前縱隔腫塊可致 SVC syndrome、氣道壓迫、pericardial effusion/tamponade,診斷時須警覺急症;B-ALL risk 分層 WBC &lt;50,000/μL 且 age &lt;10 為 standard risk,WBC &gt;100,000/μL 更具侵襲性。<br><b>⭐ High-yield</b>:B-ALL favorable cytogenetics = high hyperdiploidy (51-65 條) 與 ETV6-RUNX1/t(12;21);unfavorable = t(9;22)/BCR-ABL1 (Ph)、KMT2A (11q23) 重排、hypodiploidy、iAMP21｜兒童多 favorable、成人多 unfavorable 故成人 ALL 預後較差。<br><b>🔬 實證</b>:現代 T-ALL 加入 MRD 後,僅 age 與 CNS involvement 為跨療程獨立預後因子;high hyperdiploidy 10yr EFS 約 91% &gt; ETV6-RUNX1 約 79%。(Classification and risk stratification in T-lineage ALL, Blood 2025;145:1464; Cancer Med 2019;8:4093)",
+  "cards": [
+    {"kind": "cloze", "text": "T-cell ALL 相較 B-precursor ALL 的典型特徵:診斷時常見 {{c1::mediastinal mass (前縱隔腫塊)}}、較高的 {{c2::WBC count}}、以及較常見的 {{c3::CNS involvement}};整體預後較 {{c4::差 (poorer)}}。", "extra": "T-ALL 起源於前縱隔的胸腺前驅 T 細胞,好發青少年男性。反之 B-precursor ALL:WBC 較低、縱隔腫塊與 CNS 侵犯較少、預後較佳。四特徵中只有「低 WBC + favorable outcome」屬 B-ALL。前縱隔腫塊可致 SVC syndrome、氣道壓迫、pericardial tamponade,為診斷時須警覺的腫瘤急症。"},
+    {"kind": "basic", "front": "B-precursor ALL 的 NCI/Rome risk 分層中,以年齡與 WBC 區分 standard vs high risk 的 cutoff 為何?", "back": "Standard risk:age 1-10 歲 且 WBC &lt;50,000/μL;High risk:age &ge;10 歲 或 WBC &ge;50,000/μL。<hr>WBC &gt;100,000/μL 預後更差、疾病更具侵襲性。此為 B-ALL 經典臨床風險分層,與細胞遺傳學共同決定治療強度。"},
+    {"kind": "basic", "front": "B-precursor ALL 兩個經典 favorable (預後良好) 的細胞遺傳學/分子異常是什麼?", "back": "High hyperdiploidy (51-65 條染色體) 與 ETV6-RUNX1 / t(12;21)。<hr>兩者皆兒童常見。high hyperdiploidy 的 10 年 EFS 約 91% 略優於 ETV6-RUNX1 約 79%。兒童多帶這些 favorable 異常,是兒童 ALL 預後普遍優於成人的主因之一。"},
+    {"kind": "basic", "front": "B-precursor ALL 哪些細胞遺傳學/分子異常屬 unfavorable (預後不良)?", "back": "t(9;22)/BCR-ABL1 (Philadelphia chromosome)、KMT2A (MLL, 11q23) 重排、hypodiploidy、iAMP21 (intrachromosomal amplification of chr21)。<hr>這些 unfavorable 異常在成人 ALL 較常見,故成人 ALL 整體預後較兒童差。Ph 陽性 ALL 需在化療外加 TKI 治療。"},
+    {"kind": "basic", "front": "ALL (含 B 與 T) 的主要不良預後因子有哪些?哪一項最強?", "back": "Infancy (嬰兒)、age &gt;10 歲、leukocytosis (高 WBC)、對初始治療反應慢、MRD 陽性、CNS involvement;其中 MRD 為最強的獨立預後指標。<hr>這些因子跨 B/T lineage 通用。在加入 MRD 的現代 T-ALL 分層中,只剩 age 與 CNS involvement 仍為跨療程獨立的「臨床」預後因子;CNS 陽性者 OS 顯著較短。"}
+  ]
+}

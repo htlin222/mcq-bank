@@ -1,0 +1,13 @@
+{
+ "id": "113-096",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "IDA", "hepcidin", "ferroportin", "iron metabolism", "iron homeostasis", "BMP-SMAD", "hemojuvelin", "HFE", "TfR2", "erythroferrone", "anemia-of-chronic-disease", "IL-6"],
+ "enrich_html": "<b>📌 考點</b>：Hepcidin 是肝臟 hepatocyte 分泌的 25-aa 胜肽荷爾蒙，為全身鐵恆定 master regulator。它結合 ferroportin（唯一已知細胞鐵輸出蛋白，位於 enterocyte、macrophage、hepatocyte 膜面）使其內化降解 → 阻斷鐵輸出至血漿。因此 hepcidin ↑ → 腸道鐵吸收 ↓、血清鐵 ↓，<u>口服鐵吸收與 hepcidin 呈負相關（inverse）</u>，「positively correlates」即為錯誤敘述。<br><b>🏥 臨床意義</b>：Hepcidin 受鐵儲存量與紅血球生成活性雙重調控。發炎時 IL-6 經 JAK2–STAT3 升高 hepcidin → iron sequestration、低血清鐵 → anemia of chronic disease (ACD/AI)，故 ACD 病人即使口服鐵也吸收差、效果不佳；反之 IDA 病人 hepcidin 低，腸道吸收代償性上升。<br><b>⭐ High-yield</b>：上游主軸 BMP6/BMP2 → BMP receptor (ALK2/ALK3) → SMAD1/5/8 + SMAD4 → 入核促 hepcidin 轉錄；co-receptor HJV(hemojuvelin)、HFE、TfR2 形成膜複合體偵測 transferrin 鐵飽和度｜HFE/HJV/TfR2 突變 → hepcidin 不足 → hereditary hemochromatosis（鐵過載）。<br><b>🔬 實證</b>：Hepcidin ↑ 因子＝鐵過載、發炎(IL-6)；hepcidin ↓ 因子＝缺鐵、缺氧、紅血球生成增加（erythroid progenitor 分泌 erythroferrone/ERFE 抑制 hepcidin）。(Blood 2019;133:18 Liver iron sensing; Blood 2011;117:4425 Hepcidin 10 years later; Anemia of Inflammation, NEJM/PMC5308549 2017)",
+ "cards": [
+   {"kind":"basic","front":"口服鐵 (oral iron) 的腸道吸收量與血中 hepcidin 濃度呈正相關還是負相關？為什麼？","back":"負相關 (inverse / negative correlation)。<hr>Hepcidin ↑ → ferroportin 降解 → enterocyte 無法將吸收的鐵輸出至血漿 → 腸道淨鐵吸收 ↓。故 hepcidin 越高，口服鐵吸收越少；「口服鐵吸收與 hepcidin 呈正相關」是常見的錯誤敘述陷阱。"},
+   {"kind":"basic","front":"Hepcidin 透過什麼分子機轉控制鐵進入血漿？","back":"結合其受體 ferroportin 並促使其內化降解 (internalization + degradation)。<hr>Ferroportin 是唯一已知的細胞鐵輸出蛋白，位於 enterocyte、macrophage、hepatocyte 的細胞膜。Hepcidin 結合後使 ferroportin 內化降解，阻斷鐵自這些細胞輸出至血漿。"},
+   {"kind":"cloze","text":"調控 hepcidin 的方向：{{c1::鐵過載}}與{{c2::發炎(IL-6)}}使 hepcidin 上升；{{c3::缺鐵}}、{{c4::缺氧}}與{{c5::紅血球生成增加(erythroferrone)}}使 hepcidin 下降。","extra":"上升主軸＝BMP6/BMP2–ALK2/ALK3–SMAD1/5/8/SMAD4（HJV/HFE/TfR2 為鐵感測 co-receptor）＋ IL-6–JAK2–STAT3；下降＝紅血球生成旺盛時 erythroid progenitor 分泌 ERFE 抑制 hepcidin。"},
+   {"kind":"basic","front":"HFE、TfR2、HJV (hemojuvelin) 突變會造成什麼鐵代謝疾病？機轉為何？","back":"造成 hepcidin 分泌不足 → hereditary hemochromatosis (遺傳性血鐵沉積症，鐵過載)。<hr>這三個蛋白是 hepcidin 上游的鐵感測 co-receptor，在肝細胞膜形成複合體促進 hepcidin 轉錄。功能喪失 → hepcidin 不足 → ferroportin 持續作用 → 腸道過度吸收鐵 → 全身鐵過載。HJV 突變者發病最早、最嚴重 (juvenile hemochromatosis)。"},
+   {"kind":"basic","front":"發炎狀態下，IL-6 如何經由 hepcidin 造成 anemia of chronic disease (ACD/AI)？","back":"IL-6 → JAK2–STAT3 → 肝臟 hepcidin ↑ → ferroportin 降解 → macrophage/enterocyte 鐵被扣留 → 血清鐵 ↓、可用於造血的鐵 ↓ → 貧血。<hr>因此 ACD 表現為低血清鐵但 ferritin 正常或偏高（鐵被扣在儲存區）。口服鐵在高 hepcidin 下吸收差，常需靜脈鐵或治療原發發炎；對照之下 IDA 的 hepcidin 偏低。"}
+ ]
+}

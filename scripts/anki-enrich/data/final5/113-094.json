@@ -1,0 +1,33 @@
+{
+  "id": "113-094",
+  "topic_index": 2,
+  "extra_tags": ["enriched", "Hodgkin lymphoma", "classical Hodgkin lymphoma", "EORTC", "GHSG", "NCCN", "early-stage", "unfavorable risk factors", "mediastinal mass", "MTR", "prognosis", "combined modality"],
+  "enrich_html": "<b>📌 考點</b>:EORTC 對 clinical stage I/II classical Hodgkin lymphoma 的 unfavorable 因子共四項,只要符合任一項即歸 early-stage unfavorable:large mediastinal mass = <u>MTR (mediastinal/thoracic ratio) &gt; 0.35</u>、age ≥ 50、ESR &gt; 50(無 B symptom)或 &gt; 30(有 B symptom)、involved nodal sites &gt; 3。把 MTR cutoff 寫成 &gt; 0.5 即為錯誤敘述(正確為 &gt; 0.35)。<br><b>🏥 臨床意義</b>:歸入 unfavorable 後治療升級為 combined modality(典型 ABVD 4 cycles + involved-site RT,並用 interim PET 做 risk-adapted 調整),而 favorable group 則減量(如 2 cycles ABVD + RT),避免過度治療之長期心肺毒性與次發癌。<br><b>⭐ High-yield</b>:EORTC MTR &gt; 0.35 ｜ GHSG MMR &gt; 0.33、nodal areas ≥ 3、extranodal disease ｜ NCCN mediastinal mass &gt; 1/3 胸廓、bulky &gt; 10 cm。三系統 ESR 門檻一致:無 B symptom &gt;(≥)50、有 B symptom &gt;(≥)30。<br><b>🔬 實證</b>:三套國際分期(EORTC/GHSG/NCCN)挑出的 unfavorable 比例相近(54%/55%/57%),且 unfavorable 組 5-yr PFS 顯著較差(EORTC 差約 6.7%)。(Annals of Oncology 2014 國際分期比較;ASH Blood 2018;131:1666)",
+  "cards": [
+    {
+      "kind": "cloze",
+      "text": "EORTC stage I/II classical Hodgkin lymphoma 的四項 unfavorable 因子:age {{c1::≥ 50 歲}};ESR {{c2::&gt; 50(無 B symptom)或 &gt; 30(有 B symptom)}};large mediastinal mass 即 {{c3::MTR &gt; 0.35}};involved nodal sites {{c4::&gt; 3 個}}。",
+      "extra": "符合任一項即歸為 early-stage unfavorable;治療升級為 combined modality(ABVD + involved-site RT,PET-adapted),與 favorable group 區隔以調整治療強度。"
+    },
+    {
+      "kind": "basic",
+      "front": "EORTC 對 early-stage (clinical stage I/II) classical Hodgkin lymphoma 定義「large mediastinal mass」的切點數值是多少?",
+      "back": "MTR (mediastinal/thoracic ratio) &gt; 0.35<hr>MTR = maximal width of mass / maximal intrathoracic width,於 T5–T6 椎間盤層測量。EORTC 用 &gt; 0.35 作為大縱膈腫塊的不良預後切點;常見陷阱是把切點誤寫為 &gt; 0.5(錯誤)。GHSG 對應指標為 MMR &gt; 0.33。"
+    },
+    {
+      "kind": "basic",
+      "front": "EORTC early-stage unfavorable 與 favorable classical Hodgkin lymphoma 的治療策略有何不同?",
+      "back": "unfavorable 升級為較強的 combined modality;favorable 採減量方案<hr>favorable 典型 2 cycles ABVD + involved-site RT;unfavorable 典型 4 cycles ABVD + involved-site RT,並以 interim PET 做 risk-adapted 調整(PET-negative 可考慮減量或省略放療以降低長期毒性)。分層目的:在維持高治癒率下,避免 favorable 病人過度治療之心肺毒性與次發癌。"
+    },
+    {
+      "kind": "basic",
+      "front": "一名 52 歲 stage IA classical Hodgkin lymphoma 病人,無 bulky disease、ESR 正常、僅 1 個 nodal site 受侵,依 EORTC 應歸 favorable 還是 unfavorable?",
+      "back": "early-stage unfavorable<hr>雖然 ESR、nodal sites、MTR 三項皆 favorable,但 age ≥ 50 本身即為 EORTC 一項 unfavorable 因子。分層原則是「符合任一項即升級」,不可因其他項正常而誤判為 favorable。"
+    },
+    {
+      "kind": "cloze",
+      "text": "三系統 early-stage Hodgkin lymphoma 縱膈腫塊不良因子切點對照:EORTC {{c1::MTR &gt; 0.35}};GHSG {{c2::MMR &gt; 0.33}};NCCN {{c3::mediastinal mass &gt; 1/3 胸廓(或 bulky &gt; 10 cm)}}。",
+      "extra": "三套國際分期挑出的 unfavorable 比例相近(EORTC 54%、GHSG 55%、NCCN 57%),unfavorable 組 5-yr PFS 顯著較差。(Annals of Oncology 2014)"
+    }
+  ]
+}

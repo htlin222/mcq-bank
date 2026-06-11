@@ -1,0 +1,13 @@
+{
+ "id": "112-083",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "ITP", "immune-thrombocytopenia", "platelet", "ASH-2019", "diagnosis-of-exclusion", "antiplatelet-antibody", "TPO-RA", "corticosteroid", "pediatric-hematology"],
+ "enrich_html": "<b>📌 考點</b>:ITP 是<b>排除性診斷 (diagnosis of exclusion)</b>,無單一確診檢查;處置以 <u>platelet 30×10&lt;sup&gt;9&lt;/sup&gt;/L 為門檻</u>——asymptomatic 或僅 minor mucocutaneous bleeding 且 ≥30×10&lt;sup&gt;9&lt;/sup&gt;/L → observation;&lt;30×10&lt;sup&gt;9&lt;/sup&gt;/L 或有出血才給第一線 corticosteroid。誘餌:antiplatelet antibody 陰性<b>不能</b>排除 ITP、無症狀者不需把血小板「拉到 50k」、ITP 不做預防性血小板輸注。<br><b>🏥 臨床意義</b>:兒童新診斷 ITP 約 70–80% 在 6–12 個月內自發緩解,故無症狀者觀察 (watchful waiting) 弊小於利;預防性輸注的血小板會被自體抗體迅速清除、無效且耗資源。<br><b>⭐ High-yield</b>:第一線 = corticosteroid (±IVIG/anti-D 用於需快速升板)｜第二線兒童與成人皆<b>優先 TPO-RA (eltrombopag/romiplostim,反應率 70–80%) &gt; rituximab (~60%) &gt; splenectomy</b>｜兒童 platelet ≥20×10&lt;sup&gt;9&lt;/sup&gt;/L 且僅皮膚出血者建議門診、不住院。<br><b>🔬 實證</b>:Neunert et al., Blood Adv 2019;3:3829–3866 (2019 ASH ITP guidelines);childhood APA immunoassay systematic review (Br J Haematol/PMC7317748) 顯示 APA sensitivity 偏低、不建議常規檢測。",
+ "cards": [
+  {"kind":"basic","front":"ITP (immune thrombocytopenia) 的診斷在臨床上屬於哪一類診斷方式?有沒有單一確診檢查?","back":"屬排除性診斷 (diagnosis of exclusion),沒有單一確診檢查<hr>須先排除其他造成 isolated thrombocytopenia 的原因 (藥物、感染、autoimmune disease、骨髓疾病、假性血小板低下) 後才能診斷。Primary ITP 為自體免疫機轉致血小板破壞與生成減少且無明確誘因;secondary ITP 則繼發於其他疾病 (如 SLE、HIV、HCV、H. pylori)。(2019 ASH guidelines, Blood Adv 2019;3:3829)"},
+  {"kind":"basic","front":"Antiplatelet antibody (APA) testing 在 ITP 診斷中的角色為何?抗體陰性能否排除 ITP?","back":"僅作輔助 (adjunct),不建議常規使用;陰性<b>不能</b>排除 ITP<hr>APA testing 的 sensitivity 偏低 (兒童系統性回顧:direct platelet-associated IgG 0.36–0.80、indirect circulating IgG 0.19–0.39) 且與臨床結果不相關,故檢測不到抗體仍不能排除 ITP。診斷仍以臨床排除為主。(Br J Haematol systematic review, PMC7317748)"},
+  {"kind":"cloze","text":"2019 ASH ITP 處置以 platelet {{c1::30×10⁹/L}} 為關鍵門檻:asymptomatic 或僅 minor mucocutaneous bleeding 且 ≥此值 → {{c2::observation (不治療,不給 corticosteroid/IVIG/anti-D)}};< 此值或有出血 → 第一線 {{c3::corticosteroid}};第二線 (成人與兒童皆) 首選 {{c4::TPO-RA (eltrombopag/romiplostim,反應率 70–80%)}},優於 rituximab (~60%) 與 splenectomy。","extra":"需快速升板時 (出血、術前) 第一線可加 IVIG 或 anti-D。Splenectomy 因不可逆、兒童多會自發緩解而延後考慮。(Blood Adv 2019;3:3829)"},
+  {"kind":"basic","front":"ITP 患者何時才考慮輸注血小板?為何不做預防性輸注把數字拉到 50k?","back":"僅在嚴重/危及生命的 active bleeding 時,且須合併其他治療 (corticosteroid/IVIG)<hr>ITP 的血小板低下源自自體抗體免疫破壞,輸入的血小板會被迅速清除、效果差,因此不應為了把數字拉到某閾值 (如 50k) 而常規預防性輸注。無出血症狀者更不需輸注。"},
+  {"kind":"basic","front":"兒童 ITP 與成人 ITP 在自然病程上最大的差異為何?如何影響處置策略?","back":"兒童多為急性、自限性 (約 70–80% 於 6–12 個月內自發緩解);成人較易轉為慢性<hr>因兒童高自發緩解率,無症狀或輕症者更傾向 observation,避免不必要的藥物與 splenectomy;成人慢性比例高,較常需長期第二線治療 (如 TPO-RA)。"}
+ ]
+}

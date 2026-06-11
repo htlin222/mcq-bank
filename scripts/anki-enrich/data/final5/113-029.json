@@ -1,0 +1,13 @@
+{
+ "id": "113-029",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "blinatumomab", "BiTE", "CD19", "CD3", "MRD", "Ph-negative", "BLAST-trial", "TOWER-trial", "E1910-trial", "CRS", "ICANS"],
+ "enrich_html": "<b>📌 考點</b>:Blinatumomab 是 CD3×CD19 BiTE，台灣健保給付一律限 Philadelphia chromosome 陰性 (Ph⁻) B-cell precursor ALL，且<u>不得與任何 TKI (imatinib/dasatinib/nilotinib/ponatinib) 併用</u>。故「Ph⁺ 須合併 ponatinib」在適應症 (Ph⁻ only) 與併用規定 (禁 TKI) 上雙重相悖，為明確錯誤項。<br><b>🏥 臨床意義</b>:兩大給付適應症皆有 landmark trial 撐腰——MRD(+) 依 BLAST trial (Blood 2018)，R/R 依 TOWER trial (NEJM 2017)。MRD(+) 適應症要求達 CR1、MRD ≥ 0.1% (10⁻³ 敏感度) 且計畫 allo-HSCT；目的是橋接移植前清除微量殘存病灶。<br><b>⭐ High-yield</b>:半衰期僅 ~2 小時 → 須 continuous IV infusion 28 天/療程，健保上限兩療程｜主要毒性為 CRS (中位起始 2 天) 與 ICANS/neurotoxicity (2 週內)，premedication 用 dexamethasone｜CD19-negative relapse 為主要抗藥逃逸機轉。<br><b>🔬 實證</b>:E1910 trial (NEJM 2024, ECOG-ACRIN) 顯示新診斷 Ph⁻ B-ALL 達 MRD(-) CR 後加入 blinatumomab consolidation 顯著延長 OS (HR 0.42, 95% CI 0.24–0.75, p=0.003)，FDA 2024/06 據此核准 consolidation 適應症 (不論 MRD 狀態)。",
+ "cards": [
+  {"kind": "basic", "front": "Blinatumomab 的分子結構與作用機轉為何?", "back": "CD3×CD19 雙特異性 T 細胞銜接抗體 (bispecific T-cell engager, BiTE)<hr>由兩段 single-chain variable fragment 組成:一端結合 cytotoxic T cell 的 CD3、另一端結合 B 細胞表面 CD19，將 T 細胞拉近 B-ALL 母細胞引發 MHC-independent 的 redirected T-cell lysis。用於 B-cell precursor ALL。"},
+  {"kind": "basic", "front": "Blinatumomab 在台灣健保僅限哪種費城染色體狀態使用?可否合併 TKI?", "back": "僅限 Philadelphia chromosome 陰性 (Ph⁻)，且不得與任何 TKI 併用<hr>無論 MRD(+) 或 R/R 適應症，給付條款均限 Ph⁻ B-cell precursor ALL，並明文禁止合併 imatinib / dasatinib / nilotinib / ponatinib。因此「Ph⁺ 須合併 ponatinib」同時違反「限 Ph⁻」與「禁併 TKI」兩條規定，為典型錯誤敘述。"},
+  {"kind": "basic", "front": "Blinatumomab 兩大特徵性 (mechanism-based) 毒性為何?各自起始時間與處置?", "back": "Cytokine release syndrome (CRS) 與 immune effector cell-associated neurotoxicity syndrome (ICANS) / neurotoxicity<hr>CRS 中位起始約輸注後 2 天;ICANS 多在開始後 2 週內出現 (可與 CRS 同時、之後或單獨發生)，通常可逆。處置:暫停或停藥 + corticosteroids;起始與 dose escalation 前以 dexamethasone premedication。"},
+  {"kind": "basic", "front": "Blinatumomab (anti-CD19) 治療後常見的免疫逃逸 / 抗藥機轉為何?", "back": "CD19-negative relapse (抗原丟失)<hr>母細胞下調或失去 CD19 表現後逃脫 BiTE 辨識;對後續同樣靶向 CD19 的 CAR-T 也可能交叉抗藥，臨床上需重新確認抗原表現以選擇救援治療。"},
+  {"kind": "cloze", "text": "Blinatumomab 兩大健保給付適應症: {{c1::MRD 陽性 (MRD ≥ 0.1%)}} (依 BLAST trial, Blood 2018) 與 {{c2::頑固復發型 (R/R)}} ALL (依 TOWER trial, NEJM 2017)，兩者均限 {{c3::Ph 陰性 (Ph⁻)}} 之 B-cell precursor ALL;而 {{c4::E1910 trial (NEJM 2024)}} 進一步將其推進至新診斷達 MRD(-) CR 後的 consolidation 階段 (HR 0.42, p=0.003)。", "extra": "MRD(+) 適應症須先達 CR1 (MRD 偵測敏感度達 10⁻³) 並計畫 allo-HSCT;R/R 適應症涵蓋成人及小兒;均不得與 TKI 併用。半衰期僅 ~2 小時，每療程 28 天 continuous IV infusion。"}
+ ]
+}

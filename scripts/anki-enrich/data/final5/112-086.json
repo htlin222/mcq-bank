@@ -1,0 +1,13 @@
+{
+  "id": "112-086",
+  "topic_index": 1,
+  "extra_tags": ["enriched", "eosinophilia", "hypereosinophilia", "XIAP deficiency", "XLP", "XLP-2", "Omenn syndrome", "Wiskott-Aldrich syndrome", "ALPS", "ADA-SCID", "HLH", "primary immunodeficiency"],
+  "enrich_html": "<b>📌 考點</b>:在「原發性免疫缺陷哪一個 NOT 伴 eosinophilia」的鑑別中,答案是 <u>XIAP deficiency(XLP-2, Duncan disease)</u>。多數 PID 因 T 細胞調節失衡、Th2/IgE 偏移而出現 eosinophilia(Omenn、Wiskott-Aldrich、ALPS、ADA-SCID 皆是);XIAP deficiency 的主軸是 EBV 觸發的 HLH、出血性 Crohn-like 腸炎與低球蛋白血症,典型不以 eosinophilia 表現。<br><b>🏥 臨床意義</b>:XLP-2(XIAP)與 XLP-1(SAP/SH2D1A)雖同屬 X-linked,處置不同 —— XLP-1 確診後幾乎一律需 allogeneic HSCT(且會發生 lymphoma);XLP-2 不發生 lymphoma、HLH 較不致死,移植時機個別化(移植相關死亡率較高,需審慎)。<br><b>⭐ High-yield</b>:Eosinophilia ≥500/µL｜Hypereosinophilia ≥1500/µL｜HES = ≥1500/µL(間隔 ≥1 月兩次)+ 可歸因的 end-organ damage。XLP-1=SAP(占 60%、會 lymphoma),XLP-2=XIAP(不 lymphoma、合併 IBD)。<br><b>🔬 實證</b>:PID 伴 eosinophilia 綜述(Allergy Asthma Clin Immunol 2016;12:27);XLP-1 vs XLP-2 表型(Pachlopnik Schmid et al., Blood 2011;117:1522);HLH-2004 達 5/8 項或致病基因突變即診斷。",
+  "cards": [
+    {"kind":"basic","front":"在原發性免疫缺陷 (PID) 中，何者典型 NOT 伴 eosinophilia？理由為何？","back":"XIAP deficiency（XLP-2, Duncan disease）<hr>多數 PID 因 T 細胞調節失衡、Th2/IgE 偏移而有 eosinophilia（Omenn syndrome、Wiskott-Aldrich syndrome、ALPS、ADA-SCID 皆是）；XIAP deficiency 的核心表現是 EBV 觸發的 HLH、Crohn-like 出血性腸炎、低球蛋白血症，典型不以 eosinophilia 表現，故為鑑別中「不相關」的選項。"},
+    {"kind":"basic","front":"周邊血 eosinophilia 的絕對數值分級 cutoff 為何？","back":"Eosinophilia ≥ 500/µL<hr>分級:Eosinophilia ≥ 500/µL;Hypereosinophilia ≥ 1500/µL（可有或無器官損傷);Hypereosinophilic syndrome (HES) = ≥ 1500/µL（間隔 ≥ 1 個月兩次確認)+ 可歸因於 eosinophilia 的 end-organ damage。單純 hypereosinophilia 不一定有器官損傷,故不等於 HES。"},
+    {"kind":"cloze","text":"X-linked lymphoproliferative syndrome 分兩型:XLP-1 致病基因為 {{c1::SH2D1A}}（產物 {{c2::SAP}},占約 60%),會發生 {{c3::lymphoma}};XLP-2 致病基因為 {{c4::XIAP / BIRC4}},不發生 lymphoma,常合併 {{c5::Crohn-like 出血性腸炎 (IBD)}}。","extra":"兩型皆 X-linked、皆可因 EBV 引發 HLH。XLP-1 的 HLH 致死率高（約 61%)、低球蛋白血症較常見（67%)、確診後幾乎一律需 allogeneic HSCT;XLP-2 的 HLH 較常見（76%)但較不致死（23%)。Blood 2011;117:1522。"},
+    {"kind":"basic","front":"XLP-1（SAP）與 XLP-2（XIAP）在 lymphoma 與治療上的關鍵差異為何？","back":"只有 XLP-1 會發生 lymphoma（約 30%),XLP-2 不發生 lymphoma<hr>治療:XLP-1 確診後幾乎一律需 allogeneic HSCT（唯一根治方法);XLP-2 是否移植需個別化（HLH 較不致死、移植相關死亡率較高,需審慎評估)。"},
+    {"kind":"basic","front":"HLH-2004 的診斷標準（達標方式與 8 項）為何？","back":"8 項中達 ≥ 5 項,或帶有 HLH 相關致病基因突變,即可診斷<hr>8 項:(1) 發燒 (2) 脾腫 (3) ≥ 2 系 cytopenia (4) hypertriglyceridemia 或 hypofibrinogenemia (5) ferritin ≥ 500 µg/L (6) 骨髓/脾/淋巴結見 hemophagocytosis (7) NK cell 活性低或缺乏 (8) sCD25 (soluble IL-2 receptor) ≥ 2400 U/mL。"}
+  ]
+}

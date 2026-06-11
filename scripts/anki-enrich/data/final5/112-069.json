@@ -1,0 +1,13 @@
+{
+ "id": "112-069",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "platelet transfusion", "transfusion trigger", "prophylactic platelet", "AABB", "BSH guideline", "thrombocytopenia", "transfusion medicine"],
+ "enrich_html": "<b>📌 考點</b>:穩定、無出血、治療相關 thrombocytopenia 的 prophylactic platelet transfusion trigger 為 <u>10×10⁹/L (10K/μL)</u>(AABB 2015/2025、BSH 2017 一致、採 restrictive strategy)。考題問「哪些臨床因子下可放寬(liberalize)trigger」,正解涵蓋 fever、coagulopathy、bleeding、increased WBC 全部四項;其中 fever 與 bleeding 最明確,coagulopathy 散見於操作型情境,increased WBC 僅在被視為 SIRS/sepsis 一部分時間接成立。<br><b>🏥 臨床意義</b>:BSH 對 fever/infection 建議將 trigger 由 10K 上調至 <u>20K/μL</u>;手術門檻階梯:中心靜脈導管/腰椎穿刺 ~20-50K → major non-neuraxial surgery 50K → neurosurgery 與眼後段手術 100K。<br><b>⭐ High-yield</b>:多數放寬因子(uremia、splenomegaly、WBC 升高等)僅有 low-level evidence(expert opinion/retrospective),故 board 題目傾向「all of the above」;active bleeding 屬 therapeutic transfusion,本身不設 10K 門檻。<br><b>🔬 實證</b>:restrictive (10K) 不劣於 liberal (20K),RCT 顯示死亡與出血無顯著增加。(Kaufman et al., Ann Intern Med 2015;162:205;Estcourt et al., Br J Haematol 2017;176:365)",
+ "cards": [
+  {"kind":"basic","front":"穩定、無出血、化療/HSCT 相關 thrombocytopenia 的成人,預防性 (prophylactic) 血小板輸注的標準 trigger threshold 是多少?","back":"10,000/μL(10 × 10⁹/L)<hr>美國 AABB(2015、2025 更新)與英國 BSH(2017)一致建議:對住院、治療相關低血小板且臨床穩定的成人,prophylactic platelet transfusion 的 trigger 為 platelet count < 10K/μL,屬 restrictive strategy。早年曾用 < 20K 作為 trigger,後經多項 RCT 證實 10K 不劣於 20K(死亡與嚴重出血無顯著增加),且可減少輸注暴露(alloimmunization、TRALI、感染)。"},
+  {"kind":"basic","front":"哪些臨床因子下可「放寬 (liberalize)」預防性血小板輸注 threshold(即在較高血小板數即輸注)?","back":"發燒/感染、出血、凝血異常 (coagulopathy)、白血球升高等增加出血風險的因子<hr>board 題型常將四者皆視為可上調 trigger 的理由(答案常為 all of the above)。其中 fever 與 bleeding 最明確(指引直接提及);coagulopathy 散見於操作型 (procedure-related) 情境;increased WBC 支持度最間接,多被解讀為 SIRS/sepsis 的一部分。多數因子僅有 low-level evidence(expert opinion 或 retrospective)。"},
+  {"kind":"basic","front":"依 BSH 指引,發燒或感染 (fever/infection) 時可將預防性血小板輸注 trigger 由 10K 提高到多少?","back":"20,000/μL(20 × 10⁹/L)<hr>BSH 認為 fever、infection、sepsis、DIC 等增加出血或消耗風險,故將 trigger 上調至 20K/μL。其餘風險因子需個別評估,未必有單一固定數值。"},
+  {"kind":"cloze","text":"血小板輸注的手術 / 操作門檻階梯:中心靜脈導管置放或腰椎穿刺約 {{c1::20-50K}}/μL、major non-neuraxial surgery {{c2::50K}}/μL、neurosurgery 或眼後段手術 {{c3::100K}}/μL。","extra":"AABB、ASCO、BSH 對 CVC 與 major surgery 的門檻大致一致;neurosurgery/posterior eye 的 100K 門檻主要基於 expert opinion、證據等級低。近年研究主張腰椎穿刺門檻可下修至 40K 甚至更低。"},
+  {"kind":"basic","front":"為什麼「白血球升高 (increased WBC)」作為放寬血小板輸注 threshold 的條件最具爭議?","back":"現行 AABB 與 BSH 指引未將單純白血球升高列為調整 threshold 的獨立條件<hr>WBC 升高僅在被解讀為 SIRS/sepsis(感染 + 發炎反應)的一部分時,才間接符合 BSH 的出血風險因子分類。Wintrobe 在 AML 相關 thrombocytopenia 章節也只提「fever or infection」可提高 threshold,未單獨列出 WBC 升高;因此它常是 all-of-the-above 題型中最易被誤判的選項。"}
+ ]
+}

@@ -1,0 +1,13 @@
+{
+ "id": "112-032",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "TTP", "ADAMTS13", "platelet", "thrombotic-microangiopathy", "autoimmune", "caplacizumab", "PLASMIC-score", "vWF"],
+ "enrich_html": "<b>📌 考點</b>:TTP 的核心是 ADAMTS13 活性嚴重缺失(&lt;10%)。&gt;95% 屬 acquired/immune TTP(相對於 ADAMTS13 基因突變的 hereditary Upshaw-Schulman),由抗 ADAMTS13 自體抗體(inhibitor)所致;感染(病毒、細菌、瘧疾、敗血症)、懷孕、手術可誘發此免疫反應,故敘述 1、2、3 皆正確,藥物(ticlopidine、clopidogrel 等 thienopyridine)亦為重要誘因→敘述 4 錯誤。<br><b>🏥 臨床意義</b>:inhibitor 以 IgG class、IgG4 subclass 為主,辨識 ADAMTS13 spacer domain;high IgG4 預示高復發。臨床見 MAHA(schistocytes、LDH↑、haptoglobin↓)+ thrombocytopenia 且無其他原因即應儘速 TPE,不必等齊五聯徵。<br><b>⭐ High-yield</b>:PLASMIC score 7 項(Platelet&lt;30、hemolysis、no Cancer、no transplant、MCV&lt;90、INR&lt;1.5、Cr&lt;2.0),6–7 分高風險預測 ADAMTS13&lt;10%｜PT/aPTT 正常可與 DIC 鑑別｜caplacizumab 為 anti-vWF A1 domain nanobody。<br><b>🔬 實證</b>:抗 ADAMTS13 抗體可在 94%–97% iTTP 偵測(Sui, Front Immunol 2025);HERCULES trial caplacizumab recurrence 12% vs placebo 38%(NEJM 2019;380:335)。",
+ "cards": [
+  {"kind":"basic","front":"TTP(血栓性血小板低下紫斑症)的核心致病機轉是什麼?","back":"ADAMTS13 protease 活性嚴重缺失(通常 &lt;10%)<hr>ADAMTS13 負責切割 ultra-large vWF multimers。其活性嚴重不足時,UL-vWF 無法被裂解,在高剪切力的微血管內促成血小板黏附與聚集,形成 platelet-rich microthrombi,造成微血管病性溶血(MAHA)與血小板低下。&gt;95% 屬 acquired immune 型,由抗 ADAMTS13 自體抗體(inhibitor)引起。"},
+  {"kind":"basic","front":"哪些藥物是 acquired TTP 的典型誘因?藥物誘發 TTP 是否罕見?","back":"thienopyridine 類抗血小板藥(ticlopidine、clopidogrel)是典型誘因;藥物誘發 TTP 並不罕見,是重要原因之一<hr>這類藥物可誘導抗 ADAMTS13 autoantibody。此外 HIV 感染也與 acquired TTP 相關。考題若稱「藥物很少引發 TTP」屬錯誤敘述。"},
+  {"kind":"basic","front":"PLASMIC score 用來預測什麼?分數如何分層?","back":"預測 severe ADAMTS13 deficiency(&lt;10%),用於 ADAMTS13 結果未出前判斷是否該啟動治療<hr>7 項各 1 分(滿分 7):Platelet &lt;30×10⁹/L、hemolysis(retic↑/haptoglobin 測不到/indirect bilirubin &gt;2.0)、no active Cancer、no transplant 病史、MCV &lt;90 fL、INR &lt;1.5、Cr &lt;2.0 mg/dL。分層:0–4 low、5 intermediate、6–7 high risk。"},
+  {"kind":"basic","front":"急性 acquired TTP 的第一線治療三本柱是什麼?最緊急、絕不可延遲的是哪一項?","back":"TPE(治療性血漿置換)+ immunosuppression(corticosteroid ± rituximab)+ caplacizumab;其中 TPE 最緊急、懷疑 TTP 即應立即啟動<hr>TPE 補充 ADAMTS13 並移除自體抗體與 UL-vWF;corticosteroid/rituximab 抑制抗體生成;caplacizumab 加速血小板恢復、降低復發與死亡。未及時 TPE 的 TTP 死亡率極高(歷史上 &gt;90%)。"},
+  {"kind":"basic","front":"Caplacizumab 治療 TTP 的作用機轉為何?HERCULES trial 顯示什麼結果?","back":"caplacizumab 是 anti-vWF humanized single-domain nanobody,結合 vWF 的 A1 domain,阻斷 vWF 與 platelet GPIb 的交互作用,立即抑制血小板黏附與微血栓形成<hr>HERCULES trial(NEJM 2019;380:335):caplacizumab vs placebo,TTP recurrence 12% vs 38%(P&lt;.001),composite event(TTP 相關死亡/復發/血栓栓塞)風險降約 74%。它不影響 ADAMTS13 活性,故仍須合併免疫抑制治療。"}
+ ]
+}

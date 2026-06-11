@@ -1,0 +1,13 @@
+{
+ "id": "113-074",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "6-mercaptopurine", "thiopurine", "TPMT", "NUDT15", "pharmacogenomics", "DNA-TGN", "myelosuppression", "L-asparaginase", "pancreatitis", "CPIC"],
+ "enrich_html": "<b>📌 考點</b>:6-MP 的雙去活性酵素 TPMT 與 NUDT15 有<b>相反的族群分布</b>,是國考最愛的陷阱。<u>TPMT loss-of-function 較好發於歐洲人與非洲人 (poor metabolizer 約 1/300)</u>;<u>NUDT15 變異較好發於亞洲人 (Chinese ~25%、Malay ~36% 帶 ≥1 non-functional allele) 與 Hispanics</u>。把兩者族群對調即為錯誤敘述。<br><b>🏥 臨床意義</b>:兩酵素皆使 6-MP 去活性 → loss-of-function 使活性 6-TGN 累積 → 嚴重 myelosuppression、hepatotoxicity;CPIC 2018 建議用藥前依 TPMT+NUDT15 genotype 調整起始劑量 (poor metabolizer 減量至 10% 並延長給藥間隔)。<br><b>⭐ High-yield</b>:6-TGN 主導 myelosuppression｜6-MMP (TPMT 路徑代謝物) 主導 hepatotoxicity｜ALL 藥物性 acute pancreatitis 元凶是 <b>L-asparaginase (約 2-18%)</b> 而非 thiopurines｜NUDT15*3 (p.R139C) 與早發 leukopenia/alopecia 相關。<br><b>🔬 實證</b>:6-MP 為 ALL maintenance 核心藥,口服每日約 2.5 年。(CPIC Guideline, Clin Pharmacol Ther 2019;105:1095; Medical Genetics Summaries, NCBI NBK100660)",
+ "cards": [
+  {"kind":"basic","front":"6-mercaptopurine (6-MP) 作為 ALL 維持治療藥物,其抗癌作用機轉為何?","back":"經 HGPRT 活化為 thioguanine nucleotides (6-TGN),以 DNA-TG 形式嵌入 DNA 造成 mismatch、干擾核酸合成而誘發細胞凋亡<hr>6-MP 是 prodrug 型 purine antimetabolite。為 ALL maintenance phase 核心藥物,口服每日給藥約 2.5 年。"},
+  {"kind":"cloze","text":"6-MP 兩個去活性酵素的族群分布相反:{{c1::TPMT}} loss-of-function 較好發於歐洲人與非洲人 (poor metabolizer 約 1/300);{{c2::NUDT15}} 變異較好發於亞洲人 (Chinese ~25%、Malay ~36% 帶 ≥1 non-functional allele) 與 Hispanics。","extra":"兩酵素皆使 6-MP 去活性:TPMT 經 S-methylation、NUDT15 水解活性 6-TGN。Loss-of-function → 6-TGN 累積 → myelosuppression 與 hepatotoxicity 加重。NUDT15*3 (p.R139C) 為亞洲代表性 allele,與早發 leukopenia/alopecia 相關。族群對調即為錯誤敘述。"},
+  {"kind":"cloze","text":"6-MP 代謝物分工:{{c1::6-TGN}} 主導骨髓抑制 (myelosuppression);TPMT 路徑 S-methylation 生成的 {{c2::6-MMP}} 主導肝毒性 (hepatotoxicity)。","extra":"6-MP 經 HGPRT 活化為 6-TGN(亦負責免疫抑制);6-MMP 另與部分胰臟毒性、低血糖相關。NUDT15 則水解 6-TGN 使其失活。"},
+  {"kind":"basic","front":"ALL 化療中藥物性 acute pancreatitis 最主要的致病藥物是哪一個?thiopurines 是常見元凶嗎?","back":"L-asparaginase (發生率約 2-18%);thiopurines (6-MP) 並非常見元凶<hr>把 pancreatitis 列為 6-MP 常見 adverse effect 即為錯誤敘述。其他相關因子:steroids、cytarabine、imatinib,以及 hypercalcemia 與 hypertriglyceridemia。"},
+  {"kind":"basic","front":"CPIC 對 TPMT/NUDT15 為 poor metabolizer 的病人,使用 thiopurines 的劑量建議為何?","back":"大幅減少起始劑量 (約降至常規 10%) 並延長給藥間隔,或考慮改用替代藥物<hr>CPIC 2018 thiopurine guideline 依 TPMT 與 NUDT15 合併 genotype 分層 (normal / intermediate / poor metabolizer),調整 azathioprine、6-MP、thioguanine 起始劑量,以避免嚴重 myelosuppression。"}
+ ]
+}

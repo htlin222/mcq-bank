@@ -1,0 +1,13 @@
+{
+ "id": "113-041",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "type 1 VWD", "VWF", "Low VWF", "exon 28", "ABO blood group", "type 1C VWD", "increased clearance", "DDAVP"],
+ "enrich_html": "<b>📌 考點</b>：type 1 VWD 為 VWF 的<b>部分定量缺乏 (partial quantitative deficiency)</b>。2021 ASH/ISTH/NHF/WFH guideline 高頻誘餌：宣稱「約 60% 患者無已知致病 VWF 變異」屬<u>錯</u>——族群研究約 <b>65% 可找到 putative causative variant</b>，故無變異者約 35%。<br><b>🏥 臨床意義</b>：診斷門檻 VWF:Ag &lt;0.30 IU/dL（伴出血/家族史即診斷 type 1 VWD）；<b>0.30–0.50 IU/dL（30–50 IU/dL）= Low VWF 灰區</b>，外顯率低、多無明確突變、出血輕微，已自成一類、排除於 type 1 VWD 正式定義外。<br><b>⭐ High-yield</b>：exon 28 為最常見突變熱區（D1472H 干擾 ristocetin 結合/VWF:RCo 判讀）｜O 型血 VWF:Ag 較 A/B/AB 低約 25–30%｜type 1C（如 Vicenza）= 半衰期縮短、清除過快、VWFpp/VWF:Ag ratio↑，DDAVP 反應快但 fall-off 快。<br><b>🔬 實證</b>：機轉為合成/分泌↓（約 75% dominant-negative）＋清除加速。(ASH ISTH NHF WFH, Blood Adv 2021;5:280 &amp; 301；Blood Adv 2023;7:302)",
+ "cards": [
+  {"kind":"basic","front":"VWF:Ag 多少 IU/dL 可（在伴隨出血表現/家族史下）診斷 type 1 VWD？「Low VWF」灰區又是哪一段範圍？","back":"VWF:Ag &lt;0.30 IU/dL 可診斷 type 1 VWD；0.30–0.50 IU/dL (30–50 IU/dL) = Low VWF 灰區<hr>2021 ASH guideline 將 &lt;30 IU/dL 視為明確 VWD（無論是否有症狀亦可診斷）；30–50 IU/dL 屬中間灰區，多無明確突變、外顯率低、出血輕微，已自成一類而排除於 type 1 VWD 正式定義外，須結合出血史與重複檢測判讀。(Blood Adv 2021;5:280)"},
+  {"kind":"basic","front":"在 type 1 VWD 族群基因研究中，約多少比例的患者可找到「可能致病」的 VWF 基因變異 (putative causative variant)？反過來說，約多少比例找不到？","back":"約 65% 可找到；約 35% 找不到<hr>常見誘餌陳述「約 60% 的 type 1 VWD 患者無已知致病變異」是錯的——無變異者約 35% 而非 60%。type 1 VWD 為低外顯率疾病，相當比例患者無法以單一 VWF 變異完全解釋表型。(ASH ISTH NHF WFH 2021)"},
+  {"kind":"basic","front":"type 1C VWD 的定義特徵為何？與一般 type 1 VWD 在治療選擇上有何關鍵差異？","back":"type 1C = 因 VWF 清除過快導致半衰期顯著縮短<hr>實驗室特徵為 VWFpp/VWF:Ag ratio 升高（propeptide 清除較慢、成熟 VWF 清除快）。對 DDAVP 初始反應佳但濃度快速 fall-off，故僅看 peak 易誤導，須評估 DDAVP 後 1–4 小時的半衰期；圍術期或大出血常需改用 VWF concentrate 維持濃度。type Vicenza 為其原型 (archetype)。(Blood Adv 2023;7:302)"},
+  {"kind":"basic","front":"O 型血者的 VWF:Ag 濃度與 A、B、AB 血型者相比有何差異？臨床判讀上要注意什麼？","back":"O 型血者 VWF:Ag 約低 25–30%<hr>因 O 型血 VWF 清除較快，造成生理性低 VWF；解讀 borderline VWF 濃度時須將血型納入考量，避免把生理性低 VWF 誤判為 type 1 VWD。"},
+  {"kind":"basic","front":"VWF 基因中最常見的突變熱區位於哪一個 exon？該區的代表變異及其臨床意義為何？","back":"Exon 28<hr>代表變異為 D1472H，可干擾 ristocetin 結合功能，進而影響 VWF:RCo（ristocetin cofactor activity）檢驗判讀，可能造成 ristocetin 相關活性檢測的人為偏低。exon 28 編碼 A1/A2 domain，是 VWF 與 GPIbα 結合的關鍵區。"}
+ ]
+}

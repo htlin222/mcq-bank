@@ -1,0 +1,13 @@
+{
+ "id": "114-020",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "ITP", "immune-thrombocytopenia", "ASH-guideline-2019", "corticosteroid", "splenectomy", "TPO-RA", "Rituximab"],
+ "enrich_html": "<b>📌 考點</b>:ASH 2019 ITP guideline 把 second-line 治療排出偏好序——TPO-RA &gt; rituximab、rituximab &gt; splenectomy(均為 conditional、very low certainty)。Splenectomy 時機是高頻陷阱:指南建議<u>延後至少 1 年(≥12 個月)</u>再做，理由是第一年內可能 spontaneous remission，並避免不必要的終生感染風險;「delayed at least 12 to 24 months」是錯誤敘述。<br><b>🏥 臨床意義</b>:成人 ITP 約 2/3 對 corticosteroid 治療失敗或變成類固醇依賴 → 凸顯需及早轉 second-line;第一線類固醇須短療程(prednisone 0.5–2 mg/kg/day 或 dexamethasone 40 mg/day×4 天)且不超過 6 週，避免長期毒性。<br><b>⭐ High-yield</b>:對一種 TPO-RA(eltrombopag / romiplostim / avatrombopag)無反應，換另一種反應率約 50–80%｜splenectomy durable response 約 77%(高於其他療法)｜偏好早期 splenectomy 者術前可先一個療程 rituximab。<br><b>🔬 實證</b>:Second-line 偏好 TPO-RA &gt; rituximab &gt; splenectomy;rituximab 多列為 TPO-RA 失敗後之第三線。(Neunert et al., Blood Adv 2019;3:3829;2022 review Blood Adv 2024;8:3578)",
+ "cards": [
+  {"kind":"basic","front":"依 ASH 2019 ITP guideline，對初始治療反應不佳的成人 ITP，splenectomy(脾切除)建議延後多久再考慮?為什麼?","back":"建議延後至少 1 年(≥12 個月)。<hr>第一年內仍可能 spontaneous remission，延後手術可避免不必要的脾切除及其終生 encapsulated organisms 感染與血栓風險。考試陷阱敘述「delayed at least 12 to 24 months」為錯誤。"},
+  {"kind":"basic","front":"ASH 2019 ITP guideline 的 second-line 治療偏好順序為何(TPO-RA、rituximab、splenectomy 三者)?","back":"TPO-RA &gt; rituximab，rituximab &gt; splenectomy。<hr>對 corticosteroid 依賴或無反應且病程 ≥3 個月的成人:建議 TPO-RA 優於 rituximab、rituximab 優於 splenectomy;rituximab 多列為 TPO-RA 失敗後第三線。所有建議為 conditional、very low certainty。"},
+  {"kind":"basic","front":"ASH 2019 ITP guideline 為何建議將第一線 corticosteroid 療程限制在不超過 6 週?劑量為何?","back":"因長期類固醇毒性大,且多數成人無法靠類固醇維持緩解,故反對 &gt;6 週的延長療程。<hr>採「up, down, and off」短療程:prednisone 0.5–2 mg/kg/day 或 dexamethasone 40 mg/day×4 天。長期使用造成骨質疏鬆、高血糖、感染、體重增加、情緒/睡眠障礙。"},
+  {"kind":"basic","front":"成人 ITP 對一種 TPO-RA 無反應時，換用另一種 TPO-RA 的反應率約多少?","back":"約 50–80%。<hr>不同 TPO-RA(eltrombopag、romiplostim、avatrombopag)結合位/機轉略異,對一種無效不代表對另一種無效,故 switching 是合理策略而非放棄整類藥物。"},
+  {"kind":"basic","front":"成人 ITP 病程依時間如何分期(newly diagnosed / persistent / chronic)?","back":"newly diagnosed:診斷後 &lt;3 個月;persistent:3–12 個月;chronic:&gt;12 個月。<hr>分期影響治療決策——ASH 二線治療(TPO-RA / rituximab / splenectomy)的建議多針對病程 ≥3 個月且 corticosteroid 依賴或無反應者;splenectomy 更建議延至 ≥1 年(進入 chronic 後)。"}
+ ]
+}

@@ -1,0 +1,45 @@
+{
+  "id": "114-093",
+  "topic_index": 1,
+  "extra_tags": [
+    "enriched",
+    "extravasation",
+    "vesicant",
+    "dexrazoxane",
+    "hyaluronidase",
+    "anthracycline",
+    "vinca alkaloid",
+    "taxane",
+    "DMSO",
+    "sodium thiosulfate",
+    "chemotherapy administration"
+  ],
+  "enrich_html": "<b>📌 考點</b>：化療 extravasation 的四大專一解毒劑要對號入座 — <u>anthracycline→dexrazoxane(IV)</u>、<u>vinca alkaloid/taxane→hyaluronidase(局注)</u>、<u>mitomycin C→DMSO(局部塗抹)</u>、<u>mechlorethamine→sodium thiosulfate</u>。溫度則記「vinca 熱、anthracycline/taxane 冷」。<br><b>🏥 臨床意義</b>：vesicant 外漏會造成組織壞死、潰瘍甚至需清創/植皮，是化療給藥急症。Dexrazoxane(Totect)須在外漏後 &lt;6 小時、由對側未外漏的大靜脈開始，連 3 天(1000/1000/500 mg/m²)，且給藥期間移除冷敷以免影響療效。<br><b>⭐ High-yield</b>：dexrazoxane 機轉是 topoisomerase IIβ 催化抑制(非單純鐵螯合)｜hyaluronidase 分解 hyaluronic acid 使藥物擴散稀釋、降潰瘍率約 50%｜bleomycin、methotrexate、etoposide 一般屬 irritant/non-vesicant 而非 vesicant。<br><b>🔬 實證</b>：ESMO-EONS(Ann Oncol 2012;23 Suppl 7:vii167) 與首部 ONS/ASCO 合作指引(JCO Oncol Pract 2025;OP-25-00579) 一致背書此四種解毒劑;Totect FDA 核准 2007/09。",
+  "cards": [
+    {
+      "kind": "cloze",
+      "text": "化療 extravasation 四大專一解毒劑對號入座：anthracycline → {{c1::dexrazoxane (IV)}}；vinca alkaloid / taxane → {{c2::hyaluronidase (局部注射)}}；mitomycin C → {{c3::DMSO (局部塗抹)}}；mechlorethamine (氮芥) → {{c4::sodium thiosulfate}}。",
+      "extra": "出自 ESMO-EONS (2012) 與 ONS/ASCO (2025) 指引。dexrazoxane 與 hyaluronidase 為最常考的兩種；注意給藥途徑：dexrazoxane 走全身靜脈，hyaluronidase 是局部注射。"
+    },
+    {
+      "kind": "basic",
+      "front": "Anthracycline (如 doxorubicin、daunorubicin) 血管外滲漏 (extravasation) 的專一性解毒劑是什麼？給藥途徑與劑量為何？",
+      "back": "Dexrazoxane，全身靜脈 (IV) 滴注；連 3 天 1000 / 1000 / 500 mg/m²<hr>Dexrazoxane (Totect) 為 FDA 2007 年核准用於 anthracycline extravasation 的解毒劑，須在外漏後 6 小時內、由「對側未外漏」的大靜脈開始給藥，而非局部注射。"
+    },
+    {
+      "kind": "basic",
+      "front": "「IV anthracycline 外漏可用 dexrazoxane 局部注射」這句話錯在哪裡？",
+      "back": "錯在「局部注射」— dexrazoxane 須全身靜脈 (IV) 滴注而非 local injection<hr>Dexrazoxane 確有 anthracycline extravasation 的 FDA 適應症 (2007)，但給藥方式是由對側未外漏大靜脈 IV 滴注、連 3 天 (1000/1000/500 mg/m²)。其「全身靜脈」途徑最常被與 hyaluronidase 的「局部注射」混淆設陷阱。"
+    },
+    {
+      "kind": "basic",
+      "front": "Dexrazoxane 保護組織免於 anthracycline extravasation 傷害的主要機轉是什麼？",
+      "back": "催化抑制 topoisomerase IIβ (而非單純鐵螯合)<hr>Dexrazoxane 競爭性抑制 anthracycline 與 topoisomerase II 結合、減少 enzyme-DNA cleavable complex 形成，並具抗氧化/螯合作用減少自由基。其組織與心臟保護主要來自 topoisomerase IIβ 抑制，而非傳統認為的金屬螯合。"
+    },
+    {
+      "kind": "basic",
+      "front": "Vinca alkaloid (如 vincristine、vinblastine) 與 anthracycline 的 extravasation 在「局部溫度 + 解毒劑」上有何相反處置？",
+      "back": "Vinca：熱敷 (warm) + 局部注射 hyaluronidase「促擴散稀釋」；anthracycline：冷敷 (cold) + IV dexrazoxane「限擴散」<hr>Vinca alkaloid 希望把外漏藥物擴散稀釋以降低局部濃度，故用溫敷促血流加速吸收；anthracycline 則希望藥物侷限不擴散以縮小壞死範圍，故用冷敷收縮血管。考題常把 vinca (熱) 與 taxane (冷) 顛倒設陷阱。"
+    }
+  ]
+}

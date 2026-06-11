@@ -1,0 +1,33 @@
+{
+ "id": "113-043",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "CLL", "CLL-IPI", "iwCLL", "IGHV", "TP53", "del17p", "beta2-microglobulin", "autoimmune-cytopenia", "lymphocyte-doubling-time"],
+ "enrich_html": "<b>📌 考點</b>：CLL-IPI（Blood 2016）是<b>加權</b>整合 5 項獨立預後因子的指數,非單純計數;5 項為 del17p/TP53、IGHV status、β2-microglobulin、age、clinical stage。<u>CD38、ZAP-70 雖具預後意義但<b>不</b>納入</u>——把參數寫成「6 項且含 CD38」即為誤述。各項權重:del17p/TP53 = 4 分、IGHV unmutated = 2 分、β2M &gt;3.5 mg/L = 2 分、age &gt;65 = 1 分、stage = 1 分,總分 0–10。<br><b>🏥 臨床意義</b>:依總分分四級—low 0–1、intermediate 2–3、high 4–6、very high 7–10;外部驗證 5 年 OS 約 94% / 91% / 68% / 21%。del17p/TP53 權重最高且影響選藥(避 chemoimmunotherapy,首選 BTKi / venetoclax)。<br><b>⭐ High-yield</b>:iwCLL 2018 治療指徵需 active disease——marrow failure(Hb &lt;10 或 plt &lt;100)、massive(脾 ≥6 cm 肋緣下 / 淋巴結 ≥10 cm)或進行性腫大、progressive lymphocytosis(2 個月 ≥50% 或 LDT &lt;6 個月)、refractory autoimmune cytopenia、顯著 B symptoms。<u>單純高 ALC 無症狀、穩定的 plt &lt;100、可被類固醇控制的 immune cytopenia 均<b>非</b>指徵</u>。<br><b>🔬 實證</b>:CLL-IPI 原始模型 International CLL-IPI working group, Lancet Oncol 2016;17:779;治療指徵 Hallek et al., iwCLL guidelines, Blood 2018;131:2745。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "CLL-IPI 共納入幾項參數？CD38 與 ZAP-70 是否其中之一？",
+   "back": "5 項；CD38、ZAP-70 皆<b>不</b>納入。<hr>CLL-IPI 的 5 項參數為：①age（年齡 &gt;65）②clinical stage（Rai 或 Binet）③serum β2-microglobulin（&gt;3.5 mg/L）④TP53 異常（del17p 及／或 TP53 mutation）⑤IGHV mutation status（unmutated）。<br>CD38、ZAP-70 雖具預後意義但不納入計算。把參數說成「6 項且包含 CD38」為常見誘餌錯誤。"
+  },
+  {
+   "kind": "cloze",
+   "text": "CLL-IPI 各參數的加權分數：del17p 及／或 TP53 mutation = {{c1::4 分}}、IGHV unmutated = {{c2::2 分}}、β2-microglobulin &gt;3.5 mg/L = {{c3::2 分}}、age &gt;65 = {{c4::1 分}}、clinical stage（Rai I–IV 或 Binet B/C）= {{c5::1 分}}，總分範圍 0–10。",
+   "extra": "TP53 路徑異常權重最高(4 分),反映其在 CLL 中最強的不良預後與選藥意義。來源:International CLL-IPI working group, Lancet Oncol 2016。"
+  },
+  {
+   "kind": "basic",
+   "front": "CLL 中哪一項分子／細胞遺傳異常代表最差預後、且影響治療選擇？對化療免疫療法反應如何？",
+   "back": "del(17p) 及／或 TP53 mutation。<hr>TP53 路徑異常者對 chemoimmunotherapy（如 FCR）反應差、緩解短、存活短,應優先選用 BTK inhibitor（ibrutinib、acalabrutinib、zanubrutinib）或 BCL-2 inhibitor（venetoclax）等標靶藥。此異常在 CLL-IPI 中佔最高權重（4 分），very high risk 族群 5 年 OS 僅約兩成。"
+  },
+  {
+   "kind": "cloze",
+   "text": "iwCLL 2018 的 active disease（需治療）指徵列舉：{{c1::progressive marrow failure（Hb &lt;10 或 plt &lt;100）}}、{{c2::massive（脾 ≥6 cm 肋緣下 / 淋巴結 ≥10 cm）或進行性、有症狀的腫大}}、{{c3::progressive lymphocytosis（2 個月增 ≥50% 或 LDT &lt;6 個月）}}、{{c4::對標準治療 refractory 的 autoimmune cytopenia}}、{{c5::顯著 constitutional symptoms（半年內體重減 ≥10%、發燒、盜汗、極度疲倦）}}。",
+   "extra": "無症狀的早期 CLL 採 watch and wait；單純高 ALC、穩定的淋巴結腫大、或可被類固醇控制的免疫性 cytopenia 均非治療指徵。脾與淋巴結 massive 門檻不同(6 cm vs 10 cm)為常考細節。來源:Hallek et al., Blood 2018;131:2745。"
+  },
+  {
+   "kind": "basic",
+   "front": "CLL 病人僅有 lymphocytosis（ALC 升高）但無症狀，依 iwCLL 是否應治療？哪一項與淋巴球相關的指標才算治療指徵？",
+   "back": "否，不應僅因 lymphocytosis 而治療。<hr>單純 absolute lymphocyte count 升高（即使 &gt;50 × 10⁹/L）<b>不</b>是治療指徵；CLL 的高白血球數不像 AML 般造成 leukostasis。<br>有意義的是 <b>progressive lymphocytosis</b>：2 個月內增加 ≥50%,或 lymphocyte doubling time（LDT）&lt; 6 個月,代表疾病進展。早期治療無症狀 CLL 不改善存活(watch and wait)。"
+  }
+ ]
+}

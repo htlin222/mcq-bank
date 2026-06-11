@@ -1,0 +1,13 @@
+{
+ "id": "114-057",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "ALCL", "ALK", "t(2;5)", "NPM-ALK", "lymphoma", "PTCL", "CD30", "Brentuximab-vedotin", "Crizotinib", "DUSP22", "prognosis"],
+ "enrich_html": "<b>📌 考點</b>:t(2;5)(p23;q35) 產生 NPM-ALK,因 NPM (nucleophosmin) 本身穿梭入核,ALK 免疫染色呈<u>「核 + 胞質皆陽性」</u>;敘述「t(2;5) 僅胞質陽、核陰」為錯誤——「僅胞質陽性」對應的是 <b>variant (non-NPM) translocation</b>(如 t(1;2) TPM3-ALK)。融合夥伴決定亞細胞定位是高頻誘餌。<br><b>🏥 臨床意義</b>:ALK+ ALCL 一致強表達 CD30 → 成為 anti-CD30 ADC (Brentuximab vedotin, payload MMAE) 的治療標靶;NPM-ALK 持續活化激酶 → Crizotinib (ALK/MET/ROS1 TKI) 可精準抑制,FDA 2021 核准用於兒童及年輕成人 R/R ALK+ ALCL (ADVL0912 ORR 88%、CR 81%)。<br><b>⭐ High-yield</b>:ALK+ 是 PTCL 中最可治癒者,5-yr OS 70-87%、median age ~34 歲、男多｜陷阱:DUSP22-rearranged 屬 <b>ALK-negative</b> ALCL,5-yr OS 僅 40% (vs ALK+ 82%)｜一線 BV-CHP 優於 CHOP。<br><b>🔬 實證</b>:ECHELON-2 證實 BV-CHP > CHOP (CD30+ PTCL 一線);crizotinib 兒童/青年 R/R 數據來自 ADVL0912 (Mossé et al.) 與法國 AcSé 試驗。(PMC10467138; PMID 36453104; FDA 2021)",
+ "cards": [
+  {"kind":"basic","front":"ALK-positive ALCL 最具特徵性的染色體易位為何?產生什麼融合基因?","back":"t(2;5)(p23;q35),產生 NPM-ALK 融合基因。<hr>NPM (nucleophosmin, 5q35) 與 ALK (anaplastic lymphoma kinase, 2p23) 融合,使 ALK 激酶持續活化驅動腫瘤生成。t(2;5) 佔 ALK+ ALCL 易位大多數;其餘為 variant ALK translocation(如 t(1;2) 產生 TPM3-ALK)。ALK+ ALCL 約佔 mature T-cell lymphoma 的 6-7%。"},
+  {"kind":"basic","front":"NPM-ALK [t(2;5)] 融合的 ALK 蛋白在免疫染色上呈現怎樣的分布?為什麼?","back":"細胞核與細胞質「均」陽性 (nuclear + cytoplasmic)。<hr>NPM (nucleophosmin) 本身為核質穿梭蛋白,故 NPM-ALK 融合蛋白同時定位於核與胞質。「t(2;5)/NPM-ALK 僅胞質陽性、核陰性」是錯誤敘述——僅胞質陽性對應的是 variant (non-NPM) translocation(如 t(1;2) TPM3-ALK)。融合夥伴決定亞細胞定位是高頻誘餌。"},
+  {"kind":"basic","front":"DUSP22-rearranged ALCL 屬於 ALK-positive 還是 ALK-negative?其預後如何?","back":"屬 ALK-NEGATIVE ALCL;預後差,5-yr OS 僅約 40%。<hr>高頻陷阱:DUSP22 (6p25) 重排雖有獨特免疫表型,但屬 ALK-negative 範疇,5-yr OS 40% 遠低於 ALK-positive 的 82%。勿因「有特定遺傳易位」就誤認為 ALK+ 的良好預後。對照下 ALK+ ALCL 是 PTCL 中最可治癒者(5-yr OS 70-87%、median age ~34 歲、男多)。(PMID 36453104)"},
+  {"kind":"basic","front":"systemic ALCL 一線化療首選方案為何?背後是哪個關鍵試驗?","back":"一線:Brentuximab vedotin + CHP (BV-CHP)。<hr>ECHELON-2 試驗顯示 BV-CHP(以 BV 取代 CHOP 中的 vincristine)優於 CHOP,於 CD30+ PTCL(ALCL 一致強表達 CD30)成為一線標準。BV 為 anti-CD30 antibody-drug conjugate,payload 為 MMAE (monomethyl auristatin E,微管抑制劑)。"},
+  {"kind":"cloze","text":"ALCL 治療地圖:一線 systemic ALCL = {{c1::BV-CHP}}(ECHELON-2 證實優於 {{c2::CHOP}});R/R 用 anti-CD30 ADC {{c3::Brentuximab vedotin}}(payload {{c4::MMAE}});兒童/青年 R/R ALK+ 用 ALK TKI {{c5::Crizotinib}}(ADVL0912 ORR 88%、CR 81%,FDA 2021 核准)。","extra":"CD30 一致強表達是 BV 在 ALCL 有效的分子基礎;NPM-ALK 持續活化激酶是 crizotinib (ALK/MET/ROS1 TKI) 的作用點。"}
+ ]
+}

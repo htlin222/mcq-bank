@@ -1,0 +1,13 @@
+{
+ "id": "113-085",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "folic acid", "folate deficiency", "vitamin B12", "megaloblastic anemia", "RDA", "neural tube defect", "methyl folate trap"],
+ "enrich_html": "<b>📌 考點</b>:folic acid 攝取四個必背數值——成人 RDA <b>400 µg</b> DFE、懷孕 <b>600 µg</b>、哺乳 <b>500 µg</b>、補充品+強化食物合計上限 (UL) <b>1000 µg (1 mg)</b>。誘餌常用 750 µg (錯的 UL) 與「人體有高 folate 儲存」(錯,folate 儲存低)。OTC 可買到最高 1 mg 錠、multivitamin 多含 400 µg,此敘述正確。<br><b>🏥 臨床意義</b>:UL 限制 synthetic folic acid 而非天然 folate,核心理由是過量 folate 會矯正巨球性貧血卻<u>遮蔽 (mask) B12 deficiency</u>,使 subacute combined degeneration 神經病變在無血液學警訊下持續惡化甚至不可逆 → 補 folate 前必先評估 B12。<br><b>⭐ High-yield</b>:儲存量 folate (~5 mg,8-16 週耗盡) 遠低於 B12 (~2-5 mg,需數年)｜鑑別靠 MMA:folate 缺乏 homocysteine↑ 但 <b>MMA 正常</b>,B12 缺乏 homocysteine↑ 且 <b>MMA↑</b>｜備孕女性補 400 µg 預防 neural tube defect (NTD),前次 NTD 病史者需 4 mg。<br><b>🔬 實證</b>:Methyl-folate trap——B12 缺乏使 methionine synthase 失活,folate 卡在 5-methyl-THF 失活形式致 DNA 合成受阻。(CDC About Folic Acid 2024;Linus Pauling Institute Pregnancy/Lactation;StatPearls NBK535377;Br J Haematol 1993 methyl-folate trap hypothesis)",
+ "cards": [
+  {"kind":"cloze","text":"Folic acid 攝取建議:成人 RDA {{c1::400}} µg/day;懷孕 {{c2::600}} µg/day;哺乳 {{c3::500}} µg/day;補充品+強化食物每日上限 (UL) {{c4::1000}} µg/day;OTC 最高劑量 {{c5::1}} mg 錠。","extra":"UL 僅針對 synthetic folic acid (補充品 + 強化食物如 breakfast cereals 合計),天然食物 folate 無上限考量;multivitamin 多含 400 µg。常見誘餌 UL 數值 750 µg 為錯誤。"},
+  {"kind":"basic","front":"為何 folic acid 的攝取上限 (UL) 要設於 1000 µg (1 mg)?在 vitamin B12 deficiency 病人單用高劑量 folate 有何風險?","back":"過量 folic acid 會矯正巨球性貧血卻遮蔽 (mask) B12 deficiency,使神經病變在無血液學警訊下持續惡化<hr>B12 deficiency 的 subacute combined degeneration 會在貧血被 folate 掩蓋下繼續進展,甚至不可逆。這正是 UL 設限的核心理由 (限制 synthetic folic acid 而非天然 folate)。補 folate 前應先排除或同時評估 B12 狀態。"},
+  {"kind":"basic","front":"如何用 methylmalonic acid (MMA) 與 homocysteine 區分 folate deficiency 與 vitamin B12 deficiency?","back":"folate 缺乏 → homocysteine ↑、MMA 正常;B12 缺乏 → homocysteine ↑ 且 MMA ↑<hr>MMA 是關鍵鑑別點:只有 B12 缺乏會升高 MMA (因 methylmalonyl-CoA mutase 需 B12)。兩者皆升高 homocysteine,故 homocysteine 無法單獨區分。臨床上凡疑似 folate 缺乏皆須一併檢驗 B12 以免漏診神經病變。"},
+  {"kind":"basic","front":"Methyl-folate trap (甲基葉酸陷阱) 是什麼機轉?如何解釋 vitamin B12 deficiency 造成的巨球性貧血?","back":"B12 缺乏使 methionine synthase 失活,folate 被困在 5-methyl-THF 失活形式,無法再生為 THF 供 DNA 合成<hr>methionine synthase 需 B12 將 5-methyl-THF 去甲基並把 homocysteine 轉為 methionine。B12 缺乏時此反應停擺 → folate 卡住、DNA 合成受阻 → 與 folate 缺乏相同的 megaloblastic change。這也解釋為何補 folate 可暫時矯正貧血卻無法治本。"},
+  {"kind":"basic","front":"人體的 folate 儲存量與 vitamin B12 相比有何不同?所需耗盡時間各為何?","back":"folate 儲存「低」、B12 儲存「高」<hr>肝內 folate 約 5 mg,停止攝取後約 8-16 週 (數週至 3-4 個月) 即耗盡並出現缺乏。B12 儲存約 2-5 mg、需求極低,耗盡需數年 (如全胃切除後 3-5 年)。B12 是 water-soluble vitamin 中唯一能長期儲存者。故「人體有高 folate 儲存」的敘述為錯誤。"}
+ ]
+}

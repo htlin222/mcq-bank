@@ -1,0 +1,13 @@
+{
+  "id": "112-001",
+  "topic_index": 1,
+  "extra_tags": ["enriched", "AML", "MDS", "ICC 2022", "ELN 2022", "TP53", "RUNX1", "t(6;9)", "DEK-NUP214", "recurrent genetic abnormality", "blast threshold", "FLT3-ITD", "myelodysplasia-related"],
+  "enrich_html": "<b>📌 考點</b>:ICC 2022 是<b>階層式 (genetics-first) 排他演算法</b>。AML 帶 t(6;9)/DEK::NUP214 + TP53(VAF 7%) + RUNX1、myeloblast 僅 16% 時,TP53 與 RUNX1 是雙誘餌;但 <u>t(6;9)/DEK::NUP214 屬 AML-defining recurrent genetic abnormality (RGA)、優先序最高</u>,直接定案 AML with recurrent genetic abnormality。雙陷阱:TP53 VAF &lt;10% 不符 TP53-mutated;RUNX1 雖列 MR-gene,但 MR 類需 blast ≥20%(16% 不足)。<br><b>🏥 臨床意義</b>:t(6;9)/DEK::NUP214 高度合併 FLT3-ITD、化療反應差,relapse 57-64%、5yr OS ~45%,屬 ELN 2022 adverse risk → CR1 即規劃 allogeneic HSCT。<br><b>⭐ High-yield</b>:RGA 只需 blast ≥10%(唯一例外 BCR::ABL1 仍需 ≥20%)｜AML with mutated TP53 需 blast &gt;20% + VAF &gt;10%,blast 10-19% 則為 MDS/AML with mutated TP53｜MR/NOS 需 blast ≥20%。<br><b>🔬 實證</b>:分類優先序 RGA &gt; TP53-mutated &gt; MR &gt; NOS。(Arber et al., Blood 2022;140:1200;PMC11352995, 2024)",
+  "cards": [
+    {"kind":"basic","front":"ICC 2022 分類下,哪一類 AML-defining 異常可以不受 blast ≥20% 門檻限制,只要 myeloblast ≥10% 即可診斷 AML?","back":"AML with recurrent genetic abnormality(AML-defining recurrent genetic abnormalities, RGA)<hr>多數 RGA(如 t(8;21)、inv(16)、t(15;17)、t(6;9)、NPM1mut 等)只要 myeloblast ≥10% 即可診斷 AML,不需達 20%。<br>唯一例外:BCR::ABL1 仍要求 blast ≥20%(以與 CML blast crisis 區分)。"},
+    {"kind":"basic","front":"ICC 2022 myeloid 分類中,當同時存在多種異常時,recurrent genetic abnormality (RGA)、TP53-mutated、MR 三者的診斷優先序為何?","back":"RGA &gt; TP53-mutated &gt; MR (gene mutation / cytogenetic) &gt; NOS<hr>這是 genetics-first 階層排他演算法。一旦存在 AML-defining RGA(如 t(6;9)),即優先決定最終診斷層級,跳過 TP53 與 MR 的判讀。"},
+    {"kind":"basic","front":"ICC 2022 中,TP53 mutation 在 blast 10-19% vs >20% 兩種情境下,分別歸為哪個診斷類別?所需 VAF 門檻為何?","back":"blast &gt;20% + VAF &gt;10% → AML with mutated TP53;blast 10-19% + VAF &gt;10% → MDS/AML with mutated TP53<hr>TP53-mutated 為 ICC 獨有 entity。若 TP53 VAF &lt;10%(如 7%)則兩類皆不符。即使符合 VAF 門檻,若同時帶 RGA(如 t(6;9)),RGA 優先序更高仍歸 RGA。"},
+    {"kind":"basic","front":"ICC 2022 中,AML with myelodysplasia-related (MR) gene mutation(含 RUNX1)要求的 blast 門檻為何?","back":"MR gene mutation 類別在 ICC 下仍要求 blast ≥20%<hr>RUNX1 列於 MR gene mutation 清單,但 ICC 對 MR gene mutation / MR cytogenetic / AML NOS 一律維持 blast ≥20%。故 blast 16% 即不符 MR 類;且 RGA 優先序高於 MR,若兩者並存以 RGA 定案。"},
+    {"kind":"basic","front":"t(6;9)/DEK::NUP214 AML 的預後與第一次完全緩解 (CR1) 後的標準處置為何?","back":"預後差(ELN 2022 adverse risk):relapse 57-64%、5yr OS ~45%,常伴 FLT3-ITD → CR1 即規劃 allogeneic HSCT<hr>FLT3-ITD 使復發更快,但對 OS 影響有限;allo-HSCT 為改善存活的關鍵 risk-adapted 處置。(PMC4079767, COG, Blood 2012)"}
+  ]
+}

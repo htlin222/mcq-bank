@@ -1,0 +1,13 @@
+{
+ "id": "114-022",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "TMA", "TTP", "ADAMTS13", "atypical-HUS", "complement", "cobalamin-C-deficiency", "HELLP", "caplacizumab", "eculizumab", "STEC-HUS", "PLASMIC-score"],
+ "enrich_html": "<b>📌 考點</b>:TMA 是一組「全身性微血管內皮損傷」疾病,共同三聯特徵為 microangiopathic hemolytic anemia(MAHA、schistocyte)+ thrombocytopenia + 器官缺血。其損傷遍及腎、CNS 等多器官,<u>絕非僅限單一器官(如肺)</u>;凡描述「急性溶血只造成肺傷害而非全身組織傷害」者即為錯誤陳述。<br><b>🏥 臨床意義</b>:鑑別決定治療——TTP(ADAMTS13 &lt;10%)需緊急 TPE,延誤致命;aHUS(complement 調控異常)首選 eculizumab(anti-C5);STEC-HUS 以支持為主、不常規用 TPE。cblC 缺乏需 hydroxocobalamin + betaine,HELLP 需及時生產(delivery)。<br><b>⭐ High-yield</b>:ADAMTS13 活性 &lt;10% 是 TTP 診斷金標準｜PLASMIC score 高分預測嚴重 ADAMTS13 缺乏、指引經驗性 TPE｜caplacizumab(抗 vWF A1 nanobody)降低早期復發｜aHUS 標誌為 soluble C5b-9(sC5b-9)升高｜cblC 缺乏=hyperhomocysteinemia + methylmalonic aciduria。<br><b>🔬 實證</b>:ADAMTS13 與基因/補體檢測耗時,不可延誤初始 empiric TPE。(Leisring et al., Arthritis Rheumatol 2024;76:153;TMA review PMC9544907, 2022)",
+ "cards": [
+  {"kind":"basic","front":"為什麼「急性溶血只造成肺(或慢性肺)傷害而非全身組織傷害」這類敘述不符合 TMA 的病理?","back":"錯在器官範圍與時序:TMA 的內皮損傷與微血栓是「全身、急性」的,廣泛累及腎臟與 CNS 等多器官,並非局限於肺、也非慢性肺傷害<hr>所有公認 TMA 病因(TTP/ADAMTS13、aHUS/complement、cblC/homocysteine、HELLP)皆造成全身性血管內皮損傷與微血栓。把致病部位窄化為肺、把機制改為慢性,是混淆病理的誘餌敘述。"},
+  {"kind":"basic","front":"TTP (thrombotic thrombocytopenic purpura) 的核心分子機轉為何?診斷的酵素活性 cutoff?","back":"ADAMTS13 嚴重缺乏(活性 &lt;10%),無法切割 ultra-large vWF multimers<hr>ADAMTS13 是切割 vWF 的金屬蛋白酶;缺乏時 ultra-large vWF multimers 堆積,過度黏附並活化血小板,於微血管形成富含血小板(platelet-rich)的微血栓。ADAMTS13 活性 &lt;10% 為 TTP 診斷金標準。後天型為抗 ADAMTS13 自體抗體,先天型(Upshaw-Schulman)為 ADAMTS13 基因雙等位突變。"},
+  {"kind":"basic","front":"急性 TTP 的標準治療三大支柱為何?caplacizumab 的作用機轉與臨床效益?","back":"緊急 therapeutic plasma exchange (TPE) + corticosteroid + caplacizumab(免疫型再加 rituximab)<hr>TPE 移除自體抗體並補充 ADAMTS13,須立即啟動、不可等檢測結果。Caplacizumab 為抗 vWF A1 domain 的 nanobody,阻斷 vWF 與血小板 GPIb 結合,降低早期疾病復發與微血栓形成。延誤 TPE 致命。"},
+  {"kind":"basic","front":"典型 HUS (STEC-HUS) 與 atypical HUS 在致病機轉與首選治療上如何區分?","back":"典型=Shiga toxin(STEC,常見 E. coli O157:H7)→ 支持治療;非典型=complement alternative pathway 調控異常 → 首選 eculizumab(anti-C5)<hr>STEC-HUS 多見兒童、常有血性腹瀉前驅,通常不常規用 TPE 或抗補體藥。aHUS 常見 CFH/CFI/MCP/C3/CFB 突變或抗 factor H 抗體(DGKE 為非補體型),生物標誌為 soluble C5b-9 (sC5b-9) 升高,易復發、需長期 anti-C5。兩者皆屬 TMA,皆有 MAHA + 血小板低下 + 急性腎損傷。"},
+  {"kind":"cloze","text":"TMA 的公認致病類別與機轉:{{c1::TTP}} 因 {{c2::ADAMTS13 活性 &lt;10%}};{{c3::STEC-HUS}} 因 {{c4::Shiga toxin}};{{c5::atypical HUS}} 因 {{c6::complement alternative pathway 調控異常}};{{c7::cobalamin C 缺乏}} 因 {{c8::hyperhomocysteinemia}};{{c9::HELLP/preeclampsia}} 為妊娠相關內皮損傷。","extra":"所有類別皆造成全身血管內皮損傷與微血栓,導致 MAHA、thrombocytopenia 與多器官(腎、CNS)缺血,非單一器官。治療:TTP→TPE+caplacizumab;aHUS→eculizumab;STEC-HUS→支持;cblC→hydroxocobalamin+betaine;HELLP→delivery。"}
+ ]
+}

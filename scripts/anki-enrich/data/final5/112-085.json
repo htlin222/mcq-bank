@@ -1,0 +1,13 @@
+{
+ "id": "112-085",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "B-ALL", "CAR-T", "CD19", "tisagenlecleucel", "blinatumomab", "B-cell-aplasia", "ELIANA", "HSCT"],
+ "enrich_html": "<b>📌 考點</b>：CD19 CAR-T 治療 r/r precursor B-ALL 的「預後/毒性四因子」記憶法 — disease burden、prior blinatumomab response、B-cell aplasia 持續期、ELIANA 長期數據。陷阱在數字：high disease burden 真正 cutoff 是骨髓 blasts &lt;b&gt;≥5%&lt;/b&gt;(題幹誤植 50%)；ELIANA responder 5 年 RFS 約 44%、5 年 OS 約 55%(題幹 80% cure 誇大)。<br><b>🏥 臨床意義</b>：blinatumomab nonresponse 與 CD19-CAR 同靶(CD19)，預示 CD19 抗原逃逸或 T-cell dysfunction → CAR-T 後 CR 僅 64.5% vs 92.9%；早期(&lt;6 mo)喪失 B-cell aplasia 代表 CAR-T persistence 不足、EFS &lt;20% → 在可行情況積極考慮 allogeneic HSCT 鞏固。<br><b>⭐ High-yield</b>：B-cell aplasia = CD19 CAR-T 功能性持續存在的 surrogate；high disease burden 既是復發又是毒性(CRS/ICANS)最重要危險因子；blinatumomab「暴露」非危險因子、「無反應」才是。<br><b>🔬 實證</b>：Schultz et al., JCO 2022;40:945；ELIANA 5-yr follow-up (Laetsch et al. 2023 / Novartis 2023, 5-yr RFS ≈44%, OS ≈55%)；原題 Blood 2023;141:1251.",
+ "cards": [
+  {"kind":"basic","front":"CD19 CAR-T 治療 r/r B-ALL 時，定義「high disease burden」的骨髓 blast 閾值是多少?","back":"骨髓 blasts ≥ 5%。<hr>≥5% 的骨髓疾病負擔與較高復發風險、較差 RFS 相關，是 CAR response 分析中真正的 cutoff(常見誘餌為 50%)。High disease burden 同時也是 CRS/ICANS 等毒性最重要的危險因子之一，可說是貫穿療效與毒性的核心因子。"},
+  {"kind":"basic","front":"CAR-T 治療 B-ALL，曾「使用過」blinatumomab 本身是否為較差預後的危險因子?","back":"否 — 單純暴露於 (exposure) blinatumomab 並非危險因子；真正有意義的是對 blinatumomab 的「反應」。<hr>對 blinatumomab nonresponse 者，CD19-CAR 後 CR 率僅約 64.5% vs 反應者約 92.9%，且 EFS、RFS、OS 均縮短、6 個月內復發率超過 50%。機轉是兩者同以 CD19 為標靶，無反應暗示 CD19 antigen escape 或 T-cell dysfunction(但這不應視為 CAR-T 的禁忌)。"},
+  {"kind":"basic","front":"B-cell aplasia (BCA) 在 CD19 CAR-T 治療中代表什麼臨床意義?","back":"BCA 是 CD19 CAR T-cell 功能性持續存在 (functional persistence) 的替代標誌 (surrogate marker)。<hr>正常 B 細胞同樣表現 CD19，只要 CAR-T 仍有活性就會持續清除 B 細胞而維持 BCA；BCA 消失通常代表 CAR-T persistence 喪失，多發生於輸注後第一年。"},
+  {"kind":"basic","front":"CD19 CAR-T 後「早期 (<6 個月)」vs「較晚 (1 年後)」喪失 B-cell aplasia，EFS 差異及處置為何?","back":"6 個月內喪失 BCA → EFS &lt; 20%；1 年後才喪失 BCA → EFS 約 75%。早期喪失者應在可行情況下積極考慮 allogeneic stem cell transplantation 鞏固。<hr>早期 BCA 消失代表 CAR-T persistence 不足、復發風險高，allo-HSCT 可降低後續復發；較晚喪失則預後相對佳。"},
+  {"kind":"basic","front":"ELIANA 試驗 (tisagenlecleucel, N≈79) 的 5 年 RFS 與 5 年 OS 大約各是多少?","back":"responder 5 年 RFS 約 44%(median RFS ~43 個月)；全體 5 年 OS 約 55%。<hr>取得緩解後仍有相當比例會復發，「達緩解約 80% 即可治癒、無需後續治療」是錯誤陳述；輸注數年後仍可能復發，需持續監測並於必要時以 allo-HSCT 鞏固。"}
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "id": "114-083",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "aplastic anemia", "VSAA", "ASXL1", "6p UPD", "clonal evolution", "monosomy 7", "MDS transformation", "Camitta criteria", "Yoshizato NEJM 2015", "clonal hematopoiesis"],
+ "enrich_html": "<b>📌 考點</b>:Yoshizato NEJM 2015 把 acquired aplastic anemia 的體細胞突變分『不良』(ASXL1、DNMT3A、RUNX1、TP53、splicing factor → clone 擴大、IST 反應差、存活差)與『良性』(PIGA、BCOR/BCORL1 → clone 穩定/縮小、IST 反應好)兩群;選 ASXL1 baseline 突變作 clonal evolution 最強預測因子,正是踩在『不良群之首、且 truncating 型最險惡』這條主線。<br><b>🏥 臨床意義</b>:ASXL1 truncating 預示日後出現 monosomy 7 / complex karyotype 並向 MDS/AML 轉化 → 在仍處 aplastic 階段、疾病負荷低時即規劃 pre-emptive allogeneic HSCT,並密切做細胞遺傳學監測;反之 PIGA、BCOR/BCORL1 陽性者預後反而較好,不應據此提早移植。<br><b>⭐ High-yield</b>:6p UPD(copy-neutral LOH,約佔 AA 13%)= 丟失 risk HLA 等位基因的免疫逃脫 clone,相對良性甚至保護性,預測力 &lt; ASXL1｜monosomy 7(6 月偵測)預後最差｜trisomy 8、del(13q) 相對良性｜Camitta:VSAA = SAA + ANC &lt;0.2×10⁹/L,屬嚴重度而非分子預測因子。<br><b>🔬 實證</b>:預測力 ASXL1 truncating &gt; 6p UPD;不良群(ASXL1/DNMT3A/RUNX1) clone 隨時間擴大、良性群(PIGA/BCOR/BCORL1)穩定縮小。(Yoshizato T, et al. N Engl J Med 2015;373:35-47;Ogawa S, Blood 2016;128:337)",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "Acquired aplastic anemia 病人 baseline 偵測到的體細胞突變中,哪一個(及哪種型態)最強烈預測日後 clonal evolution 至 MDS/AML?",
+   "back": "ASXL1 突變,尤其是 truncating(截斷)突變<hr>ASXL1 truncating 是 acquired aplastic anemia 最強的 clonal evolution 預測因子,預示數年內出現 monosomy 7 / complex karyotype 並轉化為 MDS/AML。它屬於 Yoshizato NEJM 2015 所定義的『不良』突變群(ASXL1、DNMT3A、RUNX1、TP53、splicing factor),這些 clone 隨時間擴大、IST 反應差、OS/PFS 差。攜帶者需密切細胞遺傳學監測並考慮 pre-emptive allogeneic HSCT。"
+  },
+  {
+   "kind": "cloze",
+   "text": "Acquired aplastic anemia 體細胞突變預後二分(Yoshizato NEJM 2015):『不良』群含 {{c1::ASXL1}}、{{c2::DNMT3A}}、RUNX1、TP53、splicing factor → clone 擴大、IST 反應差、存活差;『良性』群含 {{c3::PIGA}}、{{c4::BCOR/BCORL1}} → clone 穩定縮小、IST 反應好、存活較佳。",
+   "extra": "ASXL1 truncating 是最強的 clonal evolution 預測因子,預示 monosomy 7 / complex karyotype 與 MDS/AML 轉化。PIGA/BCOR/BCORL1 陽性者預後較好,不應據此提早移植。"
+  },
+  {
+   "kind": "basic",
+   "front": "Acquired aplastic anemia 中,6p uniparental disomy(6p UPD / copy-neutral LOH)代表什麼機轉?其 clonal evolution 預測力為何不及 ASXL1?",
+   "back": "代表丟失 risk HLA 等位基因的免疫逃脫 clone,相對良性甚至保護性,預測惡性轉化能力不及 ASXL1<hr>自體反應 T 細胞透過特定 HLA class I 等位基因辨識造血幹細胞;幹細胞藉 6p UPD(以非 risk 等位基因取代 risk HLA 等位基因)或 HLA loss-of-function 突變沉默 risk allele 來逃避攻擊(HLA loss 機轉約見 20% 病人,6p UPD 在 AA 約佔 13%,為最常見的 SNP-array 異常)。它是免疫病理 marker、可能協助骨髓恢復,並非向惡性轉化的強驅動因子;ASXL1 truncating 才是會擴大並定調 high-risk 的因子。"
+  },
+  {
+   "kind": "basic",
+   "front": "Acquired aplastic anemia 發生 clonal evolution 時,哪些細胞遺傳學異常屬高風險(預後差)?哪些相對良性?",
+   "back": "高風險:monosomy 7(-7)、complex karyotype;相對良性:trisomy 8、del(13q)<hr>Monosomy 7(尤其在治療後 6 個月時偵測到)與存活差、向 MDS/AML 進展高度相關,常促使儘早 allogeneic HSCT;complex karyotype 同屬高風險。Trisomy 8 與 del(13q) 預後相對良性。ASXL1 baseline truncating 突變正是預示日後出現 monosomy 7 / complex karyotype 的分子標記。"
+  },
+  {
+   "kind": "cloze",
+   "text": "Camitta criteria:SAA = 骨髓細胞密度 {{c1::<25%}} + 至少 2 項血球減少(ANC {{c2::<0.5×10⁹/L}}、platelet <20×10⁹/L、reticulocyte <20×10⁹/L);VSAA 再加 ANC {{c3::<0.2×10⁹/L}}。",
+   "extra": "Disease severity classification(SAA/VSAA)決定治療緊迫性,屬嚴重度層面,並非 clonal evolution 的分子預測因子(該角色屬 ASXL1 truncating 突變)。"
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+{
+ "id": "113-052",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "CLL", "chronic-lymphocytic-leukemia", "immune-dysfunction", "hypogammaglobulinemia", "T-cell-exhaustion", "CD200", "PD-1", "Treg", "IVIG", "AIHA", "autoimmune-cytopenia"],
+ "enrich_html": "<b>📌 考點</b>:CLL 的免疫失能是<b>體液 + 細胞免疫雙重缺陷</b>，誘餌題常用「T cell abnormalities does NOT occur」設陷。事實上 CLL 的 T cell 數量反而增加、但功能異常呈 <u>exhaustion</u>(T cell 高表現 PD-1、LAG3;CLL 細胞高表現 PD-L1)，故「T 細胞不受影響」為錯誤。CLL 影響的免疫成分包含:hypogammaglobulinemia、complement 活化異常、neutrophil 功能障礙、monocyte 功能障礙、T cell 異常 — 全部都會出問題。<br><b>🏥 臨床意義</b>:Hypogammaglobulinemia 約 25% 診斷時即有、疾病過程再增 25%(IgG3、IgG4 為著)，是感染最主要原因(包膜菌:S. pneumoniae、H. influenzae)。IgRT/IVIG <u>非常規</u>:僅 IgG &lt;4 g/L 且反覆或嚴重細菌感染(已給預防性抗生素仍復發)才考慮(iwCLL 2018)。<br><b>⭐ High-yield</b>:CLL 三大免疫併發症 = 感染、second malignancy、autoimmune cytopenia｜自體免疫以 <u>AIHA 最常見</u> &gt; ITP &gt; PRCA;Evans syndrome (AIHA+ITP) &lt;1%｜CLL 的 DAT 陽性 AIHA 多為 warm IgG 型。<br><b>🔬 實證</b>:CD200、HVEM、PD-L1 干擾 immunological synapse;CD200+IL-10 誘導 CD4+/CD25high/FOXP3+ Treg → Treg 分泌 IL-4 上調 CLL 的 BCL-2 prosurvival;HVEM-CD160 與 PD-L1-PD-1 驅動 T-cell exhaustion。(Forconi & Moss, Blood 2015;126:573 | iwCLL, Blood 2018;131:2745)",
+ "cards": [
+  {"kind":"basic","front":"CLL 病人最常見的體液免疫缺陷 (humoral immune defect) 是什麼?盛行率與好發 IgG subclass 為何?","back":"Hypogammaglobulinemia<hr>約 25% 在診斷時即存在、疾病過程中再增約 25%，尤以 IgG3、IgG4 subclass 缺陷為著。是 CLL 感染(尤其包膜菌如 S. pneumoniae、H. influenzae)的最主要原因，並隨疾病進展而惡化。"},
+  {"kind":"basic","front":"「CLL 不會出現 T cell abnormalities」這句敘述對嗎?CLL 的 T cell 實際狀態為何?","back":"錯誤;CLL 的 T cell 數量反而增加，但功能異常、呈 exhaustion<hr>CLL 並非只影響 B cell。T cell 高表現 PD-1、LAG3 等抑制性 exhaustion marker，CLL 細胞高表現 PD-L1，使 T cell 失去有效抗腫瘤能力。這是國考常見誘餌考點。"},
+  {"kind":"basic","front":"CLL 病人何時才考慮給予 immunoglobulin replacement (IVIG/IgRT)?","back":"IgG &lt;4 g/L 且有反覆或嚴重細菌感染、已用預防性抗生素仍復發時 (iwCLL 2018)<hr>IVIG 並非常規治療:隨機試驗顯示預防性 IVIG 可降低細菌感染率、延長首次感染時間，但<b>不改善存活</b>，故僅保留給上述個別情境。"},
+  {"kind":"basic","front":"CLL 最常見的自體免疫併發症是哪一種?其餘自體免疫血球減少的頻率排序為何?","back":"AIHA (autoimmune hemolytic anemia) 最常見<hr>排序:AIHA &gt; ITP &gt; PRCA(pure red cell aplasia)；AIHA 多為 warm-antibody (IgG) 型、DAT (Coombs) 陽性，治療以類固醇為一線。AIHA 合併 ITP 即 Evans syndrome，發生率 &lt;1%。CLL 三大免疫併發症為感染、second malignancy、autoimmune cytopenia。"},
+  {"kind":"basic","front":"CLL 中哪兩組 receptor-ligand 交互作用主導 T-cell exhaustion?","back":"HVEM-CD160 與 PD-L1-PD-1<hr>CLL 細胞上的 HVEM 與 T cell 的 CD160 結合、CLL 的 PD-L1 與 T cell 的 PD-1 結合，共同驅動 T-cell exhaustion(伴隨 LAG3 上調)，削弱抗腫瘤免疫。CD200、HVEM、PD-L1 並會干擾 immunological synapse 形成，是 CLL 免疫逃脫的核心機轉。"}
+ ]
+}

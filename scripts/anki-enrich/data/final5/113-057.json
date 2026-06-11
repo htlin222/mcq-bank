@@ -1,0 +1,13 @@
+{
+ "id": "113-057",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "thalassemia", "alpha-thalassemia", "beta-thalassemia", "hemoglobinopathy", "epidemiology", "Southeast-Asia", "HbH-disease", "Hb-Bart-hydrops", "malaria-hypothesis"],
+ "enrich_html": "<b>📌 考點</b>:依 WHO 與 Wintrobe's,α-thalassemia 是全球最常見的單基因病,約 <u>20% 人口帶因</u>(絕非 &lt;1%);最高盛行於 Southeast Asia 與 China,部分地區帶因率達 40%。誘餌邏輯:Northern Europe(非熱帶、低盛行)、Pacific islands(非 β-thal 主分布)、移民使分布「擴大」而非減少——四個錯項各踩一個地理/流行病學陷阱。<br><b>🏥 臨床意義</b>:SEA 以 <u>cis 型 --SEA deletion</u> 為主,兩名 α-thal trait 帶因者可生下 Hb Bart's hydrops fetalis(γ4,胎死腹中)→ 高盛行區需 prenatal screening + 產前診斷;非洲多為 trans 型(−α/−α),故 hydrops 罕見、表現較輕。<br><b>⭐ High-yield</b>:α-globin gene 共 4 個｜1 缺失=silent carrier(CBC 正常)｜2 缺失=trait(MCV↓、Hb 正常或輕降)｜3 缺失=HbH disease(β4,中重度溶血)｜4 缺失=Hb Bart's hydrops fetalis(致死)。β-thal 全球約 3% 帶因。<br><b>🔬 實證</b>:2020 SEA meta-analysis(83,674 人)pooled prevalence 0.226;Vietnam 51.5% &gt; Cambodia 39.5% &gt; Laos 26.8% &gt; Thailand 20.1% &gt; Malaysia 17.3%。(Int J Environ Res Public Health 2020;17:7354;GeneReviews;Blood 1998;91:2213)",
+ "cards": [
+  {"kind":"basic","front":"全球人口中,攜帶 α-thalassemia 基因者約占多少比例?","back":"約 20%(遠超過 1%)<hr>α-thalassemia 是全球最常見的單基因疾病之一。對照之下,β-thalassemia 帶因者約占全球 3%。「全球 &lt;1% 帶因」是常見錯誤敘述。"},
+  {"kind":"basic","front":"α-thalassemia 帶因率最高的地理區域是哪裡?最高可達多少比例人口?Northern Europe 算不算高盛行區?","back":"Southeast Asia 與 China,部分地區最高可達 40% 人口為帶因者;Northern Europe 屬低盛行的非熱帶區,並非高盛行地<hr>高盛行區多為熱帶地帶(sub-Saharan Africa、Middle East、South/Southeast Asia),與歷史瘧疾流行區重疊(malaria hypothesis)。"},
+  {"kind":"cloze","text":"α-thalassemia 依缺失基因數分四級(正常人共 4 個 α-globin gene,αα/αα):1 個缺失 = {{c1::silent carrier}}(−α/αα,CBC 正常);2 個缺失 = {{c2::α-thalassemia trait / minor}}(輕度小球性貧血);3 個缺失 = {{c3::HbH disease}}(中重度溶血性貧血);4 個缺失 = {{c4::Hb Bart's hydrops fetalis}}(胎死腹中)。","extra":"嚴重度與失活的 α-globin gene 數成正比。silent carrier 無症狀、CBC 正常,常需分子診斷才確認;β-globin 每人只有 2 個 gene(HBB)。"},
+  {"kind":"basic","front":"HbH disease(3 個 α-globin gene 缺失)與 Hb Bart's(4 個缺失)各自的異常血紅素為何?臨床後果?","back":"HbH = β4 tetramer(過多 β chain 聚合);Hb Bart's = γ4 tetramer(過多 γ chain 聚合)<hr>HbH(β4)易在 RBC 內沉澱、破壞膜 → 中重度溶血性貧血。Hb Bart's(γ4)對氧親和力極高、無法釋氧 → 胎兒組織缺氧、nonimmune hydrops fetalis、胎死腹中。"},
+  {"kind":"basic","front":"α-thalassemia trait 雙基因缺失分 cis 與 trans 型,基因型與地理分布為何?為何只有部分族群會生出 Hb Bart's hydrops fetalis?","back":"cis 型 = 兩缺失在同一條染色體(−−/αα),常見於 Southeast Asia(--SEA)/地中海;trans 型 = 分在兩條染色體(−α/−α),常見於非洲<hr>只有 cis 型帶因者彼此婚配,子代才可能湊成 −−/−−(Hb Bart's,每胎 1/4 機率);trans 型湊不出 4 缺失,故非洲 hydrops 罕見。高盛行 cis 缺失區需產前 thalassemia screening 與遺傳諮詢。"}
+ ]
+}

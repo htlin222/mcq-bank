@@ -1,0 +1,13 @@
+{
+ "id": "113-044",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "DLBCL", "ALCL", "Hans-algorithm", "cell-of-origin", "GCB", "non-GCB", "ABC-DLBCL", "double-expressor", "double-hit", "ALK", "BCL2", "BCL6", "MUM1", "CD10", "MYC"],
+ "enrich_html": "<b>📌 考點</b>:Hans algorithm 用三個 IHC marker(CD10、BCL-6、MUM1/IRF4)當 cell-of-origin 的替代分型。判讀順序:CD10 &ge;30% 陽性 → GCB;CD10&minus; 則看 BCL-6,BCL-6&minus; → non-GCB;BCL-6+ 再看 MUM1,<u>MUM1&minus; → GCB</u>、MUM1+ → non-GCB。故 CD10&minus;/BCL-6+/MUM1&minus; 實為 <b>GCB</b>,把它說成 non-GCB 即為錯誤(本卡組對應的考題誘餌)。<br><b>🏥 臨床意義</b>:GCB 亞型 OS/PFS 優於 non-GCB(ABC);ABC 依賴 NF-&kappa;B 路徑、常 BCL-2 過表現,R-CHOP 預後較差,是 BTK 抑制劑等標靶研究的對象。<br><b>⭐ High-yield</b>:Double expressor = IHC MYC &ge;40% + BCL-2 &ge;50%(WHO 2016 cutoff),非獨立 entity、仍屬 DLBCL,NOS,預後差但優於 double hit｜Double hit = FISH 證實 MYC 加 BCL-2(&plusmn;BCL-6)重排,WHO HAEM5 命名為 high-grade B-cell lymphoma with MYC and BCL2 rearrangements,預後最差｜ALK+ ALCL 較年輕、5yr OS 70-90% 遠優於 ALK&minus; 的 40-60%。<br><b>🔬 實證</b>:預後排序 double hit &lt; double expressor &lt; 一般 DLBCL;cell-of-origin GCB &gt; non-GCB。(Hans CP et al., Blood 2004;103:275;WHO HAEM5 2022;ALCL review, Blood 2015;126:17)",
+ "cards": [
+  {"kind":"cloze","text":"Hans algorithm 四種組合的歸類:CD10+ → {{c1::GCB}};CD10−/BCL-6+/MUM1− → {{c2::GCB}};CD10−/BCL-6+/MUM1+ → {{c3::non-GCB (ABC)}};CD10−/BCL-6− → {{c4::non-GCB (ABC)}}。","extra":"用三個 IHC marker 階層式判讀:CD10 &ge;30% 陽性即 GCB,不必再看其他;CD10− 才往下看 BCL-6,BCL-6− 直接 non-GCB,BCL-6+ 再以 MUM1 分流。MUM1(IRF4)是 post-germinal center 分化的轉錄因子,出現代表已離開生發中心,故偏 ABC。最易錯的陷阱:CD10−/BCL-6+/MUM1− 仍屬 GCB,不可誤標為 non-GCB。"},
+  {"kind":"basic","front":"DLBCL 的 GCB 與 non-GCB(ABC)亞型,何者 R-CHOP 治療後預後較佳?為什麼?","back":"GCB 亞型預後較佳<hr>Non-GCB(ABC)亞型有較差的 OS/PFS,與其依賴慢性活化的 NF-κB 路徑、常見 BCL-2 過度表現(抗凋亡)有關,故對 R-CHOP 反應較差,也是 BTK 抑制劑等標靶研究的對象。Cell-of-origin 可用 IHC(Hans algorithm)或 gene expression profiling(GEP)判定,GEP 為金標準。"},
+  {"kind":"basic","front":"何謂 double expressor DLBCL 與 double hit lymphoma?兩者在定義層次與預後上有何不同?","back":"Double expressor = 蛋白層次(IHC)共表現 MYC 與 BCL-2,常用 cutoff 為 MYC &ge;40% 且 BCL-2 &ge;50%(WHO 2016);double hit = 基因層次(FISH)同時有 MYC 加 BCL-2(±BCL-6)重排<hr>Double expressor 不是獨立 WHO entity,仍歸 DLBCL,NOS;double hit 在 WHO HAEM5(2022)命名為 high-grade B-cell lymphoma with MYC and BCL2 rearrangements,需 FISH 確診。預後排序:double hit < double expressor < 一般 DLBCL。"},
+  {"kind":"basic","front":"ALK+ 與 ALK− anaplastic large cell lymphoma(ALCL),哪個預後較佳?5 年存活率約多少?","back":"ALK 陽性預後較佳<hr>ALK+ ALCL 患者通常較年輕,5 年 OS 約 70–90%;ALK− ALCL 約 40–60%。年輕年齡本身是 ALK+ 預後好的重要因素。WHO HAEM5(2022)中 ALK+ ALCL 與 ALK− ALCL 為各自獨立的 entity。"},
+  {"kind":"basic","front":"ALK+ ALCL 最常見的驅動染色體易位與融合基因為何?如何在病理上偵測?","back":"t(2;5)(p23;q35),產生 NPM1-ALK 融合<hr>此融合導致 ALK 酪胺酸激酶組成性活化、驅動腫瘤生長。可用 IHC 偵測 ALK 蛋白(與融合高度相關)或 FISH 偵測 ALK 重排。其他較少見的變異伙伴基因也存在,但 NPM1-ALK 最常見。"}
+ ]
+}

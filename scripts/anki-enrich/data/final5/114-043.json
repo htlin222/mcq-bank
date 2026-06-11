@@ -1,0 +1,13 @@
+{
+ "id": "114-043",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "Hodgkin Lymphoma", "Reed-Sternberg cells", "CD15", "CD30", "CD45", "PAX-5", "NF-kB", "JAK-STAT", "EBV", "LMP1", "PD-L1", "9p24.1", "ALCL"],
+ "enrich_html": "<b>📌 考點</b>:Classical Hodgkin lymphoma 的 Reed-Sternberg (RS) 細胞免疫表型口訣為 <u>CD15(+)、CD30(+)、CD45(&minus;)</u>。最大誘餌是「almost all RS cells express CD45」&mdash; RS 細胞典型為 <b>CD45(LCA) 陰性</b>,正是與 non-Hodgkin lymphoma(多為 CD45+)鑑別的關鍵;且 CD15 僅約 80% 病例陽性,非「almost all」。<br><b>🏥 臨床意義</b>:CD30 並非 cHL 特異,anaplastic large-cell lymphoma(ALCL)同為 CD30 強陽。鑑別靠 <u>cHL:CD15(+)、CD45(&minus;)、PAX-5 dim</u> vs <u>ALCL:CD45(+)、ALK&plusmn;、EMA(+)、T-cell antigen(+)、CD15(&minus;)、PAX-5(&minus;)</u>。PAX-5 完全陰性強烈反對 cHL 診斷。<br><b>⭐ High-yield</b>:RS 細胞源自 germinal-center B cell,因 transcription factor downregulation + epigenetic silencing 失去多數 B-cell 程序;PAX-5 約 90-95% 仍呈 dim 核陽以證實 B-cell 起源。EBV LMP1 模擬 CD40 → 持續活化 NF-&kappa;B;LMP2a 模擬 BCR signaling。<br><b>🔬 實證</b>:9p24.1 amplification(nodular sclerosis 型常見)→ PD-L1/PD-L2/JAK2 共擴增,JAK2-STAT 再上調 PD-1 ligand → anti-PD-1 (nivolumab/pembrolizumab) 在 R/R cHL 之 ORR 達 70-90%。(StatPearls, NCBI NBK542333;Roemer et al., JCO 2016;34:2690)",
+ "cards": [
+  {"kind":"basic","front":"Classical Hodgkin lymphoma (cHL) 的 Reed-Sternberg (RS) 細胞典型免疫表型(CD15 / CD30 / CD45)為何?","back":"CD15(+，約 80%)、CD30(+，近 100%)、CD45(LCA)(&minus;)。<hr>CD15 與 CD30 共表達在 cHL 之外罕見,是 cHL 的特徵組合;CD45(LCA) 陰性則是與 non-Hodgkin lymphoma(腫瘤細胞多 CD45+)鑑別的關鍵。「almost all RS cells express CD45」為典型誘餌錯誤敘述。"},
+  {"kind":"cloze","text":"鑑別 cHL 與 ALCL:cHL 表型為 CD15{{c1::(+)}}、CD45{{c2::(&minus;)}}、PAX-5{{c3::dim 陽性}};ALCL 表型為 CD45{{c4::(+)}}、CD15{{c5::(&minus;)}}、且可表達 {{c6::ALK}}、EMA 與 T-cell antigen。","extra":"兩者皆 CD30 強陽,故 CD30 無鑑別力;CD15、CD45 狀態與 ALK/EMA/T-cell antigen 才是分辨重點。"},
+  {"kind":"basic","front":"PAX-5 在 classical Hodgkin lymphoma 的 RS 細胞中的表達模式為何?有何診斷意義?","back":"約 90-95% 病例呈 dim/weak 核陽性。<hr>PAX-5 為 B-cell 轉錄因子,RS 細胞雖喪失多數 B-cell 標記(如 CD20、CD45),仍保留弱陽性 PAX-5,用以證實其 germinal-center B-cell 起源。PAX-5 完全陰性會強烈反對 cHL 的診斷。"},
+  {"kind":"basic","front":"EBV 透過哪兩個病毒蛋白促進 Hodgkin lymphoma 的 RS 細胞存活?各自模擬什麼訊號?","back":"LMP1 與 LMP2a。<hr>LMP1 模擬 activated CD40 receptor,持續活化 NF-&kappa;B;LMP2a 模擬 B-cell receptor (BCR) signaling。兩者皆具 anti-apoptotic 作用,協助喪失 BCR 的 RS 細胞存活。"},
+  {"kind":"basic","front":"classical Hodgkin lymphoma 透過 9p24.1 異常達成免疫逃脫的機轉為何?據此為何 anti-PD-1 抗體療效卓著?","back":"9p24.1 amplification 使 PD-L1、PD-L2 與 JAK2 共同上調;JAK2-STAT 再進一步上調 PD-1 ligand,形成雙重免疫逃脫。<hr>nodular sclerosis 型最常見此擴增。RS 細胞高度依賴 PD-L1/PD-L2 免疫逃脫,故阻斷 PD-1 (nivolumab / pembrolizumab) 解除抑制,在 relapsed/refractory cHL 的 ORR 達 70-90%,為對 PD-1 阻斷反應最佳的腫瘤之一。"}
+ ]
+}

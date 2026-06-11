@@ -1,0 +1,33 @@
+{
+  "id": "114-035",
+  "topic_index": 5,
+  "extra_tags": ["enriched", "cold-agglutinin-disease", "CAD", "AIHA", "sutimlimab", "complement-inhibitor", "eculizumab", "pegcetacoplan", "rituximab", "C1s-inhibitor"],
+  "enrich_html": "<b>📌 考點</b>:Cold agglutinin disease (CAD) 治療階層 ─ <u>補體標靶</u>首選 sutimlimab (anti-C1s,唯一 FDA 核准,2022),sutimlimab 不可用時 eculizumab (anti-C5) 可作 acute/chronic 替代;<u>B-cell 標靶</u>則 rituximab ± bendamustine。Pegcetacoplan (C3 抑制劑) 僅核准 PNH、CAD 屬試驗階段 → 「pegcetacoplan 可作 sutimlimab 不可用時 chronic 替代」為錯誤陳述。<br><b>🏥 臨床意義</b>:CAD 由 IgM 在 0–4°C 與 RBC I antigen 結合、活化 classical pathway,C3b 沉積後在肝臟 (Kupffer cells/CR1) 行 extravascular hemolysis。故 anti-C5 的 eculizumab 只擋 terminal/intravascular hemolysis,擋不住 C3b extravascular,療效有限;anti-C1s 上游阻斷才同時解決兩者。<br><b>⭐ High-yield</b>:CAD 對 corticosteroid 與 splenectomy 通常無效 (有別於 warm AIHA,因溶血在肝非脾)｜保暖、輸血用加溫血品為基本照護｜eculizumab 用前需打 meningococcal vaccine。<br><b>🔬 實證</b>:CARDINAL trial (n=24) 54% 達 composite endpoint,Hb 第 1 週 +1.2、第 3 週 +2.3 g/dL,bilirubin 3 週內正常化。(Röth et al., NEJM 2021;384:1323;CADENZA, Blood 2022;140:980)",
+  "cards": [
+    {
+      "kind": "basic",
+      "front": "Cold agglutinin disease (CAD) 主要透過哪一條 complement pathway 造成溶血?這如何決定其標靶治療?",
+      "back": "Classical complement pathway(經 C1 complex,C1s 為關鍵 serine protease)<hr>IgM cold agglutinin 在 0–4°C 與 RBC I antigen 結合後啟動 classical pathway,C1s 切割下游補體,C3b 沉積使 RBC 於肝臟 (Kupffer cells 透過 CR1) 行 extravascular hemolysis。因此 sutimlimab (anti-C1s) 在上游阻斷 classical pathway,並保留 alternative/lectin pathway 對 encapsulated bacteria 的免疫,這是 CAD 補體標靶治療的機轉基礎。"
+    },
+    {
+      "kind": "basic",
+      "front": "Cold agglutinin disease (CAD) 唯一獲 FDA 核准的補體標靶 (gold standard) 藥物為何?標靶與給藥模式為何?",
+      "back": "Sutimlimab,anti-C1s monoclonal antibody,抑制 classical complement pathway,持續性 (continuous) 靜脈給藥<hr>Sutimlimab 於 2022 年獲 FDA 核准用於 CAD,快速抑制 C1s 介導的溶血、提升 hemoglobin 並減少輸血需求。屬慢性持續性治療,非單次療程。CARDINAL trial (n=24) 中 54% 達 composite endpoint,Hb 第 3 週升約 2.3 g/dL、bilirubin 3 週內正常化。"
+    },
+    {
+      "kind": "basic",
+      "front": "在 cold agglutinin disease (CAD),為何 anti-C5 的 eculizumab 療效不如 anti-C1s 的 sutimlimab?sutimlimab 不可用時可否替代?",
+      "back": "Eculizumab 只阻斷 terminal pathway/MAC(擋 intravascular hemolysis),擋不住 C3b 介導的肝臟 extravascular hemolysis;sutimlimab 在 C1s 上游阻斷,兩者皆擋<hr>CAD 主要溶血來自 C3b 沉積後的 extravascular hemolysis,eculizumab 作用於下游 C5,無法阻止上游 C3b 形成,故療效有限。但 sutimlimab 不可用時,eculizumab 仍可作 acute 或 chronic 替代選項;使用前須接種 meningococcal vaccine,因 terminal pathway 受阻會增加 Neisseria meningitidis 等 encapsulated 菌感染風險。"
+    },
+    {
+      "kind": "basic",
+      "front": "為何 pegcetacoplan 不被視為 cold agglutinin disease (CAD) 在 sutimlimab 不可用時的標準替代方案?",
+      "back": "Pegcetacoplan 尚未獲 FDA 核准用於 CAD,僅在小型試驗階段<hr>Pegcetacoplan 是 C3 抑制劑(結合 C3/C3b,同時抑制 C3 與 C5 convertase),已核准用於 PNH。在 CAD 僅有約 13 人的小型 study (Blood 2025;145:397) 顯示可提升 Hb、減少溶血,但尚未建立為標準治療。故「pegcetacoplan 可作為 sutimlimab 不可用時的 chronic 治療選項」是錯誤陳述。CAD 不可用時的補體標靶替代仍是 eculizumab。"
+    },
+    {
+      "kind": "basic",
+      "front": "Cold agglutinin disease (CAD) 對 corticosteroid 與 splenectomy 的反應如何?為什麼?與 warm AIHA 有何不同?",
+      "back": "通常無效(有別於 warm AIHA)<hr>CAD 的溶血主要由 C3b 介導、發生在肝臟 (Kupffer cells),且自體抗體為 IgM,故脾切除與類固醇效果有限。Warm AIHA 因 IgG 包被 RBC、在脾臟被破壞,corticosteroid 與 splenectomy 才有效。CAD 的疾病修飾治療另有 B-cell 指向的 rituximab ± bendamustine(許多 guideline 的 first-line),非藥物面則以保暖、輸血加溫血品為基本照護。"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+ "id": "113-098",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "cancer pain", "NCCN", "opioid", "pain assessment", "VAS", "NRS", "Wong-Baker FACES", "FLACC", "breakthrough pain", "supportive care", "palliative"],
+ "enrich_html": "<b>📌 考點</b>:「以數字方法自覺評估疼痛」是 NRS (Numerical Rating Scale,病人報 0-10 整數) 的定義,而非 VAS。VAS (Visual Analogue Scale) 是一條 10 cm 連續直線,病人在「無痛(左)→最痛(右)」上標記位置,測量左端到標記的長度得分,屬視覺類比、非報數字。把 NRS 定義冠在 VAS 上即為錯誤敘述。<br><b>🏥 臨床意義</b>:VAS、NRS、Wong-Baker FACES 三者皆為病人自陳 (self-report);FLACC (Face-Legs-Activity-Cry-Consolability) 則為非語言/嬰幼兒的行為觀察量表。Wong-Baker FACES 適用 &ge;3 歲孩童。illiterate 或溝通困難族群,NRS/FACES 信度優於 VAS。<br><b>⭐ High-yield</b>:NCCN 依強度分層 — mild 1-3 先 non-opioid &plusmn; adjuvant｜moderate 4-6 緩慢 titrate｜severe 7-10 以 short-acting (IR) opioid 快速 titrate。Opioid-naïve 起始 = 口服 morphine 5-15 mg (IV 2-5 mg),每 60 分鐘 (IV 後 15 分鐘) 再評估。穩定後轉 long-acting around-the-clock + breakthrough rescue dose = 每日總量 10-20%。<br><b>🔬 實證</b>:Pain crisis (劇烈、控制不佳之疼痛) 可考慮住院或 inpatient hospice admission,並重新釐清病人 comfort/function 的個別 goals of care。(NCCN Adult Cancer Pain v2.2025;J Natl Compr Canc Netw 2025;23(7):e250032)",
+ "cards": [
+  {"kind":"basic","front":"NRS (Numerical Rating Scale) 與 VAS (Visual Analogue Scale) 的關鍵區別是什麼?","back":"NRS 由病人報 0-10「整數數字」評估疼痛;VAS 則在連續直線上「標記位置」<hr>常見陷阱:把「以數字方法自覺評估疼痛」這個 NRS 的定義,錯標成 VAS。兩者皆為病人自陳 (self-report) 量表 — NRS = 報數字,VAS = 標 10 cm 直線上的位置。研究顯示 NRS 在識字與不識字族群信度皆優於 VAS。"},
+  {"kind":"basic","front":"病人自陳 (self-report) 型疼痛量表 (VAS / NRS / Wong-Baker FACES) 與 FLACC 量表的根本差異是什麼?","back":"FLACC 是「行為觀察」量表,用於非語言/嬰幼兒病人;VAS、NRS、Wong-Baker FACES 則需病人自己陳述疼痛<hr>FLACC = Face、Legs、Activity、Cry、Consolability,由醫護觀察五項行為評分,適用於無法言語的病人。Wong-Baker FACES (6 張臉,0-10) 雖也是圖像,但屬病人自陳,適用 ≥3 歲孩童。"},
+  {"kind":"basic","front":"對 opioid-naïve 的中重度癌痛病人,NCCN 建議的 short-acting opioid 起始劑量與再評估時間?","back":"口服 morphine 5-15 mg(或 IV 2-5 mg);口服後每 60 分鐘、IV 後 15 分鐘再評估療效與副作用<hr>滴定到足以在給藥間隔內緩解疼痛、又不致無法忍受的副作用。最常用短效 opioid:morphine、hydromorphone、fentanyl、oxycodone。"},
+  {"kind":"basic","front":"癌痛病人在 around-the-clock 長效 opioid 之上,breakthrough pain 的 rescue dose 該給多少?","back":"約每日鴉片總消耗量的 10-20%,可每小時 (口服) 按需給藥<hr>突發痛 rescue dose 採用 rapid-onset、short-duration 的 opioid;SC/IV 途徑可更頻繁給藥。劇烈突發痛發作時依此調整。"},
+  {"kind":"cloze","text":"NCCN Adult Cancer Pain 依 NRS 強度分層處理:{{c1::mild (1-3)}} 先用 non-opioid + adjuvant;{{c2::moderate (4-6)}} 加 short-acting opioid 緩慢 titrate;{{c3::severe (7-10)}} 以 short-acting opioid 快速 titrate;pain crisis 可考慮{{c4::住院 / inpatient hospice}}並討論治療目標。","extra":"採階梯式處理:強度越高越早引入 opioid,並隨需求加上長效製劑與突發痛 rescue dose (每日總量 10-20%)。"}
+ ]
+}

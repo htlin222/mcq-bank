@@ -1,0 +1,13 @@
+{
+  "id": "114-037",
+  "topic_index": 5,
+  "extra_tags": ["enriched", "cold-agglutinin-disease", "CAD", "cold-AIHA", "IgM", "complement", "acrocyanosis", "livedo-reticularis", "extravascular-hemolysis", "sutimlimab", "rituximab", "Donath-Landsteiner", "PCH"],
+  "enrich_html": "<b>📌 考點</b>：Cold agglutinin disease (CAD) 的 acrocyanosis/livedo reticularis 來自 <u>IgM 五聚體造成 RBC agglutination → 末梢微循環淤滯與缺血</u>，<b>不是</b> intravascular hemolysis、也不是 immune-complex vasculitis；故「與 intravascular hemolysis 相關」為錯誤敘述。CAD 溶血以 <u>extravascular(C3b 介導、肝臟清除)</u>為主，急性補體放大時偶見 intravascular hemolytic crisis 但非主機轉。<br><b>🏥 臨床意義</b>：抗體解離特性決定檢驗與治療——抽血回溫後 IgM 已解離，DAT 呈 <b>C3d 陽性、anti-IgG 陰性</b>，可與 warm AIHA 區別；因清除在肝臟，corticosteroids 與 splenectomy 反應差，第一線改用 rituximab(±bendamustine)，保暖避寒為基本支持。<br><b>⭐ High-yield</b>：CAD = IgM / anti-I / 4°C / C3d-DAT / 肝臟清除；warm AIHA = IgG / 37°C / IgG-DAT / 脾臟清除；PCH = IgG Donath-Landsteiner anti-P / 低溫結合回溫觸發 / intravascular hemolysis。冷症狀(acrocyanosis 等)見於 &gt;90% CAD 病人。<br><b>🔬 實證</b>：anti-C1s 單株抗體 sutimlimab(CARDINAL trial)阻斷 classical pathway，FDA 2022/02 核准減少輸血需求；用於難治/重症。(Berentsen, HemaSphere 2023;7:e879；Röth et al., NEJM 2021;384:1323 CARDINAL)",
+  "cards": [
+    {"kind":"basic","front":"CAD 病人出現 acrocyanosis 與 livedo reticularis 的機轉是什麼？為何「與 intravascular hemolysis 相關」是錯誤描述？","back":"低溫部位 IgM 五聚體介導的 RBC agglutination 造成微血管內血流淤滯/阻塞與局部缺血，屬循環障礙而非溶血或血管炎<hr>手指、腳趾、耳、鼻等末梢遇冷變紫(acrocyanosis)、皮膚呈網狀青紫(livedo reticularis)，回溫後可緩解，出現於 >90% CAD 病人。因機轉是 agglutination 致缺血，與 intravascular hemolysis 無因果關係，也非 immune-complex vasculitis。"},
+    {"kind":"basic","front":"CAD 的主要溶血型態是 intravascular 還是 extravascular？機轉為何？","back":"以 extravascular hemolysis 為主<hr>IgM 在低溫結合 RBC 後活化 classical complement pathway 至 C3b；體溫升高 IgM 解離但 C3b 留在紅血球表面，帶 C3b 的 RBC 主要由肝臟 Kupffer cells 經 C3b receptor 清除(liver-predominant，與 warm AIHA 的脾臟清除不同)。嚴重急性補體放大時偶可造成 intravascular hemolytic crisis，但非主要機轉。"},
+    {"kind":"basic","front":"CAD 的 direct antiglobulin test (DAT/Coombs) 典型呈現什麼模式？為什麼？","back":"C3d(complement)陽性、anti-IgG 陰性<hr>因 IgM 在抽血回溫過程已解離，留在 RBC 上的是補體成分 C3d；故 DAT 對 C3d 強陽性而 IgG 陰性。warm AIHA 則為 IgG±C3 陽性，可資鑑別。"},
+    {"kind":"basic","front":"CAD 的第一線治療為何？哪些傳統 AIHA 處置應避免？","back":"第一線為保暖避寒；藥物首選 rituximab(±bendamustine)<hr>CAD 對 corticosteroids 與 splenectomy 反應差(因溶血以肝臟清除為主，非脾臟)，故非首選；難治/重症可用 anti-C1s 單株抗體 sutimlimab(CARDINAL trial，FDA 2022/02 核准)減少輸血需求。保暖(避免肢端及輸注液體受冷)是基本且重要的支持治療。"},
+    {"kind":"cloze","text":"CAD 與 warm AIHA 對照：抗體類型 CAD 為 {{c1::IgM}}、warm AIHA 為 {{c2::IgG}}；最適作用溫度 CAD 為 {{c3::低溫 (~4°C)}}、warm AIHA 為 {{c4::37°C}}；DAT 模式 CAD 為 {{c5::C3d 陽性}}、warm AIHA 為 {{c6::IgG 陽性}}；主要清除器官 CAD 為 {{c7::肝臟}}、warm AIHA 為 {{c8::脾臟}}。","extra":"warm AIHA 第一線用類固醇且 splenectomy 有效；CAD 對類固醇/脾切反應差，治療以保暖+rituximab 為主，難治用 sutimlimab。"}
+  ]
+}

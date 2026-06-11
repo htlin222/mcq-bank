@@ -1,0 +1,13 @@
+{
+ "id": "113-042",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "lymphoma", "NHL", "translocation", "mantle-cell-lymphoma", "follicular-lymphoma", "Burkitt-lymphoma", "ALCL", "T-PLL", "ALK", "NPM1-ALK", "CCND1", "BCL2", "MYC", "TCL1", "DUSP22", "TP63"],
+ "enrich_html": "<b>📌 考點</b>:NHL 特徵性易位配對是必背高頻題。t(2;5)(p23;q35)/NPM1-ALK 是 <u>ALK-positive</u> ALCL 的標誌(約 80%);ALK-negative ALCL 依 WHO 定義<b>不帶</b> ALK rearrangement,故把 t(2;5) 套到 ALK- ALCL 是定義性錯誤。<br><b>🏥 臨床意義</b>:ALK- ALCL 改以 DUSP22(IRF4)與 TP63 rearrangement 分層 — DUSP22-rearranged 預後佳(5yr OS ~65%,近似 ALK+),triple-negative 中等(~41%),TP63-rearranged 化療抗性、5yr OS 僅 0-17%。<br><b>⭐ High-yield</b>:MCL → t(11;14)/CCND1(&gt;95%)｜FL → t(14;18)/BCL2(~85%)｜Burkitt → MYC rearrangement(&gt;90%,t(8;14) 最常見)｜ALK+ ALCL → t(2;5)/NPM1-ALK(~80%)｜T-PLL → inv(14)(q11q32)/TCL1(~80%)。<br><b>🔬 實證</b>:DUSP22/TP63 分層出自 Parrilla Castellar et al., Blood 2014;124:1473 與 Danish cohort, Blood 2017;130:554;T-PLL 首選 IV alemtuzumab RR &gt;90% 後接 allo-HSCT(Dearden, Blood 2012)。",
+ "cards": [
+  {"kind":"basic","front":"t(2;5)(p23;q35) / NPM1-ALK fusion 是哪一種 anaplastic large cell lymphoma (ALCL) 的標誌?約占多少比例?","back":"ALK-positive ALCL(約 80%)<hr>t(2;5)(p23;q35) 使 ALK 並列至 NPM1,產生 constitutively active 的 NPM1-ALK tyrosine kinase。ALK-negative ALCL 依 WHO 定義<b>不帶</b> ALK rearrangement,因此把 t(2;5) 歸給 ALK- ALCL 是定義性錯誤。"},
+  {"kind":"cloze","text":"NHL 特徵性易位/基因配對:MCL → {{c1::t(11;14)(q13;q32) / CCND1(cyclin D1)}};Follicular lymphoma → {{c2::t(14;18)(q32;q21) / BCL2}};Burkitt → {{c3::t(8;14)(q24;q32) / MYC}};ALK-positive ALCL → {{c4::t(2;5)(p23;q35) / NPM1-ALK}};T-PLL → {{c5::inv(14)(q11q32) / TCL1}}","extra":"陷阱:t(2;5)/NPM1-ALK 屬 ALK-positive ALCL,不可套用於 ALK-negative ALCL(後者依 DUSP22 / TP63 分層)。"},
+  {"kind":"basic","front":"ALK-negative ALCL 既然沒有 ALK rearrangement,改用哪兩個基因 rearrangement 做預後分層?各對應的 5 年 OS?","back":"DUSP22(IRF4 locus,6p25)與 TP63(3q28)<hr>三組分層:DUSP22-rearranged 預後佳(5yr OS ~65%,接近 ALK+);triple-negative(DUSP22-/TP63-)中等(~41%);TP63-rearranged 化療抗性、預後極差(5yr OS 0-17%)。二者多為互斥,少數雙陽性更差。出處 Parrilla Castellar, Blood 2014;124:1473。"},
+  {"kind":"basic","front":"ALK-positive 與 ALK-negative ALCL 在分子、IHC 與臨床上最關鍵的差異?","back":"ALK+ 帶 ALK rearrangement(最常 t(2;5)/NPM1-ALK)、IHC ALK 陽性;ALK- 無 ALK rearrangement、IHC 陰性<hr>ALK+ 好發兒童/年輕成人、預後較佳;ALK- 為獨立診斷實體、好發年長者、整體預後較差(再以 DUSP22/TP63 細分)。二者皆 CD30 強陽性。"},
+  {"kind":"basic","front":"T-cell prolymphocytic leukemia (T-PLL) 的首選一線治療為何?反應率與後續 consolidation 策略?","back":"IV alemtuzumab(anti-CD52 單株抗體),一線 RR &gt;90%<hr>IV 給藥優於 SC。但多數病人快速復發,故反應後應以 allogeneic HSCT 做 consolidation(年輕、適合者),為唯一可能治癒手段;不適合移植者可考慮 autologous HSCT 延長存活。T-PLL 細胞遺傳以 inv(14)(q11q32)/TCL1(~80%)為標誌,常合併 ATM(11q23)異常。"}
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "id": "114-085",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "MCL", "mantle cell lymphoma", "leukemic non-nodal MCL", "SOX11", "IGHV", "TP53", "TRIANGLE", "BOVEN", "ibrutinib", "zanubrutinib", "venetoclax", "obinutuzumab", "autologous HCT"],
+ "enrich_html": "<b>📌 考點</b>：Indolent (leukemic non-nodal) MCL 的分子特徵是 <u>hypermutated (mutated) IGHV + SOX11 陰性 + CD200 陽性</u>、基因組單純；「unmutated IGHV」是 conventional nodal MCL 的特徵，兩者寫反即為誘餌。另一陷阱：把「TP53 wild-type」當 L-MCL 的絕對特徵也不正確——TP53 突變在 L-MCL 一系列高達 71%，與低/無 SOX11 表現相關。<br><b>🏥 臨床意義</b>：年輕 fit MCL 傳統首線為含 high-dose cytarabine 之 chemoimmunotherapy → autologous HCT → anti-CD20 維持；TRIANGLE 將 ibrutinib 前移一線並質疑 ASCT 必要性。TP53-mutated MCL 對化療/ASCT 反應差、預後極差 → 改走 chemo-free 標靶 (BOVEN)。<br><b>⭐ High-yield</b>：TRIANGLE 三臂 (A: chemo+ASCT｜A+I: +ibrutinib+ASCT｜I: +ibrutinib 無 ASCT)，A+I 與 I 皆優於 A、且 A+I vs I 無顯著差異；ibrutinib 為 <u>2 年固定期程維持</u>（非整體 fixed-duration 療程）。BOVEN：Z+O+V，ORR 96%／CR 88%／2 年 PFS 72%。<br><b>🔬 實證</b>：Clot et al., Blood 2018;132:413（L-MCL gene signature）｜Dreyling et al., Lancet 2024;403:2025（TRIANGLE）｜Kumar et al., Blood 2025;145:497（BOVEN）。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "Indolent (leukemic non-nodal) MCL 的分子免疫表型特徵為何？（IGHV 突變狀態、SOX11、CD200）",
+   "back": "Mutated（hypermutated）IGHV + SOX11 陰性 + CD200 陽性，基因組複雜度低、臨床惰性<hr>L-MCL 來自 germinal-center-experienced B cell，故帶體細胞高突變的 IGHV，常以 leukemic non-nodal 表現。最常見誘餌是把它寫成「unmutated IGHV」——那其實是 conventional nodal MCL 的特徵。"
+  },
+  {
+   "kind": "basic",
+   "front": "Conventional (nodal) MCL 的 IGHV 突變狀態與 SOX11 表現為何？與惰性型如何對照？",
+   "back": "Unmutated IGHV + SOX11 陽性<hr>佔約 90% MCL、臨床較 aggressive；SOX11 在 >90% conventional MCL 過度表現可作診斷標誌。與 leukemic non-nodal (indolent) 型（mutated IGHV、SOX11-、CD200+）恰成對照——IGHV 方向相反是出題者最愛的單一錯點。"
+  },
+  {
+   "kind": "basic",
+   "front": "敘述「indolent MCL 的特徵為 unmutated IGHV、缺乏 SOX11 與 TP53 突變」——指出其中兩個錯點。",
+   "back": "(1) IGHV 寫反：indolent (leukemic non-nodal) MCL 是 mutated IGHV，unmutated 才是 nodal MCL；(2) TP53 不能當絕對排除特徵：L-MCL 中 TP53 突變並不罕見（一系列達 71%）。<hr>SOX11 陰性這點正確。考題常以「IGHV 方向相反」作為單一隱藏錯點設計 distractor。(Clot et al., Blood 2018;132:413)"
+  },
+  {
+   "kind": "basic",
+   "front": "TRIANGLE 試驗 (Dreyling et al., Lancet 2024) 的三臂設計與主要結論為何？對 ASCT 角色有何啟示？",
+   "back": "三臂（≤65 歲年輕 fit MCL）：A = chemoimmunotherapy + ASCT；A+I = +ibrutinib + ASCT + 2 年 ibrutinib 維持；I = +ibrutinib 無 ASCT + 2 年維持。含 ibrutinib 兩臂 (A+I、I) 的存活皆優於單純 chemo+ASCT (A)，且 A+I 與 I 無顯著差異<hr>結論：ibrutinib + chemoimmunotherapy 誘導 + 2 年固定期程維持成為新 standard of care；含 ibrutinib 下 autologous HCT 的額外效益受質疑。注意 ibrutinib 是「2 年固定期程維持」，非 BTKi 單獨整體短療程。"
+  },
+  {
+   "kind": "basic",
+   "front": "TP53-mutated MCL 為何不走傳統 cytarabine/ASCT，而採 chemo-free 標靶？首線方案與療效（BOVEN）為何？",
+   "back": "TP53 aberration 是 MCL 最強不良預後分子標誌，對化療與自體移植反應差、預後極差，傳統 chemoimmunotherapy + ASCT 無法克服 → 改走 chemo-free 標靶<hr>BOVEN (Kumar et al., Blood 2025;145:497)：Zanubrutinib + Obinutuzumab + Venetoclax（BTKi + anti-CD20 + BCL2i）用於 TP53-mutated 未治療 MCL 首線，ORR 96%、CR 88%、2 年 PFS 72%、OS 76%，顯著優於既往化療數據。"
+  }
+ ]
+}

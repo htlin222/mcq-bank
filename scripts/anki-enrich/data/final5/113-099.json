@@ -1,0 +1,13 @@
+{
+ "id": "113-099",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "CAR-T", "CRS", "cytokine-release-syndrome", "ICANS", "Tocilizumab", "Dexamethasone", "ASTCT-grading", "IL-6", "Anakinra", "NCCN"],
+ "enrich_html": "<b>📌 考點</b>:CAR T-cell 相關 CRS 第一線藥物 Tocilizumab(anti-IL-6R 單株抗體)劑量為 <u>8 mg/kg IV over 1 hour、單次上限 800 mg</u>,而非 10 mg/kg;可每 8 小時重複,整個療程最多 4 劑。常見誘餌把劑量寫成 10 mg/kg。<br><b>🏥 臨床意義</b>:CRS 典型於輸注後 2–3 天起病(可早至數小時、晚至 10–15 天),以 fever 為首發,續以 hypotension、tachycardia、hypoxia、寒顫,嚴重時合併心/肝/腎功能異常。對 1–2 劑 anti-IL-6 反應不佳之頑固性低血壓 → 加 dexamethasone 10 mg IV q12–24h;再頑固可升至 methylprednisolone 1000 mg IV q12h。<br><b>⭐ High-yield</b>:ASTCT 2019 分級依 fever / hypotension / hypoxia 三軸;一旦給過退燒或 anti-cytokine,發燒不再列入,grading 改由 hypotension 與 hypoxia 主導。ICANS 以 ICE score 評估(取代 CARTOX-10),因 tocilizumab 不過 blood-brain barrier,ICANS 第一線改用 corticosteroid;頑固性 ICANS 可加 anakinra(anti-IL-1)。<br><b>🔬 實證</b>:IL-6 為 CRS 病生理核心;tocilizumab 阻斷 IL-6R 但不增加 ICANS 風險。(ASTCT Consensus, Biol Blood Marrow Transplant 2019;25:625;NCCN Immunotherapy-Related Toxicities 2024)",
+ "cards": [
+  {"kind":"basic","front":"治療 CAR T-cell 相關 cytokine release syndrome (CRS) 時,第一線藥物 Tocilizumab 的正確劑量、給法與療程上限為何?","back":"8 mg/kg IV over 1 hour,單次上限 800 mg<hr>並非 10 mg/kg(常見誘餌)。Tocilizumab 為 anti-IL-6 receptor 單株抗體,若 8 小時後無改善可重複給藥,整個療程總計最多 4 劑。體重 &lt;30 kg 兒童用 12 mg/kg。"},
+  {"kind":"cloze","text":"ASTCT 2019 CRS 分級(取最嚴重項):Grade 1 僅發燒;Grade 2 低血壓 {{c1::不需 vasopressor}} 或缺氧需 {{c2::low-flow nasal cannula}};Grade 3 需 {{c3::單一 vasopressor}} 或需 {{c4::high-flow nasal cannula / facemask}};Grade 4 需 {{c5::多重 vasopressor}} 或 {{c6::正壓通氣(CPAP/BiPAP/插管)}}。","extra":"發燒(≥38°C)為 Grade 1 門檻;高 grade 由 hypotension 與 hypoxia 的嚴重度驅動。一旦給過退燒或 anti-cytokine,發燒不再列為必要條件,改由 hypotension/hypoxia 主導。"},
+  {"kind":"basic","front":"為何 CRS 第一線選 Tocilizumab,而 ICANS (neurotoxicity) 第一線卻選 corticosteroid?","back":"Tocilizumab 為大分子單株抗體,不易穿過 blood-brain barrier,對中樞神經毒性效果有限<hr>故 ICANS 第一線改用可穿透 BBB 的 dexamethasone/corticosteroid。Tocilizumab 阻斷的 IL-6 是 CRS 病生理核心,可逆轉發燒與低血壓且不抑制 CAR-T 抗腫瘤活性。對單獨用類固醇仍頑固的嚴重 ICANS,可加 anakinra(anti-IL-1)。"},
+  {"kind":"basic","front":"CRS 病人使用 1–2 劑 anti-IL-6 (Tocilizumab) 後仍持續頑固性低血壓,下一步加用什麼藥物?劑量為何?","back":"加用 Dexamethasone 10 mg IV every 12–24 hours(或等效劑量)<hr>對 anti-IL-6 反應不佳的頑固性 CRS,以 corticosteroid 廣泛抑制發炎。若仍頑固(grade 3 持續或進展 grade 4),可升階至 methylprednisolone 1000 mg IV q12h。"},
+  {"kind":"basic","front":"CAR T-cell 輸注後病人發燒,首要應排除什麼,且不可僅歸因於 CRS?","back":"必須先排除感染(neutropenic fever / sepsis)<hr>CRS 與感染症狀高度重疊,且病人常處於淋巴清除化療後免疫低下狀態。發燒應同時給予經驗性抗生素與血液培養,不可僅當作 CRS 處理。"}
+ ]
+}

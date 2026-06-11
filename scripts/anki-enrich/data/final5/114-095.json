@@ -1,0 +1,13 @@
+{
+ "id": "114-095",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "PNH", "PIGA", "GPI-anchor", "CD55", "CD59", "complement", "intravascular-hemolysis", "eculizumab", "ravulizumab", "pegcetacoplan", "thrombosis"],
+ "enrich_html": "<b>📌 考點</b>:PNH 由造血幹細胞 <u>後天(acquired)PIGA 體細胞突變</u>引起,PIGA 位於 X 染色體、編碼 GPI-anchor 合成酵素 → 全部 GPI-anchored proteins(含 CD55/CD59)缺失。干擾選項:BCL-2 突變屬抗凋亡(CLL/淋巴瘤)、complement factor B 突變屬 aHUS/C3 腎病(非 PNH)、spectrin 遺傳缺陷=hereditary spherocytosis、自體免疫破壞紅血球=AIHA;唯一正確為 PIGA 後天突變。<br><b>🏥 臨床意義</b>:CD55(加速 C3/C5 convertase 分解)+ CD59(阻止 MAC C5b-9)缺失 → 補體介導<u>血管內</u>溶血(LDH 大幅升高、haptoglobin 下降、游離 Hb、含鐵血黃素尿、晨起暗尿)。血栓影響達 40%、好發肝靜脈(Budd-Chiari)/腦靜脈竇/腹腔靜脈,為首要死因。<br><b>⭐ High-yield</b>:診斷金標準=peripheral blood flow cytometry(白血球 FLAER + 紅血球 CD55/CD59 定量 clone,取代 Ham/sucrose test)｜IPIG 三型=classic hemolytic / PNH+骨髓衰竭(AA、MDS)/ subclinical｜C5 抑制前須接種 meningococcal vaccine。<br><b>🔬 實證</b>:eculizumab/ravulizumab(抗 C5)控制血管內溶血但無法擋 C3 沉積致的<u>血管外</u>溶血(脾 RES 清除);pegcetacoplan(抗 C3)同時抑制血管內外溶血,PEGASUS trial Hb 改善優於 eculizumab。(Merck Manual; IPIG Consensus PMC8446255; PEGASUS, NEJM 2021;384:1028)",
+ "cards": [
+  {"kind":"basic","front":"陣發性夜間血紅蛋白尿症(PNH)的致病分子機轉為何?突變是遺傳性還是後天性?","back":"造血幹細胞(HSC)X 染色體上 PIGA 基因的 acquired(後天體細胞)突變,非遺傳性<hr>PIGA 編碼 GPI-anchor(glycosylphosphatidylinositol)合成所需酵素。突變的 HSC clone 擴增,其後代血球缺乏全部 GPI-anchored proteins(含 CD55、CD59),因而失去補體保護,導致補體介導的血管內溶血。"},
+  {"kind":"basic","front":"為何 PNH 的溶血主要是 intravascular(血管內)?有什麼實驗室與臨床表現?","back":"CD59(阻止 MAC C5b-9 組裝)缺失,使補體 MAC 直接在循環中打穿紅血球膜 → 血管內溶血<hr>表現:LDH 顯著升高、haptoglobin 下降、血漿游離 Hb 上升、含鐵血黃素尿(hemosiderinuria)、晨起暗色尿(夜間 pH 偏酸促進補體活化)。同時缺失的 CD55 負責加速 C3/C5 convertase 分解。"},
+  {"kind":"basic","front":"診斷 PNH 的金標準檢查是什麼?偵測哪些細胞與標記?","back":"周邊血流式細胞儀(peripheral blood flow cytometry),偵測 GPI-anchored proteins 缺失並定量 PNH clone 大小<hr>白血球(顆粒球/單核球)用 FLAER(fluorescent aerolysin);紅血球用 CD55/CD59。已取代舊式 Ham test(acidified serum)與 sucrose lysis test。"},
+  {"kind":"basic","front":"PNH 病人最主要的致死原因是什麼?好發於哪些部位?","back":"血栓(thrombosis),影響達約 40% 病人,好發於非典型部位的靜脈<hr>典型部位:肝靜脈(Budd-Chiari syndrome)、腦靜脈竇、腹腔內靜脈。機轉含游離 Hb 清除 NO、補體活化血小板、組織因子暴露等促血栓狀態。發生血栓者須抗凝(warfarin/LMWH)併用 C5 抑制劑。"},
+  {"kind":"cloze","text":"PNH 補體抑制治療:抗 C5 的 {{c1::eculizumab}} 與長效 {{c2::ravulizumab}} 控制血管內溶血但無法擋 C3 沉積;抗 C3 的 {{c3::pegcetacoplan}} 同時抑制血管內外溶血。","extra":"C5 抑制下,CD55 缺失使 C3b 在紅血球表面累積,被脾臟 RES 吞噬 → 殘留血管外溶血,正是抗 C3 藥物切入點。PEGASUS trial(NEJM 2021)顯示 pegcetacoplan 在已用 eculizumab 仍有殘留溶血者 Hb 改善優於 eculizumab。所有 C5 抑制劑用前須接種 meningococcal vaccine(C5 阻斷使對 Neisseria meningitidis 高度易感)。"}
+ ]
+}

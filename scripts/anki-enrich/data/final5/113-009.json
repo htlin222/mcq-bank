@@ -1,0 +1,13 @@
+{
+ "id": "113-009",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "Cold Agglutinin Disease", "CAD", "AIHA", "Cold-type AIHA", "IgM", "Hemolytic Anemia", "Mycoplasma", "EBV", "Sutimlimab", "Rituximab", "Complement"],
+ "enrich_html": "<b>📌 考點</b>：Chronic cold agglutinin disease (CAD) 是<b>中老年</b>疾病（中位約 60-75 歲），<u>非好發於小孩</u>——這是最常見的「何者為非」陷阱。致病抗體為 <b>monoclonal IgM</b>（最佳活性 0-4°C），在末梢低溫凝集 RBC 並固定 classical complement pathway。<br><b>🏥 臨床意義</b>：IgM 固定補體至 C3b，RBC 主要被<b>肝臟 Kupffer cells</b> 經 C3b receptor 行<u>血管外</u>清除（DAT 典型 C3d(+)/IgG(-)）；故 corticosteroid 與 splenectomy（脾臟導向、IgG 導向）多<b>無效</b>。臨床見寒冷誘發 acrocyanosis、室溫採血假性高 MCV。<br><b>⭐ High-yield</b>：anti-I → Mycoplasma pneumoniae 與多數 primary CAD｜anti-i → infectious mononucleosis (EBV)｜primary CAD 幾乎都伴 clonal B-cell LPD（IgM kappa），但無明顯惡性病，與繼發於 lymphoma/感染的 cold agglutinin SYNDROME 區分。<br><b>🔬 實證</b>：需治療時 first-line = rituximab ± bendamustine（RTX 單藥 ~50% PR、CR 罕見；RTX-benda 5 年 sustained remission 77%）；sutimlimab（anti-C1s，FDA 2022）阻斷 classical pathway 供嚴重貧血／二線。(How I treat CAD, Blood 2021;137:1295；Sutimlimab, NEJM 2021;384:1323)",
+ "cards": [
+  {"kind":"basic","front":"Chronic cold agglutinin disease (CAD) 好發於哪個年齡層？是否常見於兒童？","back":"中老年人（典型 >50-60 歲，中位約 60-75 歲）；並非好發於小孩。<hr>Primary/chronic CAD 是中老年疾病，幾乎都伴隨潛在的 low-grade clonal B-cell lymphoproliferative disorder。兒童的 cold-mediated 溶血多為感染後（Mycoplasma、EBV）暫時性的 secondary cold agglutinin syndrome，而非慢性原發 CAD。"},
+  {"kind":"basic","front":"Cold agglutinin 針對紅血球抗原的特異性：anti-I 與 anti-i 各對應什麼？","back":"anti-I → 多數 primary CAD 與 Mycoplasma pneumoniae 感染後；anti-i → infectious mononucleosis (EBV) 感染後。<hr>I 抗原在成人 RBC 表現量高、i 抗原在臍帶血/胎兒 RBC 較高。考題常以「Mycoplasma=anti-I、EBV=anti-i」配對作為陷阱。"},
+  {"kind":"basic","front":"CAD 的 direct antiglobulin test (DAT) 典型呈現什麼？","back":"C3d 陽性、IgG 陰性（C3d(+)/IgG(-)）。<hr>致病抗體為 monoclonal IgM，固定 classical complement pathway 後在體溫下從 RBC 解離、僅留下補體，故 DAT 偵測到的是 C3d 而非抗體本身。Warm-type AIHA 則典型 IgG(+) ± C3d(+)。"},
+  {"kind":"basic","front":"需要治療的 CAD，first-line 藥物為何？corticosteroid 與 splenectomy 為何多無效？","back":"First-line：rituximab ± bendamustine（避免寒冷暴露為所有人的基礎）。<hr>與 warm-type AIHA 不同，corticosteroid 與 splenectomy 對 CAD 多半無效——因紅血球清除在肝臟（非脾臟）且為 IgM/complement 媒介（非 IgG）。rituximab 單藥約 50% partial response、CR 罕見；rituximab-bendamustine 5 年 sustained remission 約 77%。Sutimlimab（anti-C1s）阻斷 classical pathway，可用於嚴重貧血或二線。"},
+  {"kind":"basic","front":"為何 cold agglutinin 抗體的 thermal amplitude 比 titer 更能決定臨床意義？","back":"Thermal amplitude（仍能凝集 RBC 的最高溫度）若接近體溫（如 28-30°C 以上），即使 titer 不極高也會在末梢循環造成溶血/凝集症狀。<hr>低 thermal amplitude 的 cold agglutinin 即使 titer 高也常無臨床意義。這解釋了部分高 titer 卻無症狀、部分中等 titer 卻有顯著溶血的差異。"}
+ ]
+}

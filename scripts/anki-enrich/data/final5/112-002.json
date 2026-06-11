@@ -1,0 +1,13 @@
+{
+ "id": "112-002",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "DIC", "consumptive-coagulopathy", "tissue-factor", "GVHD", "fat-embolism", "carcinoid", "APL", "Trousseau", "ISTH-score", "fibrinolysis"],
+ "enrich_html": "<b>📌 考點</b>:DIC 致因辨識題的解法是區分「公認誘因」與「誘餌」。Metastatic carcinoid (malignancy 釋放 TF/cancer procoagulant)、fat embolism (長骨骨折釋出游離脂肪酸 + TF)、GVHD (細胞激素風暴 + 內皮損傷) 三者均為公認誘因;diabetic acidosis (DKA) 雖有高凝/脫水致 VTE,但典型消耗性 DIC 極罕見,屬排除項。<br><b>🏥 臨床意義</b>:DIC 是<u>次發性</u>診斷,治療首務為矯正 underlying cause;APL 引發的 DIC 兼具高出血傾向 (blast 釋放 tPA/elastase 造成 hyperfibrinolysis),需緊急 ATRA + 積極補 cryoprecipitate/fibrinogen,延誤即早期致命。<br><b>⭐ High-yield</b>:四大致因群 = sepsis (最常見) ｜ malignancy (solid tumor→慢性血栓型 Trousseau;APL→急性出血型) ｜ obstetric (abruptio placentae、amniotic fluid embolism) ｜ trauma (fat embolism、crush、burn)。Fibrinogen 是 acute phase reactant,慢性 DIC 可正常→勿因 fibrinogen 正常排除 DIC;D-dimer 正常才可排除。<br><b>🔬 實證</b>:ISTH overt DIC score (platelet + PT + fibrinogen + D-dimer) ≥5 分判定,sensitivity 93%、specificity 98%。(ASH review, Blood 2022;139:1973;ISTH/JTH DIC score 2018,2025 update)",
+ "cards": [
+  {"kind":"cloze","text":"DIC 四大公認致因群:感染/敗血症({{c1::sepsis,尤 gram-negative,最常見}})、惡性腫瘤({{c2::APL→急性出血型;solid tumor→慢性血栓型 Trousseau}})、產科災難({{c3::abruptio placentae、amniotic fluid embolism}})、創傷/組織損傷({{c4::fat embolism、crush injury、burn、heatstroke}});其他:{{c5::GVHD、snake bite、severe transfusion reaction、giant hemangioma}}。對照誘餌:diabetic ketoacidosis (DKA) 引發典型消耗性 DIC 極罕見,非公認誘因。","extra":"DIC 幾乎都次發於某 underlying disorder;治療核心是處理該 underlying cause。"},
+  {"kind":"basic","front":"DIC 的實驗室典型變化(PT、aPTT、platelet、fibrinogen、D-dimer)為何?","back":"PT 與 aPTT 延長、platelet ↓、fibrinogen ↓、D-dimer ↑。<hr>D-dimer/FDP 升高反映 cross-linked fibrin 分解與 fibrinolysis;D-dimer 正常基本可排除 DIC。fibrinogen 是 acute phase reactant,慢性 DIC 因肝臟代償可正常甚至偏高,故勿因 fibrinogen 正常而排除 DIC。"},
+  {"kind":"basic","front":"ISTH overt DIC 評分系統用哪 4 項參數?幾分判定為 overt DIC?","back":"platelet count、PT prolongation、fibrinogen、fibrin marker (D-dimer/FDP) 四項,總分 ≥5 分判定為 overt DIC。<hr>診斷效能高:sensitivity 約 93%、specificity 約 98%。須先存在 underlying disorder 才計分(non-overt DIC 另有評分)。"},
+  {"kind":"basic","front":"DIC 的治療總原則是什麼?何時才需補充血品?","back":"首要處理 underlying cause;依「出血」或「血栓」表現給予支持性治療。<hr>活動性出血或須手術時:補 platelet、fresh frozen plasma (FFP)、cryoprecipitate(補 fibrinogen)。以血栓為主(慢性型/Trousseau):考慮 heparin/LMWH。單純檢驗異常但無出血時不需積極矯正。"},
+  {"kind":"basic","front":"APL (acute promyelocytic leukemia) 引發的 DIC 為何特別偏向出血、且需緊急處理?","back":"APL blast 同時釋放 tissue factor/cancer procoagulant(促凝)與 tPA/elastase(促 hyperfibrinolysis),造成嚴重出血傾向。<hr>是早期死亡(致命腦/肺出血)主因。處置:一懷疑即啟動 ATRA、積極補 cryoprecipitate/fibrinogen 與 platelet,不可等待基因確認。"}
+ ]
+}

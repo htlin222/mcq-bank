@@ -1,0 +1,13 @@
+{
+ "id": "114-089",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "AML", "ELN2022", "NPM1", "FLT3-ITD", "CEBPA", "TP53", "RUNX1-RUNX1T1", "DEK-NUP214", "risk-stratification"],
+ "enrich_html": "<b>📌 考點</b>：ELN 2022 三大改動最常入題。①NPM1-mut + FLT3-ITD 一律 intermediate(<u>不再分 allelic ratio</u>，廢除 ELN 2017 的 low-ratio favorable 規則)；②CEBPA favorable 改為 <b>bZIP in-frame mutation</b>(單/雙等位皆可)取代舊版 biallelic；③TP53(VAF ≥10%)與 MDS-related genes 列 adverse。最大陷阱：<u>WT-NPM1 + FLT3-ITD = adverse</u>(缺 NPM1 保護時 FLT3-ITD 變預後不良)。<br><b>🏥 臨床意義</b>：adverse risk(含 WT-NPM1+FLT3-ITD、TP53、t(6;9))→ CR1 即規劃 allogeneic HSCT；favorable(CBF、NPM1-mut without FLT3-ITD、bZIP CEBPA)→ 化療鞏固即可。FLT3-ITD 不論風險群都加 FLT3 inhibitor (midostaurin/quizartinib)。<br><b>⭐ High-yield</b>：CBF AML [t(8;21)、inv(16)] 帶 KIT 仍 favorable(KIT 增復發但不降級)｜TP53 只要 VAF ≥10% 或多重打擊即 adverse，不論核型｜任何 adverse 細胞遺傳病變壓過 NPM1，故 NPM1-mut + t(6;9) 仍 adverse。<br><b>🔬 實證</b>：優先序——adverse cytogenetics/molecular &gt; NPM1 修飾。MDS-related genes(ASXL1, BCOR, EZH2, RUNX1, SF3B1, SRSF2, STAG2, U2AF1, ZRSR2)為 ELN 2022 新增 adverse。(Döhner et al., Blood 2022;140:1345)",
+ "cards": [
+  {"kind":"basic","front":"ELN 2022 AML 風險分層中，wild-type NPM1 合併 FLT3-ITD（且無其他預後不良基因病變）屬於哪一風險群？","back":"Adverse risk（預後不良）<hr>區分關鍵在有無 NPM1 mutation：<br>• NPM1-mut + FLT3-ITD → intermediate<br>• WT-NPM1 + FLT3-ITD → adverse<br>缺乏 NPM1 突變的保護時，FLT3-ITD 視為預後不良。ELN 2022 已不再以 FLT3-ITD 的 allelic ratio 高低分層（廢除 ELN 2017 對 low-ratio 的 favorable 規則）。"},
+  {"kind":"basic","front":"AML 帶 bZIP in-frame mutated CEBPA，在 ELN 2022 屬哪一風險群？此標準與 ELN 2017 有何不同？","back":"Favorable risk（良好風險）<hr>ELN 2022 將 favorable 條件由舊版的 biallelic (double-mutant) CEBPA，改為「in-frame mutation in the bZIP region of CEBPA」，無論單或雙等位基因皆算。真正帶來良好預後的是 bZIP 區域的 in-frame 突變，而非雙等位本身。"},
+  {"kind":"basic","front":"AML 帶 mono-allelic TP53 mutation、VAF 15%（無 complex 或 monosomal karyotype），ELN 2022 風險群為何？","back":"Adverse risk（預後不良）<hr>ELN 2022 將 TP53 mutation（VAF ≥10%，不論單或雙等位、不論是否合併 complex/monosomal karyotype）一律列為 adverse。VAF 10% 為關鍵門檻。TP53-mutated AML 預後極差，合併 complex karyotype 者 5 年 OS 可近 0%。"},
+  {"kind":"basic","front":"AML 帶 t(8;21)(q22;q22.1)/RUNX1::RUNX1T1 同時合併 KIT (C-Kit) mutation，ELN 2022 風險群為何？","back":"仍為 Favorable risk（良好風險）<hr>t(8;21) 與 inv(16)/t(16;16) 屬 core-binding factor (CBF) AML，皆為 favorable。KIT mutation 會增加復發風險、預後較差，但 ELN 2022 並未因此將 CBF AML 降級出 favorable 群。對照原則：adverse 細胞遺傳/分子病變可壓過 NPM1，但 KIT 不足以使 CBF AML 降級。"},
+  {"kind":"basic","front":"AML 經 ELN 2022 判為 adverse risk（如 WT-NPM1+FLT3-ITD、TP53-mut、t(6;9)），治療策略上最關鍵的決策為何？","back":"於第一次完全緩解 (CR1) 即規劃 allogeneic HSCT（異體造血幹細胞移植）<hr>adverse risk 單靠化療復發率高，CR1 移植可改善存活。對照：favorable risk（CBF、NPM1-mut without FLT3-ITD、bZIP CEBPA）以化療鞏固即可，不常規 CR1 移植。任何 FLT3-ITD 不論風險群皆加 FLT3 inhibitor (midostaurin/quizartinib)。"}
+ ]
+}

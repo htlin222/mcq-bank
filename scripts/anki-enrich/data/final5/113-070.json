@@ -1,0 +1,13 @@
+{
+ "id": "113-070",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "VITT", "HIT", "anti-PF4", "CVST", "antiphospholipid syndrome", "antithrombin deficiency", "thrombophilia", "thrombocytopenia", "cancer-associated thrombosis"],
+ "enrich_html": "<b>📌 考點</b>:面對「cerebral venous sinus thrombosis (CVST) + thrombocytopenia」的鑑別,高優先考慮<u>同時直接引發血栓與血小板低下</u>的疾病——HIT、VITT (兩者皆 anti-PF4 媒介) 與 APS (約 50% lupus anticoagulant 陽性者合併 moderate thrombocytopenia)。<b>Cancer-associated thrombosis 是最不直接相關者</b>:癌症本身致血栓,但血小板低下僅為<u>繼發</u> (DIC 或化療),非疾病核心病理,故為「Except」答案。<br><b>🏥 臨床意義</b>:VITT 一旦疑診須立即<u>停用 heparin</u>、改 non-heparin anticoagulant (argatroban/fondaparinux/DOAC) 並給 IVIG;<b>禁止血小板輸注</b> (恐火上加油加重血栓),IVIG 阻斷 FcgRIIa,12-36hr 內血小板回升。<br><b>⭐ High-yield</b>:VITT 5 準則 (Pavord NEJM 2021):疫苗後 5-30 天｜thrombosis｜platelet &lt;150x10^9/L｜D-dimer &gt;4000 ug/L｜anti-PF4 ELISA 陽性 (需用 ELISA,rapid assay 會偽陰)。CVST 為 VITT 最常見血栓部位 (definite/probable 中約 50%)。<br><b>🔬 實證</b>:HIT 與 VITT 共同分子機轉皆為 anti-PF4 抗體經 FcgRIIa 活化血小板;VITT 無 heparin 暴露史。Inherited antithrombin deficiency 致血栓但不直接引發血小板低下。(Pavord et al., NEJM 2021;385:1680;Wintrobe Ch.55)",
+ "cards": [
+  {"kind":"basic","front":"CVST 合併 thrombocytopenia 的鑑別中,哪些疾病「同時直接」引發血栓與血小板下降?","back":"HIT 與 VITT (兩者皆 anti-PF4 抗體媒介);APS 約 50% 亦合併 moderate thrombocytopenia<hr>anti-PF4 抗體與血小板第四因子形成免疫複合體,經 FcgRIIa 活化血小板與內皮,造成血栓 + 血小板消耗,好發 unusual sites (含 CVST)。"},
+  {"kind":"basic","front":"為何 cancer-associated thrombosis 在「CVST + thrombocytopenia」鑑別中最不直接相關 (最常為「Except」答案)?","back":"癌症致血栓成立,但其 thrombocytopenia 僅為繼發 (DIC 或化療),非疾病本身核心病理<hr>HIT/VITT 經 anti-PF4 直接「同時」造成血栓與血小板下降,APS 約半數合併血小板低下;cancer-associated thrombosis 缺乏直接引發血小板低下的機轉,故為最不相關者。"},
+  {"kind":"basic","front":"HIT 與 VITT 造成「血栓 + 血小板低下」的共同分子機轉?兩者誘因如何區分?","back":"共同機轉:anti-PF4 (platelet factor 4) 抗體經 FcgRIIa 活化血小板<hr>HIT 由 heparin-PF4 複合體誘發 (有 heparin 暴露史);VITT 由腺病毒載體疫苗誘發,通常<b>無 heparin 暴露</b>。兩者皆可累及 unusual sites,包含 cerebral venous sinus thrombosis。"},
+  {"kind":"cloze","text":"VITT 5 大診斷準則 (Pavord, NEJM 2021):疫苗後 {{c1::5-30}} 天、有 thrombosis、platelet {{c2::<150x10^9/L}}、D-dimer {{c3::>4000 ug/L (FEU)}}、{{c4::anti-PF4 ELISA}} 陽性。","extra":"典型為腺病毒載體 COVID-19 疫苗後。確診以 anti-PF4 ELISA (OD 常 >2.00) 或 PF4-enhanced SRA 為準;rapid immunoassay 敏感度不足、易偽陰而漏診。CVST 為最常見血栓部位 (definite/probable 中約 50%)。"},
+  {"kind":"basic","front":"確診或疑似 VITT 的標準處置 (抗凝選擇、免疫調節、禁忌) 為何?","back":"Non-heparin anticoagulant (argatroban/fondaparinux/DOAC 如 apixaban、dabigatran) + IVIG;禁用 heparin、禁止 platelet transfusion<hr>IVIG 競爭性阻斷 FcgRIIa,12-36hr 內血小板回升、D-dimer 下降;heparin 與血小板輸注皆恐加重血小板活化與血栓。可加 corticosteroid。"}
+ ]
+}

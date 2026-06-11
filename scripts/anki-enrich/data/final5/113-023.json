@@ -1,0 +1,13 @@
+{
+ "id": "113-023",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "MDS", "MDS-IB2", "MDS/AML", "IPSS-R", "monosomy 7", "TELESTO", "deferasirox", "iron chelation", "azacitidine", "CC-486", "allo-HSCT", "HMA", "QUAZAR"],
+ "enrich_html": "<b>📌 考點</b>:iron chelation 在 MDS 的證據定位。TELESTO 是唯一前瞻隨機試驗,收 IPSS Low/Int-1-risk + iron overload(ferritin &gt;1000、輸血 15–75 U),主要終點 event-free survival 顯著改善(中位 1440 vs 1091 天,風險降 36.4%,P=0.015);但 <u>overall survival 為次要終點、試驗未具足夠 power,中位 1907 vs 1509 天 HR 0.832、P=0.200 未達顯著</u> → 「已證實 OS benefit」是錯誤陳述。<br><b>🏥 臨床意義</b>:鐵螯合適用於預期長期存活、需長期輸血的 lower-risk MDS 以降器官鐵毒性;higher-risk MDS 治療重心在 HMA 與 allo-HSCT,allo-HSCT 是唯一具治癒潛力者,fit 病人應優先評估。<br><b>⭐ High-yield</b>:IPSS-R 五組門檻 very-low ≤1.5 / low &gt;1.5–3 / int &gt;3–4.5 / high &gt;4.5–6 / very-high &gt;6｜blast 10–19% + tri-lineage dysplasia:WHO 2022 = MDS-IB2、ICC 2022 = MDS/AML｜口服 CC-486 與注射 AZA 不具生物等效性、適應症不同(CC-486 用於 AML CR 後維持)。<br><b>🔬 實證</b>:TELESTO EFS 達標、OS 未達標(Blood 2018;132 Suppl 1:234;Ann Intern Med 2020;172:513-522);CC-486 維持治療 QUAZAR AML-001(NEJM 2020;383:2526)。",
+ "cards": [
+  {"kind":"basic","front":"TELESTO trial 探討哪一族群 MDS 使用 deferasirox 鐵螯合?其主要終點與 overall survival 結果為何?為何不能說「已證實改善 OS」?","back":"族群:IPSS Low / Int-1-risk 且有 iron overload(ferritin &gt;1000)的 MDS。主要終點 event-free survival 顯著改善(中位 1440 vs 1091 天,風險降 36.4%, P=0.015);overall survival 為次要終點、試驗未具足夠 power,中位 1907 vs 1509 天(HR 0.832, P=0.200)未達顯著<hr>達標的是 EFS 而非 OS,故「iron chelation 已證實改善 MDS 的 overall survival」是錯誤陳述。臨床上鐵螯合用於降低長期輸血造成的器官鐵毒性,適用於預期長期存活的 lower-risk MDS。"},
+  {"kind":"basic","front":"骨髓呈三系列 dysplasia 合併 13% blasts(blast 落在 10–19% 區間),依 WHO 2022 與 ICC 2022 各歸為何種診斷?","back":"WHO 2022 → MDS-IB2;ICC 2022 → MDS/AML<hr>blast 10–19% 時兩套分類處理不同:WHO 2022 仍歸 MDS(MDS-IB2, increased blasts 2),而 ICC 2022 新設 MDS/AML 類別,使其可比照 AML 治療路徑與臨床試驗納入。"},
+  {"kind":"basic","front":"對 fit(體能可耐受)的 higher-risk MDS 病人,何種治療被視為唯一可治癒(curative)的選項?無 donor 或不適合移植者的標準治療為何?","back":"唯一可治癒選項:allogeneic hematopoietic stem cell transplantation (allo-HSCT);無 donor 或不適合移植者 → 持續使用 hypomethylating agent (HMA) 至疾病進展,或納入臨床試驗<hr>higher-risk MDS 若 fit 應優先評估 allo-HSCT;移植前可用 HMA(azacitidine、decitabine)bridging。HMA 需持續用藥維持反應,停藥常導致復發。"},
+  {"kind":"cloze","text":"IPSS-R 總分對應風險組門檻:very-low {{c1::≤1.5}}、low {{c2::&gt;1.5–3}}、intermediate {{c3::&gt;3–4.5}}、high {{c4::&gt;4.5–6}}、very-high {{c5::&gt;6}}。","extra":"計分五項(cytogenetics、BM blast、Hb、PLT、ANC)加總對應上述五組。very-high(&gt;6)在未治療下中位 OS 約 0.8 年、約 0.7 年內 25% 轉為 AML,屬 higher-risk,治療目標為改變病程。"},
+  {"kind":"basic","front":"口服 azacitidine (CC-486) 與注射型 azacitidine 是否具生物等效性(bioequivalent)?各自主要適應症為何?","back":"否,兩者不具生物等效性、不可互換<hr>CC-486 採延長低劑量口服暴露,PK/PD 與注射型 AZA 截然不同;CC-486 用於 AML 緩解後維持治療(QUAZAR AML-001, NEJM 2020),而非取代注射型 AZA 治療 MDS/AML。"}
+ ]
+}

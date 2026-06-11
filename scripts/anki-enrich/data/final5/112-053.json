@@ -1,0 +1,13 @@
+{
+ "id": "112-053",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "PNH", "eculizumab", "ravulizumab", "pegcetacoplan", "C5-inhibitor", "C3-inhibitor", "complement", "extravascular-hemolysis", "MAC", "meningococcal", "anticoagulation"],
+ "enrich_html": "<b>📌 考點</b>:Eculizumab 與 ravulizumab 的<u>半衰期與給藥間隔是最常見誘餌</u>。Eculizumab 半衰期約 11–16 天、每 2 週 900 mg;ravulizumab 經 Fc 工程化(增強 FcRn 回收)半衰期延長至約 50 天、每 8 週給藥。因此「half-life 51 天、每 7–8 週給藥」描述的是 ravulizumab,不是 eculizumab。<br><b>🏥 臨床意義</b>:兩藥皆阻斷 terminal complement(C5 裂解成 C5a/C5b、抑制 MAC C5b-9 形成)→ 控制 intravascular hemolysis 與血栓(PNH 主要死因);但近端 C3 活化不受影響,PNH 紅血球缺 CD55(DAF),C3b opsonization 經脾臟 macrophage 清除 → C3-mediated extravascular hemolysis,是 C5 抑制下仍貧血的主因。Pegcetacoplan(C3 inhibitor)可同時阻斷血管內與血管外溶血。<br><b>⭐ High-yield</b>:兩藥皆有 meningococcal 感染 boxed warning → 給藥前 ≥2 週接種 Neisseria meningitidis 疫苗;停藥後須監測 ≥8 週防嚴重溶血反彈｜足量補體阻斷下,先前血栓的 PNH 患者抗凝可個別化(非絕對強制)。<br><b>🔬 實證</b>:PEGASUS trial 顯示 pegcetacoplan 在 eculizumab 反應不足者改善 Hb 優於 eculizumab(Hillmen et al., NEJM 2021;384:1028)。",
+ "cards": [
+  {"kind":"basic","front":"Eculizumab 治療 PNH 的分子標靶與作用機轉為何?","back":"抗 C5 的人源化單株抗體,阻斷補體途徑的末端(terminal)成分。<hr>結合 C5 後阻止其裂解為 C5a(過敏毒素)與 C5b,使無法形成 MAC(membrane attack complex, C5b-9),因而抑制 PNH 的 intravascular hemolysis(血管內溶血)並降低血栓風險。近端 C3 活化不受影響。"},
+  {"kind":"cloze","text":"抗 C5 單株抗體比較:eculizumab 半衰期約 {{c1::11–16 天}}、維持給藥 {{c2::每 2 週一次}};ravulizumab 半衰期約 {{c3::50 天}}、維持給藥 {{c4::每 8 週一次}}。","extra":"兩者皆為抗 C5 單株抗體,作用於補體末端(terminal),控制血管內溶血;ravulizumab 為 Fc 工程化長效版,增強 FcRn 介導的回收,依體重分層給藥。「半衰期約 51 天、每 7–8 週給藥」描述的是 ravulizumab 而非 eculizumab——此為最常見誘餌。"},
+  {"kind":"basic","front":"PNH 病人使用 eculizumab 控制血管內溶血後,為何仍可能出現 extravascular hemolysis 而持續貧血?","back":"因 eculizumab 只阻斷 C5(terminal),近端 C3 活化不受影響。<hr>PNH 紅血球缺乏 GPI-anchored 的 CD55(DAF),C3 持續活化並以 C3b/C3d opsonize 在紅血球表面,被脾臟/肝臟 macrophage(經 complement receptor)吞噬清除 → C3-mediated extravascular hemolysis,是 C5 抑制下仍貧血的關鍵原因。"},
+  {"kind":"basic","front":"開始使用 C5 inhibitor(eculizumab/ravulizumab)前必須完成哪一項預防措施?為什麼?","back":"給藥前至少 2 週須接種 meningococcal(Neisseria meningitidis)疫苗。<hr>阻斷 terminal complement / MAC(C5b-9)會使病人對腦膜炎雙球菌極易感(可致命的腦膜炎球菌敗血症),這是兩藥的 boxed warning;必要時加抗生素預防。"},
+  {"kind":"basic","front":"哪一類補體抑制劑能同時阻斷 PNH 的血管內與血管外溶血?其標靶為何?","back":"Pegcetacoplan,標靶為近端補體蛋白 C3。<hr>Pegcetacoplan 是 pegylated peptide C3 inhibitor,因作用於近端 C3,可同時抑制 intravascular hemolysis 與 C3-mediated extravascular hemolysis,適用於對 C5 inhibitor 反應不足(持續貧血)的病人(PEGASUS trial, NEJM 2021)。"}
+ ]
+}

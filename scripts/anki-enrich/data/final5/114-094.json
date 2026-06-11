@@ -1,0 +1,14 @@
+{
+ "id": "114-094",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "CML", "TFR", "TKI discontinuation", "deep molecular response", "BCR-ABL1", "qPCR", "ELN", "NCCN"],
+ "enrich_html": "<b>📌 考點</b>:CML treatment-free remission (TFR) 是一組「全部都要滿足」的硬性條件,常見誘餌是把「條件」與「非必要敘述」混在一起。真候選需:chronic phase、typical e13a2/e14a2 (p210) transcript、IS 標準化且靈敏度達 MR4.5 的 qPCR、TKI 用夠久 (NCCN ≥3 年/ELN &gt;5 年)、DMR 維持夠久 (MR3 &gt;3 年、MR4.5 &gt;2 年)。<br><b>🏥 臨床意義</b>:停藥後約 50% 患者分子復發,絕大多數在前 6 個月,故停藥初期須每月一次 BCR-ABL1 監測;一旦失去 MMR (MR3) 即重啟 TKI,絕大多數可重新達 DMR,極少進展。無高品質 qPCR 則無法安全停藥。<br><b>⭐ High-yield</b>:atypical transcript (e1a2、e19a2…) 缺標準化定量 → 不建議停藥;e14a2 型 TFR 成功率高於 e13a2 (約 61% vs 22% @12mo);DMR 越深 → 所需維持時間越短 (MR4.5 只需 &gt;2 年)。<br><b>🔬 實證</b>:1st-line 失敗改 2nd-line TKI 後達 DMR 者亦屬候選,但復發風險較高;NCCN 2023 要求無 AP/BP 病史、MR4 維持 ≥2 年。(NCCN 2023; ELN Hochhaus, Leukemia 2020;34:966)",
+ "cards": [
+  {"kind":"basic","front":"CML 停藥 (TFR) 前對 deep molecular response (DMR) 的「持續時間」要求是?","back":"若僅達 MR3 須持續 >3 年;若達 MR4.5 則須持續 >2 年。<hr>DMR 越深,停藥後維持 TFR 機率越高,故較淺反應 (MR3) 需更長穩定期。ELN 2020 對 MR4 要求 >3 年、MR4.5 要求 >2 年;NCCN 要求 MR4 維持 ≥2 年。"},
+  {"kind":"basic","front":"哪一種 BCR-ABL1 transcript 型別才適合嘗試 TKI discontinuation (TFR)?為什麼 atypical transcript 不行?","back":"必須是 typical e13a2 或 e14a2 transcript (對應 p210)。<hr>這兩型有國際標準化的 qPCR 定量方法,可精準追蹤 DMR。atypical transcripts (如 e1a2、e19a2) 缺乏可靠標準化定量,無法判定 deep molecular response,故不建議嘗試停藥。",
+   "extra":"e14a2 型 TFR 成功率高於 e13a2 (停藥 12 個月維持率約 61% vs 22%)。"},
+  {"kind":"basic","front":"NCCN 2023 對 CML 患者停用 TKI 的「治療時間」與「DMR 維持時間」門檻為何?","back":"在認可的 TKI 治療至少 3 年,且 MR4 (BCR-ABL1 ≤0.01% IS) 維持 ≥2 年。<hr>同時須為 chronic phase、無 AP/BP 病史、年齡 >18 歲、可取得靈敏度達 MR4.5 的 qPCR。ELN 2020 更嚴格,要求 TKI 治療 >5 年。"},
+  {"kind":"basic","front":"CML 停藥 (TFR) 後分子復發最常發生在何時?監測頻率與失去反應時的處置為何?","back":"約半數復發發生在停藥後前 6 個月;一旦失去 MMR (MR3) 即立即重新開始原 TKI。<hr>監測:前 6 個月每月一次、第 7–12 個月每 2 個月、之後每 3 個月並長期追蹤。再投藥後絕大多數可重新達 DMR,極少進展為 AP/BP,故 TFR 失敗不等於治療失敗。"},
+  {"kind":"cloze","text":"CML 嘗試 TKI discontinuation (TFR) 的條件:必須為 {{c1::chronic phase、無 AP/BP 病史}}、使用 {{c2::IS 標準化且靈敏度達 MR4.5 的高品質 qPCR}} 監測、為 {{c3::typical e13a2/e14a2 (p210)}} transcript、DMR 須持續 {{c4::MR3 >3 年或 MR4.5 >2 年}};{{c5::2nd-line TKI 後達 DMR}} 者亦為候選但風險較高。","extra":"atypical transcript 無法標準化定量,不建議停藥;停藥後約 50% 復發,多在前 6 個月,失去 MMR (MR3) 即重啟 TKI。(NCCN 2023; ELN 2020)"}
+ ]
+}

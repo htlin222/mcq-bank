@@ -1,0 +1,13 @@
+{
+ "id": "112-049",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "WM", "Waldenstrom macroglobulinemia", "lymphoplasmacytic lymphoma", "BTK inhibitor", "ibrutinib", "zanubrutinib", "rituximab", "bortezomib", "PI3K inhibitor", "idelalisib", "MYD88", "CXCR4", "hyperviscosity", "IgM"],
+ "enrich_html": "<b>📌 考點</b>:WM 一線治療有四大公認類別 — anti-CD20 antibody (Rituximab)、proteasome inhibitor (Bortezomib)、covalent BTK inhibitor (Ibrutinib/Zanubrutinib)、alkylating agent (Chlorambucil/Bendamustine);<u>PI3K inhibitor (idelalisib) 因高肝毒性、臨床試驗中止、無 WM 適應症,缺乏臨床效益證據</u>,為唯一不屬標準療法者。<br><b>🏥 臨床意義</b>:WM 分泌大量單株 IgM,IgM 升高 → hyperviscosity syndrome (視力模糊、retinal sausage veins、黏膜出血、神經症狀);急性處置為 plasmapheresis 而非先化療。Rituximab 可致 IgM flare → 高 IgM (&gt;4000 mg/dL) 者宜先血漿置換或延後 rituximab。<br><b>⭐ High-yield</b>:&gt;90% WM 帶 MYD88 L265P → 經 IRAK/BTK 活化 NF-κB,是 BTK inhibitor 有效的分子基礎｜CXCR4 突變 → BTKi 反應較慢且較淺｜MYD88 wild-type → ibrutinib 反應差,zanubrutinib 較佳。<br><b>🔬 實證</b>:ASPEN trial 顯示 zanubrutinib 對 MYD88 wild-type / CXCR4 / TP53 突變者優於 ibrutinib,且心房顫動較少;idelalisib 在 WM 肝毒性發生率極高致試驗中止。(Kastritis E et al., Lancet Haematol 2020;7:e827; Blood Cancer J 2023)",
+ "cards": [
+  {"kind":"cloze","text":"Waldenström macroglobulinemia 具臨床效益、列於 IWWM 共識的一線治療類別包括:{{c1::Anti-CD20 monoclonal antibody (Rituximab)}}、{{c2::Proteasome inhibitor (Bortezomib)}}、{{c3::BTK inhibitor (Ibrutinib/Zanubrutinib)}}、{{c4::Alkylating agent (Chlorambucil/Bendamustine)}}。","extra":"PI3K inhibitor (idelalisib) 不在此列,因高肝毒性、無 WM 適應症而缺乏效益證據,是常見的「不屬標準療法」選項陷阱。"},
+  {"kind":"basic","front":"PI3K inhibitor (idelalisib) 為何未能成為 Waldenström macroglobulinemia 的標準治療?","back":"主因高肝毒性 (hepatotoxicity) 導致臨床試驗中止,且無 WM 適應症<hr>idelalisib 在 WM 研究中肝毒性發生率極高 (約半數病人 transaminase 升高),安全性問題使其無法發展為標準選項;相較之下 BTK inhibitor 提供更安全且有效的標靶替代方案。"},
+  {"kind":"basic","front":"為何 BTK inhibitor (Ibrutinib/Zanubrutinib) 在 Waldenström macroglobulinemia 特別有效?其分子基礎為何?","back":">90% WM 帶 MYD88 L265P 突變,下游經 IRAK/BTK 活化 NF-κB,抑制 BTK 即可切斷此存活訊號<hr>MYD88 L265P 是 WM 最具特徵性的驅動突變 (出現率 >90%);MYD88 wild-type 者對 ibrutinib 反應差,zanubrutinib 表現較佳。第二常見的 CXCR4 突變 (約 30-40%) 則使 BTKi 反應較慢且較淺。"},
+  {"kind":"basic","front":"Waldenström macroglobulinemia 病人 IgM 顯著升高時,最需警惕的急性併發症及其首要處置為何?","back":"Hyperviscosity syndrome (高黏稠度症候群);首要處置為 plasmapheresis (血漿置換)<hr>表現含視力模糊、視網膜靜脈擴張/出血 (sausage veins)、頭痛、黏膜出血、神經症狀;血漿置換可快速移除大分子量 IgM、緩解症狀,須在開始化療前穩定病情。Rituximab 可致 IgM flare,高 IgM (>4000 mg/dL) 者宜先血漿置換或延後使用。"},
+  {"kind":"basic","front":"ASPEN trial 比較 zanubrutinib 與 ibrutinib 治療 Waldenström macroglobulinemia,zanubrutinib 在哪些族群與安全性面向表現較佳?","back":"在 MYD88 wild-type、CXCR4、TP53 突變族群療效較佳,且心房顫動 (atrial fibrillation) 等心血管副作用較少<hr>zanubrutinib 為第二代 covalent BTK inhibitor,off-target 抑制較少 (對 EGFR、TEC、ITK 影響小),故出血與房顫較 ibrutinib 低;深度反應 (VGPR) 比例較高。"}
+ ]
+}

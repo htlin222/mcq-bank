@@ -1,0 +1,13 @@
+{
+ "id": "112-089",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "G-CSF", "febrile neutropenia", "NCCN", "ASCO", "myeloid growth factor", "prophylaxis", "chemotherapy", "filgrastim", "pegfilgrastim"],
+ "enrich_html": "<b>📌 考點</b>：化療後 febrile neutropenia (FN) 風險分層決定是否 primary prophylactic G-CSF。NCCN Hematopoietic Growth Factors 與 ASCO guideline 一致：<u>FN 風險 &gt;20% = high risk → 建議 primary prophylaxis</u>；10–20% (intermediate) 依病人 risk factor 個別判斷；&lt;10% (low) 不需。誘餌 10%/30%/40% 皆非閾值。<br><b>🏥 臨床意義</b>：風險評估 = regimen 本身 FN 風險 + 病人 risk factors（年齡 &gt;65、advanced disease、既往 FN、骨髓侵犯、共病、營養不良）。Intermediate 病人若 risk factor 把整體風險推升 &gt;20% 即給予。臨床上 R-CHOP-21、TAC、dose-dense AC 等屬 high risk regimen。<br><b>⭐ High-yield</b>：可用藥 filgrastim、pegfilgrastim（長效，已給則勿再加短效 G-CSF）、tbo-filgrastim、filgrastim 類 biosimilars｜prophylaxis 目的為降低 FN 發生率與維持 dose intensity，<u>非治療已發生之 FN</u>｜primary = 第一 cycle 起即給；secondary = 前一 cycle 已 FN 後才給。<br><b>🔬 實證</b>：ASCO 2015 措辭「FN risk approximately 20% or higher」(Smith et al., J Clin Oncol 2015;33:3199, PMID 26169616)；NCCN Hematopoietic Growth Factors 同採 &gt;20% high-risk 閾值。",
+ "cards": [
+   {"kind":"cloze","text":"化療後 febrile neutropenia 風險分層：High risk = {{c1::&gt;20%}}（給 primary prophylactic G-CSF）；Intermediate risk = {{c2::10–20%}}（依個別 risk factor 決定）；Low risk = {{c3::&lt;10%}}（不需）。","extra":"NCCN Hematopoietic Growth Factors 與 ASCO WBC Growth Factors guideline 一致採用 20% 閾值。誘餌 10%/30%/40% 皆非閾值。"},
+   {"kind":"basic","front":"febrile neutropenia 的標準定義（neutrophil 與體溫）為何？","back":"ANC &lt;500/μL（或 &lt;1000/μL 且預期 48 小時內降至 &lt;500）+ 單次口溫 ≥38.3°C，或 ≥38.0°C 持續 ≥1 小時<hr>FN 是化療常見且可致命的急症，需立即 empiric broad-spectrum 抗生素；prophylactic G-CSF 旨在降低其發生率。"},
+   {"kind":"basic","front":"prophylactic G-CSF（如 filgrastim、pegfilgrastim）的主要臨床目的為何？","back":"降低 febrile neutropenia 的發生率、嚴重度與持續時間，並維持化療 dose intensity<hr>並非用於治療已發生之感染或 FN；可減少住院與 broad-spectrum 抗生素使用。此為常見誘餌陷阱。"},
+   {"kind":"basic","front":"primary prophylaxis 與 secondary prophylaxis G-CSF 的差別為何？","back":"Primary = 第一個 cycle 起即預防性給；Secondary = 前一 cycle 已發生 FN 或劑量受限 neutropenia 後，下一 cycle 才開始給<hr>Secondary prophylaxis 用於維持 dose intensity、避免再次 FN，前提是減量會影響療效（如 curative intent）。"},
+   {"kind":"basic","front":"已給予長效 pegfilgrastim 的病人，可否在同一化療 cycle 再追加短效 filgrastim？","back":"不可<hr>Pegfilgrastim 為 long-acting，靠 neutrophil-mediated clearance 自我調節清除，單次給藥即涵蓋整個 nadir 期；再加短效 G-CSF 無臨床效益且增加成本與副作用。"}
+ ]
+}

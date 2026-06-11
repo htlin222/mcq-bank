@@ -1,0 +1,33 @@
+{
+ "id": "114-077",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "immunophenotype", "B-ALL", "T-ALL", "KMT2A", "ETV6-RUNX1", "flow-cytometry", "MPAL", "lineage-assignment"],
+ "enrich_html": "<b>📌 考點</b>:ALL 免疫表型的 lineage 由 <u>cytoplasmic 標誌</u>定錨——B-lineage 看 strong CD19 + (cCD79a / cCD22 / CD10) 至少一,T-lineage 看 cytoplasmic CD3 (cCD3, epsilon chain),surface CD3 在 immature T 常陰性。T-cell associated panel = CD2 / CD5 / CD7(輔助、非特異),cCD3 才是 gold standard。<br><b>🏥 臨床意義</b>:融合基因驅動表型與預後——ETV6::RUNX1 (t(12;21)) 佔兒童 B-ALL ~25%、CD19+/CD10+/CD34+ 並常 aberrant CD13/CD33、治癒率 &gt;90%(myeloid 共表現非不良因子);典型 t(4;11) KMT2A::AFF1 為 pro-B、CD10-negative、好發嬰兒、預後差(5-yr survival ~29%)。<br><b>⭐ High-yield</b>:cross-lineage myeloid antigen (CD13/CD33) 本身非獨立不良預後因子｜未達 MPAL 嚴格 lineage 共表現準則就不歸為 mixed phenotype｜TdT/CD34/surface-Ig-negative 區分 precursor B-ALL 與成熟 Burkitt。<br><b>🔬 實證</b>:EGIL scoring 需單一 lineage &gt;2 分 (PubMed 18156757);T-lymphoid 高靈敏面板 = CD2+CD3+CD5+CD7 (WHO/PMC);KMT2A review, PMC10045821 (2023)。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "區分 B-lineage 與 T-lineage ALL,各自最具特異性的 lineage-defining marker 是什麼?",
+   "back": "B-ALL:cytoplasmic CD79a / cytoplasmic CD22 搭配 strong CD19;T-ALL:cytoplasmic CD3 (cCD3)。<hr>cCD3 是 T-lineage 最具特異性的標誌;surface CD3 在 immature T-lymphoblast 常為陰性,故診斷 T-ALL 看的是 cytoplasmic CD3 (epsilon chain)。B-lineage 以 strong CD19 + 至少一個 cCD79a / cCD22 / CD10 界定;若 CD19 弱表現則需其中兩個 (EGIL 需單一 lineage 得分 &gt;2 分)。"
+  },
+  {
+   "kind": "cloze",
+   "text": "T-lineage ALL 常見的 T-cell associated markers 包括 {{c1::CD2}}、{{c2::CD5}}、{{c3::CD7}},而 lineage 定錨標誌為 {{c4::cytoplasmic CD3 (cCD3)}}。",
+   "extra": "CD7 與 CD5 常見但非特異(myeloid/其他亦可表現);cCD3 才是 T-lineage gold standard。CD4/CD8 可單陽、雙陽或雙陰,反映 thymocyte 分化階段。高靈敏度 T-lymphoid 面板 = CD2 + CD3 + CD5 + CD7。"
+  },
+  {
+   "kind": "basic",
+   "front": "ETV6::RUNX1 (t(12;21)) B-ALL 典型的免疫表型組合、好發年齡與預後為何?",
+   "back": "CD19+ / CD10+ / CD34+,常伴 aberrant 髓系標誌 CD13(±CD33);好發 1–10 歲兒童,治癒率 &gt;90%。<hr>ETV6::RUNX1 是兒童 B-ALL 最常見融合基因,佔約 25%,嬰兒與成人罕見。其常表現 myeloid marker CD13/CD33,但不構成 mixed phenotype,也不影響其良好預後。"
+  },
+  {
+   "kind": "basic",
+   "front": "在 B-ALL 中偵測到 cross-lineage myeloid markers (CD13、CD33) 陽性,是否一定代表預後不良?",
+   "back": "否。Cross-lineage myeloid antigen 陽性並非獨立不良預後因子。<hr>Myeloid antigen 可見於預後良好的融合基因型(如 ETV6::RUNX1 常伴 CD13)。只要 lineage-defining criteria 仍符合單一 B-lineage,即不歸為 mixed phenotype acute leukemia (MPAL)。大型成人 B-ALL 研究亦顯示 CD13/CD33 共表現對預後影響有限。"
+  },
+  {
+   "kind": "basic",
+   "front": "典型 t(4;11) KMT2A::AFF1 ALL 的免疫表型、好發族群與預後特點為何?",
+   "back": "免疫表型偏 pro-B:CD19+、CD34+、HLA-DR+、TdT+,典型 CD10-negative,常共表現 myeloid antigen (CD15);好發嬰兒(&lt;6 個月佔該年齡 ALL 約 50%),預後差(5-yr survival 約 29%)。<hr>KMT2A (MLL) rearrangement 屬高危險群,對 menin inhibitor (revumenib) 中 t(4;11) 反應最差。注意:不同 KMT2A 融合伙伴表型可異質,部分非 t(4;11) 個案可 CD10+。"
+  }
+ ]
+}

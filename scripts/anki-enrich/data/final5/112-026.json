@@ -1,0 +1,13 @@
+{
+ "id": "112-026",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "CML", "BCR-ABL1", "TKI", "TFR", "treatment-free-remission", "deep-molecular-response", "MR4", "MR4.5", "EURO-SKI", "STIM"],
+ "enrich_html": "<b>📌 考點</b>：CML 停藥達 TFR 的資格是一組『AND』條件，缺一不可——僅限 chronic phase（無 AP/BC 病史）、typical transcript e13a2/e14a2、IS-standardized 高品質 qPCR、TKI ≥3 年（NCCN）/≥5 年（ESMO）、且 DMR 穩定（MR4 ≥3 年或 MR4.5 ≥2 年）。最易誤判的陷阱是換二線 TKI 的原因：只有因『intolerance（不耐受）』換藥者達 DMR 後可考慮停藥；因『treatment failure / resistance（一線療效失敗）』換二線者<u>不適合</u>停藥，停後復發風險高。<br><b>🏥 臨床意義</b>：停藥後復發的重啟 trigger 統一定義為 loss of MMR（BCR-ABL1 ≥0.1% IS），須及時重啟 TKI，故停藥前必備可快速回報的 IS qPCR；&gt;80% 復發發生於停藥後前 6 個月，需密集監測。<br><b>⭐ High-yield</b>：DMR 維持時間 MR4 須 ≥3 年、MR4.5 須 ≥2 年（反應越深所需時間越短）｜過去 2 年內須 ≥4 次間隔 ≥3 個月 IS qPCR 證實｜atypical transcript（e1a2、e19a2）因無法標準化定量而不適合 TFR。<br><b>🔬 實證</b>：STIM 復發率 imatinib &gt;54mo 50% vs &lt;54mo 80%；EURO-SKI 6 個月維持 MMR 機率治療 &gt;5.8 年 63% vs &lt;5.8 年 41%；第二次停藥 RE-STIM 36mo 約 35% 維持、DAstop2 (dasatinib) 24mo TFR 46%。(NCCN/ESMO/ELN 2020; EURO-SKI, Leukemia 2024)",
+ "cards": [
+  {"kind":"cloze","text":"CML 嘗試 TKI 停藥 (TFR) 的核心條件：分期限於 {{c1::chronic phase}}（無 AP/BC 病史）；transcript 須為 typical {{c2::e13a2 或 e14a2}}；須具備可達 IS 的高品質 {{c3::quantitative PCR}} 實驗室；DMR 維持 {{c4::MR4 ≥3 年 / MR4.5 ≥2 年}}；換二線者僅 {{c5::intolerance（非 treatment failure）}} 可考慮。","extra":"這是一組『AND』條件，缺一不可。重啟 TKI 的 trigger＝loss of MMR (BCR-ABL1 ≥0.1% IS)。TKI 治療總時長 NCCN ≥3 年、ESMO ≥5 年。"},
+  {"kind":"basic","front":"因 first-line TKI『療效失敗 (treatment failure / resistance)』而換二線藥物的 CML 病人，達 DMR 後是否適合嘗試 TKI 停藥？","back":"不適合。<hr>依國際與台灣 CML 治療指引，換二線 TKI 者僅限因『不耐受 (intolerance)』換藥、達 DMR 後才可考慮 TFR；因 first-line 療效失敗 (resistance) 換二線者，停藥後復發風險高，不建議嘗試。常見考試陷阱：兩者都換了二線藥，但停藥資格取決於『換藥原因』，而非是否換藥。"},
+  {"kind":"basic","front":"嘗試 TKI 停藥 (TFR) 對 deep molecular response 的『維持時間』要求為何（依反應深度）？","back":"MR4 須維持 ≥3 年；MR4.5 須維持 ≥2 年。<hr>反應越深、所需維持時間越短。過去 2 年內須有 ≥4 次間隔 ≥3 個月的 IS qPCR 證實 DMR 穩定。DMR 維持越久，停藥後成功維持 TFR 的機率越高。"},
+  {"kind":"basic","front":"CML 患者停用 TKI 後，重新啟動 (re-initiate) TKI 的分子學 trigger 是什麼？","back":"loss of major molecular response (MMR)，即 BCR-ABL1 transcript ≥0.1% IS。<hr>NCCN 與 ELN 一致採用此 trigger，故停藥前必備可快速回報的 IS qPCR。重啟後絕大多數病人可再次達到分子反應，極少數才進展，故符合資格者嘗試 TFR 屬安全。&gt;80% 復發發生於停藥後前 6 個月，此期需最密集監測。"},
+  {"kind":"cloze","text":"CML 停藥預後實證：STIM 試驗 imatinib 治療 &gt;54 個月者復發率 {{c1::50%}}、&lt;54 個月者 {{c2::80%}}；EURO-SKI 中治療 &gt;5.8 年者 6 個月維持 MMR 機率 {{c3::63%}}、&lt;5.8 年者 {{c4::41%}}。","extra":"訊息一致：TKI 治療時間越長、DMR 越深越久，停藥後成功維持 TFR 機率越高。(STIM; EURO-SKI)"}
+ ]
+}

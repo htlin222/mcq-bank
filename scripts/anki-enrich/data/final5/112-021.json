@@ -1,0 +1,13 @@
+{
+ "id": "112-021",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "ITP", "immune thrombocytopenia", "corticosteroid", "IVIG", "dexamethasone", "splenectomy", "platelet", "TPO-RA", "rituximab"],
+ "enrich_html": "<b>📌 考點</b>：ASH 2019 ITP guideline 將 first-line 鎖定在 <u>short-course corticosteroid（≤6 weeks）</u>──prednisone 1 mg/kg/d 或 high-dose dexamethasone 40 mg/d×4d（可 q14d×4 cycles）。IVIG（400 mg/kg/d×4d 或 1 g/kg×1–2d）與 anti-D 起效快但短暫，定位在「需快速拉高 plt」（活動性出血、術前），<u>而非整體達標率更高</u>。1994 RCT（Am J Med 1994;97:55）顯示 prednisolone 達 plt &gt;50,000 比例 ≥ IVIG，故「IVIG 達成率更高」方向相反。<br><b>🏥 臨床意義</b>：plt ≥30×10⁹/L 且無／輕微出血 → 觀察優於類固醇；&lt;30×10⁹/L → 給類固醇。Splenectomy 仍是 durable response 最高的療法（60–70%，整體 RR ~82%），但因 TPO-RA／rituximab 興起且需考量感染風險，多延至 diagnosis 後 ≥12 個月再行。<br><b>⭐ High-yield</b>：⁵¹Cr／¹¹¹In labeled platelet kinetics 顯示 <u>splenic sequestration pattern</u> 可預測 splenectomy 的 CR（敏感度~90%、特異度~77%）；反之年齡、platelet-associated IgG、病程長短、過去類固醇反應 <u>皆無預測力</u>。<br><b>🔬 實證</b>：steroid 不只抑制 macrophage Fc receptor／自體抗體，亦修復 ITP 的 endothelial thinning（~4 天）以減少出血。(Blood Adv 2019;3:3829；Am J Med 1994;97:55；BJH 2024 platelet kinetics study)",
+ "cards": [
+   {"kind":"basic","front":"Acute ITP 中，比較 prednisolone 1 mg/kg/day 與 IVIG 400 mg/kg/d × 4 days，何者使血小板達 &gt;50,000/μL 的比例較高？","back":"Prednisolone 較高；IVIG 並未優於 prednisolone<hr>依 Am J Med. 1994;97:55-59 的 RCT，prednisolone 達標比例實際上 ≥ IVIG，故「IVIG 達成率更高」方向相反、為不正確選項。IVIG 真正的優勢在起效快（適合活動性出血或術前需快速拉高血小板），而非整體達標率更高。"},
+   {"kind":"basic","front":"ASH 2019 ITP guideline 對成人新診斷、無症狀或僅輕微 mucocutaneous bleeding 的患者，依血小板數值如何決定是否治療？","back":"plt ≥30×10⁹/L → 觀察優於 corticosteroid；plt &lt;30×10⁹/L → 給 corticosteroid<hr>治療門檻取決於 plt 與出血程度，而非單純數值；無顯著出血的高血小板者不需暴露於類固醇毒性。出自 Blood Adv. 2019;3:3829。"},
+   {"kind":"cloze","text":"成人新診斷 ITP 的 first-line corticosteroid 方案：{{c1::prednisone 1 mg/kg/day}} 或 {{c2::high-dose dexamethasone 40 mg/day × 4 days，q14d × 4 cycles}}；ASH 2019 建議療程 {{c3::≤6 weeks}}，不建議長療程（&gt;6 weeks）。","extra":"兩方案 response rate 相近（Lancet Haematol. 2016;3:e489），皆列為可接受的 first-line。IVIG／anti-D 則保留給需快速拉高血小板的情境（起效快但短暫）。出自 Blood Adv. 2019;3:3829。"},
+   {"kind":"basic","front":"哪些參數可預測 ITP 患者 splenectomy 的療效？年齡、platelet-associated IgG、病程長短、過去類固醇反應是否有預測力？","back":"上述臨床參數皆無預測力；具預測價值的是 ⁵¹Cr (chromium-51) labeled platelet sequestration study<hr>呈 splenic sequestration pattern 者 splenectomy 反應佳（預測 CR 敏感度~90%、特異度~77%）。年齡、PAIgG 濃度、距初診時間、過去類固醇反應均與 splenectomy response 無相關（Wintrobe 14th ed.），不能作為篩選手術病人的依據。Splenectomy 為各療法 durable response 最高（60–70%，整體 RR ~82%）。"},
+   {"kind":"basic","front":"除了抑制血小板破壞，corticosteroid 還透過什麼機轉減少 ITP 患者的出血？","back":"修復 ITP 患者的 endothelial thinning、維持 endothelial homeostasis<hr>ITP 患者可見內皮變薄；steroid 治療約 4 天後內皮趨於正常。此 indirect effect 獨立於血小板數目上升之外，故出血改善常早於血小板回升。直接作用則包括下調 macrophage Fc receptor、減少自體抗體生成。"}
+ ]
+}

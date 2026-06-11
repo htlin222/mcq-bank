@@ -1,0 +1,13 @@
+{
+ "id": "114-038",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "ITP", "chronic-ITP", "eltrombopag", "romiplostim", "RAISE-trial", "TPO-RA", "sutimlimab", "rilzabrutinib", "BTK-inhibitor", "LUNA3"],
+ "enrich_html": "<b>📌 考點</b>：Chronic ITP 為多重免疫機轉（自體抗體媒介之血小板破壞 + 巨核細胞生成受抑），新興/第二線藥物依機轉分四類。RAISE trial (Lancet 2011) 是 eltrombopag 治療 chronic ITP 的關鍵第三期試驗，正確數據為達血小板反應 (50,000-400,000/μL) <u>79% (106/135) vs placebo 28% (17/62)，OR 8.2</u>；常見誘餌把數字竄改為「89% vs 16%」。<br><b>🏥 臨床意義</b>：TPO-RA (eltrombopag、romiplostim) 屬維持性治療，<u>停藥後血小板快速回落、非根治</u>；長期刺激巨核細胞可致骨髓 reticulin 纖維增生，需定期監測（多可逆）。Rilzabrutinib 2025 年成為第一個核准用於 ITP 的 BTK inhibitor。<br><b>⭐ High-yield</b>：四大機轉藥物—TPO-RA (eltrombopag 口服/romiplostim 皮下)｜BTK-i (rilzabrutinib，可逆共價)｜SYK-i (fostamatinib)｜FcRn-i (efgartigimod)。Sutimlimab (anti-C1s) 核准適應症為 <u>cold agglutinin disease，非 ITP</u>。<br><b>🔬 實證</b>：RAISE 79% vs 28%, OR 8.2 (Cheng et al., Lancet 2011;377:393-402)｜LUNA3 rilzabrutinib durable response 23% vs 0% placebo (Kuter et al., ASH 2024 / Blood 2025;145:2810)。",
+ "cards": [
+  {"kind":"basic","front":"RAISE trial (eltrombopag vs placebo 治療 chronic ITP，6 個月 phase 3) 中，兩組「至少一次達血小板反應 (50,000-400,000/μL)」的比例與 odds ratio 為何？","back":"eltrombopag 79% (106/135) vs placebo 28% (17/62)，OR 8.2 (99% CI 3.59-18.73, p&lt;0.0001)<hr>placebo 組即使 40% 使用 rescue therapy 血小板仍偏低。考題常見錯誤陳述把數據竄改為「89% vs 16%」，應辨識為不正確。(Cheng et al., Lancet 2011;377:393-402)"},
+  {"kind":"cloze","text":"Chronic ITP 第二線/新興治療依機轉分類：TPO receptor agonist = {{c1::eltrombopag (口服)}} 與 {{c1::romiplostim (皮下)}}；BTK inhibitor = {{c2::rilzabrutinib}}；SYK inhibitor = {{c3::fostamatinib}}；FcRn inhibitor = {{c4::efgartigimod}}。","extra":"另有 rituximab (anti-CD20)、脾切除等。Sutimlimab (anti-C1s) 屬補體標靶，核准適應症為 cold agglutinin disease 而非 ITP。"},
+  {"kind":"basic","front":"Sutimlimab 的作用標靶與機轉為何？其 FDA 核准適應症是什麼？","back":"anti-C1s 單株抗體，抑制 classical complement pathway；核准用於 cold agglutinin disease (CAD)，非 ITP<hr>阻斷 C1s 切割 C4/C2，減少紅血球表面補體 (C3b) 沉積與血管內外溶血。2022 年 FDA 核准 (CARDINAL/CADENZA trials) 用於 CAD。在 ITP 僅有早期探索性數據，非標準適應症。"},
+  {"kind":"basic","front":"Rilzabrutinib 治療 ITP 的雙重 (multi-immune) 作用機轉與藥物特性為何？","back":"(1) 抑制脾/肝巨噬細胞 Fcγ receptor 媒介的血小板吞噬；(2) 抑制 B 細胞活化、減少致病性自體抗體生成<hr>Rilzabrutinib 為口服可逆性共價 (reversible covalent) BTK inhibitor，高選擇性、靶點接合時間長、全身清除快，安全性優於不可逆的 ibrutinib（後者出血/心房顫動風險高，不適合本身有出血傾向的 ITP）。2025 年成為第一個核准用於 ITP 的 BTK inhibitor。"},
+  {"kind":"basic","front":"TPO receptor agonist (eltrombopag、romiplostim) 治療 ITP，停藥後血小板數目有何特性？長期使用須監測什麼骨髓變化？","back":"停藥後血小板快速下降、回到治療前水準，屬維持性 (非根治) 治療，多數需持續用藥<hr>長期 TPO-RA 刺激巨核細胞可致骨髓 reticulin (網狀纖維) 增生，少數進展為較明顯纖維化；治療期間應監測周邊血抹片有無 dacrocyte/leukoerythroblastic 變化，停藥後多可逆轉。少數病人可達 sustained remission off treatment。"}
+ ]
+}

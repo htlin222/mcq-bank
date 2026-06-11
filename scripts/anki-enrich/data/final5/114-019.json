@@ -1,0 +1,13 @@
+{
+ "id": "114-019",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "myeloid neoplasms", "SETBP1", "SF3B1", "MDS/MPN-RS-T", "CSF3R", "CNL", "aCML", "JAK2 V617F", "KIT D816V", "PDGFRA", "FGFR1", "systemic mastocytosis"],
+ "enrich_html": "<b>📌 考點</b>:myeloid neoplasm 與特徵突變的「一對一配對」是 board high-yield。最常見陷阱是把 SETBP1 安到 MDS/MPN-RS-T(MDS/MPN with SF3B1 mutation and thrombocytosis)頭上 — 該型 driver 是 <u>SF3B1(~89–90%)</u>,常合併 JAK2 V617F(~33–57%);SETBP1 在此型僅 ~6.6–10%。SETBP1 真正強烈關聯的是 <u>atypical CML(aCML)</u>。<br><b>🏥 臨床意義</b>:配對直接決定治療 — KIT D816V(SM)對 imatinib 抗性、需 midostaurin/avapritinib;PDGFRA/B 重排對 imatinib 反應極佳;FGFR1 重排與 PCM1-JAK2 對 imatinib 無效、FGFR1 預後差;CSF3R T618I(CNL)可試 ruxolitinib。<br><b>⭐ High-yield</b>:CNL→CSF3R T618I(88%)｜SM→KIT D816V(&gt;90%)｜PV→JAK2 V617F(~95%)｜MDS/MPN-RS-T→SF3B1｜aCML→SETBP1(~24–32%)。aCML 與 CNL 鑑別:CSF3R 突變偏 CNL,SETBP1+ASXL1+顯著 dysgranulopoiesis(&gt;10% 未成熟顆粒球)偏 aCML。<br><b>🔬 實證</b>:SETBP1 見於 9% MDS/MPN、4% MPN,aCML 中達 ~24–32%,與 ASXL1/CBL 共存、與 JAK2/TET2 互斥(Piazza et al., Nat Genet/Leukemia 2013)。Ruxolitinib CNL/aCML phase II:CSF3R-mut ORR 58% vs WT 8%(Dao et al., JCO 2019)。",
+ "cards": [
+  {"kind":"basic","front":"「SETBP1 突變經常關聯於 MDS/MPN-RS-T」此敘述為何錯誤?正確的關聯是什麼?","back":"錯在把 SETBP1 安到 MDS/MPN-RS-T;SETBP1 真正強烈關聯的是 atypical CML(aCML)。<hr>MDS/MPN-RS-T 的特徵 driver 是 SF3B1(~89–90%),常合併 JAK2 V617F(~33–57%)。SETBP1 在 MDS/MPN-RS-T 僅 ~6.6–10%,並非特徵突變,而在 aCML 高達 ~24–32%。這是 board 常見的「張冠李戴」配對陷阱。"},
+  {"kind":"cloze","text":"Myeloid neoplasm 與特徵突變配對:CNL → {{c1::CSF3R (T618I)}};systemic mastocytosis → {{c2::KIT D816V}};polycythemia vera → {{c3::JAK2 V617F}};MDS/MPN-RS-T → {{c4::SF3B1}};atypical CML (aCML) → {{c5::SETBP1}}。","extra":"常見陷阱:把 SETBP1 錯標為 MDS/MPN-RS-T 的特徵突變(實為 aCML)。MDS/MPN-RS-T 真正標誌是 SF3B1(~89–90%)+常合併 JAK2 V617F(~33–57%)。"},
+  {"kind":"basic","front":"Systemic mastocytosis 最常見的活化型突變是什麼?對治療有何決定性影響?","back":"KIT D816V(&gt;90% 病例);對 imatinib 抗性,需用 midostaurin 或 avapritinib<hr>D816V 位於 KIT 的 activation loop(exon 17),造成 receptor tyrosine kinase 配體獨立自發活化。正因落在 activation loop,imatinib 結合失效;avapritinib 為 D816V 選擇性抑制劑,療效顯著。"},
+  {"kind":"cloze","text":"治療對應:KIT D816V systemic mastocytosis → 對 imatinib {{c1::抗性}},改用 {{c2::midostaurin / avapritinib}};PDGFRA/B 重排 eosinophilic neoplasm → 對 imatinib {{c3::反應極佳}};FGFR1 重排 → 對 imatinib {{c4::無效、預後差}};CNL (CSF3R T618I) → 可試 {{c5::ruxolitinib}}。","extra":"驅動突變直接決定標靶藥選擇。Ruxolitinib 於 CSF3R-mut CNL phase II ORR 約 58%,WT 僅 8%(JCO 2019)。"},
+  {"kind":"basic","front":"如何在分子與形態層次鑑別 atypical CML (aCML) 與 chronic neutrophilic leukemia (CNL)?","back":"CNL 偏 CSF3R T618I 突變;aCML 偏 SETBP1(±ASXL1)且形態學見顯著 dysgranulopoiesis。<hr>CSF3R 突變幾乎限於 CNL、在 aCML 極罕見。aCML 形態學特徵:granulocytic dysplasia 明顯、外周血未成熟顆粒球 &gt;10%、basophil &lt;2%;CNL 則 dysgranulopoiesis 極少。CSF3R+ 高白血球+肝脾腫大+少未成熟球 → 偏 CNL。"}
+ ]
+}

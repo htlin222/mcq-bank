@@ -1,0 +1,13 @@
+{
+ "id": "113-069",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "TRALI", "TACO", "transfusion reaction", "anti-HLA antibody", "anti-HNA antibody", "HNA-3a", "transfusion medicine", "ARDS"],
+ "enrich_html": "<b>📌 考點</b>：TRALI (transfusion-related acute lung injury) 為輸血相關死亡的首要原因之一，定義為輸血開始後 <b>6 小時內</b>出現 acute hypoxemia (PaO2/FiO2 &le;300) + 雙側肺浸潤的非心因性肺水腫。誘餅選項 C「只和紅血球輸注有關」為錯：<u>RBC、platelet、plasma 任一含血漿血品皆可致 TRALI</u>，富血漿血品 (FFP、apheresis platelet) 風險更高。<br><b>🏥 臨床意義</b>：機轉為供者血漿 anti-HLA (class I/II) 或 anti-HNA 抗體活化受血者 neutrophil，於肺微血管聚集、損傷內皮 → 肺水腫。經產婦 (懷孕被胎兒 HLA 致敏) 是抗體來源主力，故 <u>male-predominant plasma strategy</u> (優先用男性血漿) 為實證有效之預防。<br><b>⭐ High-yield</b>：與 TACO 鑑別是考點—TACO 為容量過載/心因性、<b>BNP/NT-proBNP 升高、利尿有效</b>；TRALI BNP 正常、利尿無效、以支持性治療 (氧氣/呼吸器) 為主。anti-HNA-3a 是重度 TRALI 常見元兇。<br><b>🔬 實證</b>：2019 consensus 廢除「possible TRALI」，改分 Type I (無 ARDS risk factor) / Type II (有 ARDS risk factor 或 mild ARDS)；屬臨床診斷，不強制需驗到 cognate WBC 抗體；HLA class II 抗體 MFI &gt;1500 可在健康人致病。(Vlaar et al., Transfusion 2019;59:2465; ASH Education Program 2018:585)",
+ "cards": [
+  {"kind":"basic","front":"TRALI 的核心診斷準則是什麼?","back":"輸血「開始」後 6 小時內出現的急性非心因性肺水腫:acute hypoxemia (PaO2/FiO2 &le;300 或 SpO2&lt;90%) + 雙側肺浸潤,且無 TACO/心因性肺水腫證據。<hr>為輸血相關死亡的主要原因之一,屬臨床診斷,不強制需驗到 cognate WBC 抗體。6 小時時間窗為與晚發性肺病變鑑別的關鍵。"},
+  {"kind":"basic","front":"哪些血品可造成 TRALI?(常見 distractor 陷阱)","back":"紅血球 (RBC)、血小板 (platelet)、血漿 (plasma/FFP) 皆可,並非只限紅血球。<hr>任何含血漿或致敏抗體/介質的血品都可能引發,各約萬分之 0.2/unit;富含血漿的血品 (FFP、apheresis platelet) 風險相對較高。「TRALI 只和紅血球輸注有關」為典型錯誤敘述。"},
+  {"kind":"basic","front":"TRALI 最主要的免疫學致病機轉為何?","back":"供者血漿中的 anti-leukocyte antibodies (anti-HLA class I/II 或 anti-HNA,尤 HNA-3a) 對應受血者抗原,活化 neutrophil 在肺微血管聚集、損傷內皮而致肺水腫。<hr>抗體來源以經產婦 (懷孕暴露胎兒 HLA 而致敏) 為主。HLA class II 抗體強度 (MFI &gt;1500) 與 anti-HNA-3a 為重度 TRALI 的強預測因子,後者與致死性病例高度相關。"},
+  {"kind":"basic","front":"如何鑑別 TRALI 與 TACO?(輸血醫學必考鑑別)","back":"TACO 為心因性/容積過載:高血壓、頸靜脈怒張、BNP/NT-proBNP 升高、<b>利尿有效</b>;TRALI 為非心因性:BNP 正常、<b>利尿無效</b>、常正常或偏低血壓並可發燒。<hr>兩者皆於輸血後 6 小時內出現呼吸窘迫與雙側肺浸潤。TRALI 治療以支持性 (氧氣/機械通氣,多用 lung-protective ventilation) 為主、避免利尿劑;TACO 對利尿與限制輸液有反應。"},
+  {"kind":"basic","front":"降低 TRALI 風險最有效的血品策略是什麼?","back":"male-predominant plasma strategy:高血漿血品 (FFP、platelet) 優先採用男性捐血者血漿。<hr>經產婦因懷孕暴露胎兒 HLA 而易帶 anti-HLA/anti-HNA 抗體,為主要致敏來源。美國紅十字 2007 起改用男性血漿來源,顯著降低 antibody-mediated TRALI,是已證實有效的預防措施。"}
+ ]
+}

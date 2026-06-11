@@ -1,0 +1,13 @@
+{
+  "id": "114-065",
+  "topic_index": 3,
+  "extra_tags": ["enriched", "aHUS", "atypical-HUS", "TMA", "MAHA", "complement", "factor-H", "eculizumab", "ADAMTS13", "schistocyte"],
+  "enrich_html": "<b>📌 考點</b>：aHUS = complement-mediated TMA，診斷靠臨床三聯徵 MAHA + thrombocytopenia (PLT &lt;150 × 10⁹/L) + end-organ damage 並排除其他 TMA（ADAMTS13 &gt;10% 排 TTP、STEC 陰性排 typical HUS），<u>renal biopsy 並非診斷必要條件</u>；且嚴重血小板低下時 biopsy 因出血風險反為禁忌——「通常需 biopsy 除非嚴重血小板低下」的因果完全顛倒，為錯誤敘述。<br><b>🏥 臨床意義</b>：kidney 為主要受侵器官（AKI），但 alternative pathway 全身性活化可累及 CNS（stroke、seizure）、心臟（MI）、GI，約 ≥20% 有腎外表現；MAHA 典型 Hb &lt;10 g/dL、LDH &gt;1.5× ULN、haptoglobin 測不到、抹片見 schistocytes、Coombs 陰性。<br><b>⭐ High-yield</b>：基因變異見於約 40–60%（CFH 最常見，及 CFI、MCP/CD46、C3、CFB、THBD）；後天型為 anti-factor H autoantibody，常合併 CFHR1/CFHR3 deletion。首選治療為 anti-C5 mAb eculizumab / ravulizumab，建議診斷後 24–48 小時內開始（用前需 meningococcal 疫苗）。<br><b>🔬 實證</b>：UK 世代分析顯示 eculizumab 使腎臟存活 85.5% vs 39.5%（P&lt;0.0001）。(Front Med 2023;10:1264310；Ten tips, PMC11951749 2024)",
+  "cards": [
+    {"kind":"basic","front":"aHUS（atypical HUS）診斷的三大典型臨床表現是什麼？","back":"MAHA + thrombocytopenia + end-organ damage<hr>aHUS 是 complement-mediated thrombotic microangiopathy（TMA）。三聯徵：<br>1. Microangiopathic hemolytic anemia（MAHA，Coombs 陰性的機械性溶血）<br>2. Thrombocytopenia（platelet &lt; 150 × 10⁹/L）<br>3. End-organ damage（以腎臟為主，AKI；約 ≥20% 有 CNS／心臟等腎外表現）。"},
+    {"kind":"basic","front":"診斷 aHUS 是否需要 renal biopsy？為何？","back":"不需要；診斷靠臨床＋實驗室特徵並排除其他 TMA 即可確立<hr>aHUS 屬臨床診斷：出現 MAHA + thrombocytopenia + 腎功能異常，並排除其他 TMA 病因（TTP 查 ADAMTS13、Shiga toxin HUS 查 STEC）後即可診斷。腎臟活檢並非必要；且在嚴重 thrombocytopenia 時因出血風險而為禁忌——故「通常需 biopsy 除非嚴重血小板低下」的敘述（因果顛倒）為錯誤。"},
+    {"kind":"basic","front":"同樣呈現 MAHA + thrombocytopenia，鑑別 aHUS 與 TTP 最關鍵的實驗室檢查是什麼？其 cutoff？","back":"ADAMTS13 活性；&lt; 10% 為 TTP，aHUS 通常 &gt; 10%<hr>TTP 由 ADAMTS13 嚴重缺乏（活性 &lt; 10%）導致 ultra-large vWF multimers 堆積；aHUS 的 ADAMTS13 通常正常（&gt; 10%）。兩者皆呈 MAHA + thrombocytopenia，但 aHUS 腎損傷更突出、TTP 神經學症狀更突出。"},
+    {"kind":"basic","front":"complement-mediated aHUS 的首選（first-line）治療是什麼？應何時開始？用藥前須做什麼？","back":"anti-C5 單株抗體 eculizumab 或 ravulizumab；建議診斷後 24–48 小時內開始；用前須接種 meningococcal 疫苗<hr>eculizumab / ravulizumab 結合 C5、阻斷裂解為 C5a/C5b，抑制 terminal complement complex（C5b-9 / MAC），已取代血漿置換成為 standard of care。因阻斷終端補體會增加 Neisseria meningitidis 感染風險，用藥前須接種 meningococcal 疫苗（緊急時併用預防性抗生素）。UK 世代顯示腎臟存活 85.5% vs 39.5%（P&lt;0.0001）。"},
+    {"kind":"cloze","text":"aHUS 為 alternative complement pathway 失調，補體基因變異見於約 {{c1::40–60%}} 病人：{{c2::CFH（最常見）、CFI、MCP（CD46）}}為 loss-of-function 型，{{c3::C3、CFB}}為 gain-of-function 型，另有 THBD；後天型則為 {{c4::anti-factor H autoantibody（常合併 CFHR1/CFHR3 deletion）}}。","extra":"全部集中在 alternative complement pathway 的調控與活化環節。後天 anti-FH 型治療上可加用免疫抑制／血漿置換。"}
+  ]
+}

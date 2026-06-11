@@ -1,0 +1,33 @@
+{
+ "id": "114-039",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "AML", "venetoclax", "decitabine", "VEN-DEC", "ELN2022", "induction-therapy", "U2AF1", "MRD", "BCL2-inhibitor", "hypomethylating-agent", "VIALE-A"],
+ "enrich_html": "<b>📌 考點</b>：Blood 2025;145(22):2645 (NCT05177731) 是 <u>phase 2b noninferiority RCT</u>，收 18-59 歲 fit、newly diagnosed AML，比 venetoclax+decitabine (VEN-DEC) vs idarubicin+cytarabine (IA-12)。最大陷阱選項聲稱「兩組緩解率無顯著差異」——實際 CRc 89% vs 79%、noninferiority P=.0021，VEN-DEC <b>不劣且數值更高</b>，故該敘述為錯。<br><b>🏥 臨床意義</b>：此試驗把低強度 HMA+BCL-2 inhibitor 從老年/unfit 族群 (VIALE-A) 往 <u>年輕 fit 族群</u> 推進；VEN-DEC 達相近緩解但毒性低 (SAE 較少、severe thrombocytopenia 期較短、感染較少)，且 bridge-to-allo-HSCT 比例兩組相近 (約 44%)，OS 無顯著差異。<br><b>⭐ High-yield</b>：VEN-DEC 對 ELN-2022 adverse-risk 與 U2AF1-mutated 次族群 CRc 顯著優於化療｜venetoclax=BCL-2 抑制 (BH3-mimetic)、需 ramp-up 防 TLS｜decitabine=HMA、下調 MCL-1 與 VEN 協同。<br><b>🔬 實證</b>：老年/unfit 基礎為 VIALE-A (NEJM 2020, DiNardo)：aza+VEN CR+CRi 66.4% vs 28.3%、median OS 14.7 vs 9.6 月。(Blood 2025;145:2645；NEJM 2020;383:617)",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "年輕 fit、newly diagnosed AML 比較 venetoclax+decitabine (VEN-DEC) 與 idarubicin+cytarabine (IA-12) 的 phase 2b noninferiority 試驗 (Blood 2025) 中，composite complete remission (CRc) 結果為何？",
+   "back": "VEN-DEC 不劣於化療且數值更高：CRc 89% (84/94) vs 79% (74/94)，noninferiority P=.0021<hr>CRc = CR + CRi。常見錯誤敘述「兩組緩解率無顯著差異」是錯的——VEN-DEC 達主要 noninferiority 終點且 CRc 較高。試驗為 NCT05177731，收 18-59 歲 fit、可耐受 intensive chemo 的新診斷 AML，各組 94 人 (ITT)。"
+  },
+  {
+   "kind": "basic",
+   "front": "在 VEN-DEC vs intensive chemotherapy 治療年輕 fit AML 的 phase 2b 試驗中，哪些次族群 (subgroup) 對 VEN-DEC 的 CRc 反應特別優於化療？",
+   "back": "ELN-2022 adverse-risk group 與帶有 U2AF1 mutation 的病人<hr>傳統強度化療對 adverse-risk AML 反應差；VEN-DEC 在這些高風險族群 CRc 率顯著較高，是該方案在不良預後群的價值所在。"
+  },
+  {
+   "kind": "basic",
+   "front": "為何 venetoclax 與 hypomethylating agent (HMA，如 decitabine/azacitidine) 合用具有協同 (synergy) 作用？",
+   "back": "HMA 下調抗凋亡蛋白 MCL-1 並上調促凋亡 NOXA，增強 venetoclax 抑制 BCL-2 的凋亡誘導效果<hr>Venetoclax 為 BCL-2 的 BH3-mimetic，單用易因 MCL-1 高表現產生抗藥性；HMA 降低此逃逸途徑。HMA+VEN 因此成為 AML 治療策略核心 (VIALE-A 在 unfit/老年 AML 的基礎)。"
+  },
+  {
+   "kind": "basic",
+   "front": "Venetoclax-based 方案開始給藥時最需警覺的早期致命併發症是什麼？如何預防？",
+   "back": "Tumor lysis syndrome (TLS)；以 ramp-up (劑量遞增) 給藥、積極水化、降尿酸 (allopurinol/rasburicase) 預防<hr>TLS 生化表現：高 K、高 phosphate、高 uric acid、低 calcium、急性腎損傷。AML 啟動 venetoclax 時 blast 負荷高，ramp-up 配合 TLS prophylaxis 與監測可降低風險。"
+  },
+  {
+   "kind": "basic",
+   "front": "VIALE-A 試驗 (NEJM 2020, DiNardo) 針對哪一類 AML 族群？azacitidine+venetoclax vs azacitidine+placebo 的 CR+CRi 與 median OS 為何？",
+   "back": "族群：newly diagnosed、unfit / 不適合 intensive chemotherapy 的 AML (多為老年)。CR+CRi 66.4% vs 28.3%；median OS 14.7 vs 9.6 個月<hr>VIALE-A 確立 azacitidine+venetoclax 為 unfit AML 標準療法。Blood 2025 的 VEN-DEC 試驗則把低強度 HMA+VEN 概念延伸到年輕 fit 族群 (對照 IA-12 強度化療)。"
+  }
+ ]
+}

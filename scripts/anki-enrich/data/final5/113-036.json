@@ -1,0 +1,13 @@
+{
+ "id": "113-036",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "PNH", "FLAER", "CD55", "CD59", "eculizumab", "ravulizumab", "pegcetacoplan", "complement", "meningococcus", "GPI-anchor", "PIGA", "intravascular-hemolysis"],
+ "enrich_html": "<b>📌 考點</b>：FLAER 顯示 CD55/CD59-negative clone 70%（&gt;50%）符合 classical PNH，欲啟動 C5 inhibitor (eculizumab/ravulizumab) 治療補體媒介之 intravascular hemolysis；但終端補體被阻斷會使 <u>Neisseria meningitidis 感染風險升高約 1,000–2,000 倍</u>，故啟動前的首要步驟是 meningococcal vaccination（誘餌 A/B/C/E 皆非首要處置）。<br><b>🏥 臨床意義</b>：理想於治療前 &ge;2 週完成接種；若 &lt;2 週或當日施打，須給 prophylactic antibiotics 至接種後 2 週。建議涵蓋 serotypes A/C/Y/W135 + B，每 ≤3 年補打。Thrombosis 是 PNH 的首要死因，補體抑制劑也降低血栓風險。<br><b>⭐ High-yield</b>：PNH 三分型 — classical (clone &gt;50%、溶血/血栓)｜PNH in other BMF (AA/MDS 背景)｜subclinical (clone &lt;10%、無溶血/血栓)；小 clone (&lt;30%) 不從補體抑制劑獲益，治療針對骨髓衰竭。輸血非禁忌、plasma exchange 與 splenectomy 皆非標準治療、補鐵需謹防 hemolytic exacerbation。<br><b>🔬 實證</b>：C5 inhibitor 阻斷 intravascular hemolysis 但可遺留 C3-mediated extravascular hemolysis；C3 inhibitor pegcetacoplan (PEGASUS/PRINCE trial 無血栓事件) 可改善 residual EVH。(Merck Manual Professional 2024；ALXN1210 301 trial NCT02946463；Hematol review, Tandfonline 2024)",
+ "cards": [
+  {"kind":"basic","front":"Classical PNH 病人啟動 C5 inhibitor (eculizumab/ravulizumab) 前最重要的步驟是什麼？","back":"接種 meningococcal vaccination<hr>C5 inhibitor 阻斷補體終端通路 (membrane attack complex)，使病人對 encapsulated bacteria 尤其 Neisseria meningitidis 感染風險升高約 1,000–2,000 倍。理想於治療前 &ge;2 週完成接種；緊急時可當日施打，但須併用 prophylactic antibiotics (如 ciprofloxacin/penicillin) 至接種後 2 週。建議涵蓋 serotypes A/C/Y/W135 + B。"},
+  {"kind":"basic","front":"FLAER 流式檢測中 CD55/CD59-negative clone 達多少比例符合 classical PNH 的診斷閾值？","back":"clone size &gt; 50%<hr>CD55 (DAF) 與 CD59 (MIRL) 為 GPI-anchored complement regulatory proteins；PNH 因造血幹細胞 PIGA 突變使 GPI anchor 缺失，這些蛋白無法附著於細胞膜，補體無法被調節而引發 intravascular hemolysis。FLAER 直接標記 GPI anchor，比單測 CD55/CD59 更靈敏，是診斷首選。"},
+  {"kind":"basic","front":"PNH 病人最主要的死因 (leading cause of death) 是什麼？","back":"Thrombosis (血栓)<hr>PNH 易發生非典型部位血栓，如 hepatic vein (Budd-Chiari)、其他腹腔靜脈、腦靜脈竇。機轉與補體活化、血小板活化、free hemoglobin 清除 NO 致血管收縮有關。補體抑制劑 (eculizumab/ravulizumab) 可顯著降低血栓風險。"},
+  {"kind":"basic","front":"PNH 病人使用 C5 inhibitor (eculizumab/ravulizumab) 後仍持續貧血，可能的機轉與替代藥物為何？","back":"C3-mediated extravascular hemolysis (residual EVH)；可改用 C3 inhibitor pegcetacoplan<hr>C5 inhibitor 阻斷終端通路 (MAC)、有效抑制 intravascular hemolysis，但 C3 fragments (C3d) 仍沉積於紅血球，於肝脾被吞噬 → extravascular hemolysis。Pegcetacoplan 作用於上游 C3，PEGASUS / PRINCE trial 中無血栓事件並改善此殘餘溶血。"},
+  {"kind":"basic","front":"「PNH 病人輸注 packed RBC 是絕對禁忌，會誘發更多溶血」這說法對嗎？","back":"錯誤，輸血並非禁忌，是貧血時合理的暫時緩解手段<hr>輸入的正常 donor RBC 帶有完整 CD55 (DAF) 與 CD59 (MIRL)，可正常存活於 PNH 病人循環中，不會被補體加速破壞。會被破壞的是病人自身缺乏 GPI-anchor 的紅血球。"}
+ ]
+}

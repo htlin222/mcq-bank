@@ -1,0 +1,13 @@
+{
+ "id": "112-006",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "PTLD", "EBV", "HSCT", "solid organ transplant", "lymphoproliferative disorder", "reduce immunosuppression", "rituximab", "monomorphic PTLD", "DLBCL", "PTLD-1 trial"],
+ "enrich_html": "<b>📌 考點</b>:PTLD 為移植後免疫抑制下的淋巴增生疾病,發生率呈<b>雙峰(bimodal)</b>。Early-onset(移植後 &lt;1 年)多為 EBV 陽性、由 EBV 驅動 B cell 增生;late-onset(&gt;1 年,尤其 5–15 年)常為 EBV 陰性。EBV 相關者僅約 60–80%,故「tumor must be EBV-positive」是錯誤敘述。<br><b>🏥 臨床意義</b>:細胞來源依移植型態相反 — 異體 HSCT 後 PTLD 多來自 <u>donor</u> 淋巴球且早發(donor 重建整個淋巴系統);solid organ transplant 後則來自 <u>recipient</u> 細胞(僅換器官,免疫系統仍為受者)。EBV 陰性 late-onset 者多為 monomorphic、最常見 DLBCL,預後較差。<br><b>⭐ High-yield</b>:治療基石是 <b>reduce immunosuppression (RIS)</b>;RIS 失敗後對 CD20+ B-cell PTLD 採 <b>risk-stratified sequential treatment</b> — 先 4 週 rituximab 單藥誘導,依反應分層:達 CR 續 rituximab,反應差者改 R-CHOP。HSCT 後 PTLD 因 RIS 與化療多無效,rituximab±RIS 為 frontline 標準。<br><b>🔬 實證</b>:PTLD-1 / RSST 確立 response-adapted sequential treatment(Trappe et al., JCO 2017;35:536);PTLD-2 進一步以 IPI + 移植器官 + rituximab 反應分層(Leukemia 2022)。回顧:NEJM 2018;378:549、ASH Education Program 2024。",
+ "cards": [
+  {"kind":"basic","front":"PTLD(post-transplant lymphoproliferative disorder)的腫瘤是否一定為 EBV 陽性?","back":"否,EBV 陰性 PTLD 確實存在<hr>整體僅約 60–80% 與 EBV 相關。Early-onset(移植後 &lt;1 年)多為 EBV 陽性、由 EBV 驅動 B cell 增生;late-onset(&gt;1 年)常為 EBV 陰性。故「tumor must be positive for EBV」為錯誤敘述。"},
+  {"kind":"cloze","text":"PTLD 雙峰時序與 EBV 狀態:第一峰約移植後 {{c1::第一年(<1 年)}},以 EBV {{c2::陽性}} 為主;第二峰約移植後 {{c3::5–15 年}},以 EBV {{c4::陰性}} 為主,型態多為 {{c5::monomorphic(常見 DLBCL)}}。","extra":"早期 EBV 陽性 PTLD 為 EBV 驅動的 B cell 增生,降低免疫抑制較易奏效;late-onset EBV 陰性者治療反應與預後較差。"},
+  {"kind":"cloze","text":"PTLD 細胞來源依移植型態不同:異體 HSCT 後多來自 {{c1::donor(供者)}} 淋巴球;實體器官移植後則來自 {{c2::recipient(受者)}} 細胞。","extra":"記憶法:HSCT 把整個造血/淋巴系統換成 donor 的,故 PTLD 來自 donor;solid organ 只換器官、免疫系統仍是 recipient,故 PTLD 來自 recipient。HSCT 後 PTLD 多為 EBV 驅動、早發。"},
+  {"kind":"cloze","text":"CD20+ B-cell PTLD 治療階梯:第一步 {{c1::reduce immunosuppression(RIS)}};失敗後給 {{c2::rituximab}} 4 週單藥誘導;達 CR 者續 rituximab,反應差者升級為 {{c3::R-CHOP}}。","extra":"RIS 可恢復宿主對 EBV 驅動 B cell 的 T 細胞免疫監視。此 risk-stratified sequential / response-adapted 策略源自 PTLD-1 RSST(Trappe et al., JCO 2017),目的是限制化療暴露同時維持療效。異體 HSCT 後 PTLD 因 RIS 與化療多無效,改以 rituximab±RIS 為 frontline。"},
+  {"kind":"basic","front":"EBV 陰性 PTLD 在型態學與最常見病理型態上有何特徵?預後如何?","back":"多為 monomorphic 型,最常見型態為 DLBCL(diffuse large B-cell lymphoma),預後較差<hr>EBV 陰性 PTLD 通常 late-onset、生物學上與一般 immunocompetent DLBCL 較相近,治療反應與預後較 EBV 陽性早期病例差。確診仍須靠組織病理。"}
+ ]
+}

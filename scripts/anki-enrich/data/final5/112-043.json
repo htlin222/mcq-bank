@@ -1,0 +1,13 @@
+{
+ "id": "112-043",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "AIHA", "warm autoantibody", "cold agglutinin disease", "IgG", "IgM", "complement", "C3b", "rituximab", "sutimlimab", "Mycoplasma", "EBV", "hemolysis", "RBC"],
+ "enrich_html": "<b>📌 考點</b>:AIHA 依抗體最適溫度分 warm/cold 兩型,易混淆的陷阱是把「感染相關 cold agglutinin」誤標為 warm。<u>Mycoplasma pneumoniae(anti-I)與 EBV/infectious mononucleosis(anti-i)所引發的 AIHA 一律由 IgM cold agglutinins 介導</u>,非 warm。Warm 型以 IgG 為主、最適 37°C;cold 型幾乎全為 IgM、最適 4°C、強力活化補體。<br><b>🏥 臨床意義</b>:DAT 型態決定診斷與治療 — warm 型 anti-IgG(±C3d) 陽性 → 首選 corticosteroid(prednisone 1-1.5 mg/kg,反應率約 80%);CAD 為 anti-C3d 陽性、IgG 陰性,類固醇與脾切除無效 → 首選 rituximab±bendamustine。清除部位也不同:IgG-coated RBC 靠 Fc receptor 在脾臟 Billroth cords 清除;C3b-coated RBC 靠 complement receptor 在肝臟 Kupffer cells 清除。<br><b>⭐ High-yield</b>:CAD 確診需 cold agglutinin titer &gt;1:512 且 4°C 最佳反應｜新診斷 AIHA(warm 或 cold)皆須排查潛在 lymphoproliferative disorder(CLL、lymphoma、Waldenström)｜mixed type 同時 IgG+C3d 陽性。<br><b>🔬 實證</b>:Sutimlimab(anti-C1s 抑制 classical complement pathway)於 CARDINAL trial 達 83% 顯著 Hb 改善,2022/2 FDA 核准用於 CAD。(First International Consensus on AIHA;Berentsen, NEJM 2021;384:1323)",
+ "cards": [
+  {"kind":"cloze","text":"AIHA 抗體型別對照:warm-antibody 型以 {{c1::IgG}} 為主、最適溫度約 {{c2::37°C}}、DAT 多 {{c3::anti-IgG}} 陽性、首選 {{c4::corticosteroid}};cold agglutinin 型以 {{c5::IgM}} 為主、最適 {{c6::4°C}}、DAT {{c7::anti-C3d}} 陽性、強力活化 {{c8::classical complement pathway}}、首選 {{c9::rituximab}}。","extra":"Warm 型清除在脾臟(Fc receptor);cold 型補體 C3b 介導清除主要在肝臟(Kupffer cells)。CAD 不用類固醇與脾切除。"},
+  {"kind":"cloze","text":"感染相關 cold agglutinin 的抗原專一性:{{c1::Mycoplasma pneumoniae}} → anti-{{c2::I}};{{c3::EBV / infectious mononucleosis}} → anti-{{c4::i}}。兩者皆由 {{c5::IgM cold}} agglutinins 介導,而非 warm。","extra":"常見誘餌:勿將感染相關 cold agglutinin AIHA 誤標為 warm agglutinins 介導。"},
+  {"kind":"basic","front":"診斷 cold agglutinin disease 時,cold agglutinin titer 需達多少?最佳反應溫度為何?","back":"Titer &gt; 1:512,最佳反應溫度 4°C。<hr>同時 DAT 應為 anti-C3d 陽性、anti-IgG 陰性。Mixed-type AIHA 的特徵是 IgM cold agglutinin 在 4°C 反應最佳但具高 thermal amplitude(可達 37°C),且 DAT 同時 IgG + C3d 陽性。"},
+  {"kind":"basic","front":"Cold agglutinin disease(CAD)的第一線治療是什麼?為何不用 corticosteroid 或 splenectomy?","back":"Rituximab ± bendamustine。<hr>類固醇與脾切除對 CAD 無效:因 IgM 介導的清除靠補體 C3b 在肝臟進行,而非脾臟巨噬細胞 Fc receptor 途徑。Rituximab 針對 clonal B cell 減少 IgM 產生。保暖避免冷暴露為基礎照護。對比:warm 型首選 corticosteroid(prednisone 1-1.5 mg/kg,反應率約 80%),脾切除對 warm 型有效。"},
+  {"kind":"basic","front":"治療 cold agglutinin disease 的新藥 sutimlimab 機轉為何?針對哪個補體成分?","back":"抑制 classical complement pathway,為標靶 complement factor C1s 的單株抗體。<hr>CARDINAL trial(NEJM 2021)中 sutimlimab 達 83% 病人顯著 Hb 改善,2022/2 FDA 核准用於 CAD。因 CAD 溶血依賴 classical pathway 補體活化,阻斷 C1s 可快速抑制 hemolysis。"}
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "id": "114-078",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "CML", "asciminib", "STAMP-inhibitor", "BCR-ABL1", "ASXL1", "imatinib", "T315I", "pediatric-CML", "ASC4FIRST"],
+ "enrich_html": "<b>📌 考點</b>:CML 高頻考點四面向。(1) Asciminib = STAMP inhibitor(結合 myristoyl pocket 變構抑制,非 ATP site),2024-10-29 FDA 核准『成人』一線 Ph+ CP-CML;(2) 兒童 asciminib 仍『研究中』(ASC4Kids),未獲兒科核准——勿混淆;(3) ASXL1 突變 = 不良預後,非好反應指標;(4) 兒童 imatinib molecular response 較慢但存活可比成人。<br><b>🏥 臨床意義</b>:CML-CP 出現 ASXL1 突變者 EFS 顯著惡化(HR 4.25),12 個月 MMR 機率較低(OR 0.29),且併 ABL1 kinase domain mutation 與疾病進展風險大增 → 提示需更密集 monitoring、必要時換用次世代 TKI。<br><b>⭐ High-yield</b>:T315I gatekeeper mutation 對 imatinib/dasatinib/nilotinib/bosutinib 皆抗藥,僅 ponatinib 或 asciminib(足量)有效｜CML 確診三檢:cytogenetics + FISH + RT-PCR｜兒童 CML 10 年 PFS 90% / OS 94%。<br><b>🔬 實證</b>:ASC4FIRST(NEJM 2024;NCT04971226,n=405):asciminib 48 週 MMR 68% vs IS-TKI 49%;96 週 74.1% vs 52.0%。ASXL1 EFS HR 4.25(Blood Cancer J 2022)。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "Asciminib 治療 CML 的作用機轉與傳統 TKI(imatinib、dasatinib、nilotinib、bosutinib、ponatinib)有何根本不同?",
+   "back": "Asciminib 是 STAMP inhibitor(Specifically Targeting the ABL Myristoyl Pocket),結合 BCR-ABL1 的 myristoyl pocket(變構/allosteric 位點),而非 ATP-binding site。<hr>傳統 TKI 皆為 ATP-competitive,結合激酶催化區。Asciminib 透過變構抑制將 kinase 鎖在不活化構型,故對多數 ATP-pocket 抗藥突變(含 T315I,於足量下)仍有效,且 off-target 毒性較少。"
+  },
+  {
+   "kind": "basic",
+   "front": "Asciminib(Scemblix)於 2024 年 10 月 FDA 核准的『族群與適應症』為何?常見陷阱是什麼?",
+   "back": "2024-10-29 FDA accelerated approval:用於『成人』newly diagnosed Ph+ chronic-phase CML(CP-CML)的一線治療。<hr>陷阱:asciminib 在『兒童 CML』仍屬研究中(ASC4Kids, NCT04925479,pediatric formulation 1.3 mg/kg BID),『尚未』獲 FDA 兒科核准,勿誤以為兒童已核准。原先 asciminib 適應症為成人經 ≥2 線 TKI 失敗或帶 T315I 突變者,2024 擴及成人一線。"
+  },
+  {
+   "kind": "basic",
+   "front": "CML-CP 病人帶有 ASXL1 突變代表什麼預後意義?它是好反應指標嗎?",
+   "back": "ASXL1 突變與『不良預後』相關,絕非良好治療反應指標。<hr>ASXL1 是 CML-CP 最常見的伴隨突變(約 7-14%,加速期高達 40%),為 epigenetic regulator(chromatin modification)。CML-CP 帶 ASXL1 突變者:event-free survival 顯著較差(多變量 HR 約 4.25),12 個月 MMR 機率較低(OR 0.29),併發 ABL1 kinase domain mutation 及疾病進展風險大幅升高。"
+  },
+  {
+   "kind": "basic",
+   "front": "哪一個 BCR-ABL1 kinase domain 突變對多數 ATP-competitive TKI 產生抗藥性,並決定後續藥物選擇?",
+   "back": "T315I(gatekeeper mutation)。<hr>T315I 對 imatinib、dasatinib、nilotinib、bosutinib 皆抗藥;可用選項為 ponatinib(third-gen ATP-competitive)或 asciminib(STAMP/allosteric inhibitor,足量下對 T315I 有效)。TKI 治療失敗時應做 BCR-ABL1 kinase domain mutation analysis 指引換藥。"
+  },
+  {
+   "kind": "basic",
+   "front": "兒童 CML 接受一線 imatinib 治療,其 molecular response 與長期存活相較成人如何?",
+   "back": "Molecular response 達成較成人『慢』,但長期存活『可與成人相當』。<hr>Taiwan multicenter 研究:5 年時兒童各分子里程碑(IS<1%、MMR、MR4.0、MR4.5)累積發生率皆顯著低於成人;但 10 年 PFS 90%、OS 94%,與成人(約 92%)無顯著差異。兒童 CML 罕見、臨床較 aggressive,另需考量生長發育與骨骼影響等兒科議題。"
+  }
+ ]
+}

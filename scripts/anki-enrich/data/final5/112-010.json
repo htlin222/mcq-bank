@@ -1,0 +1,13 @@
+{
+ "id": "112-010",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "MDS", "ICC 2022", "MDS-EB", "MDS/AML", "SF3B1", "del(5q)", "TP53", "CCUS", "myeloid neoplasm", "WHO 2022"],
+ "enrich_html": "<b>📌 考點</b>:ICC 2022 把 AML 門檻從 20% 降為 <u>BM blast &ge;10%</u>(具 AML-defining recurrent genetic abnormality 者更低)，連帶把 MDS-EB 上限壓到 BM 5-9% / PB 2-9%，blast 10-19% 則落入新增的 <b>MDS/AML</b> 中間類別。題敘「BM 5-19%」即誤。MDS-RS 由 <b>MDS with mutated SF3B1</b> 取代(非 SRSF2)，是另一誤點。<br><b>🏥 臨床意義</b>:新增 <b>myeloid neoplasm with mutated TP53</b>(multi-hit / 雙等位)橫跨 MDS(&lt;10%)、MDS/AML(10-19%)、AML(&ge;20%)，化療與 HSCT 反應差、存活極短，是預後最惡一群 → 傾向 hypomethylating agent 為基礎之治療並評估臨床試驗。<br><b>⭐ High-yield</b>:SF3B1 診斷 VAF cutoff ICC 2022=<b>10%</b> vs WHO 2022=5%｜lower-risk MDS 三亞型=SF3B1 / del(5q) / NOS｜無 dysplasia 之 MDS-defining cytogenetics 歸 CCUS，<u>例外</u>:del(5q)、-7/del(7q)、complex karyotype 仍診斷 MDS｜測不到 clonality 時，qualifying dysplasia + persistent cytopenia 仍可診斷 MDS。<br><b>🔬 實證</b>:Arber et al., Blood 2022;140:1200-1228;WHO 2022 平行體系於此處與 ICC 不同(AML 門檻仍守 20%、SF3B1 VAF 5%)。",
+ "cards": [
+  {"kind":"cloze","text":"ICC 2022 blast 門檻: MDS-EB = BM {{c1::5-9%}} 或 PB {{c2::2-9%}};AML 門檻 = BM blast &ge; {{c3::10%}};blast 10-19% 歸入 {{c4::MDS/AML}} 中間類別","extra":"因 AML 門檻下修到 10%，MDS-EB 上限只能到 BM 9%(常見誤敘「BM 5-19%」即錯)。WHO 2022 的 AML 門檻則仍為 20%，且無 MDS/AML overlap 類別。"},
+  {"kind":"basic","front":"ICC 2022 為 myeloid blast 介於 10-19% 且無 AML-defining genetics 的病人新增了哪個診斷類別?","back":"MDS/AML(overlap 中間類別)<hr>因把 AML 門檻降到 10%，ICC 2022 遂設立 MDS/AML 涵蓋 blast 10-19%、缺乏 AML-defining recurrent genetic abnormality 的病例，使其治療上可比照 AML 處理。WHO 2022 無此 overlap 類別,同群病人留在 MDS-IB2。"},
+  {"kind":"basic","front":"ICC 2022 中，舊有的 MDS with ring sideroblasts (MDS-RS) 被哪一個新實體取代?","back":"MDS with mutated SF3B1<hr>ICC 2022 改以基因定義取代形態學:有 SF3B1 突變即歸 MDS with mutated SF3B1，不再依賴 ring sideroblast 比例。常見誤敘為「被 SRSF2 mutation 取代」即錯。SF3B1 突變者預後相對良好。"},
+  {"kind":"basic","front":"ICC 2022 與 WHO 2022 對 SF3B1-mutated MDS 的診斷 VAF cutoff 有何不同?","back":"ICC 2022 要求 VAF &ge;10%；WHO 2022 只需 VAF &ge;5%<hr>兩平行體系門檻不同:ICC 較嚴(10%)、WHO 較寬(5%)。判讀 SF3B1-MDS 時須先確認採用哪一套分類，以免低 VAF 個案歸類分歧。"},
+  {"kind":"basic","front":"ICC 2022 新設的 myeloid neoplasm with mutated TP53 如何依 blast 比例細分?其預後與處置方向為何?","back":"MDS (&lt;10% blast)、MDS/AML (10-19%)、AML (&ge;20%);預後極差、存活極短<hr>需 multi-hit(雙等位失活)或 single-hit 合併特定條件。對化療與 allogeneic HSCT 反應差，屬預後最惡一群 → 傾向以 hypomethylating agent 為基礎之治療並評估臨床試驗。"}
+ ]
+}

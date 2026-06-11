@@ -1,0 +1,13 @@
+{
+ "id": "112-050",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "MDS", "del(5q)", "5q-minus-syndrome", "Lenalidomide", "Azacitidine", "RPS14", "TP53", "IPSS-R", "lower-risk-MDS", "HSCT"],
+ "enrich_html": "<b>📌 考點</b>:Lower-risk MDS with isolated del(5q) 且 RBC 輸血依賴 → 首選 <u>lenalidomide</u>(MDS-003 trial:約 67% 達 transfusion independence、約 50% complete cytogenetic response、反應中位持續約 2 年)。誘餌全為「對的藥用錯族群」:allo-HSCT 僅 higher-risk 且可移植者、7+3 是 AML 化療、azacitidine 是 higher-risk 主力、ATG 用於 hypocellular/immune-mediated lower-risk。<br><b>🏥 臨床意義</b>:5q- syndrome 好發老年女性、macrocytic anemia、血小板正常或偏高、骨髓 hypolobated micromegakaryocyte,屬 lower-risk 但約 18% 帶 <u>TP53 mutation</u>,預測進展為 AML、lenalidomide 反應差且需密切追蹤 clone。<br><b>⭐ High-yield</b>:輸血負擔低且 serum EPO &lt;500 mU/mL 可先試 ESA;ESA 失敗或高輸血負擔的 del(5q) 才上 lenalidomide。Lenalidomide 對 non-del(5q) lower-risk 反應率僅 20–25% 且不持久。<br><b>🔬 實證</b>:機轉為 RPS14 haploinsufficiency → 游離 ribosomal protein 降解 MDM2 → p53 活化 → erythroid apoptosis;lenalidomide 透過 cereblon 促 CK1α(CSNK1A1,位於 5q)降解而選擇性清除 del(5q) clone。(List et al., NEJM 2006;Jädersten et al., JCO 2011)",
+ "cards": [
+  {"kind":"basic","front":"Lower-risk MDS with isolated del(5q),貧血且 RBC 輸血依賴的患者,首選哪種疾病修飾藥物?","back":"Lenalidomide<hr>MDS-003 trial 顯示約 67% 的 lower-risk del(5q) 患者達 RBC transfusion independence、約 50% 達 complete cytogenetic response,反應中位持續約 2 年。Lenalidomide 是 del(5q) syndrome 的 targeted 治療首選。"},
+  {"kind":"basic","front":"Lenalidomide 為何能選擇性清除 MDS 的 del(5q) clone?(分子機轉)","back":"透過 cereblon (CRBN) 促進 CK1α (CSNK1A1) 降解,而 CSNK1A1 位於 5q,del(5q) clone 僅剩單套、對其降解特別敏感而凋亡<hr>正常細胞有兩套 CSNK1A1 可耐受,del(5q) clone 為 haploinsufficient,lenalidomide 降解 CK1α 後使其選擇性死亡。這是 lenalidomide 對 del(5q) 反應遠優於 non-del(5q) 的分子基礎(non-del(5q) lower-risk 反應率僅約 20–25% 且不持久)。"},
+  {"kind":"basic","front":"Isolated del(5q) (5q- syndrome) 的典型臨床與血液學表現?","back":"老年女性、macrocytic anemia、血小板正常或偏高、骨髓可見 hypolobated micromegakaryocyte<hr>預後相對良好(lower-risk)、對 lenalidomide 反應佳。血小板偏高(而非減少)是其特徵之一,有助與其他 MDS 亞型鑑別。"},
+  {"kind":"basic","front":"del(5q) lower-risk MDS 帶有哪個基因突變時,預示較易進展為 AML、且 lenalidomide 反應較差?","back":"TP53 mutation<hr>約 18% 的 del(5q) lower-risk MDS 在早期即可偵測到 TP53 mutation,預測進展為 AML、降低 lenalidomide 反應與持續度。機轉上 p53 活化驅動貧血,TP53 突變使 clone 逃脫凋亡而擴張;治療中應監測 TP53 clone 與 cytogenetic response。(Jädersten et al., JCO 2011)"},
+  {"kind":"cloze","text":"MDS 治療依風險分層: lower-risk 改善血球與生活品質,輸血負擔低且 serum EPO &lt;500 mU/mL 者先用 {{c1::ESAs}}、isolated del(5q) 用 {{c2::lenalidomide}}、immune-mediated/hypocellular 型用 {{c3::ATG/immunosuppression}};higher-risk 主力為 {{c4::hypomethylating agents (azacitidine/decitabine)}},適合且年輕者可行 {{c5::allogeneic HSCT}}(唯一治癒性)。","extra":"風險分層常用 IPSS-R / IPSS-M。「7+3」(anthracycline 3 天 + cytarabine 7 天)是 AML 誘導化療,lower-risk MDS 不適用。Allo-HSCT 保留給 higher-risk 且體能佳可移植者。"}
+ ]
+}

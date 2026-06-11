@@ -1,0 +1,13 @@
+{
+ "id": "113-078",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "B-ALL", "blinatumomab", "BiTE", "CD19", "CD3", "CRS", "neurotoxicity", "TOWER", "E1910", "MRD"],
+ "enrich_html": "<b>📌 考點</b>:blinatumomab 是 CD19/CD3 bispecific T-cell engager (BiTE),四個常見陷阱敘述都錯:half-life 實為約 2 小時(非 24 小時)→ 必須 28 天 continuous IV infusion(無法一天一針);嚴重(grade ≥3)CRS 僅約 4.9%(非 30%);對 solitary extramedullary relapse 因 TOWER 排除而無療效實證(不能說「效果一樣好」)。<br><b>🏥 臨床意義</b>:half-life 短的原因是 BiTE 缺乏 Fc → 腎排除快;dexamethasone premedication + step-dosing(劑量遞增)是降低 CRS 與 neurotoxicity 的標準作法,嚴重 CRS 暫停輸注並給 dexamethasone(±tocilizumab)。<br><b>⭐ High-yield</b>:TOWER(R/R Ph- B-ALL)ORR 45% vs 化療 30%、median OS 7.7 vs 4.0 月｜E1910(MRD- 後 consolidation)3-yr OS 85% vs 68%,HR 0.41｜FDA 2024/6 擴大核准 consolidation phase(不論 MRD 狀態)。<br><b>🔬 實證</b>:TOWER(Kantarjian, NEJM 2017;376:836)；E1910(Litzow, NEJM 2024;391:320)。",
+ "cards": [
+  {"kind":"basic","front":"blinatumomab 的作用機轉與分子標靶為何?","back":"CD19/CD3 bispecific T-cell engager (BiTE)<hr>一端結合 B cell 上的 CD19、另一端結合 T cell 上的 CD3,把 cytotoxic T cell 拉到 B cell 旁形成 immune synapse,誘導 T cell 活化、增殖並毒殺標靶細胞。用於 CD19+ B-cell precursor ALL(含 R/R、MRD-positive 及 consolidation)。"},
+  {"kind":"basic","front":"blinatumomab 的 half-life 約多少?為何決定其給藥方式?","back":"half-life 僅約 2 小時(2-3 小時),故須 28 天連續靜脈輸注 (continuous IV infusion)<hr>BiTE 缺乏 Fc domain、經腎臟快速清除,半衰期極短,無法「一天注射一次」(與一般 IgG 單株抗體 half-life 數天至數週形成對比)。早期曾採每週數次 intermittent infusion,因療效差且神經毒性高而棄用,改為 continuous infusion 後活性大幅提升。常見錯誤陷阱稱「half-life 24 小時、一天一針」。"},
+  {"kind":"cloze","text":"blinatumomab 的兩大標誌性毒性為 {{c1::cytokine release syndrome (CRS)}} 與 {{c2::neurotoxicity / neurologic events}},以 dexamethasone premedication 與 {{c3::step-dosing(劑量由低遞增)}} 預防。","extra":"兩者多發生於治療初期數天。dexamethasone premedication 為仿單建議、且試驗 protocol(如 E1910)必用;發生嚴重 CRS 時暫停輸注並給 dexamethasone(±tocilizumab)。神經事件包含 encephalopathy、seizure、tremor、aphasia,為需密切監測的劑量限制毒性。"},
+  {"kind":"basic","front":"關於 blinatumomab 在 R/R B-ALL 的嚴重 CRS 與髓外療效,兩個最常見的錯誤陷阱為何?","back":"① grade ≥3(嚴重)CRS 實際僅約 4.9%(非「約 30%」)② 對 solitary extramedullary relapse 並無療效實證(不能說與骨髓內復發「效果一樣好」)<hr>嚴重 CRS 發生率來自 TOWER trial,第一線 consolidation(E1910)更低;任何級別 CRS 雖較常見,但嚴重者少見。TOWER 排除了 solitary extramedullary relapse 患者,故單獨髓外復發目前缺乏 clinical trial data 支持。"},
+  {"kind":"basic","front":"確立 blinatumomab 療效的兩個關鍵第三期試驗(R/R 與第一線)及其主要結果為何?","back":"TOWER(R/R Ph- B-ALL)與 E1910(第一線 MRD- 後 consolidation)<hr>TOWER(Kantarjian, NEJM 2017;376:836):對比化療 ORR 45% vs 30%、median OS 7.7 vs 4.0 月,確立 R/R Ph- B-ALL 標準治療。E1910(Litzow, NEJM 2024;391:320):BCR::ABL1- B-ALL 達 MRD-negative(<0.01%)後加 blinatumomab consolidation,3-yr OS 85% vs 68%(HR 0.41)。FDA 2024/6 依此擴大核准 consolidation phase(不論 MRD 狀態)。"}
+ ]
+}

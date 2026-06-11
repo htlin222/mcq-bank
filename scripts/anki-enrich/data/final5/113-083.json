@@ -1,0 +1,13 @@
+{
+ "id": "113-083",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "iron deficiency anemia", "IDA", "ferritin", "MCV", "reticulocyte", "microcytic anemia", "thrombocytosis", "TIBC", "transferrin saturation", "thalassemia trait"],
+ "enrich_html": "<b>📌 考點</b>:IDA 五大鐵代謝指標方向務必背熟 — serum iron &darr;、TIBC &uarr;、transferrin saturation &darr;(&lt;16%)、ferritin &darr;、sTfR &uarr;。血小板是<u>陷阱</u>:嚴重缺鐵時 platelet count「可高可低 (may be high or low)」,故『severe IDA 更常見 thrombocytosis』屬錯誤陳述;WBC 在嚴重 IDA 也可偏低。<br><b>🏥 臨床意義</b>:Reactive thrombocytosis(尤其慢性消化道/月經失血)雖常見且可增加血栓風險,但缺鐵亦可抑制 megakaryopoiesis 致 thrombocytopenia;鐵劑補充後常見 rebound 後逐步回正常。處置核心:找出血流來源(成人 IDA 須查 GI 出血)＋補鐵。<br><b>⭐ High-yield</b>:Ferritin cutoff 一般成人 &le;30 ng/mL(sensitivity ~92%、specificity ~98%);合併慢性發炎改用 &lt;50 ng/mL｜transferrin saturation &lt;16% 提示缺鐵｜RDW 升高 + Mentzer index (MCV/RBC) &gt;13 偏向 IDA、&lt;13 偏向 thalassemia trait。<br><b>🔬 實證</b>:低鐵使 MEP 偏向 megakaryocyte commitment、衰減 ERK signaling 且與 TPO 無關 (Xavier-Ferrucci et al., Blood 2019;134:1547);ferritin 為最準確的缺鐵單一指標但屬 acute phase reactant (AAFP 2013;ASH 2024)。",
+ "cards": [
+  {"kind":"basic","front":"嚴重 iron deficiency anemia (IDA) 中 platelet count 的典型變化方向為何?為何『severe IDA 更常見 thrombocytosis』是錯誤陳述?","back":"血小板「可高可低 (may be high or low)」,沒有單一固定方向<hr>ASH/Hematology.org 與 Wintrobe 描述:嚴重缺鐵時 WBC 可偏低、platelet count 可高可低。Reactive thrombocytosis 確實常見(尤其合併慢性失血),但嚴重缺鐵也可抑制 megakaryopoiesis 而造成 thrombocytopenia,故不能一概說 thrombocytosis 更常見。"},
+  {"kind":"cloze","text":"典型 IDA 的鐵代謝指標組合:serum iron {{c1::降低}}、TIBC {{c2::升高}}、transferrin saturation {{c3::降低}}(&lt;16%)、serum ferritin {{c4::降低}}、soluble transferrin receptor (sTfR) {{c5::升高}}。","extra":"對照 anemia of chronic disease (ACD):serum iron 低、TIBC 低(或正常)、ferritin 正常或升高、sTfR 正常 — sTfR/log ferritin 比值有助於鑑別 IDA(高)與 ACD(低)。"},
+  {"kind":"basic","front":"診斷一般成人 iron deficiency 的 serum ferritin cutoff 為何?其敏感度/特異度?合併慢性發炎時如何調整?","back":"一般成人採 serum ferritin &le;30 ng/mL(sensitivity ~92%、specificity ~98%)<hr>WHO/ASH 2024 建議一般成人、月經期女性、孕婦皆採 &le;30 ng/mL。Ferritin 為 acute phase reactant,低 ferritin 高度專一(幾乎確診缺鐵),但正常/升高無法排除缺鐵;若合併慢性發炎/感染,門檻提高至 &lt;50 ng/mL 才視為缺鐵 (AAFP 2013;ASH 2024)。"},
+  {"kind":"basic","front":"在合併慢性發炎的病人,iron deficiency 與 anemia of chronic disease (ACD) 如何用鐵代謝指標區分?","back":"IDA:TIBC 升高、sTfR 升高、ferritin 低;ACD:TIBC 低或正常、sTfR 正常、ferritin 正常或升高<hr>關鍵在 TIBC(transferrin)方向相反:缺鐵時肝臟代償增加 transferrin → TIBC 升高;ACD 因 hepcidin 升高、發炎抑制 transferrin → TIBC 不升。sTfR 不受發炎影響,在 IDA 升高、ACD 正常,故可鑑別兩者並存的情境。"},
+  {"kind":"basic","front":"成人新診斷 iron deficiency anemia,除了補鐵外最重要的臨床處置為何?","back":"找出失血來源 — 成人(尤其男性與停經後女性)IDA 須積極評估 gastrointestinal (GI) 出血<hr>成人 IDA 多源於慢性失血;不明原因 IDA 應安排 GI 內視鏡(上/下消化道)排除惡性腫瘤等病灶。停經前女性常見月經失血,但若補鐵反應不佳或臨床高風險仍須評估 GI。單純補鐵而不查源頭可能延誤腫瘤診斷。"}
+ ]
+}

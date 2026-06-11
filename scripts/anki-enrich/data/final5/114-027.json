@@ -1,0 +1,33 @@
+{
+  "id": "114-027",
+  "topic_index": 3,
+  "extra_tags": ["enriched", "iTTP", "TTP", "ADAMTS13", "Caplacizumab", "Rituximab", "TMA", "plasma_exchange", "PLASMIC_score", "VWF"],
+  "enrich_html": "<b>📌 考點</b>：iTTP 由 anti-ADAMTS13 IgG 自體抗體致 ADAMTS13 活性 &lt;10%，ultra-large VWF multimers 累積形成微血管富血小板血栓 → MAHA + 血小板消耗。標準治療為 plasma exchange + corticosteroid + Rituximab，ISTH 2020/2025 conditional 再加 Caplacizumab；但「此三聯治療達 30 天存活率 &gt;90%」屬<u>絕對化錯誤</u>——文獻 30 天死亡率仍約 5-20%，加 Caplacizumab 才進一步降死亡與難治率。<br><b>🏥 臨床意義</b>：神經學症狀（頭痛、意識混亂）與腹痛為最常見表現；經典五徵已不要求齊全，高度懷疑即應啟動 plasma exchange，不待 ADAMTS13 結果。<br><b>⭐ High-yield</b>：PLASMIC score 7 項（Platelet &lt;30k｜Hemolysis｜no Active cancer｜no Stem-cell/solid-organ transplant｜MCV &lt;90｜INR &lt;1.5｜Creatinine &lt;2.0），高分 6-7 預測嚴重 ADAMTS13 缺乏 PPV 72%、NPV 98%｜緩解期 pre-emptive Rituximab 的觸發點是 ADAMTS13 活性 &lt;10%（不是 &lt;30%）。<br><b>🔬 實證</b>：ADAMTS13 活性 &lt;10% 確診 iTTP；持續 &lt;10% 者長期復發率達 74%；pre-emptive Rituximab 使年復發率 0.33→0 episode/yr。(ISTH focused update, JTH 2025; ASH Education Program 2020; Blood 2018;132:2143)",
+  "cards": [
+    {
+      "kind": "basic",
+      "front": "immune thrombotic thrombocytopenic purpura (iTTP) 的根本致病機轉為何？",
+      "back": "anti-ADAMTS13 IgG 自體抗體抑制 ADAMTS13，造成 ultra-large VWF multimers 累積<hr>ADAMTS13 負責切割內皮釋出的 ultra-large VWF multimers。免疫型（acquired）TTP 由 anti-ADAMTS13 IgG 自體抗體引起，使酶活性嚴重不足（通常 &lt;10%），巨大 VWF 多聚體在高剪切力下黏附並活化血小板，於微血管形成富含血小板的血栓，導致 microangiopathic hemolytic anemia (MAHA) 與血小板消耗。"
+    },
+    {
+      "kind": "basic",
+      "front": "確診 iTTP 的關鍵實驗室 cutoff 為何？又如何與其他 thrombotic microangiopathy 鑑別？",
+      "back": "ADAMTS13 活性 &lt;10%<hr>嚴重 ADAMTS13 缺乏（活性 &lt;10%）是診斷 iTTP 的決定性依據，免疫型還可測得 anti-ADAMTS13 IgG inhibitor。鑑別重點：complement-mediated HUS 腎損傷重而 ADAMTS13 正常；DIC 則有 PT/aPTT 延長與 fibrinogen 下降。iTTP 的凝血功能多大致正常、腎損傷相對輕。活性結果回報前，臨床即須依評分與表現先行治療。"
+    },
+    {
+      "kind": "basic",
+      "front": "Caplacizumab 在 iTTP 的作用機轉、臨床效益與主要風險為何？",
+      "back": "抗 VWF A1 domain 的 nanobody，阻斷血小板與 VWF 結合；加速血小板回升、降低 exacerbation 與早期復發，但增加出血風險<hr>Caplacizumab 阻止 VWF 介導的血小板黏附（HERCULES trial），縮短血小板數正常化時間、減少難治性疾病與死亡。主要副作用為出血（黏膜皮膚為主），因仍抑制 VWF 依賴的初級止血。ISTH 2020/2025 guideline 對首次急性發作與復發 conditional 建議於 plasma exchange + 免疫抑制之上加用。"
+    },
+    {
+      "kind": "basic",
+      "front": "為什麼「iTTP 接受 plasma exchange + corticosteroid + Rituximab 即可達 30 天存活率 &gt;90%」的敘述被視為不正確？",
+      "back": "因為此絕對化說法過於樂觀；即使三聯治療，文獻報告的 30 天死亡率仍約 5-20%<hr>plasma exchange 問世後死亡率大幅下降，但仍有相當比例早期死亡（神經與心臟併發症為主）。加入 Caplacizumab（抗 VWF nanobody）才進一步降低死亡與難治性疾病。故宣稱單靠三聯治療即達 &gt;90% 存活，缺乏充分證據支持。"
+    },
+    {
+      "kind": "basic",
+      "front": "iTTP 緩解期如何監測復發？啟動 pre-emptive Rituximab 的 ADAMTS13 活性觸發點為何？",
+      "back": "定期監測 ADAMTS13 活性；當活性降至 &lt;10%（subclinical/ADAMTS13 relapse）時給予 pre-emptive Rituximab<hr>ADAMTS13 活性下降常早於臨床復發。French registry 顯示活性降至 &lt;10% 時搶先給 Rituximab，使年復發率由 0.33 降至 0 episode/yr。注意觸發點是 &lt;10%（嚴重缺乏），而非較寬鬆的 &lt;30%；緩解後持續 &lt;10% 者長期復發率可達約 74%。"
+    }
+  ]
+}

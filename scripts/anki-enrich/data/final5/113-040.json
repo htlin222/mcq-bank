@@ -1,0 +1,13 @@
+{
+ "id": "113-040",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "lymphoma", "ATLL", "HTLV-1", "EBV", "HHV-8", "MALToma", "H-pylori", "HCV", "infection-associated-lymphoma", "mogamulizumab"],
+ "enrich_html": "<b>📌 考點</b>:感染-淋巴瘤配對是淋巴瘤章節的高頻記憶題,最常見誘餌為「HTLV-2 → ATLL」。<u>正確致病病毒是 HTLV-1(type 1),非 type 2</u>;HTLV-2 與慢性神經系統疾病(如類似 HAM/TSP 之神經病變)風險相關,但未確立致 ATLL,HTLV-3/4 亦無確認疾病關聯。<br><b>🏥 臨床意義</b>:HTLV-1 帶原者終身 ATLL 發病率約 2–7%,常經數十年潛伏;ATLL 為 peripheral T-cell lymphoma 中預後最差者(5 年 OS 約 14%)。anti-CCR4 單株抗體 mogamulizumab 納入第一線 CHOP-like 可改善 OS,但 allogeneic HSCT 前後 50 天內禁用(GVHD 風險);allo-HSCT 仍是唯一可能治癒手段。<br><b>⭐ High-yield</b>:可「治療感染即緩解淋巴瘤」者 — early-stage H. pylori (+) gastric MALToma 抗生素根除即可緩解;HCV 相關 splenic marginal zone lymphoma 抗病毒清除 HCV 後部分緩解。<br><b>🔬 實證</b>:感染配對 — EBV→nasal NK/T、Burkitt、PTLD;HHV-8/KSHV→primary effusion lymphoma、plasmablastic;HCV→splenic marginal zone;H. pylori→gastric MALToma;C. jejuni→IPSID;C. psittaci→ocular adnexal MALT;Borrelia→cutaneous B-cell。(Blood 2023;141:2299;JCO ATL Consensus 2019;Springer Arch Microbiol 2025)",
+ "cards": [
+  {"kind":"basic","front":"Adult T-cell leukemia/lymphoma (ATLL) 的致病病毒是哪一型 retrovirus?為何 HTLV-2 是錯的?","back":"HTLV-1 (Human T-lymphotropic virus type 1)。<hr>致 ATLL 的是 type 1,不是 type 2。HTLV-2 與慢性神經系統疾病(類 HAM/TSP 之神經病變)風險相關,但未確立致 ATLL;HTLV-3/4 目前亦無確認與特定疾病的關聯。board 常以「HTLV-2 → ATLL」當誘餌。"},
+  {"kind":"basic","front":"ATLL 治療中 mogamulizumab 的標的與作用機轉為何?有何重要禁用時機?","back":"標的 CCR4 的單株抗體;allo-HSCT 前後 50 天內禁用(增 GVHD 風險)。<hr>機轉雙重:(1) 直接清除表現 CCR4 的 ATLL 腫瘤株;(2) 清除免疫抑制性 Treg,恢復抗腫瘤 T 細胞免疫。納入第一線 CHOP-like 可改善 OS,但因會耗竭 Treg,移植前後使用易誘發嚴重 GVHD。allo-HSCT 仍是 ATLL 唯一可能治癒手段(ATLL 為 PTCL 中預後最差,5 年 OS 約 14%)。"},
+  {"kind":"basic","front":"Gastric MALToma 最相關的感染原是什麼?在治療上有何特殊意義?","back":"Helicobacter pylori;早期局限、H. pylori 陽性者可單以抗生素根除細菌即達緩解。<hr>是少數能以抗菌治療治癒的淋巴瘤典範。但帶 t(11;18)/API2-MALT1 易位者對抗生素反應差,需放療或免疫化療。同屬「治感染即治淋巴瘤」者尚有 HCV 相關 splenic marginal zone lymphoma(抗病毒清除 HCV 後部分緩解)。"},
+  {"kind":"cloze","text":"病毒-淋巴瘤配對:{{c1::EBV}} → nasal NK/T-cell、Burkitt、PTLD、Hodgkin;{{c2::HTLV-1}} → ATLL;{{c3::HHV-8/KSHV}} → primary effusion lymphoma、plasmablastic;{{c4::HCV}} → splenic marginal zone lymphoma;{{c5::HBV}} → DLBCL","extra":"誘餌:致 ATLL 的是 HTLV-1(type 1),非 HTLV-2。HTLV-2 僅與慢性神經疾病風險相關。HHV-8 = KSHV,primary effusion lymphoma 以體腔積液表現而無實體腫塊、好發 HIV/免疫低下族群。"},
+  {"kind":"cloze","text":"細菌-MALToma 配對:{{c1::H. pylori}} → gastric MALToma;{{c2::Campylobacter jejuni}} → IPSID (α-heavy chain disease);{{c3::Chlamydia psittaci}} → ocular adnexal MALT;{{c4::Borrelia burgdorferi}} → primary cutaneous B-cell lymphoma","extra":"延伸(自體免疫亦驅動 MALToma):Sjögren's → salivary gland MALToma;Hashimoto's thyroiditis → thyroid MALToma。慢性抗原刺激(感染或自體免疫)是 MALT lymphoma 共同的致病主軸。"}
+ ]
+}

@@ -1,0 +1,13 @@
+{
+ "id": "112-071",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "ETP-ALL", "blinatumomab", "BiTE", "CD19", "CD22", "inotuzumab", "MPAL", "ambiguous-lineage-leukemia", "HyperCVAD", "rituximab"],
+ "enrich_html": "<b>📌 考點</b>：ALL 四敘述辨錯題的三個錯誤點為 — ETP-ALL 預後「差」非「好」、blinatumomab 靶點是 CD19「非 CD20」、dose-intensified anthracycline「無」survival benefit。唯一正確者為 ambiguous lineage leukemia 採 ALL-type regimen。<br><b>🏥 臨床意義</b>：ETP-ALL 因早期 T 前驅表型 (CD1a⁻/CD8⁻/CD5 weak + myeloid/stem markers) 對標準化療反應差，CR1 即應規劃 allogeneic HSCT；MPAL 同樣以 ALL backbone 起始並橋接移植。<br><b>⭐ High-yield</b>：B-cell 標靶抗體配對 — rituximab→CD20｜blinatumomab→CD3×CD19 (BiTE)｜inotuzumab ozogamicin→CD22 (ADC, calicheamicin)。CD22 表現於 60–90% B-ALL blasts。<br><b>🔬 實證</b>：iBFM-AMBI2012 ALL-type 5-yr EFS ~80% vs AML-type ~36% (Blood 2018;132:264-276)；2024/06 FDA 核准 blinatumomab 用於 Ph-negative B-ALL consolidation，不論 MRD。",
+ "cards": [
+  {"kind":"basic","front":"ETP-ALL (Early T-cell precursor ALL) 的預後屬於好還是差？","back":"預後較差 (relatively poor prognosis)，多需 allogeneic HSCT<hr>ETP-ALL 為 T-ALL 中具早期 T 前驅免疫表型 (CD1a⁻、CD8⁻、CD5 弱/陰，常共表現 myeloid/stem markers) 的高風險亞型，對標準化療反應差，CR1 即應規劃移植。考試常以「ETP-ALL 預後良好」為錯誤敘述設陷阱。"},
+  {"kind":"basic","front":"Blinatumomab 是哪一類藥物？它同時結合哪兩個抗原？","back":"BiTE (bispecific T-cell engager)，結合 CD3 (T 淋巴球) 與 CD19 (B-cell blasts)，不是 CD20<hr>Blinatumomab (BLINCYTO®) 一端 anti-CD3 拉攏 T cell，另一端 anti-CD19 鎖定 B 細胞，使 T cell 直接毒殺 B-ALL blasts。CD20 才是 rituximab 標靶。「blinatumomab 結合 CD20」為常見錯誤敘述。"},
+  {"kind":"basic","front":"同時共表現多個 lymphoid 與 myeloid 抗原的 ambiguous lineage leukemia / MPAL，應優先採用哪一類治療方案？","back":"ALL-type regimen 優於 AML-type<hr>iBFM-AMBI2012 (Blood 2018;132:264-276) 顯示 ALL-type 5-yr EFS 約 80%，顯著優於 AML-type (~36%) 或 ALL/AML 合併 (~50%)。故 mixed phenotype acute leukemia (MPAL) 多以 ALL backbone 起始誘導，再橋接 allo-HSCT。"},
+  {"kind":"basic","front":"在 ALL 治療中，dose-intensified anthracycline 是否能改善 CR rate 與 survival？","back":"否，無 survival benefit，且增加 late cardiotoxicity<hr>MD Anderson 於 HyperCVAD backbone 上加強 anthracycline 劑量，結論為對存活無益處而心毒性上升。故「dose-intensified anthracycline + high-dose Ara-C 可改善 CR rate 與 DFS」此複合敘述不正確。"},
+  {"kind":"cloze","text":"B-cell malignancy 標靶抗體與抗原配對：rituximab → {{c1::CD20}}；blinatumomab → {{c2::CD19}} (BiTE, 另結合 CD3)；inotuzumab ozogamicin → {{c3::CD22}} (ADC, 帶 calicheamicin)。","extra":"blinatumomab 與 inotuzumab 皆用於 relapsed/refractory B-ALL。考試最愛混淆 blinatumomab 的 CD19 與 rituximab 的 CD20。CD22 表現於 60–90% B-ALL blasts。"}
+ ]
+}

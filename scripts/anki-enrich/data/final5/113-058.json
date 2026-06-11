@@ -1,0 +1,13 @@
+{
+ "id": "113-058",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "hemolytic anemia", "AIHA", "Cold Agglutinin Disease", "CAD", "complement", "Sutimlimab", "Eculizumab", "Rituximab", "DAT", "C1s", "extravascular hemolysis"],
+ "enrich_html": "<b>📌 考點</b>：C3d(+)/IgG(-) DAT = Cold Agglutinin Disease (CAD)，由 IgM 冷凝集素活化 classical complement、留下 C3b/C3d。治療必須對準機轉：CAD 溶血以 <u>extravascular (肝臟 Kupffer cells 吞噬 C3b-opsonized 紅血球)</u> 為主，故只擋 terminal pathway 的 eculizumab (anti-C5) 對長期治療無效，僅急性溶血危機 (有 intravascular/MAC 成分) 可短期考慮——故 (E) 為最佳答案。<br><b>🏥 臨床意義</b>：CAD 本質是 clonal low-grade B-cell lymphoproliferative disorder (常帶 KMT2D mutation)，故傳統 first-line 為清除 B 細胞：Rituximab 單藥 ORR ~50%、CR 罕見、反應期僅 6.5–11 個月；Rituximab + bendamustine ORR 71%、CR 40%。Corticosteroids ORR &lt;20% 不建議 (與 warm AIHA 相反)。基礎處置為避寒保暖；CAD 病人有血栓風險。<br><b>⭐ High-yield</b>：Sutimlimab 標靶為 <u>C1s</u> (classical pathway 上游)，<b>非</b> C3 inhibitor；eculizumab 標靶 C5；rituximab 標靶 CD20 (B 細胞，非補體)。Sutimlimab 快速止血、Hb 上升、毒性低，CARDINAL/CADENZA 後 FDA 2022/02 核准。<br><b>🔬 實證</b>：Sutimlimab phase 3 CARDINAL (NEJM 2021;384:1323) 與 CADENZA (Röth, Blood 2022;140:980) 確立其療效；CAD 治療共識見 Berentsen, How I treat CAD, Blood 2021;137:1295。",
+ "cards": [
+  {"kind":"basic","front":"Direct antiglobulin test (DAT) 呈 C3d(+)、IgG(-) 的溶血性貧血最符合哪一種診斷？","back":"Cold Agglutinin Disease (CAD)<hr>CAD 由 IgM 冷凝集素介導：IgM 在低溫下結合紅血球並活化 classical complement，最終在紅血球表面殘留 C3b/C3d。回暖後 IgM 脫離，故 DAT 呈 C3d(+) 但 anti-IgG(-)。對比：warm AIHA 通常 IgG(+) 或 IgG+C3d(+)。"},
+  {"kind":"basic","front":"為何 anti-C5 抗體 eculizumab 無法作為 CAD 的長期最佳治療？","back":"它只阻斷 terminal pathway (C5)，無法阻止 C3b 介導的 extravascular hemolysis<hr>CAD 主要溶血是 IgM 冷凝集素活化補體至 C3b，C3b-opsonized 紅血球在肝臟 Kupffer cells 被吞噬 (extravascular)，發生在 C5 之前。Eculizumab 只擋 C5/MAC (intravascular)，臨床上 Hb 僅小幅上升；僅急性溶血危機含顯著 intravascular 成分時可短期考慮，不適合作為長期 treatment of choice。"},
+  {"kind":"basic","front":"Sutimlimab 的分子標靶是什麼？它阻斷補體的哪一段？","back":"標靶 C1s，阻斷 classical complement pathway 的上游<hr>Sutimlimab 是 humanized monoclonal IgG4 抗體，選擇性抑制 C1 complex 中的 C1s，阻止後續 C3b 沉積與 extravascular hemolysis。常見誘餌：誤稱其為「C3 inhibitor」——它並非 C3 抑制劑；eculizumab 才標靶 C5。"},
+  {"kind":"basic","front":"CAD 傳統的 first-line therapy 是什麼？反應率如何？","back":"清除 B 細胞的 Rituximab-based 治療<hr>Rituximab 單藥 (375 mg/m² × 4 週) ORR ~50%、complete response 罕見、反應期僅約 6.5–11 個月；Rituximab + bendamustine ORR 達 71% (CR 40%)。CAD 由 clonal low-grade B-cell lymphoproliferative disorder (常帶 KMT2D mutation) 驅動，故清除 B 細胞為治療主軸。"},
+  {"kind":"basic","front":"為何 corticosteroids 不適合用於 CAD，卻是 warm AIHA 的 first-line？","back":"CAD 對類固醇 ORR <20%，少數有效者需高維持劑量，不被建議<hr>Warm AIHA 為 IgG 介導、脾臟 Fc receptor 吞噬為主，類固醇 first-line 有效；CAD 為 IgM/complement 介導、肝臟 extravascular 為主，類固醇反應差。這是兩者治療策略的關鍵分水嶺。"}
+ ]
+}

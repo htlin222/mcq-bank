@@ -1,0 +1,33 @@
+{
+ "id": "112-048",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "AL amyloidosis", "amyloidosis", "plasma cell disorder", "monoclonal gammopathy", "light chain", "Congo red", "Mayo 2012 staging", "daratumumab", "ATTR amyloidosis"],
+ "enrich_html": "<b>📌 考點</b>:AL (Amyloid Light-chain) amyloidosis 是 clonal plasma/B-cell 分泌的 misfolded immunoglobulin light chain(~75% 為 λ)折成 β-pleated sheet 沉積於器官。任一典型表現 — nephrotic-range proteinuria(任何 Cr 值)、infiltrative cardiomyopathy/HFpEF、肝腫大或 ALP 上升而影像無特異病灶、mixed axonal-demyelinating 周邊神經病變(尤合併 monoclonal gammopathy)— 都應將 AL amyloidosis 列入鑑別,故四者皆是。<br><b>🏥 臨床意義</b>:確診靠 Congo red 染色 + 偏光下 apple-green birefringence,再以 mass spectrometry typing 確認 light chain 型;>70 歲、僅心臟受侵或非裔者務必排除 ATTR / hereditary amyloid(治療完全不同:ATTR 用 tafamidis / patisiran,AL 須壓制 plasma cell clone)。心臟受侵是最重要預後因子。<br><b>⭐ High-yield</b>:篩檢三聯 = serum+urine IFE + sFLC assay(陽性率 ~98%,單做 SPEP 會漏診)｜Mayo 2012 staging 3 分制:cTnT ≥0.025 ng/mL、NT-proBNP ≥1,800 pg/mL、dFLC ≥180 mg/L,Stage I–IV 中位 OS ~55/19/12/5 個月｜AL 漿細胞負荷常 &lt;10%,與高負荷 multiple myeloma 不同。<br><b>🔬 實證</b>:一線 Dara-VCd 經 ANDROMEDA(NEJM 2021;385:46)hematologic CR 53.3% vs CyBorD 18.1%,獲 FDA 正式核准。(Kumar et al., JCO 2012;30:989;Williams Manual of Hematology 10e p510)",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "AL amyloidosis 的致病蛋白(沉積物)是什麼?較常見哪一型 light chain?",
+   "back": "單株免疫球蛋白 free light chain 折疊錯誤後形成的 amyloid fibrils,約 75% 為 lambda (λ) 型。<hr>由 clonal plasma cell(或 B-cell)分泌的 misfolded immunoglobulin light chain 聚成 β-pleated sheet,沉積於各器官。「AL」 即 Amyloid Light-chain。與多數 multiple myeloma 以 κ 為主相反,AL 以 λ 為主。"
+  },
+  {
+   "kind": "basic",
+   "front": "懷疑 amyloidosis 時組織切片用什麼染劑?偏光顯微鏡下呈何顏色?確診後還需做什麼?",
+   "back": "Congo red 染色,偏光顯微鏡下呈 apple-green birefringence(蘋果綠雙折射);之後須做 typing 確認 amyloid 種類。<hr>Congo red + apple-green birefringence 是確診金標準。切片可取自受侵器官,或微創取 abdominal fat pad / bone marrow。再以 mass spectrometry(首選)或免疫組化區分 AL、ATTR、AA 等,因治療方向完全不同。"
+  },
+  {
+   "kind": "basic",
+   "front": "篩檢 AL amyloidosis 的單株蛋白應做哪些血清/尿液檢查?為何不能只做 SPEP?",
+   "back": "serum & urine immunofixation electrophoresis (IFE) + serum free light chain (sFLC) assay,三者合用敏感度最高(~98% 至少一項異常)。<hr>AL 的 M-protein 量常很低,單做 SPEP 會漏診。sFLC 的 involved/uninvolved 差值(dFLC)與 κ/λ ratio 是診斷線索、預後分層(Mayo 2012)及治療反應追蹤的重要指標。"
+  },
+  {
+   "kind": "cloze",
+   "text": "AL amyloidosis 的 Mayo 2012 預後分層用 3 個 biomarker 各計 1 分:{{c1::cardiac troponin T ≥0.025 ng/mL}}、{{c2::NT-proBNP ≥1,800 pg/mL}}、{{c3::dFLC(involved − uninvolved sFLC)≥180 mg/L}};Stage I–IV 中位 OS 約 {{c4::55 / 19 / 12 / 5 個月}}。",
+   "extra": "得分 0/1/2/3 對應 Stage I/II/III/IV。cTnT 與 NT-proBNP 反映心臟受侵程度,故心臟負荷是最強預後因子。dFLC 反映致病 light chain 量。(Kumar et al., JCO 2012;30:989)"
+  },
+  {
+   "kind": "basic",
+   "front": "新診斷 AL amyloidosis 的一線治療為何?支持此方案的關鍵 trial 與結果為何?",
+   "back": "Dara-VCd:daratumumab 加上 bortezomib + cyclophosphamide + dexamethasone (VCd/CyBorD)。<hr>依 ANDROMEDA trial(NEJM 2021;385:46):加入 daratumumab 後 hematologic complete response 達 53.3%,顯著高於單用 CyBorD 的 18.1%,且 major organ deterioration / hematologic progression-free survival 較佳,FDA 已正式核准。anti-CD38 的 daratumumab 直接清除致病 plasma cell clone。"
+  }
+ ]
+}

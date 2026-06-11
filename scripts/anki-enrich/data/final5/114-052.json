@@ -1,0 +1,13 @@
+{
+ "id": "114-052",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "thrombophilia", "Protein C deficiency", "Protein S deficiency", "PNH thrombosis", "purpura fulminans", "Budd-Chiari", "venous thrombosis", "Factor V Leiden", "APC resistance"],
+ "enrich_html": "<b>📌 考點</b>：PNH 的血栓並非「很少發生於大腦」——cerebral vein thrombosis 其實是 PNH 第二常見的血栓部位 (僅次於 hepatic vein/Budd-Chiari)。PNH 靜脈血栓 10 年累積發生率達 28-38%，好發於不尋常部位的靜脈系統 (肝/脾/腸系膜/腦)。<br><b>🏥 臨床意義</b>：血栓是 PNH 最主要的死因；hepatic vein thrombosis 占血栓事件約 40%、影響 7.5-25% 病人並可致肝衰竭。Eculizumab (anti-C5) 可顯著降低各部位 (含肝、腦、腸系膜) 血栓復發率。<br><b>⭐ High-yield</b>：遺傳性 thrombophilia (protein C/S、antithrombin 缺乏) → 早發 (&lt;40 歲)、反覆、不尋常部位的靜脈血栓，PT/aPTT 皆正常 (因屬天然抗凝路徑，不在凝血瀑布上)。Protein S 僅 free form (~40%) 具 APC cofactor 活性，~60% 結合 C4b-binding protein。<br><b>🔬 實證</b>：Protein S 分型——Type I = total+free 抗原皆↓；Type II = 抗原正常但活性↓ (qualitative)；Type III = total 正常但 free↓ (Blood 2013;121:4985；StatPearls NBK544344, 2023)。",
+ "cards": [
+  {"kind":"basic","front":"為什麼「PNH 很少發生大腦靜脈血栓」是錯誤敘述？","back":"因為 cerebral vein thrombosis 其實是 PNH 第二常見的血栓部位 (僅次於 hepatic vein/Budd-Chiari)<hr>PNH 靜脈血栓 10 年累積發生率約 28-38%，好發於不尋常部位的靜脈，依序以肝靜脈、大腦靜脈、深部肢體與內臟 (splanchnic) 靜脈為主。<br>大腦靜脈血栓可表現為頭痛、癲癇甚至顱內出血，是 PNH 重要且不罕見的併發症。(Blood 2013;121:4985)"},
+  {"kind":"basic","front":"PNH 患者形成血栓 (高凝狀態) 的機轉為何？","back":"補體介導溶血釋出游離 hemoglobin 清除 NO，加上補體活化的血小板與凝血系統，造成高凝狀態<hr>GPI-anchor 缺失導致 CD55/CD59 缺失 → 補體攻擊紅血球溶血 → 游離 Hb 結合並耗竭 NO → 血管收縮與血小板聚集。<br>血栓是 PNH 最主要的死亡原因；eculizumab (anti-C5) 可顯著降低各部位血栓的復發風險。"},
+  {"kind":"basic","front":"為何 protein C 與 protein S 缺乏者的 PT 與 aPTT 都正常？","back":"Protein C/S 屬天然抗凝系統，不參與 PT/aPTT 所測的凝血瀑布，故缺乏不會延長這些 screening 凝血時間<hr>Protein S 是 activated protein C (APC) 的 cofactor，協助降解 FVa 與 FVIIIa——屬「抗凝」而非「促凝」路徑。<br>因此 thrombophilia 篩檢不能靠 PT/aPTT，須做專一的 protein C/S 活性、抗原與功能性檢測。"},
+  {"kind":"basic","front":"Activated protein C (APC) 需要哪個 cofactor？作用標的為何？與 Factor V Leiden 有何關係？","back":"Cofactor 為 protein S；APC 裂解並去活化 Factor Va 與 Factor VIIIa<hr>Protein C 在內皮表面被 thrombin-thrombomodulin 複合體活化成 APC，再以 protein S 為輔因子降解 FVa/FVIIIa，限制 thrombin 生成。<br>Factor V Leiden 突變使 FVa 對 APC 切割位點產生抗性 (APC resistance)，是白種人最常見的遺傳性 thrombophilia。"},
+  {"kind":"cloze","text":"Protein S 缺乏的分型：Type I = total 與 free 抗原 {{c1::皆降低}}+活性降低；Type II (qualitative) = 抗原正常但 {{c2::活性 (activity) 降低}}；Type III = total 正常但 {{c3::free 抗原降低}}+活性降低","extra":"僅 free protein S (~40%) 具 APC cofactor 活性，~60% 結合 C4b-binding protein。Type II 最少見。註：舊式命名常把 Type III 寫作 type IIa——total protein S 正常、free protein S antigen 缺乏。(StatPearls NBK544344)"}
+ ]
+}

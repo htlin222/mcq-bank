@@ -1,0 +1,13 @@
+{
+ "id": "113-054",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "ABO typing", "RhD", "forward typing", "reverse typing", "ABO discrepancy", "isoagglutinin", "Landsteiner", "weak subgroup", "acquired B", "transfusion"],
+ "enrich_html": "<b>📌 考點</b>:ABO 血型須<b>正型(forward/cell,測紅血球抗原)＋反型(reverse/serum,測血清抗體)雙向印證</b>。正型 Anti-A(+)/Anti-B(&minus;)＋反型 A1 cell(&minus;)/B cell(+) 兩側皆指向「有 A 抗原、血清含 anti-B」→ A 型;Anti-D(+) 加註 RhD 陽性。<br><b>🏥 臨床意義</b>:正反型不一致(ABO discrepancy)<u>絕不可直接判型</u>,須查因重做。經典分四群:Group I 反型抗體弱/缺(最常見,新生兒/老人/低丙球/rituximab/HSCT),Group II 正型抗原弱/缺(weak subgroup、白血病),Group III 蛋白異常致 rouleaux(myeloma、高 fibrinogen),Group IV 雜項(cold autoantibody、acquired B、嵌合)。<br><b>⭐ High-yield</b>:Landsteiner 法則 A&rarr;anti-B、B&rarr;anti-A、O&rarr;兩者、AB&rarr;無｜O 型反型 A1+B cell 皆(+)、AB 型皆(&minus;)｜新生兒反型抗體要 3&ndash;6 月才自製,故嬰兒以正型為準｜RhD 無天然抗體、無反型。<br><b>🔬 實證</b>:Group I(antibody)較 Group II(antigen)常見;acquired B 來自細菌酵素將 A 抗原 N-acetylgalactosamine 去乙醯化成似 galactose,見於大腸直腸癌與腸道菌感染。(StatPearls NBK585061 / NBK580518, 2024;PMC11451381, 2024)",
+ "cards": [
+  {"kind":"basic","front":"病人正型 Anti-A(+) / Anti-B(&minus;) / Anti-D(+),反型 A1 cell(&minus;) / B cell(+),血型判讀為?","back":"A 型,RhD 陽性。<hr>正型:有 A 抗原、無 B 抗原 → A 型;Anti-D(+) → RhD(+)。反型:血清含 anti-B(B cell 凝集)、不含 anti-A(A1 cell 不凝集)→ 與 A 型相符。正型(測紅血球抗原)與反型(測血清抗體)一致才可定案。"},
+  {"kind":"basic","front":"依 Landsteiner 法則,A、B、AB、O 型血清中各含哪些天然 ABO 抗體?","back":"A → anti-B;B → anti-A;AB → 無;O → anti-A 與 anti-B 皆有。<hr>個體血清存在對抗「自身紅血球所缺抗原」的天然 IgM 抗體;這是反型(serum typing)判讀基礎,也是 ABO 不相容輸血即刻血管內溶血(IgM 活化補體)的原因。"},
+  {"kind":"cloze","text":"ABO discrepancy 經典分四群:Group {{c1::I}} = 反型「抗體」弱或缺(最常見);Group {{c2::II}} = 正型「抗原」弱或缺(最少見);Group {{c3::III}} = 蛋白/血漿異常致 rouleaux 假凝集;Group {{c4::IV}} = 雜項(冷自體抗體、同種抗體、acquired B、嵌合)。","extra":"記法:I 抗體(antibody)、II 抗原(antigen),反型異常的 Group I 最常見。Group I 見於新生兒/老人/低丙球/rituximab/HSCT;Group II 見於 weak subgroup(A2、Ax)與白血病;Group III 多見於 myeloma、高 fibrinogen、右旋糖酐。正反型矛盾時絕不可直接判型,須查因重做、暫輸 O 型紅血球。"},
+  {"kind":"basic","front":"什麼是 acquired B 現象?機轉與好發族群為何?屬於哪一群 ABO discrepancy?","back":"A 型病人因細菌酵素作用「後天獲得」似 B 抗原,使正型 anti-B 弱(+),屬 Group IV。<hr>機轉:細菌去乙醯酶把 A 抗原的 N-acetylgalactosamine 去乙醯化成類似 B 的 galactose。好發:腸道格蘭氏陰性菌感染、腸阻塞、大腸直腸癌。血清仍含 anti-B(不會與自身弱 B 凝集),反型仍判為 A 型 → 解題線索。"},
+  {"kind":"basic","front":"為何 ABO 不相容輸血造成「立即性血管內溶血」,而 RhD 不相容多為「遲發性」?","back":"ABO 抗體為天然 IgM,直接活化補體致血管內溶血;anti-D 為免疫性 IgG,致敏後經血管外(脾)溶血、且需先前致敏故反應較遲。<hr>RhD 屬 Rh 系統、無天然抗體故無反型;anti-D 由 RhD 陰性者經輸血或妊娠致敏後產生,與 HDFN 相關。ABO 配錯最危險,這正是正反型雙重確認與輸血前 crossmatch 的核心目的。"}
+ ]
+}

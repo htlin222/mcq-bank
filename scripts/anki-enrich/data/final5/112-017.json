@@ -1,0 +1,13 @@
+{
+ "id": "112-017",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "MPN", "PMF", "secondary myelofibrosis", "post-PV MF", "post-ET MF", "MYSEC-PM", "IPSS", "DIPSS", "AML transformation", "IWG-MRT"],
+ "enrich_html": "<b>📌 考點</b>:比較 PMF 與 secondary MF (post-ET/post-PV MF) 四敘述真假是高頻考題。正確組合為「AML transformation 風險未明顯較低 (false)」+「MYSEC-PM 為推薦模型 (true)」。陷阱在三個方向反直覺:SMF 的 OS 其實<u>優於</u> PMF、輸血依賴<u>低於</u> PMF、AML 風險與 PMF<u>相近</u>。<br><b>🏥 臨床意義</b>:IPSS/DIPSS 是用 PMF 世代推導,直接套到 SMF 會高估或低估風險;MYSEC-PM (Leukemia 2017) 以 6 變項 (age, Hb&lt;11, blasts≥3%, CALR-unmutated, plt&lt;150K, constitutional sx) 重新校正,High risk (≥16 分) mOS 僅約 2 年 → 應評估 allogeneic HSCT。<br><b>⭐ High-yield</b>:median OS post-ET MF (約73mo) &gt; post-PV MF (約48mo) &gt; PMF (約45mo)，p&lt;0.001｜AML 轉化三組皆約 10–11%,無顯著差異｜PMF 較常 transfusion-dependent｜IWG-MRT 診斷 SMF 需 BM fibrosis ≥grade 2 + 前次 PV/ET 病史。<br><b>🔬 實證</b>:MYSEC-PM 在 421 名接受 ruxolitinib 的 SMF 病人驗證,可有效分層而 IPSS 失效。(Passamonti et al., Leukemia 2017;31:2726-2731)",
+ "cards": [
+  {"kind":"basic","front":"診斷 post-ET MF 或 post-PV MF (IWG-MRT 標準) 的必要條件為何?","back":"需 bone marrow fibrosis grade 2-3 (0-3 scale,即 ≥grade 2) 加上記錄在案的前次 WHO 標準 PV 或 ET 診斷。<hr>除必要條件外,還需符合至少 2 項附加條件 (如貧血、白血球增多、脾腫大進展、LDH 上升、constitutional symptoms 等)。grade 2 是診斷的最低纖維化門檻。"},
+  {"kind":"basic","front":"骨髓纖維化的預後分層:PMF 與 secondary MF (post-ET/post-PV) 各推薦哪個模型?","back":"PMF 使用 IPSS / DIPSS / DIPSS-plus;secondary MF 推薦 MYSEC-PM (Myelofibrosis Secondary to PV and ET - Prognostic Model)。<hr>IPSS/DIPSS 由 PMF 世代推導,套用於 SMF 不準確 (在 ruxolitinib 治療世代中 IPSS 分層失效)。MYSEC-PM 專為 SMF 校正,可有效分層。(Passamonti, Leukemia 2017)"},
+  {"kind":"cloze","text":"MYSEC-PM 的計分變項:age ({{c1::0.15}} 分/歲)、Hb &lt;11 g/dL ({{c2::2}} 分)、circulating blasts ≥3% ({{c3::2}} 分)、{{c4::CALR-unmutated}} genotype (2 分)、platelet &lt;150×10⁹/L (1 分)、constitutional symptoms (1 分)。","extra":"CALR-unmutated (即非 CALR 突變,包含 JAK2、MPL 或 triple-negative) 給分,反映 CALR 突變預後較佳。注意此模型的年齡是連續變項。"},
+  {"kind":"cloze","text":"MYSEC-PM 四個風險分組與對應 median OS:Low (&lt;{{c1::11}} 分) → {{c2::NR (not reached)}};Int-1 (≥11–&lt;14) → {{c3::9.3 年}};Int-2 (≥14–&lt;16) → {{c4::4.4 年}};High (≥16) → {{c5::2.0 年}}。","extra":"High risk 組 mOS 僅約 2 年,提示應積極評估 allogeneic HSCT。"},
+  {"kind":"cloze","text":"反直覺記憶:相較 PMF,secondary MF 的 overall survival {{c1::較佳 (較長)}}、transfusion dependence {{c2::較少}}、AML transformation 風險與 PMF {{c3::相近 (無顯著差異)}}、推薦預後模型為 {{c4::MYSEC-PM}}。","extra":"median OS:post-ET MF (約73mo) > post-PV MF (約48mo) > PMF (約45mo),p<0.001;AML 轉化三組皆約 10–11%。IPSS/DIPSS 僅適用 PMF;MYSEC-PM 在 ruxolitinib 治療世代驗證可有效分層而 IPSS 失效。"}
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "id": "114-056",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "MDS", "IPSS-M", "IPSS-R", "TP53", "SF3B1", "FLT3", "KMT2A-PTD", "MLL-PTD", "molecular-prognosis", "myeloid", "NGS"],
+ "enrich_html": "<b>📌 考點</b>:IPSS-M (Molecular International Prognostic Scoring System, Bernard et al., <i>NEJM Evid</i> 2022) 在 IPSS-R 的 karyotype、marrow blasts、Hb、platelet 之外，再納入 <u>31 個基因 (16 main-effect + 15 residual)</u> 的體細胞突變，分 6 級並重新分層約 <b>46%</b> 的 MDS 患者。誘餌常出在「比例數字」: 帶 ≥1 分子異常者為 <b>&gt;70%</b>，非 ~60%。<br><b>🏥 臨床意義</b>:最強 adverse 三巨頭為 <u>TP53 multihit、FLT3 (ITD+TKD)、KMT2A(MLL)-PTD</u>，落入 High / Very High 者趨向 hypomethylating agent + 早期 allogeneic HSCT 評估; Very Low / Low 者偏向支持性治療與觀察。<br><b>⭐ High-yield</b>:TP53 <u>multihit</u> (≥2 突變 / 突變+del(17p) / 突變+cnLOH) 才算極差，mono-allelic 影響較小｜SF3B1 多為 favorable，但併 del(5q) 或 BCOR/BCORL1/NRAS/RUNX1/SRSF2/STAG2 時良好預後消失｜其他 adverse: ASXL1、EZH2、RUNX1、U2AF1、NRAS、STAG2。<br><b>🔬 實證</b>:IPSS-M 對 OS 與 leukemia-free survival 的鑑別力均優於 IPSS-R，多項 real-world 研究 (JCO 2023; Blood Cancer J 2023) 已獨立驗證。(Bernard et al., NEJM Evidence 2022;1:EVIDoa2200008)",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "IPSS-M 相較於前一代 IPSS-R，在 MDS 預後分層上多納入了什麼?可重新分層多少比例的患者?",
+   "back": "額外納入 31 個基因的體細胞突變; 約重新分層 (re-stratify) 46% 的患者。<hr>IPSS-R 僅靠 karyotype、marrow blast 比例、Hb、platelet、ANC; IPSS-M 在此基礎上加入 16 個 main-effect genes + 15 個 residual genes，分為 6 級 (Very Low~Very High)，對 OS 與 leukemia-free survival 的鑑別力均優於 IPSS-R。"
+  },
+  {
+   "kind": "basic",
+   "front": "在 IPSS-M 模型中，預測 MDS 不良預後最強的三個基因變異 (三巨頭) 是哪些?",
+   "back": "TP53 multihit、FLT3 (ITD+TKD)、KMT2A(MLL)-PTD。<hr>這三者是 IPSS-M 中 top adverse 預測子。FLT3 與 KMT2A-PTD 在 MDS 雖罕見，但一旦出現對預後衝擊極大，被賦予高權重不利分數; 落入 High / Very High 者趨向 hypomethylating agent + 早期 allogeneic HSCT 評估。"
+  },
+  {
+   "kind": "basic",
+   "front": "IPSS-M 中所稱的 TP53 multihit 具體指哪三種情況?為何要區分 multihit 與 mono-allelic?",
+   "back": "(1) ≥2 個 TP53 突變; (2) 一個突變併 del(17p); (3) 一個突變併 copy-neutral LOH (cnLOH)。<hr>TP53 multihit = 雙等位基因失活，預後極差、對治療反應差; 單一 TP53 突變 (mono-allelic) 的不利程度顯著較低。這是 2022 WHO/ICC 與 IPSS-M 共同強調的關鍵分子細節。"
+  },
+  {
+   "kind": "basic",
+   "front": "SF3B1 突變在 MDS 的預後意義為何?在什麼情況下其良好預後會被抵消?",
+   "back": "單獨存在時多為 favorable (預後良好); 但併 del(5q) 或特定共突變時良好預後消失。<hr>抵消 SF3B1 favorable 效果的共突變包含: BCOR、BCORL1、NRAS、RUNX1、SRSF2、STAG2。SF3B1 突變與 MDS 伴環狀鐵芽球 (ring sideroblasts) 相關，是 IPSS-M 重要的 nuance。"
+  },
+  {
+   "kind": "basic",
+   "front": "IPSS-M 開發研究顯示，有多少比例的 MDS 患者帶有至少一項分子(基因)異常?常見的考試誘餌數字是多少?",
+   "back": "超過 70% (&gt;70%); 誘餌數字為「約 60%」。<hr>IPSS-M (Bernard et al., NEJM Evidence 2022) 透過 NGS 定序發現絕大多數 MDS 患者帶有可偵測的體細胞突變。出題常見陷阱: 機轉判斷正確 (TP53 multihit/FLT3/MLL-PTD 為 adverse、SF3B1 favorable) 但「百分比/cutoff 數字」被竄改，作答時須對引用數字特別警覺。"
+  }
+ ]
+}

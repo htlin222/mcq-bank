@@ -1,0 +1,13 @@
+{
+ "id": "113-075",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "hereditary spherocytosis", "HS", "spectrin", "ankyrin", "band-3", "splenectomy", "EMA-binding-test", "osmotic-fragility", "AIHA", "DAT-Coombs", "pyruvate-kinase-deficiency", "extravascular-hemolysis"],
+ "enrich_html": "<b>📌 考點</b>：Hereditary spherocytosis (HS) 是 RBC membrane 骸架蛋白 (vertical interaction) 缺陷 → surface area 減少 → spherocyte 变形能差 → 被脾臟 cords of Billroth 嵃死的 extravascular hemolysis。「所有 moderate disease 都該 splenectomy」是錯的：按 BCSH 指引 severe (Hb &lt;8 g/dL) 才明確該做、mild (Hb &ge;11 g/dL) 不建議、moderate (Hb 8–11 g/dL) 需個別化考量。<br><b>🏥 臨床意義</b>：Spherocyte 並非 HS 專屬，亦見於 AIHA、pyruvate kinase deficiency、ABO-incompatible transfusion、Clostridium sepsis。第一線鑑別靠 DAT (Coombs)：HS 陰性、AIHA 陽性。Splenectomy 能大幅減溶血但有 OPSI (encapsulated bacteria)、長期静脈/肺動脈血栓風險。<br><b>⭐ High-yield</b>：最常見缺陷蛋白為 ankyrin；AD 遺傳約 75%；EMA binding test 為現代首選確診工具；MCHC 上升、reticulocytosis；慢性溶血 → pigment (bilirubin) gallstones；parvovirus B19 → aplastic crisis。<br><b>🔬 實證</b>：BCSH 指引明訂 splenectomy 適應症依 Hb 分級個別化，moderate 組缺乏高品質證據支持例行手術。(Bolton-Maggs et al., Br J Haematol 2011/2012; Haematologica 2017;102:1304)",
+ "cards": [
+  {"kind":"basic","front":"Hereditary spherocytosis (HS) 的根本分子缺陷是什麼？最常見的缺陷蛋白為何？","back":"RBC membrane 細胞骨架蛋白 vertical interaction 缺陷；最常見缺陷蛋白為 ankyrin<hr>缺陷蛋白包括 ankyrin (最常見)、band 3、spectrin (α/β)、protein 4.2，負責 membrane skeleton 與 lipid bilayer 的垂直連結。缺陷導致 membrane 局部脫落、surface area 減少 → 細胞變為 spherocyte，失去 biconcave 形狀與變形能力，於脾臟被 extravascular hemolysis 破壞。"},
+  {"kind":"basic","front":"HS 依基礎 Hb 分為 mild / moderate / severe 三級，各自的 Hb 切點為何？","back":"Mild Hb ≥11 g/dL；moderate Hb 8–11 g/dL；severe Hb &lt;8 g/dL<hr>依 BCSH (Bolton-Maggs) 指引分級，亦參考 reticulocyte 與 bilirubin。此分級直接決定 splenectomy 適應症的取捨。"},
+  {"kind":"basic","front":"HS 的 splenectomy 適應症依嚴重度如何取捨 (mild / moderate / severe)？","back":"Severe (Hb &lt;8) 明確建議手術；mild (Hb ≥11) 不建議；moderate (Hb 8–11) 須個別化考量<hr>「所有 moderate disease 都應 splenectomy」是過於絕對的錯誤敘述 — moderate/intermediate 缺乏高品質證據支持例行手術，須視症狀、生活品質、合併 cytopenia 或 symptomatic gallstones 決定。手術可大幅改善溶血但不改變膜缺陷本身，且須權衡 OPSI 與長期血栓風險。"},
+  {"kind":"basic","front":"周邊血出現 spherocyte 時，如何用實驗室檢查鑑別 HS 與 AIHA？","back":"Direct antiglobulin test (DAT/Coombs) — HS 為陰性，AIHA 為陽性<hr>Spherocyte 並非 HS 專屬，亦見於 AIHA、pyruvate kinase deficiency、ABO-incompatible transfusion、Clostridium sepsis。DAT 偵測 RBC 表面 IgG/補體：HS 為內因性膜缺陷故陰性，AIHA 由抗體介導故陽性，是兩者第一線鑑別工具。"},
+  {"kind":"cloze","text":"HS 的診斷性/篩檢實驗室檢查包括：{{c1::EMA (eosin-5-maleimide) binding test}}、{{c2::osmotic fragility test}}、以及周邊血抹片可見 {{c3::spherocyte}} 與 reticulocytosis。","extra":"EMA binding test 偵測 band 3 等膜蛋白量，敏感度與專一性高，為現代首選確診工具。Osmotic fragility 增加 (spherocyte 在低張溶液中較易破裂)。MCHC 常升高、reticulocyte 上升反映代償性造血。"}
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "id": "114-051",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "TTP", "ADAMTS13", "VWF", "plasma exchange", "caplacizumab", "rituximab", "TMA", "MAHA", "PLASMIC score"],
+ "enrich_html": "<b>📌 考點</b>:TTP 的本質是 ADAMTS13 嚴重缺乏(活性 &lt;10%，診斷門檻 ≤10%)。「ADAMTS13 持續 &lt;5% 對治療有助益」屬<u>把病因誤當療效指標</u>的錯誤敘述 — 緩解期 ADAMTS13 &lt;5% 者 relapse 達 38.5%、&gt;15% 僅 5%,低 ADAMTS13 是<b>復發/預後不良標記</b>,絕非「有助益」。<br><b>🏥 臨床意義</b>:疑似 TTP 即須<b>每日 plasma exchange + corticosteroids</b>,不可延誤(未治療死亡率 ~90% → &lt;20%);PEX 同時補充 ADAMTS13 並移除自體抗體與 UL-VWF。血小板約 5-7 天回升至 &gt;50k/mm³。<br><b>⭐ High-yield</b>:caplacizumab=anti-VWF A1 domain nanobody,阻斷 VWF 與 platelet GPIb 結合,加速血小板回升、減少 exacerbation 與死亡、縮短住院(HERCULES);但<u>不 targeting 病因(自體抗體)</u>,須同時免疫抑制,否則停藥復發。誘因:HIV、ticlopidine/clopidogrel、quinine、gemcitabine、懷孕。<br><b>🔬 實證</b>:HERCULES 中 caplacizumab 組 30 天複合事件(死亡/exacerbation/血栓)11.4% vs 安慰劑 43.2%。(Scully et al., NEJM 2019;380:335;ISTH TTP guideline 2020)",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "血栓性血小板低下紫斑症 (TTP) 的根本病因(分子機轉)是什麼?",
+   "back": "ADAMTS13 活性嚴重缺乏(&lt;10%),無法切割 ultra-large VWF multimer<hr>正常時 ADAMTS13(一種 VWF-cleaving metalloprotease)會把 endothelium 釋放的 UL-VWF multimer 切成小段。缺乏時 UL-VWF 堆積、誘發血小板黏附凝集 → 微血管內形成 platelet-rich thrombi → microangiopathic hemolytic anemia (MAHA) + thrombocytopenia + 器官缺血。"
+  },
+  {
+   "kind": "basic",
+   "front": "為何「ADAMTS13 活性持續 &lt;5% 對 TTP 治療有助益」是錯誤敘述?",
+   "back": "ADAMTS13 極低是 TTP 的病因/缺陷,不是治療目標,更不是「有助益」<hr>低 ADAMTS13 代表病理基礎(酵素被自體抗體抑制),治療反而是用 plasma exchange 補充 ADAMTS13 並移除抗體。緩解期 ADAMTS13 &lt;5% 者復發率達 38.5%、&gt;15% 僅 5% — 持續低下是復發與預後不良的危險標記。"
+  },
+  {
+   "kind": "basic",
+   "front": "疑似 TTP 時的第一線(救命)處置是什麼?為何不可延誤?",
+   "back": "緊急、每日 plasma exchange (PEX/TPE),通常合併 corticosteroids<hr>PEX 同時補充缺乏的 ADAMTS13 並移除 anti-ADAMTS13 自體抗體與 UL-VWF。疑似即啟動、不等 ADAMTS13 結果,因未治療死亡率約 90%,治療後降至 &lt;20%。"
+  },
+  {
+   "kind": "basic",
+   "front": "caplacizumab 的作用機轉與臨床效益是什麼?它能否取代免疫抑制治療?",
+   "back": "anti-VWF A1 domain nanobody,阻斷 VWF 與血小板 GPIb 結合 → 抑制血小板凝集;加速血小板回升、減少 exacerbation 與死亡、縮短 PEX/住院天數,但<b>不能取代</b>免疫抑制<hr>caplacizumab 不 targeting 病因(自體抗體),須同時用 corticosteroids ± rituximab,否則停藥後疾病復發。主要副作用:出血(mucocutaneous bleeding)。(HERCULES, Scully NEJM 2019;380:335)"
+  },
+  {
+   "kind": "basic",
+   "front": "TTP 與典型 DIC 在凝血檢驗 (PT/aPTT、fibrinogen) 上如何區分?",
+   "back": "TTP:PT/aPTT、fibrinogen 大致正常;DIC:PT/aPTT 延長、fibrinogen 下降、D-dimer 明顯升高<hr>TTP 是 platelet-VWF 主導的微血管栓塞,非凝血瀑布全面活化,故 coagulation 數值正常 — 區分 TMA 與 DIC 的關鍵 board 考點。兩者皆可見 thrombocytopenia 與 schistocytes。"
+  }
+ ]
+}

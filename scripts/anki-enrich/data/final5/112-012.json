@@ -1,0 +1,13 @@
+{
+ "id": "112-012",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "vWD", "von_Willebrand_disease", "VWF", "FVIII", "RIPA", "type_2B", "type_2N", "type_3", "DDAVP", "primary_hemostasis"],
+ "enrich_html": "<b>📌 考點</b>:vWD 兼具初級(VWF 介導 platelet-内皮黏附)與次級(VWF 作為 FVIII 載體)止血缺陷,故出血型態以 mucocutaneous 為主;唯獨 Type 3 因 FVIII:C 常 &lt;10 IU/dL,可出現 hemophilia 樣 hemarthrosis / arthropathy,並非罕見而是重要併發症 —「type 2/3 很少發生 arthropathy」為錯誤敘述。<br><b>🏥 臨床意義</b>:Type 2B 的 gain-of-function 使 VWF 對 platelet GPIbα 親和力上升,低濃度 ristocetin (&lt;0.7 mg/mL) 即引發 RIPA 過度聚集並清除血小板造成 thrombocytopenia → DDAVP 禁用(會惡化 thrombocytopenia);Type 3 因無儲存 VWF 可釋放,DDAVP 亦無效。<br><b>⭐ High-yield</b>:Type 2 鑑別記法 — 2A 失 HMW multimer｜2B 親和力↑(RIPA 低濃度過度反應 + 血小板低下)｜2M 結合力↓但 multimer 正常｜2N 失 FVIII 結合(像 hemophilia A)。VWF:RCo/VWF:Ag ratio &lt;0.7 提示 qualitative(Type 2)缺陷。<br><b>🔬 實證</b>:Type 2N 與 Type 3 輸注 FVIII/DDAVP 後 FVIII 半衰期僅 1-2 小時,遠短於 hemophilia A 的 12-14 小時,可資鑑別。GI bleeding 多由 angiodysplasia 引起,年長 + type 2/3 風險最高,可達 life-threatening。(ASH-ISTH-NHF-WFH 2021 guidelines, Blood Adv 2021;5:280 & 5:301;NEJM 2016;375:2067)",
+ "cards": [
+  {"kind":"cloze","text":"ISTH/ASH 2021 vWD 主要分型:{{c1::Type 1}} = VWF 部分量缺乏(quantitative,最常見);{{c2::Type 2}} = VWF 功能性/質的缺陷(qualitative),RCo/Ag ratio &lt;0.7;{{c3::Type 3}} = VWF 近乎完全缺乏,FVIII:C 顯著下降,最嚴重。","extra":"Type 2 再細分 2A / 2B / 2M / 2N,依缺陷的 VWF 功能不同。"},
+  {"kind":"cloze","text":"Type 2 vWD 亞型機轉:{{c1::2A}} = 失去 high-molecular-weight (HMW) multimer;{{c2::2B}} = gain-of-function,VWF 對 platelet GPIbα 親和力↑(伴 thrombocytopenia);{{c3::2M}} = VWF 與 platelet/collagen 結合力↓但 multimer 正常;{{c4::2N}} = VWF-FVIII 結合位點缺陷,FVIII 低下像 hemophilia A。","extra":"記法:2A 缺 multimer、2B Bind 太強、2M Missing 結合力(multimer normal)、2N Normandy 失 FVIII 結合。"},
+  {"kind":"basic","front":"為何 DDAVP (desmopressin) 禁用於 Type 2B 與 Type 3 vWD?","back":"2B 會惡化 thrombocytopenia;3 無儲存 VWF 可釋放(無效)<hr>DDAVP 促進内皮 Weibel-Palade body 釋放 VWF。Type 2B 釋出的異常 VWF 更強結合血小板,加重血小板低下與出血;Type 3 幾乎無 VWF 可供釋放,故無效。Type 1 通常反應良好。"},
+  {"kind":"basic","front":"Type 3 vWD 病人為何容易發生 hemarthrosis / arthropathy,類似 hemophilia?","back":"因 FVIII:C 通常 &lt;10 IU/dL<hr>VWF 是 FVIII 的載體蛋白,Type 3 vWD 因 VWF 近乎完全缺乏,無法穩定血漿中的 FVIII,使 FVIII:C 二次性顯著下降。FVIII 極低時會出現深部組織與關節出血(joint bleeding、arthropathy),臨床表現可與 hemophilia 重疊。故「type 2 或 3 很少發生 arthropathy」是錯誤敘述。"},
+  {"kind":"basic","front":"如何用 DDAVP 後 FVIII 半衰期區分 Type 2N vWD 與 mild/moderate hemophilia A?","back":"2N(及 type 3)輸注後 FVIII 半衰期僅 1-2 小時;hemophilia A 為 12-14 小時<hr>Type 2N 因 VWF-FVIII 結合位點突變,游離 FVIII 被加速清除,DDAVP 初期反應佳但 &lt;4 小時即消退。確診靠 VWF:FVIIIB(FVIII binding assay)或基因分析;此鑑別影響遺傳諮詢與治療策略。"}
+ ]
+}

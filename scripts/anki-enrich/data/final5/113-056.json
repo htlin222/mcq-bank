@@ -1,0 +1,13 @@
+{
+  "id": "113-056",
+  "topic_index": 5,
+  "extra_tags": ["enriched", "thalassemia", "NTDT", "beta-thalassemia", "alpha-thalassemia", "HbF", "HPFH", "globin-chain-imbalance", "thalassemia-intermedia", "iron-overload", "luspatercept", "ineffective-erythropoiesis"],
+  "enrich_html": "<b>📌 考點</b>:NTDT 的關鍵字是「<u>不需終生規律輸血</u>」——涵蓋 β-thalassemia intermedia、HbE/β-thalassemia、HbH disease。常見誘餌敘述是「大多數(most)NTDT 最終需規律輸血」,實際上多數患者僅在感染、妊娠、手術、生長爆發或 hypersplenism 等情境下間歇輸血,並非終生規律依賴。<br><b>🏥 臨床意義</b>:β-thalassemia 病理核心為過剩游離 α-chain 沉積→ineffective erythropoiesis 與髓內溶血;凡能降低 α/non-α 不平衡者皆緩解病情——共遺傳 α-thalassemia(減 α-chain)、HPFH/高 γ-chain(形成 HbF 消耗 α-chain)、較輕 β⁺ allele(殘餘 β 合成)。<br><b>⭐ High-yield</b>:NTDT 鐵過負荷主因 GDF15↑→hepcidin↓→腸道鐵吸收↑(以<u>肝鐵</u>為主、心鐵少);serum ferritin 會<u>低估</u>實際鐵負荷。TIF:≥10 歲、LIC ≥5 mg Fe/g dw(無 MRI 時 ferritin ≥800 ng/mL)起始 deferasirox;LIC &lt;3 或 ferritin &lt;300 停藥。Splenectomy 不再常規(↑sepsis、↑thrombosis;NTDT 本即 hypercoagulable)。<br><b>🔬 實證</b>:Luspatercept(TGF-β superfamily ligand trap、促晚期 erythroid 成熟)經 phase 2 BEYOND trial 證實 ≥12 週 Hb ↑≥1 g/dL,2023 年 EC 核准用於 NTDT 貧血。(ASH How I treat NTDT, Blood 2023;142:949)",
+  "cards": [
+    {"kind": "basic", "front": "Non-Transfusion-Dependent Thalassemia (NTDT) 的定義為何?涵蓋哪些疾病?", "back": "不需終生規律輸血即可存活的 thalassemia 表現型<hr>涵蓋 β-thalassemia intermedia、HbE/β-thalassemia、HbH disease。患者仍可能在特定情境(感染、妊娠、手術、生長爆發、hypersplenism)需間歇/短期輸血,但非終生規律輸血依賴。(ASH How I treat, Blood 2023;142:949)"},
+    {"kind": "basic", "front": "「大多數 NTDT 患者最終都會需要規律輸血」此敘述為何錯誤?", "back": "錯誤——多數 NTDT 並不需終生規律輸血<hr>部分患者終生不需輸血,部分在三、四十歲或紅血球生成壓力增加(感染、妊娠、hypersplenism)時才逐漸出現需求。輸血傾向雖隨年齡增加,但多為情境性間歇輸血;即使需輸血,理想上也應短期/限期、達標後可調降或停止,而非套用終生規律方案。"},
+    {"kind": "cloze", "text": "可使 homozygous β-thalassemia 表現為較輕中間型(NTDT)的三類遺傳修飾因子:{{c1::共遺傳 α-thalassemia(減少過剩 α-chain)}}、{{c2::持續高 γ-chain 合成 / HPFH(提高 HbF、消耗游離 α-chain)}}、{{c3::較輕的 β⁺ allele(殘餘 β-chain 合成)}}", "extra": "三者共同機轉皆是降低 α/non-α globin chain 不平衡:β-chain 合成不足→過剩游離 α-chain 沉積於紅血球前驅細胞→凋亡(髓內溶血)與 ineffective erythropoiesis。減少 α-chain 過剩即緩解病情。"},
+    {"kind": "basic", "front": "NTDT 的鐵過負荷主要來自何種機轉?其鐵沉積分布與 serum ferritin 判讀有何陷阱?", "back": "GDF15(由 ineffective erythropoiesis 釋放)↑→hepcidin↓→腸道鐵吸收增加<hr>NTDT 鐵過負荷以<u>肝鐵</u>為主、心臟鐵沉積相對少(與輸血依賴型 TDT 心鐵顯著不同)。陷阱:相同 LIC 下 NTDT 的 serum ferritin 較 TDT 偏低,單看 ferritin 會<u>低估</u>實際鐵負荷,理想應以 MRI 測 LIC;無 MRI 時須採較低的 ferritin 起始門檻。(Br J Haematol 2014)"},
+    {"kind": "basic", "front": "Luspatercept 治療 NTDT 貧血的作用機轉與關鍵試驗為何?", "back": "Luspatercept 為 TGF-β superfamily ligand trap,促進晚期 erythroid 前驅(erythroblast)分化成熟,改善 ineffective erythropoiesis<hr>關鍵試驗為 phase 2、隨機雙盲安慰劑對照的 BEYOND trial:證實能在連續 ≥12 週期間使 Hb 升高 ≥1 g/dL。2023 年獲歐盟(EC)核准用於 NTDT 成人貧血。"}
+  ]
+}

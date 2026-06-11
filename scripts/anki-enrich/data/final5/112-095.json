@@ -1,0 +1,13 @@
+{
+ "id": "112-095",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "MALT lymphoma", "MZL", "marginal zone lymphoma", "extranodal MZL", "t(11;18)", "BIRC3-MALT1", "API2-MALT1", "MALT1", "BCL10", "IGH", "NF-kB", "H. pylori"],
+ "enrich_html": "<b>📌 考點</b>：MALT lymphoma(extranodal marginal zone lymphoma)最常見的結構性染色體易位是 <u>t(11;18)(q21;q21)</u>，產生 <b>BIRC3(API2)–MALT1</b> fusion gene；gastric 約 24%、pulmonary 約 40%。選項誘餌 t(14;18)(q32;q21) 看似與 follicular lymphoma 相同位置，但 MALT 的融合基因是 IGH–MALT1(非 FL 的 IGH–BCL2)，且只是第二常見。<br><b>🏥 臨床意義</b>：t(11;18)+ 的 BIRC3–MALT1 蛋白會裂解 NIK 而 constitutively 活化 canonical 與 non-canonical NF-κB，使腫瘤獨立於 H. pylori 抗原刺激 → 對抗生素根除反應差、常 H. pylori-negative、disease 較 disseminated；此型應改 radiotherapy(30 Gy)或 rituximab。<br><b>⭐ High-yield</b>：gastric MALT 不論分期與 H. pylori 狀態，first-line 皆為 H. pylori eradication(stage I/II 完全反應率 60–90%)；H. pylori-negative 者 NCCN 首選 radiotherapy，禁忌時 rituximab。<br><b>🔬 實證</b>：三大易位 t(11;18)/BIRC3-MALT1、t(14;18)/IGH-MALT1、t(1;14)/IGH-BCL10 終點皆匯流到 NF-κB activation。(Liu et al., Gastroenterology 2002;122:1286；PMC10302523, 2023)",
+ "cards": [
+  {"kind":"basic","front":"MALT lymphoma(extranodal marginal zone lymphoma)中最常見的結構性染色體易位是哪一種，產生何種融合基因？","back":"t(11;18)(q21;q21)，產生 <b>BIRC3(API2)–MALT1</b> fusion gene<hr>這是 MALT lymphoma 最常見且最具特異性的細胞遺傳學異常；gastric 約 24%、pulmonary 約 40%。BIRC3 又稱 API2 或 cIAP2。"},
+  {"kind":"basic","front":"BIRC3–MALT1 fusion 蛋白透過何種分子機轉造成 NF-κB constitutive activation？","back":"裂解(cleave)NF-κB-inducing kinase(NIK)，同時活化 canonical 與 non-canonical NF-κB<hr>融合蛋白不依賴上游抗原訊號直接驅動 NF-κB，導致 B 細胞存活與增生，是 t(11;18)+ MALT lymphoma 的核心致病機轉。"},
+  {"kind":"basic","front":"帶 t(11;18) 的 gastric MALT lymphoma 為何對 H. pylori 根除治療反應差？臨床上有何特徵？","back":"因 BIRC3–MALT1 直接活化 NF-κB，使腫瘤獨立於 H. pylori 抗原刺激<hr>t(11;18) 陽性者多不會因根除 H. pylori 而消退，且常為 H. pylori-negative、disease 較 disseminated；此類病人需改 radiotherapy 或 rituximab。t(11;18)+、peri-gastric LN 受侵或抗生素無效是改用放療的主要指徵。"},
+  {"kind":"basic","front":"在 lymphoma 鑑別中，t(14;18)(q32;q21) 在 follicular lymphoma 與在 MALT lymphoma 分別代表哪一個融合基因？","back":"Follicular lymphoma → IGH–BCL2；MALT lymphoma → IGH–MALT1<hr>同一 cytogenetic 位置在不同 lymphoma 對應不同融合基因，是常見考點陷阱。FL 的 IGH–BCL2 抑制凋亡，MALT 的 IGH–MALT1 活化 NF-κB；IGH–MALT1 為 MALT 第二常見易位，多見於非胃部病灶。"},
+  {"kind":"basic","front":"Gastric MALT lymphoma 的 first-line 治療為何？H. pylori-negative 者 NCCN 首選為何？","back":"First-line 不論分期與 H. pylori 狀態，皆先行 H. pylori eradication(stage I/II 完全反應率約 60–90%)<hr>H. pylori-negative 者 NCCN 首選 radiotherapy(約 30 Gy，高治癒率)；放療有禁忌時改用 rituximab immunotherapy。"}
+ ]
+}

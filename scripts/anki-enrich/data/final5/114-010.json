@@ -1,0 +1,13 @@
+{
+ "id": "114-010",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "transfusion", "alloantibody", "irregular antibody", "anti-Mia", "GP.Mur", "Miltenberger", "MNS blood group", "anti-E", "IgG", "IgM", "complement fixation", "HDFN", "AHTR"],
+ "enrich_html": "<b>📌 考點</b>:台灣不規則抗體分布<u>異於歐美</u>。台灣最常見的紅血球不規則抗體為 <b>anti-&apos;Mia&apos;</b> (約佔檢出抗體 50%)，<u>其次為 Rh 系統的 anti-E</u>;歐美則以 anti-E/anti-D 最多、其次 Kell/Kidd。因此「最常見 anti-Mia、其次 anti-e」就流行病學而言其實成立——「何者為非」這類題型具爭議性，命題可能意在「其次應為 anti-E (大寫 E)」或沿用舊版教材。<br><b>🏥 臨床意義</b>:anti-&apos;Mia&apos; 可致急性血管內溶血性輸血反應 (AHTR) 與新生兒溶血病 (HDFN);對有 anti-&apos;Mia&apos; 紀錄者選用 GP.Mur 抗原陰性血品可顯著降低輸血反應率 (Yang, Transfus Med 2016;26:349)。<br><b>⭐ High-yield</b>:GP.Mur (Mi.III) 表現型 台灣一般族群約 7.3%、阿美族 88%、白人罕見｜IgG 過胎盤致 HDFN、IgM 不過胎盤｜IgM (pentamer) 固定補體 &gt; IgG (monomer)｜ABO 天然抗體屬 IgM、致急性溶血。<br><b>🔬 實證</b>:anti-&apos;Mia&apos; 並非單一抗體，而是針對 GP.Mur hybrid glycophorin 的多重抗體混合 (anti-Mia/Mur/MUT/Hil/MINY)。(Broadberry & Lin, Transfusion 1994;34:349;PLOS One 2014;9:e98166;Diagnostics 2021;11:806)",
+ "cards": [
+  {"kind":"basic","front":"台灣人群中最常見的紅血球不規則抗體 (irregular/alloantibody) 是哪一種?約佔檢出抗體多少比例?","back":"anti-&apos;Mia&apos; (約佔全部檢出抗體 50%)<hr>台灣輸血病人最常檢出的不規則抗體為 anti-&apos;Mia&apos;，其次為 Rh 系統的 anti-E。此分布因台灣 GP.Mur (Miltenberger) 抗原盛行率高而與歐美明顯不同。來源:Broadberry & Lin, Transfusion 1994;34:349。"},
+  {"kind":"basic","front":"歐美 (西方) 人群最常見的紅血球不規則抗體是哪些?與台灣有何不同?","back":"歐美最常見為 Rh 系統的 anti-E 或 anti-D，其次為 Kell、Kidd 系統;台灣則以 anti-&apos;Mia&apos; 最常見、其次 anti-E<hr>差異源於台灣 GP.Mur (Mi.III) 表現型盛行率高 (一般族群約 7.3%)，而白種人 Mi(a)+ 者罕見。這是台灣輸血醫學的特色考點。"},
+  {"kind":"basic","front":"GP.Mur (Mi.III) 表現型在台灣不同族群的盛行率為何?","back":"台灣一般族群約 7.3%;原住民阿美族高達 88%、雅美族 ~34%、卑南族 ~21%;白種人罕見<hr>正因 GP.Mur 表現型盛行，台灣血液基金會將 Mi(a)+ 細胞納入抗體篩檢 panel 已逾 20 年，以偵測 anti-&apos;Mia&apos;。來源:PLOS One 2014;9:e98166。"},
+  {"kind":"basic","front":"對於有 anti-&apos;Mia&apos; 紀錄的受血者，應如何選擇血品?臨床效益為何?","back":"選用 GP.Mur 抗原陰性 (Mi(a)−) 的紅血球血品<hr>anti-&apos;Mia&apos; 可造成急性血管內溶血性輸血反應 (AHTR) 與新生兒溶血病 (HDFN);對有紀錄者輸注 GP.Mur 抗原陰性血品可顯著降低輸血反應率。來源:Yang, Transfus Med 2016;26:349。"},
+  {"kind":"cloze","text":"免疫球蛋白特性比較:可通過胎盤、致 HDFN 者為 {{c1::IgG}};固定補體 (complement) 能力較強者為 {{c2::IgM}};分子結構為 pentamer 的是 {{c3::IgM}};分子量較小 (~150 kDa) 的是 {{c4::IgG}}。","extra":"IgG monomer ~150 kDa，經 FcRn 過胎盤、為遲發性溶血與 HDFN 主因;IgM pentamer ~900 kDa，無法過胎盤、補體活化效率高、致急性血管內溶血 (如 ABO 不合)。"}
+ ]
+}

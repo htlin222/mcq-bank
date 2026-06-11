@@ -1,0 +1,13 @@
+{
+ "id": "114-013",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "transfusion", "crossmatch", "major-crossmatch", "minor-crossmatch", "ABO-typing", "cis-AB", "blood-typing", "hemolytic-transfusion-reaction"],
+ "enrich_html": "<b>📌 考點</b>:Major crossmatch 的正確定義是「受血者 <u>serum/plasma 中的抗體</u> vs <u>捐血者紅血球(RBC)上的抗原</u>」。任何把方向寫反的敘述(如「受血者紅血球的抗體 vs 捐血者血清的抗原」)即為錯誤,因為抗原在紅血球上、抗體在血清裡,且臨床關鍵是輸入的紅血球會不會被受血者既有抗體攻擊。<br><b>🏥 臨床意義</b>:major crossmatch 不合 → 受血者血漿抗體結合捐血者 RBC 抗原 → 急性 hemolytic transfusion reaction(嚴重溶血、甚至死亡),故 major crossmatch 是發放紅血球製品前的強制步驟;minor crossmatch(捐血者血漿抗體 vs 受血者 RBC)因輸入抗體被大量稀釋、風險低,現代多省略。<br><b>⭐ High-yield</b>:cis-AB 由 9q34 上「單一」ABO 等位基因(chimeric / structural mutation)編碼一個兼具 A 與 B transferase 活性的酵素,A、B 在 cis 一起遺傳 → O 型父母可生出帶 B 抗原子代之類「違反孟德爾」表象;此敘述為正確。codon 266、268 決定 A vs B 受質專一性。<br><b>🔬 實證</b>:最常見 cis-AB01 為 B 基因骨架帶 G803C(codon 268 Gly→Ala)+ A796C(codon 266),典型表現型 A2B3。(StatPearls Pretransfusion Testing 2024;Seo et al., PMC1686097;Ann Clin Lab Sci 2004;34:437)",
+ "cards": [
+  {"kind":"basic","front":"Major crossmatch(主要交叉配血)測的是哪一方的抗體對抗哪一方的抗原?方向為何不可顛倒?","back":"recipient(受血者)<b>serum/plasma 中的抗體</b> vs donor(捐血者)<b>紅血球(RBC)上的抗原</b>。<hr>方向固定的原因:抗原存在於紅血球膜上、抗體存在於血清/血漿中,故正確配對只能是「血清抗體對紅血球抗原」。若寫成「受血者紅血球的抗體 vs 捐血者血清的抗原」即為錯誤——紅血球不帶抗體、血清不帶 ABO 抗原,是典型方向陷阱。臨床關鍵在於輸入的捐血者紅血球會不會被受血者既有抗體攻擊;major 不合 → 受血者血漿抗體結合捐血者 RBC 抗原 → 急性 hemolytic transfusion reaction(可致命),故為發放紅血球製品前的強制步驟。"},
+  {"kind":"basic","front":"Minor crossmatch(次要交叉配血)測什麼?為何現代輸血實務多半省略?","back":"donor(捐血者)血清/血漿中的抗體 vs recipient(受血者)紅血球上的抗原。<hr>捐血者血漿中的抗體輸入受血者後會被龐大血量稀釋,造成顯著溶血的風險極低,故現代少做。記憶法:major =「輸進去的紅血球會不會被打」(風險高、必做);minor =「輸進去的血漿抗體會不會打人」(風險低、可省略)。"},
+  {"kind":"basic","front":"cis-AB 血型的遺傳基礎是什麼?為何會出現「違反孟德爾」的親子血型?","back":"由位於染色體 9q34 的「單一」ABO 等位基因(在 cis 位攜帶可同時產生 A 與 B 抗原的能力)編碼,A 與 B 一起遺傳給下一代。<hr>對比一般 AB 型(A 與 B 各在一條同源染色體、trans 位)。因 A、B 同源遺傳,可出現如 O 型父母生出帶 B 抗原子代等看似不符孟德爾遺傳的結果。「單一染色體帶 A、B 之 cis hybrid」此敘述本身正確。"},
+  {"kind":"basic","front":"cis-AB 最常見的分子機制與典型表現型為何?","back":"多數源於 A 或 B 基因上的 point mutation,使單一酵素同時具 A 與 B transferase 活性;典型表現型為 A2B3(B 抗原表現較弱)。<hr>最常見等位基因 cis-AB01 為 B 基因骨架帶 G803C(codon 268)+ A796C(codon 266)。少數來自 A、B 基因間 unequal crossing over 形成 chimeric 染色體,帶兩個獨立酵素基因。"},
+  {"kind":"cloze","text":"ABO glycosyltransferase 中決定 A vs B 受質專一性的關鍵胺基酸位置為 codon {{c1::266}} 與 {{c2::268}};A-enzyme 加上 {{c3::N-acetylgalactosamine(GalNAc)}} 形成 A 抗原,B-enzyme 加上 {{c4::galactose(Gal)}} 形成 B 抗原。","extra":"兩種酵素都作用於同一受質 H 抗原。codon 266 為 Leu(A)/Met(B)、268 為 Gly(A)/Ala(B);cis-AB 的單一酵素因在 B 骨架上經 266/268 變動而兼具兩種活性,故一條染色體即可產生 A 與 B 兩種抗原。"}
+ ]
+}

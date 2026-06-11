@@ -1,0 +1,13 @@
+{
+ "id": "112-019",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "AML", "FLT3", "FLT3i", "Midostaurin", "Gilteritinib", "Quizartinib", "Venetoclax", "Glasdegib", "IDH"],
+ "enrich_html": "<b>📌 考點</b>:FLT3i 的 type I/II 分類常被故意對調當誘餌。記憶錨:<u>type I 結合 active (DFG-in) 構型 → ITD + TKD 雙效;type II 結合 inactive (DFG-out) 構型 → 僅 ITD</u>。D835/activation-loop 突變把 kinase 鎖在 active 構型,破壞 type II 的結合口袋,故 quizartinib/sorafenib 對 TKD 抗藥,而 type I 的 gilteritinib 仍有效。<br><b>🏥 臨床意義</b>:relapsed/refractory FLT3-mut AML 首選 gilteritinib(type I,涵蓋 D835 抗藥型);其 ADMIRAL trial mOS 9.3 vs 5.6 月、CR 54% vs 22%。Quizartinib(type II)有 QTc 延長、心律不整風險,需監測心電圖。<br><b>⭐ High-yield</b>:Midostaurin = 首個核可於初診斷 FLT3-ITD/TKD AML(搭 7+3,RATIFY)｜Venetoclax 對 unfit 病人臨床更常搭 azacitidine(VIALE-A)而非 LDAC(VIALE-C)｜IDH1→ivosidenib、IDH2→enasidenib。<br><b>🔬 實證</b>:第二代(gilteritinib/quizartinib/crenolanib)較第一代(midostaurin/sorafenib)專一性高、off-target 少。(Blood Adv 2020;4:514 | NEJM 2019;381:1728 | NEJM 2017;377:454)",
+ "cards": [
+  {"kind":"basic","front":"FLT3 inhibitor 依與 FLT3 的交互作用分為 type I 與 type II。哪一類同時抑制 FLT3-ITD 與 FLT3-TKD?哪一類只抑制 ITD?","back":"Type I 同時抑制 FLT3-ITD 與 FLT3-TKD;type II 僅抑制 FLT3-ITD,對 TKD 無效。<hr>機轉:type I 結合 active (DFG-in) conformation;type II 結合 inactive (DFG-out) conformation。TKD 突變(最常見 D835)穩定 active 構型、破壞 type II 的結合口袋,故 type II 對 TKD 抗藥,type I 仍有效。考試常把這兩者敘述對調當誘餌。"},
+  {"kind":"basic","front":"為何 FLT3-TKD (D835) 突變對 quizartinib、sorafenib (type II FLT3i) 抗藥,卻仍對 gilteritinib (type I) 有效?","back":"D835/activation-loop 突變使 kinase 鎖定在 active (DFG-in) 構型,破壞 type II 賴以結合的 inactive (DFG-out) 口袋,故 quizartinib/sorafenib 失效;gilteritinib (type I) 結合 active 構型,不受 D835 影響。<hr>Gilteritinib 對 gatekeeper 突變也相對較不受影響,故在 relapsed/refractory 帶 TKD 抗藥型 AML 為首選。"},
+  {"kind":"cloze","text":"FLT3 inhibitor 構型分類:type I (結合 {{c1::active / DFG-in}} 構型,ITD+TKD 皆效)包含 {{c2::midostaurin、gilteritinib、crenolanib}};type II (結合 {{c3::inactive / DFG-out}} 構型,僅 ITD 有效)包含 {{c4::quizartinib、sorafenib、ponatinib}}。","extra":"記憶:type I 「一網打盡」ITD+TKD;type II 「二缺一」只抓 ITD。"},
+  {"kind":"basic","front":"Relapsed/refractory FLT3 突變 AML 的首選單藥標靶治療為何?支持證據?","back":"Gilteritinib(type I)。<hr>ADMIRAL trial(NEJM 2019):gilteritinib vs salvage chemo,median OS 9.3 vs 5.6 個月(HR 0.64)、CR rate 54% vs 22%。Type I 特性使其涵蓋 D835(TKD)抗藥型,優於 type II 的 quizartinib/sorafenib。"},
+  {"kind":"cloze","text":"AML 標靶藥物對應分子標的:Midostaurin / Gilteritinib / Quizartinib → {{c1::FLT3}};Venetoclax → {{c2::BCL-2}};Glasdegib → {{c3::Hedgehog (Smoothened)}};Ivosidenib → {{c4::IDH1}};Enasidenib → {{c5::IDH2}}。","extra":"FLT3、IDH1/2 屬突變導向標靶;BCL-2、Hedgehog 屬通路導向,常用於 unfit 病人。"}
+ ]
+}

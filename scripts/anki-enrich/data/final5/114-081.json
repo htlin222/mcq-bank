@@ -1,0 +1,13 @@
+{
+ "id": "114-081",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "CML", "TFR", "BCR-ABL1", "TKI discontinuation", "molecular monitoring", "MMR", "MR4", "MR4.5", "qRT-PCR", "FISH", "EURO-SKI", "International-Scale"],
+ "enrich_html": "<b>📌 考點</b>:CML TKI 停藥 (treatment-free remission, TFR) 的監測工具必須是 IS 標準化的 qRT-PCR,而非 FISH。FISH 偵測下限僅約 1%–數% 的 BCR-ABL1 陽性細胞,即使分析數百顆細胞,仍遠不及 TFR 所需的 ≥4 log reduction (MR4, BCR-ABL ≤0.01% IS) — 故「FISH 已足夠敏感」是錯誤敘述。<br><b>🏥 臨床意義</b>:停藥僅適用 typical transcript e13a2/e14a2 (可 IS 校正);atypical transcript (e1a2/p190、e19a2/p230) 無法常規 IS 量化、須個別 primer 監測,TFR 判讀困難。喪失 MMR (BCR-ABL >0.1% IS) 即為重啟 TKI 的觸發點,絕大多數可再達反應。<br><b>⭐ High-yield</b>:NCCN 2023 eligibility — 成人、僅 chronic phase、TKI ≥3 年、穩定 MR4 ≥2 年、qRT-PCR 須能於 2 週內回報且敏感度達 MR4.5 (≤0.0032% IS)｜ELN 較嚴:DMR >5 年且 MR4 ≥3 年 (或 MR4.5 ≥2 年)｜兒科 TFR 證據有限、尚非 standard of care｜復發多在停藥後前 6 個月 (故初期每月監測)。<br><b>🔬 實證</b>:EURO-SKI final 顯示停藥後 6 個月 MMR 維持約 61–63%、36 個月約 46%;TKI 與 DMR 時間越長越佳,e14a2 (±e13a2) 6 個月 MRecFS 63% 優於僅 e13a2 的 47%。(NCCN CML 2023;ELN 2020/2025;EURO-SKI, JCO 2023;41:5536)",
+ "cards": [
+  {"kind":"basic","front":"在 CML 評估 TKI 停藥 (treatment-free remission, TFR) 時,為何 FISH 即使分析數百顆細胞也不足以指導停藥決策?","back":"FISH 敏感度不足,無法偵測停藥所需的 deep molecular response。<hr>FISH 偵測下限僅約 1%–數% 的 BCR-ABL1 陽性細胞,遠不及 TFR 所需的 ≥4 log reduction (MR4,BCR-ABL ≤0.01% IS)。<br>停藥決策必須仰賴 International Scale (IS) 標準化的 qRT-PCR 量測 BCR-ABL1 transcript,才能偵測 MR4/MR4.5 等深度反應。"},
+  {"kind":"cloze","text":"CML 考慮 TKI 停藥 (TFR) 的典型 eligibility:僅限 {{c1::chronic phase}}、TKI 治療 {{c2::≥3 年}}、達到並穩定維持 {{c3::MR4 (BCR-ABL ≤0.01% IS) ≥2 年}}、且停藥後須以 {{c4::標準化 qRT-PCR (非 FISH)}} 密集監測。","extra":"NCCN 2023:qRT-PCR 須能於 2 週內回報、敏感度達 MR4.5 (≤0.0032% IS)。ELN 較嚴:DMR >5 年且穩定 MR4 ≥3 年 (或 MR4.5 ≥2 年)。喪失 MMR (BCR-ABL >0.1% IS) 為重啟 TKI 的觸發點。"},
+  {"kind":"basic","front":"CML 監測 BCR-ABL1 時,MMR、MR4、MR4.5 的 IS 數值定義各為何?","back":"MMR = ≤0.1% IS (3 log);MR4 = ≤0.01% IS (4 log);MR4.5 = ≤0.0032% IS (4.5 log)。<hr>IS (International Scale) 使分子反應可跨實驗室比較。<br>MMR 是治療反應里程碑;MR4/MR4.5 是評估 TFR 資格的基礎深度。"},
+  {"kind":"basic","front":"CML 病人 TKI 停藥後,為何頻繁的分子監測 (尤其前 6 個月) 至關重要?","back":"用以即時偵測 molecular relapse 以便及時重啟 TKI。<hr>多數分子復發發生在停藥後前 6 個月內,故初期需密集監測 (常見前 6 個月每月一次)。<br>偵測到喪失 MMR (BCR-ABL >0.1% IS) 即應重新開始 TKI,絕大多數病人可再次達到反應。"},
+  {"kind":"basic","front":"CML 分子監測中,BCR-ABL1 的 e13a2 與 e14a2 transcript 各對應什麼,為何對 TFR 判讀重要?","back":"兩者皆為 typical transcript,對應 p210 蛋白,可用 IS 標準化 qRT-PCR 定量。<hr>e13a2 (舊稱 b2a2)、e14a2 (舊稱 b3a2) 是最常見的兩型,適合標準化監測與 TFR 判讀。<br>e14a2 (±e13a2) 的 TFR 預後優於僅 e13a2:EURO-SKI 中 6 個月 molecular recurrence-free 約 63% vs 47%。<br>對比 atypical transcript (e1a2/p190、e19a2/p230) 無法 IS 校正,須個別專屬 primer 監測。"}
+ ]
+}

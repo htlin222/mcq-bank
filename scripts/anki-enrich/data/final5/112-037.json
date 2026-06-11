@@ -1,0 +1,13 @@
+{
+ "id": "112-037",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "AIHA", "hemolytic anemia", "cold agglutinin disease", "warm AIHA", "Coombs test", "DAT", "haptoglobin", "sutimlimab", "rituximab"],
+ "enrich_html": "<b>📌 考點</b>:溶血性貧血 workup 的三層次 — 先用 indirect bilirubin↑+LDH↑+haptoglobin↓+reticulocyte↑ 證實「有溶血」,再用 DAT(Coombs)證實「免疫機轉」並初步分型(IgG±C3=warm;單純 C3d=cold),最後 cold agglutinin titer 量化以確診 CAD。三者各司其職、不可互相取代,故老年 macrocytic 溶血(Hgb 8.4、bilirubin 1.8-2.2、LDH↑、ANA 陰性)應 haptoglobin + Coombs + cold agglutinin titer 全做。<br><b>🏥 臨床意義</b>:分型直接改變治療 — warm AIHA 首選 corticosteroid;CAD 對類固醇/脾切除反應差,首選保暖避寒 + rituximab(單藥反應率約 45-60%),嚴重者用 C1s 抑制劑 sutimlimab。CAD 屬補體(典型途徑 C1→C3d)媒介的 extravascular(肝臟 Kupffer 細胞)為主溶血。<br><b>⭐ High-yield</b>:cold agglutinin titer 4°C ≥1:64 為陽性、臨床顯著常需 ≥1:512、明顯溶血多 ≥1:1000｜約 5-10% AIHA 為 DAT-negative(不能因 DAT 陰性就排除)｜溶血代償性 reticulocytosis 可使 MCV 假性偏高(非 megaloblastic)。<br><b>🔬 實證</b>:primary CAD 為低惡性骨髓 clonal B-cell 疾病,MYD88 L265P 多陰性(有別於 LPL/Waldenström);secondary CAS 見於 Mycoplasma pneumoniae、EBV(infectious mononucleosis)、lymphoma、CLL。(Berentsen & Barcellini, NEJM 2021;385:1407-1419;Berentsen, How I treat CAD, Blood 2021;137:1295)",
+ "cards": [
+  {"kind":"cloze","text":"AIHA 依 autoantibody 反應的最適溫度分為:{{c1::warm AIHA}}(IgG、37°C、最常見)與 {{c2::cold agglutinin disease}}(IgM、低溫、補體媒介)。","extra":"Warm AIHA 的 DAT 多為 IgG±C3 陽性,首選治療為 corticosteroid;cold agglutinin disease 的 DAT 多為單純 C3d 陽性、IgG 陰性,首選保暖 + rituximab,類固醇與脾切除效果差。"},
+  {"kind":"cloze","text":"懷疑溶血性貧血時的核心診斷檢查組合:{{c1::haptoglobin}}(確認溶血)、{{c2::direct Coombs' test / DAT}}(判別免疫性並分型)、{{c3::cold agglutinin titer}}(鑑別並確診冷凝集素病)。","extra":"三項各有不可替代的診斷價值,故完整 workup 應「全做」;再加 reticulocyte count、peripheral smear(spherocytes / agglutination)、indirect bilirubin、LDH 構成完整評估。先證實溶血 → 再證實免疫機轉並分型 → 最後量化確診的三層次邏輯。"},
+  {"kind":"basic","front":"約多少比例的 AIHA 是 DAT-negative?臨床上的意涵為何?","back":"約 5-10%<hr>DAT 既非 100% 敏感(5-10% AIHA 為 DAT-negative,抗體量低於偵測閾或為低親和力/IgA),也非 100% 特異(健康人偶可陽性)。因此 DAT 陰性不能單獨排除 AIHA,需結合溶血證據與臨床判讀。"},
+  {"kind":"basic","front":"Cold agglutinin disease 的首選治療為何?為何不用 corticosteroid 和脾切除?","back":"首選保暖避寒 + rituximab(anti-CD20,單藥反應率約 45-60%);嚴重者用 C1s 抑制劑 sutimlimab<hr>CAD 溶血由補體典型途徑媒介、且為肝臟(Kupffer 細胞)為主的 extravascular hemolysis,脾切除無效;類固醇反應率低。Rituximab 清除產生 IgM 的 clonal B 細胞,sutimlimab 阻斷 C1s 阻止補體活化。"},
+  {"kind":"basic","front":"Cold agglutinin titer(4°C)的關鍵 cutoff 為何?","back":"≥1:64 為陽性;臨床顯著常需 ≥1:512;明顯溶血多在 ≥1:1000<hr>低效價冷凝集素(如 ≤1:64)在健康人或感染後可短暫出現而不致病;CAD 通常為高效價、單株(monoclonal,多為 anti-I IgM kappa)且 thermal amplitude 高(在較高溫仍能結合),才造成臨床溶血。"}
+ ]
+}

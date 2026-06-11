@@ -1,0 +1,13 @@
+{
+ "id": "113-076",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "plateletpheresis", "apheresis-platelet", "platelet-transfusion", "leukocyte-reduction", "transfusion-refractoriness", "CCI", "HLA-alloimmunization", "blood-products"],
+ "enrich_html": "<b>📌 考點</b>：單採血小板（apheresis / single-donor platelet）1 單位規格速記 — 體積約 250 mL、血小板 ≈3.5 × 10<sup>11</sup>（FDA 最低收集標準 ≥3.0 × 10<sup>11</sup>，典型 3.5–4.0 × 10<sup>11</sup>）、殘餘紅血球 &lt;0.5 mL、白血球 &lt;5 × 10<sup>6</sup>。最常見誘餌是把血小板指數誤寫成 3.5 × 10<sup>10</sup>（少一個數量級），1 單位單採血小板 ≈6 袋 whole-blood-derived platelet 當量。<br><b>🏥 臨床意義</b>：白血球 &lt;5 × 10<sup>6</sup>/unit 即達美國 leukocyte-reduced 標準，現代血球分離機多可直接達標 → 降低 febrile non-hemolytic reaction、HLA alloimmunization、CMV 傳播。單採來源僅暴露單一捐血者，較 pooled platelet 降低感染與同種免疫風險。<br><b>⭐ High-yield</b>：療效追蹤用 CCI — 1hr CCI &lt;7,500 為 refractoriness 診斷門檻、24hr CCI &lt;5,000 提示 refractoriness；連續兩次 1hr CCI 偏低才定義 refractoriness。免疫性 → 1hr 即偏低；非免疫性（占 &gt;80%，sepsis 最常見、splenomegaly、DIC、fever）→ 1hr 正常但 24hr 偏低。<br><b>🔬 實證</b>：單採後捐血者血小板降約 30%、約 4 天回復；療程約 90 分鐘、處理血量 4,000–5,000 mL。（American Red Cross；FDA Guidance: Collection of Platelets by Automated Methods；ASH Education Program, Hematology 2020:527）",
+ "cards": [
+  {"kind":"cloze","text":"1 單位 apheresis platelet 規格速記：體積約 {{c1::250 mL}}、血小板含量約 {{c2::3.5 × 10¹¹}}（FDA 最低標準 ≥3.0 × 10¹¹）、殘餘紅血球 {{c3::&lt;0.5 mL}}、白血球 {{c4::&lt;5 × 10⁶（達 leukocyte-reduced）}}。","extra":"白血球 &lt;5 × 10⁶/unit 為美國減白標準。血小板指數最常被誤植為 3.5 × 10¹⁰（少一個數量級），正確為 10¹¹。1 單位單採血小板 ≈6 袋全血分離血小板當量。"},
+  {"kind":"basic","front":"Platelet transfusion refractoriness 的 CCI 診斷門檻：1 小時與 24 小時各為多少？","back":"1hr CCI &lt;7,500；24hr CCI &lt;5,000<hr>需連續兩次（不同袋 ABO-compatible 血小板）1hr CCI 偏低才定義 refractoriness，以排除單次品質問題。1hr 反映免疫性破壞，24hr 反映消耗性因素。"},
+  {"kind":"basic","front":"如何用 CCI 的「時間點」區分免疫性 (anti-HLA) 與非免疫性 (消耗性) platelet refractoriness？","back":"看 1 小時 CCI：免疫性 → 1hr CCI 就偏低 (&lt;7,500)；非免疫性 → 1hr CCI 正常、但 24hr CCI 偏低 (&lt;5,000)<hr>免疫性破壞發生快，輸後 1 小時就抓不到血小板；非免疫性是緩慢消耗，初期回升正常但留不住。"},
+  {"kind":"basic","front":"Platelet transfusion refractoriness 中免疫性與非免疫性各占多少？各自最常見原因為何？","back":"非免疫性占 &gt;80%（最常見 sepsis）；免疫性以 HLA alloimmunization 為主<hr>非免疫性其他原因：splenomegaly、fever、DIC、出血、某些藥物 (amphotericin B)。免疫性主因 anti-HLA class I 抗體，少數為 anti-HPA。預防同種免疫靠 leukoreduction。"},
+  {"kind":"basic","front":"診斷出免疫性 (HLA alloimmunization) platelet refractoriness 後，首選的血小板處置策略是什麼？","back":"提供 HLA-matched 或 crossmatch-compatible platelets<hr>透過 HLA 配對或血小板交叉配合試驗選擇相容製品，繞過病人 anti-HLA 抗體。源頭預防靠所有血品 leukoreduction 以減少初次致敏。非免疫性 refractoriness 則針對病因（治療 sepsis、處理 DIC）而非更換血品。"}
+ ]
+}

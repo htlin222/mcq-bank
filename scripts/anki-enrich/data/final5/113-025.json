@@ -1,0 +1,13 @@
+{
+ "id": "113-025",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "CML", "TFR", "TKI-discontinuation", "BCR-ABL1", "deep-molecular-response", "MMR", "EURO-SKI", "molecular-monitoring"],
+ "enrich_html": "<b>📌 考點</b>：CML 嘗試 TFR (treatment-free remission) 的停藥資格是<b>多條件排他清單</b>。最易混淆的陷阱是「換二線 TKI 的原因」：只有接受 first-line TKI、或僅因 <u>intolerance (不耐受)</u> 改用 second-line TKI 者才可停藥；因 <u>failure (治療失敗)</u> 換二線者，即使後來達到 deep molecular response，仍<b>不</b>符合資格 (failure 代表疾病較難控制、停藥後復發風險高)。<br><b>🏥 臨床意義</b>：停藥後約 80% 的分子學復發發生在前 6 個月，故前 6 個月須每月監測 BCR-ABL1；失去 MMR (BCR-ABL1 &gt;0.1% IS) 即重啟 TKI，重啟後絕大多數可再達 DMR，故 TFR 整體安全。高品質、IS 標準化的 quantitative PCR 為 mandatory，否則無法可靠偵測復發。<br><b>⭐ High-yield</b>：限 chronic phase (無 AP/BC 病史)｜典型 e13a2 或 e14a2 (p210) transcript｜TKI ≥3 年｜DMR 持續：MR4 &gt;3 年、MR4.5 &gt;2 年 (ELN optimal: DMR &gt;5 年；NCCN: MR4 ≥2 年且 ≥4 次檢測)｜MR4 = BCR-ABL1 ≤0.01% IS、MR4.5 = ≤0.0032% IS、MMR = ≤0.1% IS。<br><b>🔬 實證</b>：EURO-SKI final analysis 顯示 36 個月 molecular recurrence-free survival ~48%；6-36 個月維持 MMR 的機率與 <u>TKI 總治療時間</u> 長短相關 (而非 DMR 長短)。(Saussele et al., JCO 2023;41:5536；Blood Res 2023;58:S58-S65)",
+ "cards": [
+  {"kind":"basic","front":"CML 病人若過去因「failure (治療失敗)」而換用 second-line TKI、之後在二線藥達到 deep molecular response，為何仍不符合 TFR (停藥) 資格？","back":"因為可嘗試 TFR 者僅限：接受 first-line TKI 者，或僅因 intolerance (不耐受) 改用 second-line TKI 者。<hr>因 failure 換二線代表疾病本質較難控制、停藥後分子學復發風險高，故即使後來達 deep molecular response 也不建議停藥。關鍵是區分「intolerance 換藥可停」vs「failure 換藥不可停」。"},
+  {"kind":"cloze","text":"CML 嘗試 TFR 時 deep molecular response 的最適持續時間：若為 MR4 須 &gt; {{c1::3}} 年；若為 MR4.5 須 &gt; {{c2::2}} 年。此外 TKI 治療總時間須 ≥ {{c3::3}} 年。","extra":"反應越深 (MR4.5 殘存疾病比 MR4 更少)，所需持續時間越短。ELN 2020 optimal: DMR &gt;5 年、MR4 ≥3 年或 MR4.5 ≥2 年；NCCN: MR4 ≥2 年且至少 4 次檢測 (每次間隔 ≥3 個月)。"},
+  {"kind":"cloze","text":"CML 分子學反應深度定義 (BCR-ABL1 IS)：MMR = ≤ {{c1::0.1}}%；MR4 = ≤ {{c2::0.01}}%；MR4.5 = ≤ {{c3::0.0032}}%。","extra":"IS = international scale。MMR 是治療反應里程碑，也是 TFR 停藥後判定復發 (失去 MMR 即重啟 TKI) 的門檻；MR4/MR4.5 (合稱 deep molecular response, DMR) 是嘗試停藥的前提。"},
+  {"kind":"basic","front":"CML 病人停用 TKI (TFR) 後，最常見的復發型態是什麼？大多發生在何時？如何因應？","back":"多為分子學復發 (molecular relapse)，約 80% 發生在停藥後最初 6 個月內，故前 6 個月須每月監測 BCR-ABL1。<hr>失去 MMR (BCR-ABL1 &gt;0.1% IS) 即需重啟 TKI，重啟後絕大多數可再達深度反應。極少出現血液學或細胞遺傳學復發，故 TFR 整體安全。"},
+  {"kind":"basic","front":"EURO-SKI trial (TKI 停藥試驗最終分析) 顯示，停藥後 6-36 個月「維持 MMR」的機率主要與哪個因素相關？","back":"與 TKI 的「總治療時間長短」相關，而非 deep molecular response 的持續長短。<hr>例如 imatinib 治療 &gt;5.8 年者 6 個月維持 MMR 機率約 63%，&lt;5.8 年者約 41%。整體 36 個月 molecular recurrence-free survival 約 48%。(Saussele et al., JCO 2023)"}
+ ]
+}

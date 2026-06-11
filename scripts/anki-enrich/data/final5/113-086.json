@@ -1,0 +1,13 @@
+{
+ "id": "113-086",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "B-ALL", "T-ALL", "ETP-ALL", "KMT2A", "Ph-like", "hypodiploidy", "WBC-cutoff", "MRD", "prognosis"],
+ "enrich_html": "<b>📌 考點</b>：ALL 初診 WBC 的不良預後 cutoff <u>兩系不同</u>——B-ALL 用 ≥30×10^9/L (NCI/Rome 高危標準)，T-ALL 因本就常以高白血球表現，cutoff 拉高到 ≥100×10^9/L。把 T-ALL 也套用「>30」是經典誘餌：T-ALL WBC 30-100 仍屬一般風險，故「WBC >30 for T-ALL」並非不良預後因子。<br><b>🏥 臨床意義</b>：B-ALL 高危細胞遺傳/分子 (KMT2A、Ph-like、hypodiploidy、Ph+) 與 T-ALL 的 ETP 亞型化療反應差、復發率高 → 誘導後常需 allogeneic HSCT；ABL-class Ph-like 可加 TKI。<br><b>⭐ High-yield</b>：B-ALL 良好預後 = high hyperdiploidy (51-65 條) + ETV6::RUNX1 t(12;21)｜hypodiploidy 以染色體 ≤44 定義 (near-haploid 24-31、low-hypodiploid 32-39，後者多帶 TP53)｜治療後 MRD 陽性是所有因子中最強的不良預後指標。<br><b>🔬 實證</b>：T-ALL WBC cutoff 100×10^9/L 與 risk 分層見 Blood 2025;145:1464；hypodiploidy ≤44 與 KMT2A/Ph-like 高危見 ASH/lymphoblastic-hub 綜述 (2024)。",
+ "cards": [
+  {"kind":"basic","front":"B-cell ALL 與 T-cell ALL 判定「高白血球為不良預後」的 WBC cutoff 各是多少？","back":"B-ALL：WBC ≥ 30 × 10^9/L；T-ALL：WBC ≥ 100 × 10^9/L<hr>兩系 cutoff 不同 (源自 NCI/Rome 標準)：B 系門檻低 (30)，T 系門檻高 (100)。因 T-ALL 初診好發高白血球與縱膈腔腫塊、基線 WBC 普遍偏高，若沿用 30 會失去鑑別力。誤把同一數字套用兩系、或把「T-ALL WBC >30」當不良預後，是 board exam 經典誘餌。"},
+  {"kind":"basic","front":"Early T-cell precursor (ETP) ALL 是什麼？在 T-cell ALL 中預後如何？","back":"T-ALL 的高危亞型，預後不良<hr>免疫表型保留 stem/myeloid markers：cCD3+ 但 CD1a−、CD8−、CD5 弱表現 (常 <75% 陽性)，且表達 CD34/CD117/CD13/CD33 之一。基因譜近似 myeloid 前驅，對標準化療反應差。"},
+  {"kind":"basic","front":"B-cell ALL 的 hypodiploidy 如何定義？為何屬不良預後？合併哪個基因突變？","back":"染色體數 ≤44 條，屬不良預後<hr>細分 near-haploid (24-31 條) 與 low-hypodiploid (32-39 條)；後者高度合併 TP53 突變且多為胚系 (germline)，提示 Li-Fraumeni syndrome，需安排胚系檢測與家族遺傳諮詢。化療反應差、復發率高。相對地 high hyperdiploidy (51-65 條) 屬良好預後。"},
+  {"kind":"basic","front":"在 ALL 風險分層中，治療後最強的「動態」不良預後指標是什麼？","back":"Minimal residual disease (MRD) 陽性<hr>誘導/鞏固後 MRD 陽性的預測力優於多數初診基線因子 (WBC、年齡、細胞遺傳)，是決定是否升級治療 (含 allogeneic HSCT、blinatumomab 清除 MRD) 的關鍵。"},
+  {"kind":"cloze","text":"B-ALL 的不良預後細胞遺傳/分子因子包括：{{c1::KMT2A (MLL) rearrangement，如 t(4;11)}}、{{c2::Ph-like (BCR::ABL1-like)}}、{{c3::hypodiploidy (≤44 條)}}、以及 {{c4::Ph+ (BCR::ABL1, t(9;22))}}；相對地良好預後標記為 {{c5::high hyperdiploidy (51-65 條) 與 ETV6::RUNX1 (t(12;21))}}。","extra":"Ph-like 常見 CRLF2 重排 + JAK-STAT 活化 (ruxolitinib) 或 ABL-class 融合 (對 dasatinib 等 TKI 有反應)；KMT2A 好發嬰兒 ALL，menin inhibitor 為新興標靶。"}
+ ]
+}

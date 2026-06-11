@@ -1,0 +1,13 @@
+{
+ "id": "114-099",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "anemia", "anemia definition", "hemoglobin", "standard deviation", "WHO anemia criteria", "RBC", "Hct"],
+ "enrich_html": "<b>📌 考點</b>:貧血的「統計學」定義 = whole-blood Hb(或 Hct、RBC count)低於同年齡同性別參考族群 <u>mean − 2 SD</u>。在常態分布下,低於 mean − 2 SD 對應最低約 2.5% 的人,所以這個定義天生會把約 2.5% 的健康人誤標為貧血(此即選 -2 SD、而非 -1/-3 SD 的統計理由)。<br><b>🏥 臨床意義</b>:正常 Hb 隨 age/sex 變動(成年男 > 女,因 androgen 刺激 erythropoiesis;新生兒高、嬰兒有 physiologic nadir),故須用對應族群的 mean 與 SD,不能單一固定值;由 mean − 2 SD 推得 WHO 實務 cutoff:成年男 <13、非孕女 <12、孕婦/6–59 月幼兒 <11 g/dL。<br><b>⭐ High-yield</b>:-1 SD 太寬鬆(誤標約 16%)、-3 SD 太嚴(僅約 0.1%、漏診多),-2 SD 為靈敏度與特異度的折衷｜嚴重度:成人 moderate Hb 8–10.9、severe <8 g/dL。<br><b>🔬 實證</b>:Beutler &amp; Waalen, Blood 2006;107:1747(定義為 mean − 2 SD、約 2.5% 被歸類);WHO 2024 Guideline on haemoglobin cutoffs 維持成人 13/12 g/dL。",
+ "cards": [
+  {"kind":"basic","front":"貧血(anemia)的統計學定義為:whole-blood Hb(或 Hct、RBC count)低於同年齡同性別參考族群「平均值以下幾個標準差」?","back":"mean − 2 SD<hr>國際血液學認可的 operational definition:Hb、Hct 或 RBC count 任一低於對應 age/sex 參考族群的<b>平均值 2 個標準差以下</b>即定義為貧血。三項中臨床最常用 Hb,因其最直接反映攜氧能力。(Beutler &amp; Waalen, Blood 2006)"},
+  {"kind":"basic","front":"為什麼貧血定義取「平均值 −2 SD」而不是 −1 SD 或 −3 SD?且此 cutoff 會把多少比例健康人誤標為貧血?","back":"−2 SD 為靈敏度與特異度的折衷;約 2.5% 健康人被誤標<hr>常態分布下:低於 mean − 1 SD 約佔最低 16%(太寬鬆、過度診斷)、低於 mean − 2 SD 約佔最低 2.5%、低於 mean − 3 SD 約佔最低 0.1%(太嚴、漏診多)。取 −2 SD 在偵測病態與避免誤標間取得平衡,但定義本身即保證約 2.5% 正常人落在閾值以下,故須配合臨床判讀。(Beutler &amp; Waalen, Blood 2006;107:1747)"},
+  {"kind":"basic","front":"為何貧血參考值必須用「同年齡、同性別」族群,而不能用單一固定 Hb 值?","back":"因正常 Hb 隨年齡與性別而異<hr>成年男性 Hb > 女性(androgen 刺激 erythropoiesis);新生兒 Hb 偏高,嬰幼兒有生理性最低點(physiologic nadir);老年另有變化。故須以對應 age/sex 常態分布的 mean 與 SD 來界定,單一固定值會誤判。此即統計定義須綁定參考族群的原因。"},
+  {"kind":"cloze","text":"WHO 貧血 Hb cutoff(海平面):成年男 <{{c1::13}}、非孕女 <{{c2::12}}、孕婦及 6–59 月幼兒 <{{c3::11}} g/dL。","extra":"這些固定閾值即由各族群「mean − 2 SD」統計推導而來,與統計定義一致;WHO 2024 維持成人 13/12 g/dL。"},
+  {"kind":"basic","front":"WHO 成人貧血「嚴重度」分級(mild / moderate / severe)的 Hb 區間為何?","back":"mild 11–12.9(男)/11–11.9(女)、moderate 8–10.9、severe <8 g/dL<hr>WHO 1989 首訂、2024 維持:成人 moderate anemia 為 Hb 8.0–10.9 g/dL、severe anemia 為 Hb <8.0 g/dL。臨床上 Hb <7–8 g/dL 常為輸注紅血球的參考考量點之一(依病人狀況個別化)。"}
+ ]
+}

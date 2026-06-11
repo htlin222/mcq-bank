@@ -1,0 +1,13 @@
+{
+ "id": "113-097",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "AML", "APL", "PML-RARA", "ATRA", "arsenic-trioxide", "FLT3-ITD", "t(15;17)", "DIC", "ZBTB16-PLZF", "Sanz-score"],
+ "enrich_html": "<b>📌 考點</b>:APL >95% 為 t(15;17)(q24.1;q21.1) 產生 <u>PML::RARA</u>,對 ATRA+ATO 高度敏感。Variant RARA translocation (&lt;5%) 反應<b>分歧而非一致</b>:ZBTB16(PLZF)::RARA、STAT5B::RARA → ATRA <b>抗藥</b>(ZBTB16 甚至可能對 ATO 抗藥,需走標準 AML 化療);NPM1::RARA、NUMA1::RARA → 仍 retinoid-responsive。故「variant translocations 對 ATRA 都很有效」為錯誤。<br><b>🏥 臨床意義</b>:promyelocyte 釋出 tissue factor + 纖溶活化物 → 同時凝血與纖溶亢進,DIC 出血是 early death 首因(&gt;60 歲早期死亡率可達 50%)。臨床懷疑 APL 即刻給 ATRA,不等分子確診。<br><b>⭐ High-yield</b>:Sanz score 以初診 WBC 分層 — 低風險 WBC ≤10×10⁹/L、高風險 &gt;10×10⁹/L｜低/中風險首選 chemo-free ATRA+ATO (APL0406);高風險加 idarubicin 或 gemtuzumab ozogamicin｜FLT3-ITD 約 25%、合併高 WBC 與 M3v,但非現行治療下復發之獨立預測因子。<br><b>🔬 實證</b>:ATRA+ATO 兩年 EFS 97% vs ATRA+化療 86% (Lo-Coco et al., NEJM 2013;369:111)。ELN 更新建議 (Sanz et al., Blood 2019;133:1630)。",
+ "cards": [
+  {"kind":"basic","front":"Acute promyelocytic leukemia (APL) 最典型的細胞遺傳學異常與其產生的融合基因為何?","back":"t(15;17)(q24.1;q21.1) 形成 PML::RARA 融合基因<hr>超過 95% 的 APL 由此易位驅動。PML::RARA 融合蛋白將骨髓分化阻斷在 promyelocyte 階段,並且是 ATRA 與 ATO (arsenic trioxide) 治療反應的分子基礎 — 兩者皆能降解此融合蛋白、恢復終末分化。"},
+  {"kind":"basic","front":"APL 的 variant RARA translocations (佔 &lt;5%) 對 ATRA 的反應是否「一致有效」?為什麼這是常見陷阱?","back":"不是 — 反應分歧:有些抗藥、有些仍有效,不能一概認為「都很有效」<hr>抗藥型:ZBTB16(PLZF)::RARA[源自 t(11;17)]、STAT5B::RARA(ATRA 抗藥,ZBTB16 甚至可能對 ATO 也抗藥,需走標準 AML 化療)。retinoid-responsive 型:NPM1::RARA、NUMA1(NuMA)::RARA 對 ATRA 仍有反應。考題若稱「variant translocations 對 ATRA 都很有效」即為錯誤敘述。"},
+  {"kind":"basic","front":"APL 病人最危急的早期併發症為何?機轉與處置原則為何?","back":"Disseminated intravascular coagulation (DIC) 引起的致命性出血(及血栓)事件,是 early death 主因<hr>APL promyelocytes 釋出 tissue factor 與纖溶酶原活化物,造成同時凝血與纖溶亢進。臨床懷疑 APL 即應立刻給予 ATRA(可降解 PML::RARA、誘導分化、改善凝血病變),不必等基因確診,並積極輸注 fibrinogen/cryoprecipitate 與 platelet。&gt;60 歲病人早期死亡率可達約 50%(年輕者約 15%)。"},
+  {"kind":"basic","front":"APL 用 Sanz risk score 如何以初診白血球數做風險分層?","back":"以初診 WBC 為主:低風險 WBC ≤10×10⁹/L、高風險 WBC &gt;10×10⁹/L<hr>傳統三分層另以 platelet 區分低/中風險:plt &gt;40×10⁹/L 為低、≤40 為中,WBC &gt;10 一律高風險。高風險 APL 與較差的 relapse-free survival 相關,治療強度與是否加用 anthracycline/gemtuzumab 依此分層決定。"},
+  {"kind":"basic","front":"低/中風險 APL 與高風險 APL 的第一線誘導治療分別為何?","back":"低/中風險:chemo-free 的 ATRA + ATO (arsenic trioxide);高風險:ATRA+ATO 再加 idarubicin 或 gemtuzumab ozogamicin<hr>NCCN/ELN 建議低中風險走無化療路徑;高風險因 WBC &gt;10×10⁹/L 需加細胞減量。ATRA 45 mg/m²/day + ATO 0.15 mg/kg/day 直至血球恢復(約 day 28)。支持證據為 APL0406 trial:ATRA+ATO 2 年 EFS 約 97% vs ATRA+化療約 86% (Lo-Coco et al., NEJM 2013)。"}
+ ]
+}

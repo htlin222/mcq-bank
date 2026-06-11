@@ -1,0 +1,13 @@
+{
+ "id": "113-090",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "T-ALL", "ETP-ALL", "early-T-cell-precursor", "immunophenotype", "CD1a", "CD8", "CD5", "MRD", "FLT3-ITD", "WHO-2017"],
+ "enrich_html": "<b>📌 考點</b>:ETP-ALL 免疫表型(WHO 2017)是三層邏輯—(1) <u>缺成熟 T 標記</u>:CD1a(−)、CD8(−);(2) <u>CD5 negative/dim</u>(&lt;75% blasts);(3) <u>保有祖細胞特性</u>:cyCD3(+)、CD7(+) 且 ≥1 個 stem cell/myeloid marker(CD34/CD117/HLA-DR/CD13/CD33/CD11b/CD65)≥25% 陽性。CD5 strong → near-ETP。<br><b>🏥 臨床意義</b>:約佔 T-ALL 10–15%(非 25%)。FLT3-ITD 約 13%,可當 IG/TR 不可用時的 MRD 分子標靶。<br><b>⭐ High-yield</b>:預後觀念已更新—2009 初描述為高風險,但現代強化化療下 COG 研究顯示 ETP/near-ETP/non-ETP 三組 5-yr EFS 約 80–85% 相近,<u>ETP status 本身非獨立預後因子</u>;真正預後分水嶺是 end-induction MRD ≥10%(劇烈惡化所有族群)。<br><b>🔬 實證</b>:cyCD3 是 T-lineage 定義性標記、即使 ETP 仍保留。(WHO 2017;Frontiers Oncol 2021, PMC8666570;COG, Blood 2023;142:2069)",
+ "cards": [
+  {"kind":"cloze","text":"ETP-ALL 免疫表型診斷準則(WHO 2017):{{c1::CD1a 陰性}}、{{c2::CD8 陰性}}、{{c3::CD5 陰性或 dim(<75% blasts)}}、cyCD3 陽性、CD7 陽性,且{{c4::≥1 個 stem cell/myeloid marker(CD34/CD117/HLA-DR/CD13/CD33/CD11b/CD65)≥25% blasts 陽性}}。","extra":"三層邏輯:缺成熟 T 標記(CD1a−/CD8−)+ CD5 negative/dim + 保有 myeloid/stem cell 可塑性。反映停滯於最早期 T-cell precursor 階段。CD5 為 strong expression 者改歸 near-ETP。"},
+  {"kind":"basic","front":"考題選項「依 immunophenotype,ETP-ALL 必須具備 CD8 或 CD1a positivity」為何錯誤?","back":"恰好相反—ETP 定義要求 CD8 陰性且 CD1a 陰性<hr>CD8 與 CD1a 屬較成熟 T 細胞階段標記,ETP 停滯於更早期祖細胞階段故兩者皆陰性。把「陰性」誤記成「陽性」是常見陷阱。"},
+  {"kind":"basic","front":"near-ETP-ALL 相較於典型 ETP-ALL,在 CD5 表現上有何區別?","back":"near-ETP 表現 strong CD5;典型 ETP 則為 CD5 negative/dim(<75% blasts 陽性)<hr>當病例符合其餘 ETP 特徵(CD1a−/CD8−、myeloid/stem cell marker aberrancy)但 CD5 為 strong expression 時,歸類為 near-ETP。CD5 強度是兩者唯一的分水嶺。"},
+  {"kind":"cloze","text":"ETP-ALL 的流行病學與分子要點:約佔 T-ALL 的 {{c1::10–15%}};FLT3-ITD 盛行率約 {{c2::13%}},可作 MRD 監測標靶;現代化療下其長期存活與 non-ETP {{c3::相近(ETP status 非獨立預後因子)}};最強預後分水嶺為 {{c4::end-induction MRD ≥10%}}。","extra":"2009 初描述、2016 WHO 列為獨立 entity 時被視為高風險,但 COG(Blood 2023;142:2069)更新此觀念—關鍵在 MRD 而非 ETP 表型本身。"},
+  {"kind":"basic","front":"ETP-ALL 在 2009 年初描述的「高風險」觀念,於現代強化化療下有何更新(COG 研究)?","back":"ETP / near-ETP / non-ETP 三組 5-yr EFS 與 OS 相近(EFS 約 80–85%);ETP status 本身已非獨立預後因子<hr>2016 WHO 列為獨立 entity 時被視為高風險,但 COG(Blood 2023;142:2069)顯示:儘管 ETP/near-ETP 的 induction failure 率略高(約 6% vs non-ETP 1.2%),三組長期存活相近。真正獨立預後因子是 end-induction MRD ≥10%。"}
+ ]
+}

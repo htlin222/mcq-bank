@@ -1,0 +1,33 @@
+{
+ "id": "114-061",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "TA-GVHD", "transfusion-medicine", "irradiation", "GVHD", "HLA", "chimerism", "leukoreduction", "Hodgkin-lymphoma", "fludarabine"],
+ "enrich_html": "<b>📌 考點</b>:TA-GVHD 是輸入<b>含活性 donor T lymphocytes 的細胞血品</b>後,在<u>免疫缺陷或 HLA 單向相容(donor homozygous→recipient heterozygous)</u>的受血者身上,donor T 細胞增殖攻擊宿主皮膚、腸道、肝臟、<b>骨髓</b>。攻擊骨髓造成的 pancytopenia 是有別於 HSCT 後 GVHD 的致命特徵 → 死亡率 &gt;90%、無有效治療。<br><b>🏥 臨床意義</b>:發病多在輸血後 8–30 天(典型 1–2 週),fever + maculopapular rash 先行,接腹瀉、肝損與全血球減少。診斷靠臨床 + 皮膚/直腸 biopsy;確認靠偵測 donor 來源細胞(HLA typing 不符、STR chimerism、DAT 線索)。<br><b>⭐ High-yield</b>:唯一有效預防 = cellular blood products <b>gamma/X 照射 25 Gy</b>(中心 ≥25Gy、任一點 ≥15Gy)｜<u>Leukoreduction 可降低但不足以完全預防</u>｜高危:Hodgkin lymphoma、fludarabine 等 purine analogues、先天 T 細胞缺陷、HSCT、宮內/新生兒換血、親屬(directed)捐血、HLA-matched platelets｜免疫正常者若 donor 為 HLA homozygous 仍可發病。<br><b>🔬 實證</b>:免疫缺陷受血者發生率 0.1–1.0%、死亡率 80–90%(>90% fatal),照射預防遠優於治療(PMC10518734, 2023;Kleinman, Transfusion 2018;58:2545)。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "TA-GVHD (transfusion-associated GVHD) 的基本發病機轉,以及為何死亡率高達 >90%?",
+   "back": "輸入細胞血品中存活的 donor T lymphocytes 增殖,攻擊宿主皮膚、腸道、肝臟與骨髓。<hr>當受血者免疫力不足以清除供體淋巴球(或 donor 對 recipient 為 HLA 單向相容)時,donor T cells 得以植入增殖。與 HSCT 後的 GVHD 不同,宿主骨髓對 donor 細胞屬「異己」而被攻擊,造成致命的 marrow aplasia / pancytopenia,這是 TA-GVHD 有別於 HSCT-GVHD 的關鍵特徵,也是死亡率 >90%、無有效治療的主因。"
+  },
+  {
+   "kind": "basic",
+   "front": "輸血後約 14 天出現發燒、全身紅斑丘疹、持續腹瀉、肝功能異常並伴 pancytopenia,最該懷疑哪個輸血併發症?發病時間窗與臨床序列為何?",
+   "back": "Transfusion-associated GVHD (TA-GVHD)。<hr>典型發病在輸血後 8–30 天(常見 1–2 週)。臨床序列:fever + maculopapular rash 先行,接續腹瀉、liver dysfunction,最後 pancytopenia。出現「全血球減少」是與一般感染或藥疹鑑別的關鍵線索;診斷靠臨床 + 皮膚/直腸 biopsy,確認靠偵測 donor 來源細胞(HLA typing 不符、STR chimerism)。"
+  },
+  {
+   "kind": "basic",
+   "front": "預防 TA-GVHD 最確切有效的方法是什麼?標準照射劑量為何?哪些血品需要照射?",
+   "back": "對細胞血品施以 gamma 或 X-ray irradiation;標準劑量為照射野中心 ≥25 Gy、任一點不低於 15 Gy。<hr>照射使 donor T lymphocytes 喪失增殖能力而無法植入。一旦發病無有效治療(>90% 致死),故照射預防是唯一關鍵手段。紅血球、血小板等含活細胞成分需照射;fresh frozen plasma、cryoprecipitate 等無活細胞成分則不需要。"
+  },
+  {
+   "kind": "basic",
+   "front": "Leukoreduction(白血球減除)能否單獨完全預防 TA-GVHD?高危患者應如何處理?",
+   "back": "不能。Leukoreduction 可降低風險但不足以完全預防 TA-GVHD。<hr>白血球過濾無法將 donor T 細胞清除至足以避免發病的程度,曾有去白後仍發生 TA-GVHD 的報告。對高危患者必須使用 irradiated blood products,leukoreduction 不能取代照射。這是常見的 distractor 陷阱。"
+  },
+  {
+   "kind": "basic",
+   "front": "為何免疫功能正常的人,接受親屬(尤其一等親)捐血仍可能發生 TA-GVHD?",
+   "back": "當 donor 為某 HLA haplotype 的 homozygous、而 recipient 對該 haplotype 為 heterozygous 時,形成「單向 HLA 相容」:recipient 無法辨識 donor 淋巴球為異己,donor T 細胞卻能攻擊 recipient。<hr>一等親之間 HLA 共享機率高,單向相容風險顯著上升,故指引建議親屬(directed)捐血一律照射。這也是免疫正常者仍可能罹病的機轉。"
+  }
+ ]
+}

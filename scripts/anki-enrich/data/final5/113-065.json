@@ -1,0 +1,13 @@
+{
+ "id": "113-065",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "transfusion", "pretransfusion testing", "type and screen", "antibody screen", "antibody identification", "crossmatch", "electronic crossmatch", "immediate spin crossmatch", "AHG crossmatch"],
+ "enrich_html": "<b>📌 考點</b>:輸血前合血(pretransfusion testing)<u>常規必要</u>步驟只有三項 — ABO/Rh typing、antibody screen、crossmatch(合稱 type &amp; screen + crossmatch)。Antibody identification(抗體鑑定)是<b>條件性</b>步驟,僅在 screen 陽性偵測到 alloantibody 時,才以 11-16 顆 reagent RBC panel 比對 reactivity pattern 確認抗體特異性,故「非必要過程」。<br><b>🏥 臨床意義</b>:screen 陰性 → 可用快速的 immediate-spin 或 electronic crossmatch,大幅縮短備血 TAT;screen 陽性或有抗體史 → 必須做 full AHG(IAT/Coombs)crossmatch,並挑選對應抗原陰性的血品,以免 delayed/acute hemolytic transfusion reaction。<br><b>⭐ High-yield</b>:Antibody screen 用 2-3 顆表型已知 reagent RBC(在 AHG phase)｜identification 用 11-16 顆 panel｜electronic crossmatch 僅驗 ABO 相容、需 screen 陰性+無抗體史+兩筆一致 ABO(一筆現行)+系統 on-site 驗證｜近期(3 個月內)輸血或妊娠者樣本效期 3 天(72 hr)。<br><b>🔬 實證</b>:三步骤皆為 AABB Standards 規定之最低 pretransfusion testing 要件;identification 不在其中。(AABB Standards;StatPearls, Pretransfusion Testing, NCBI Bookshelf NBK585033, 2024)",
+ "cards": [
+  {"kind":"basic","front":"Routine pretransfusion testing(每次輸血前合血)的三個必要步驟為何?","back":"ABO/Rh 血型檢驗、antibody screen(抗體篩檢)、crossmatch(大交叉試驗)<hr>三步合稱「type and screen + crossmatch」,為 AABB Standards 規定的最低必要流程。Antibody identification(抗體鑑定)不在常規流程內,屬條件性步驟。"},
+  {"kind":"basic","front":"輸血前合血中,antibody identification(抗體鑑定)為何不屬於常規必要步驟?","back":"因為它只在 antibody screen 陽性時才執行,屬條件性而非每次必做<hr>screen 陰性即可直接對 ABO-compatible 血品做 crossmatch,無須鑑定;只有 screen 陽性(偵測到意外 alloantibody)時,才以 11-16 顆 reagent RBC panel 比對反應模式確認抗體特異性。考題常以「何者非必要過程」考此點,答案即 antibody identification。"},
+  {"kind":"basic","front":"Antibody screen 與 antibody identification 各用幾顆 reagent RBC?反應 phase 與目的有何不同?","back":"screen 用 2-3 顆表型已知 reagent RBC(在 AHG/antiglobulin phase 測血清);identification 用 11-16 顆 reagent RBC panel<hr>screen 只回答「有沒有」臨床顯著意外 alloantibody(如 anti-K、anti-E、anti-Fya、anti-Jka);identification 透過比對病人血清對整套表型已知 RBC 的 reactivity pattern,回答「是哪一種」。僅在 screen 陽性時才做 identification。"},
+  {"kind":"cloze","text":"Crossmatch 三型的選擇邏輯:screen 陰性 + 無抗體史 → 可用 {{c1::electronic(computer)}} 或 {{c2::immediate-spin}} crossmatch(快、只保 ABO 相容);screen 陽性 或 有抗體史 → 必須做 {{c3::AHG(full / IAT)}} crossmatch,並挑選對應抗原陰性血品。","extra":"electronic crossmatch 由驗證過的電腦邏輯比對、只驗 ABO 相容性,不做血清反應;immediate-spin 室溫離心抓 ABO mismatch;AHG 加 anti-human globulin(本質 indirect Coombs)抓 IS phase 抓不到的弱抗體。"},
+  {"kind":"basic","front":"近期(3 個月內)有輸血史或妊娠的病人,其輸血前血液檢體效期為何?為什麼?","back":"檢體效期通常為 3 天(72 小時)<hr>因近期輸血或妊娠可能刺激產生新的 anamnestic alloantibody,舊檢體無法反映當前抗體狀態,故須以 3 天內的新鮮檢體重做 antibody screen 與 crossmatch,以偵測新生抗體、避免 delayed hemolytic transfusion reaction。"}
+ ]
+}

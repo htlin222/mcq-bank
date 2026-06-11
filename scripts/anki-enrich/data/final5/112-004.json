@@ -1,0 +1,33 @@
+{
+  "id": "112-004",
+  "topic_index": 1,
+  "extra_tags": ["enriched", "AML", "ELN2022", "NPM1", "FLT3-ITD", "complex-karyotype", "monosomal-karyotype", "TP53", "myelodysplasia-related-mutations", "venetoclax-azacitidine", "risk-stratification"],
+  "enrich_html": "<b>📌 考點</b>:ELN2022 AML 風險分層由 favorable / intermediate / adverse 三層構成。FLT3-ITD <u>不再看 allelic ratio</u>:NPM1mut + FLT3-ITD(無 adverse 病灶)= intermediate;NPM1mut 無 FLT3-ITD(無 adverse 細胞遺傳學)= favorable。複習班據此判 intermediate;但 PDF 正解為「無法分類」,理由是題幹僅報告 NPM1 與 FLT3-ITD、缺完整 NGS,無法排除 TP53 或 myelodysplasia-related mutations 等 adverse 標記。<br><b>🏥 臨床意義</b>:核型 +8/+13/-Y 屬陷阱——trisomies(數目增多)被 ELN2022 明文排除於 complex karyotype 之外,-Y 不算 monosomy,故細胞遺傳學端不足以判 adverse。漏掉一個 TP53(VAF ≥10%)即從 intermediate 跳到 adverse,直接改變是否在 CR1 安排 allogeneic HSCT 的決策。<br><b>⭐ High-yield</b>:complex karyotype = ≥3 個不相關異常,<u>但排除 ≥3 trisomies 的純 hyperdiploid</u>(僅數目改變歸 intermediate)｜TP53 需 VAF ≥10%｜MR-mutations:ASXL1, BCOR, EZH2, RUNX1, SF3B1, SRSF2, STAG2, U2AF1, ZRSR2。<br><b>🔬 實證</b>:FLT3-ITD allelic ratio 取消的三大理由——assay 難標準化、midostaurin 改變預後、MRD 角色上升。VEN+AZA 為 unfit AML 一線(VIALE-A:OS 14.7 vs 9.6 月)。(Döhner et al., Blood 2022;140:1345;DiNardo et al., NEJM 2020;383:617)",
+  "cards": [
+    {
+      "kind": "basic",
+      "front": "ELN2022 中,AML 同時帶 NPM1 mutation 與 FLT3-ITD,歸為哪一風險組?是否需看 allelic ratio?",
+      "back": "Intermediate risk;不再看 allelic ratio<hr>ELN2022:NPM1mut + FLT3-ITD(且無 adverse 細胞遺傳學/分子病灶)→ intermediate,不論 ratio 高低。<br>對照:NPM1mut 且 FLT3-ITD 陰性(無 adverse 病灶)→ favorable;NPM1mut 合併 adverse 細胞遺傳學 → adverse。<br>故 FLT3-ITD 的出現會把原本 favorable 的 NPM1mut 下修到 intermediate。取消 allelic ratio 的理由:assay 難標準化、midostaurin 改變其預後權重、MRD 角色上升。"
+    },
+    {
+      "kind": "basic",
+      "front": "AML 核型為 +8、+13、-Y,依 ELN2022 算不算 complex karyotype 或 monosomal karyotype?",
+      "back": "兩者都不算<hr>+8、+13 為 trisomies(染色體數目增多),被 ELN2022 明文排除於 complex karyotype 之外(complex 需 ≥3 個不相關異常,但排除 ≥3 trisomies 的純 hyperdiploid)。<br>-Y(loss of Y)被視為年齡相關 clonal hematopoiesis 變化,不算 monosomy,也不構成 monosomal karyotype。<br>故此類核型本身不足以判為 adverse,細胞遺傳學端傾向 intermediate——是 board exam 常見陷阱。"
+    },
+    {
+      "kind": "basic",
+      "front": "TP53 mutation 在 ELN2022 AML 風險分層的角色與門檻為何?",
+      "back": "無條件歸 adverse risk,VAF 門檻 ≥10%<hr>TP53 突變(VAF ≥10%,常合併 complex/monosomal karyotype)是 ELN2022 預後最差的一群,對標準化療反應不佳、OS 最短。<br>漏掉 TP53 會把患者從 intermediate 嚴重低估,直接影響是否在 CR1 安排 allogeneic HSCT——這也是完整 NGS 對風險分層不可或缺的原因。"
+    },
+    {
+      "kind": "basic",
+      "front": "AML 僅報告 NPM1mut 與 FLT3-ITD、核型為純 trisomies/-Y,為何嚴格而言「ELN2022 無法完成風險分類」?",
+      "back": "因缺乏完整 NGS,無法排除其他 adverse 分子異常<hr>已知資訊(NPM1mut + FLT3-ITD + 純 trisomies/-Y)指向 intermediate;但 ELN2022 的 adverse 類別含多個分子標記(TP53、ASXL1、RUNX1、BCOR、EZH2、SF3B1、SRSF2、STAG2、U2AF1、ZRSR2)。<br>若未提供完整 NGS panel,無法確認是否潛藏 adverse mutation,故無法蓋棺定論 →「ELN2022 not applicable」的邏輯(複習班則據已知判 intermediate)。"
+    },
+    {
+      "kind": "basic",
+      "front": "高齡 de novo AML、不適合 intensive chemotherapy,一線治療首選為何?有何試驗支持?",
+      "back": "Venetoclax + Azacitidine(VEN + HMA)<hr>VEN + HMA(azacitidine 或 decitabine)為 unfit/老年 AML 的 lower-intensity 一線首選。<br>VIALE-A 試驗(DiNardo, NEJM 2020;383:617):VEN+azacitidine 較單用 azacitidine 顯著延長 OS(14.7 vs 9.6 月)、提高 CR/CRi。<br>NPM1mut 與 IDH1/2 突變者對 venetoclax 反應相對較佳。"
+    }
+  ]
+}

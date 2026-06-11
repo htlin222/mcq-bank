@@ -1,0 +1,33 @@
+{
+ "id": "114-016",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "MDS", "ICC2022", "WHO5", "TP53", "biTP53", "SF3B1", "RUNX1", "MDS-NOS", "MDS-AML", "dysplasia-threshold", "del5q"],
+ "enrich_html": "<b>📌 考點</b>:ICC 2022 與 WHO5 並非單純改名,而是<b>遺傳優先 (genetics-first)</b>的兩套平行系統。低 blast MDS 的<u>基因定義型</u>在 ICC 僅 del(5q)、SF3B1、multi-hit TP53 三類;<u>RUNX1 突變不是 MDS 的 disease-defining 病變</u>,故帶 RUNX1 + 多系列 dysplasia + BM blasts &lt;5% + 正常核型的病例,分類仍由形態主導,落入 MDS, NOS with multilineage dysplasia。<br><b>🏥 臨床意義</b>:正確命名直接牽動 IPSS-M 風險與治療路徑——multi-hit/biTP53 屬 very-poor risk,低 blast 仍考慮 allo-HSCT;單純 MDS-SF3B1 屬 lower-risk,以 luspatercept / ESA 矯正貧血為先。<br><b>⭐ High-yield</b>:dysplasia 門檻兩系統皆任一系列 ≥10%｜ICC blast 分層 &lt;5% / 5–9%(MDS-EB)/ 10–19%(MDS/AML 新類別)/ ≥20%(AML)｜WHO5 無 MDS/AML,10–19% = MDS-IB2｜ICC TP53 需 VAF ≥10%,1 mut + complex karyotype = multi-hit equivalent,WHO5 biTP53 無 VAF 門檻且不接受 complex karyotype 單獨判定｜約 67.5% TP53 病例兩系統分類不一致。<br><b>🔬 實證</b>:ICC = Arber et al., Blood 2022;140:1200;WHO5 = Khoury et al., Leukemia 2022;36:1703;兩系統並存比較見 Blood Cancer J 2024 與 Düsseldorf Registry validation (Leukemia 2024)。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "ICC 2022 中,RUNX1 mutation 是否為 MDS 的疾病定義性 (disease-defining) 遺傳異常?帶 RUNX1 + 多系列 dysplasia + BM blasts &lt;5% + 正常核型者應如何分類?",
+   "back": "否,RUNX1 非 MDS 的 disease-defining 病變;應依形態歸為 MDS, NOS with multilineage dysplasia<hr>ICC 的基因定義型低 blast MDS 僅含 del(5q) 與 SF3B1,multi-hit TP53 另成一類;RUNX1 不在其中。當缺乏這些定義性遺傳異常時,分類由形態主導——雙系列以上 dysplasia 即落入 MDS, NOS 的 multilineage dysplasia (MLD) 亞型,而非任何基因定義型。"
+  },
+  {
+   "kind": "cloze",
+   "text": "ICC 2022 依骨髓/周邊血 blast 比例對骨髓性腫瘤分層:&lt;5% → {{c1::MDS(MDS-NOS 或基因定義型)}};5–9% → {{c2::MDS-EB}};10–19% → {{c3::MDS/AML(新類別)}};≥20% → {{c4::AML}}。",
+   "extra": "WHO5 無 MDS/AML 類別,10–19% blast 為 MDS-IB2(仍屬 MDS)。當存在 AML-defining recurrent genetic abnormality 時(多數情況),blast ≥10% 即可直接診斷 AML。"
+  },
+  {
+   "kind": "cloze",
+   "text": "TP53 突變 MDS,ICC vs WHO5 三大差異:VAF 門檻 ICC 要求 {{c1::≥10%}}、WHO5 {{c2::無門檻}};complex karyotype 單獨判定 biallelic,ICC {{c3::接受(multi-hit equivalent)}}、WHO5 {{c4::不接受}};dysplasia 需求,ICC multi-hit TP53 {{c5::可不需要}}、WHO5 {{c6::要求(須先符合 MDS)}}。",
+   "extra": "ICC 另設獨立的 AML with mutated TP53 類別(blast ≥20%,或 10–19% 為 MDS/AML with mutated TP53),WHO5 則無此 TP53-defined AML 類別。約 67.5% 的 TP53 突變病例在兩系統間分類不一致。"
+  },
+  {
+   "kind": "basic",
+   "front": "WHO5 定義 MDS-SF3B1 (MDS with low blasts and SF3B1 mutation) 的 blast 條件與排除性核型有哪些?",
+   "back": "PB blasts &lt;2%、BM blasts &lt;5%、帶 SF3B1 突變,且不具 del(5q)、monosomy 7 / del(7q)、complex karyotype<hr>此類別取代舊的 MDS-RS-SLD,不再強制要求 ring sideroblasts 比例(SF3B1 突變即可;野生型 SF3B1 但 ring sideroblasts ≥15% 可替代)。具上述高風險核型者改歸其他亞型。ICC 的 MDS-SF3B1 另要求 RUNX1 為 wild-type,WHO5 則不以 RUNX1 為排除條件。"
+  },
+  {
+   "kind": "basic",
+   "front": "為何「TP53 多打擊 (multi-hit / biallelic)」要在 ICC 與 WHO5 都獨立成 MDS 亞型?其臨床後果為何?",
+   "back": "因 multi-hit TP53 預後極差,屬 very-poor risk,需與單一 (mono-allelic) TP53 區分<hr>單一 TP53 mutation 預後接近 TP53 wild-type;multi-hit(≥2 mut,或 1 mut + 17p loss / cn-LOH;ICC 另接受 1 mut + complex karyotype)才賦予侵襲性病程、對 hypomethylating agent 反應差、易進展為 AML。即使 blast 低,IPSS-M 仍歸 very-poor,常需考慮 allogeneic HSCT。"
+  }
+ ]
+}

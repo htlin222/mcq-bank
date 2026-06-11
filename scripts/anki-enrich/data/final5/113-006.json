@@ -1,0 +1,13 @@
+{
+ "id": "113-006",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "acquired hemophilia A", "anti-FVIII inhibitor", "factor VIII", "emicizumab", "postpartum", "isolated prolonged aPTT", "bypassing agent", "rFVIIa", "FEIBA", "immunosuppression", "Bethesda assay"],
+ "enrich_html": "<b>📌 考點</b>:Acquired hemophilia A (AHA) 為自體 anti-FVIII 抗體所致,經典生化三聯為「孤立性 aPTT 延長 + PT 正常 + platelet 正常」。Mixing study 1:1 與正常血漿混合後,經 37°C 孵育 2 小時仍 <u>無法矯正</u> (time/temperature-dependent inhibitor),藉此與單純因子缺乏(立即矯正)及 lupus anticoagulant(不需孵育即不矯正)鑑別。<br><b>🏥 臨床意義</b>:出血型態以<u>皮下/軟組織/肌肉大片瘀斑</u>為主,關節出血(hemarthrosis)反而少見,與先天型 hemophilia A 不同。年輕女性產後是經典誘因(本疾病亦好發於 60–80 歲老人);約 50% 為 idiopathic,其餘合併自體免疫病、惡性腫瘤、藥物。<br><b>⭐ High-yield</b>:止血策略看 inhibitor titer — <u>&gt;5 BU 或嚴重出血</u>優先 bypassing agents(rFVIIa、aPCC/FEIBA、recombinant porcine FVIII),因人類 FVIII 易被中和;低 titer 可試高劑量 FVIII 或 desmopressin。Emicizumab(FIXa/FX bispecific Ab)不受 anti-FVIII 影響,用於止血控制後預防再出血。根本治療為盡早 immunosuppression 清除抗體:prednisone 1 mg/kg/day ± rituximab ± cyclophosphamide。<br><b>🔬 實證</b>:Bethesda assay 1 BU = 中和 50% FVIII:C(37°C 2hr);產後型復發率較低、再懷孕非絕對禁忌。(International recommendations, Tiede et al., Haematologica 2020;105:1791;ASH Education Program 2023;Blood 2021;137:410)",
+ "cards": [
+  {"kind":"basic","front":"中年女性產後出現全身多處大片瘀斑,PT/INR 正常、platelet 正常,但 aPTT 顯著延長,最可能診斷為何?","back":"Acquired hemophilia A (後天性甲型血友病)<hr>典型生化三聯:孤立性 aPTT 延長(intrinsic pathway 單獨受損)、PT/INR 正常、platelet 正常。產後是年輕女性的經典誘因;其他誘因含自體免疫病、惡性腫瘤、藥物,約半數為 idiopathic。整體則好發於 60–80 歲老人。"},
+  {"kind":"basic","front":"Acquired hemophilia A 的自體抗體針對哪個凝血因子?最常見的誘餌診斷為何?","back":"anti-FVIII (factor VIII) 自體抗體<hr>並非 anti-FIX —— 針對 FIX 的 acquired hemophilia B 極為罕見,常被當作誘餌選項。抗體中和 FVIII 活性,造成 intrinsic pathway 受損與孤立性 aPTT 延長。"},
+  {"kind":"basic","front":"懷疑 acquired hemophilia A 時,mixing study 的特徵性結果為何?如何與單純因子缺乏及 lupus anticoagulant 鑑別?","back":"病人血漿與正常血漿 1:1 混合,經 37°C 孵育 2 小時後 aPTT 仍無法矯正(time/temperature-dependent inhibitor)<hr>單純因子缺乏 → 混合後立即矯正。Lupus anticoagulant → 不需孵育即不矯正(immediate inhibitor)。anti-FVIII 屬 time-dependent,需孵育才顯現抑制,是關鍵鑑別點。"},
+  {"kind":"basic","front":"Acquired hemophilia A 急性出血時,止血藥物如何依 inhibitor titer 選擇?","back":"inhibitor &gt;5 BU 或嚴重出血 → 優先 bypassing agents:rFVIIa、aPCC(FEIBA)、recombinant porcine FVIII<hr>因高效價 inhibitor 會中和人類 FVIII 使其無效。低效價(&lt;5 BU)且出血較輕時,可考慮高劑量人類 FVIII 或 desmopressin (DDAVP)。Emicizumab(不受 anti-FVIII 影響)可用於止血後的再出血預防。"},
+  {"kind":"basic","front":"Acquired hemophilia A 除止血外,清除自體抗體的根本(first-line)免疫抑制治療為何?","back":"盡早啟動 immunosuppression:prednisone 1 mg/kg/day 為第一線,常合併 rituximab 與/或 cyclophosphamide<hr>目標是 eradicate anti-FVIII 自體抗體達成緩解;單純止血而不清除抗體無法解決根本問題。因病人常為高齡虛弱,需個別化評估免疫抑制的副作用風險。"}
+ ]
+}

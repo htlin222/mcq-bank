@@ -1,0 +1,13 @@
+{
+ "id": "112-066",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "vWD", "von Willebrand disease", "DDAVP", "desmopressin", "hemophilia A", "vWF", "FVIII", "type 2B VWD", "type 2N VWD", "Weibel-Palade body"],
+ "enrich_html": "<b>📌 考點</b>：DDAVP（desmopressin）有效的前提是「體內存在可被釋放的功能性 vWF/FVIII 儲存」。對 Type 1 VWD（量缺、質正常）與 <u>輕至中度 hemophilia A</u> 有效；對 vWF 質異常或極度缺乏者效差或禁用。記憶軸：Type 1 ✔、Type 2A ✘、<u>Type 2B 禁忌</u>、Type 2N 多無效但可試用/鑑別、Type 3 ✘、severe hemophilia A ✘、hemophilia B 完全無反應。<br><b>🏥 臨床意義</b>：Type 2B 的 vWF 對 GPIb 為 gain-of-function、親和力過高；DDAVP 釋放更多此種 vWF 會誘發血小板自發凝集與清除 → <u>加重 thrombocytopenia</u>，故一般 contraindicated。其他禁忌：活動性心血管疾病、癲癇、年齡 &lt;2 歲、major surgery；type 1C 行手術不宜單用。<br><b>⭐ High-yield</b>：劑量 IV/SC 0.3 mcg/kg（max ~20 μg）或 intranasal 150–300 μg｜反應定義 4hr VWF activity 與 FVIII ≥ 0.5 IU/mL｜tachyphylaxis（重複給藥效力遞減、長手術須加 factor concentrate）｜副作用 hyponatremia/水中毒（須限水）｜用前應先做 desmopressin trial 證實反應。<br><b>🔬 實證</b>：trial 反應率 Type 1 VWD complete 82.5%／mild hemophilia A complete 53.8%。(ASH/ISTH/NHF/WFH, Blood Adv 2021;5:301；Haemophilia 2023, Chandrakumaran)",
+ "cards": [
+  {"kind":"basic","front":"DDAVP (desmopressin) 提升止血功能的主要機轉為何？","back":"促進血管內皮細胞 Weibel-Palade body 釋放儲存的 vWF（連帶提升 FVIII）<hr>DDAVP 是 vasopressin 類似物，刺激內皮釋放預先儲存的 vWF，使血漿 vWF 與 FVIII 短暫上升 2–4 倍。因此僅在「體內有可被釋放的功能性 vWF/FVIII 儲存」時有效；若儲存本身極低（如 type 3、severe hemophilia A）或質量異常（type 2）則反應差。反覆給藥會耗盡儲存（tachyphylaxis）。"},
+  {"kind":"basic","front":"為何 DDAVP 在 Type 2B von Willebrand disease 屬禁忌 (contraindicated)？","back":"釋放的異常 vWF 會加重血小板凝集並惡化 thrombocytopenia<hr>Type 2B 的 vWF 對血小板 GPIb 親和力異常增高（gain-of-function）；DDAVP 釋放出更多此種高親和力 vWF，誘發血小板自發性凝集與清除，導致 thrombocytopenia 加重，故一般禁用。"},
+  {"kind":"basic","front":"先天性 hemophilia A 哪種嚴重度對 DDAVP 有效？hemophilia B 呢？","back":"輕至中度 hemophilia A 有效；severe 無效；hemophilia B 完全無反應<hr>DDAVP 釋放內皮儲存以提升 FVIII。輕至中度患者基礎 FVIII 尚可被拉高 2–3 倍達止血所需（trial complete response 約 53.8%）；severe（FVIII &lt;1%）翻倍仍不足，須用 FVIII 製劑。Hemophilia B 為 FIX 缺乏，與 vWF/FVIII 釋放無關，DDAVP 無效。"},
+  {"kind":"cloze","text":"DDAVP 對 VWD 各亞型的反應：Type 1 = {{c1::首選有效}}；Type 2A = {{c2::多無效}}；Type 2B = {{c3::禁忌 (contraindicated)}}；Type 2N = {{c4::多無效但可試用/鑑別}}；Type 3 = {{c5::無效}}","extra":"Type 3 為 vWF 幾乎完全缺乏、無可釋放儲存，須用含 vWF 製劑。先天性 hemophilia A：輕中度有效、severe 無效；hemophilia B 完全無反應。"},
+  {"kind":"cloze","text":"DDAVP trial 的反應定義為給藥後 {{c1::4}} 小時 VWF activity 與 FVIII ≥ {{c2::0.5 IU/mL (50%)}}；標準劑量 IV/SC {{c3::0.3 mcg/kg}}；最須監測的副作用為 {{c4::hyponatremia (水中毒)}}。","extra":"ASH/ISTH/NHF/WFH 2021 建議用前先做 trial（1hr 與 4hr 抽血）。tachyphylaxis 使重複給藥效力遞減。"}
+ ]
+}

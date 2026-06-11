@@ -1,0 +1,13 @@
+{
+ "id": "113-049",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "CLL", "SLL", "immunophenotyping", "Matutes-score", "CD5", "CD23", "FMC7", "CD20", "CD200", "LEF1", "mantle-cell-lymphoma", "cyclin-D1"],
+ "enrich_html": "<b>📌 考點</b>:典型 CLL 是「弱 B 細胞表型 + 異常 CD5」。五個 marker 方向:CD5⁺、CD23⁺、CD20 dim、sIg dim、<u>FMC7⁻</u>。FMC7 抗體辨識 CD20 上的一個 epitope,CLL 因 CD20 表現極弱,故 FMC7 通常陰性 — 這是把 FMC7 從一堆「CLL 陽性」選項中挑出來當答案的關鍵。<br><b>🏥 臨床意義</b>:免疫表型用於與 CD5⁺ 的 mantle cell lymphoma 鑑別。MCL 為 CD23⁻/dim、FMC7⁺、CD20 bright、sIg bright、cyclin D1⁺、t(11;14)(q13;q32)、SOX11⁺、CD200⁻;CLL 則 CD23⁺、FMC7⁻、CD200⁺、LEF1⁺。誤把 MCL 當 CLL 會延誤侵襲性淋巴瘤治療。<br><b>⭐ High-yield</b>:Matutes score(CD5⁺/CD23⁺/FMC7⁻/sIg dim/CD22 dim 各 1 分)≥4 分支持 CLL,≤2 傾向其他 B-LPD,3 分為 atypical CLL。Moreau(1997)以 CD79b 取代 CD22。CLL 診斷另需周邊血 monoclonal B lymphocyte ≥5×10⁹/L 持續 ≥3 個月。<br><b>🔬 實證</b>:CD200(2009)加入評分後顯著提升 CLL 與 MCL 的鑑別特異度;LEF1(CLL⁺)/SOX11(MCL⁺)為新增輔助標記。(Matutes et al., Leukemia 1994;Springer Ann Hematol 2025;PMC7895405)",
+ "cards": [
+  {"kind":"basic","front":"FMC7 抗體實際辨識的是哪個分子上的 epitope?為何在 CLL 多呈陰性?","back":"CD20 上的一個 epitope<hr>FMC7 並非獨立抗原,而是 CD20 的一個構形 epitope。CLL 細胞 CD20 表現極弱(dim),連帶 FMC7 epitope 偵測不到,故 FMC7⁻;這正是把 FMC7 從一堆「CLL 陽性」marker 中挑出來的關鍵。CD20 強表現的 B 細胞腫瘤(如 MCL、FL)則 FMC7⁺。"},
+  {"kind":"cloze","text":"典型 CLL 免疫表型:CD5 {{c1::陽性}}、CD23 {{c2::陽性}}、CD20 {{c3::弱陽性(dim)}}、surface Ig {{c4::弱陽性(dim)}}、FMC7 {{c5::陰性}}、CD200 {{c6::陽性}}。","extra":"記憶:CLL =「弱 B 細胞表型 + 異常 CD5」。CD20/sIg/CD22/CD79b 皆 dim;CD5⁺/CD23⁺/CD200⁺/LEF1⁺ 為標誌;FMC7⁻。對照 MCL:CD23⁻/dim、FMC7⁺、CD20 bright、sIg bright、CD200⁻。"},
+  {"kind":"cloze","text":"Matutes(Royal Marsden)CLL scoring 五項,各得 1 分:CD5 {{c1::陽性}}、CD23 {{c2::陽性}}、FMC7 {{c3::陰性}}、surface Ig {{c4::弱(dim)}}、CD22(或 CD79b){{c5::弱(dim)}}。","extra":"Score 4-5 分支持 CLL;≤2 傾向其他 B-LPD(如 MCL);3 分為 atypical CLL。Moreau(1997)以 CD79b 取代原始的 CD22。低分(尤其 FMC7⁺/sIg bright)應警惕 mantle cell lymphoma。"},
+  {"kind":"basic","front":"診斷 CLL 對周邊血 monoclonal B lymphocyte 的數量門檻為何?","back":"≥5×10⁹/L,且持續 ≥3 個月<hr>iwCLL 標準:周邊血單株 B 淋巴球(具 CLL 表型)≥5×10⁹/L 即可診斷 CLL。若 <5×10⁹/L 但無淋巴結/器官腫大,稱 monoclonal B-cell lymphocytosis(MBL);若以淋巴結病變為主、血中 <5×10⁹/L 則為 SLL。"},
+  {"kind":"basic","front":"當 CD5⁺ B 細胞腫瘤的 CD23/FMC7 表現不典型時,確診 mantle cell lymphoma(而非 CLL)最關鍵的分子/細胞遺傳學標記為何?","back":"cyclin D1 過度表現 + t(11;14)(q13;q32)(IGH::CCND1)<hr>幾乎所有 MCL 帶 t(11;14) 致 cyclin D1 強表現,SOX11 亦多陽性;CLL 則 cyclin D1⁻。免疫表型上 MCL 為 CD23⁻/dim、FMC7⁺、CD200⁻,與 CLL 相反,但表現不典型時須以 cyclin D1/t(11;14) 確認以排除侵襲性的 MCL。"}
+ ]
+}

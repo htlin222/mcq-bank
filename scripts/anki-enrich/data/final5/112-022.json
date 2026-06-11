@@ -1,0 +1,13 @@
+{
+ "id": "112-022",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "vWD", "von Willebrand disease", "vWF", "acquired von Willebrand syndrome", "Heyde syndrome", "type 3 vWD", "type 2B vWD", "DDAVP", "primary hemostasis"],
+ "enrich_html": "<b>📌 考點</b>:降低 vWF 活性的甲狀腺異常是 <u>hypothyroidism</u>(機轉:VWF 合成下降,屬 acquired vWS,可被 L-thyroxine 逆轉),而非 hyperthyroidism;且 coronary artery disease/atherosclerosis 因內皮活化與急性期反應反而使 VWF <u>上升</u>。把這兩點寫反就是 vWD 臨床表現題最常見的雙陷阱。<br><b>🏥 臨床意義</b>:type 3 vWD(VWF≈0)因 VWF 是 FVIII 的血漿載體蛋白,FVIII 半衰期大減而極低,臨床似 Hemophilia A,可見 hemarthroses 與 intramuscular hematomas;處置以含 HMW multimer 的 FVIII/VWF concentrate 為主(DDAVP 無效)。<br><b>⭐ High-yield</b>:DDAVP 適 type 1｜<u>type 2B 禁用 DDAVP</u>(增強 VWF-GPIb 結合→thrombocytopenia)｜type 3 DDAVP 無效需 concentrate｜type 2N 靠 FVIII binding assay 確診(FVIII 降幅遠大於 VWF)｜tranexamic acid 為輔助。<br><b>🔬 實證</b>:Heyde syndrome=aortic stenosis + GI angiodysplasia 出血 + acquired vWS,機轉為高剪切力下 ADAMTS13 過度切解 HMW VWF multimer;主動脈瓣置換(SAVR/TAVI)可逆轉。(ASH/ISTH/NHF/WFH Blood Adv 2021;5:280 與 5:301)",
+ "cards": [
+  {"kind":"basic","front":"哪一種甲狀腺功能異常會降低 vWF 活性 — hyperthyroidism 還是 hypothyroidism?","back":"Hypothyroidism(甲狀腺功能低下)<hr>機轉為 decreased synthesis of VWF,屬 acquired von Willebrand syndrome,可被 L-thyroxine 逆轉。雙陷阱:方向寫成 hyperthyroidism 降低 vWF 為錯;而 coronary artery disease/atherosclerosis 因內皮活化與急性期反應反而使 VWF 上升。"},
+  {"kind":"cloze","text":"vWD 分類(ASH/ISTH 2021):量變型為 {{c1::type 1(部分量缺,最常見、輕型)}} 與 {{c2::type 3(VWF 幾近完全缺、FVIII 極低)}};質變型為 {{c3::type 2A(HMW multimer 缺失)}}、{{c4::type 2B(增強結合 platelet GPIb→thrombocytopenia)}}、{{c5::type 2M(multimer 正常但 platelet-dependent activity 低)}}、{{c6::type 2N(VWF-FVIII 結合缺陷,FVIII 降幅遠大於 VWF)}}","extra":"type 2N 靠 VWF:FVIII binding assay 確診,易與 mild Hemophilia A 混淆,但 2N 為體染色體隱性、兩性皆可發病。"},
+  {"kind":"basic","front":"DDAVP(desmopressin)在哪一型 vWD 屬於禁忌?為什麼?","back":"Type 2B vWD 禁用 DDAVP<hr>type 2B 突變使 VWF 對 platelet GPIb 結合力增強;DDAVP 釋放出的異常 VWF 會加重血小板凝集與消耗,誘發或惡化 thrombocytopenia。DDAVP 主要用於 type 1;type 3 對 DDAVP 無效。"},
+  {"kind":"basic","front":"為何 type 3 vWD(VWF 幾近於零)會連帶 FVIII 極低、出現類似 Hemophilia A 的 hemarthroses 與 intramuscular hematomas?","back":"因 VWF 是 FVIII 的血漿載體蛋白,可穩定並保護 FVIII 免於快速清除<hr>無 VWF 保護時 FVIII 半衰期大幅縮短、血漿 FVIII 隨之極低,故除黏膜出血外更出現深部關節/肌肉出血(凝血因子缺乏型);處置以含 HMW multimer 的 FVIII/VWF concentrate 為主,DDAVP 無效。"},
+  {"kind":"basic","front":"高剪切力(high-shear stress)相關 acquired vWS 的經典臨床三聯徵(Heyde syndrome)為何?機轉是什麼?","back":"Heyde syndrome = aortic stenosis + GI angiodysplasia 出血 + acquired vWS<hr>狹窄瓣膜處的高剪切力使 HMW VWF multimers 被 ADAMTS13 過度切解而流失,削弱初級止血並促進腸道血管畸形出血;主動脈瓣置換(SAVR/TAVI)可逆轉。mechanical valve、LVAD/ECMO 機轉相同。"}
+ ]
+}

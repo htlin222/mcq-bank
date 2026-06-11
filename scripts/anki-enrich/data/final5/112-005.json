@@ -1,0 +1,13 @@
+{
+ "id": "112-005",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "platelet transfusion refractoriness", "anti-HLA", "alloimmunization", "CCI", "transfusion-medicine", "leukoreduction"],
+ "enrich_html": "<b>📌 考點</b>:Platelet transfusion refractoriness (PTR) 定義為連續兩次以上輸後血小板恢復不佳,客觀以 corrected count increment (CCI) 量化;選因素時要記住 PTR 兼含<u>免疫性與非免疫性</u>兩大類 — bone marrow transplantation、DIC、ITP、anti-HLA 四者皆相關(全選)。誘餌思維是只圈 anti-HLA(D),但非免疫消耗因素占多數。<br><b>🏥 臨床意義</b>:用 1hr 與 24hr 兩時間點 CCI 區辨機轉決定處置 — 免疫性(anti-HLA class I 為主)1hr CCI 即偏低、血小板快速清除 → 查 HLA 抗體、給 HLA-matched / crossmatch-compatible platelets;非免疫性 1hr 上升尚可但 24hr 落回 → 治療 sepsis/DIC/splenomegaly 等本因。<br><b>⭐ High-yield</b>:非免疫性占 ~80%(約 two-thirds)且最常見｜CCI cutoff 約 1hr <5,000(×10³/µL)、24hr <2,500–4,500｜anti-HLA class I > anti-HPA｜預防 alloimmunization 靠 leukoreduction｜即使給 HLA-matched 仍可能失敗,多因合併壓倒性非免疫機轉。<br><b>🔬 實證</b>:確認 PTR 後應<u>先排除非免疫因素</u>(出血/感染/發炎/藥物)再驗 anti-HLA-I 抗體。(Stanworth et al., Hematology ASH Educ Program 2020;2020:527-532)",
+ "cards": [
+  {"kind":"basic","front":"Refractoriness to platelet transfusion 的相關因素 — bone marrow transplantation、ITP、DIC、anti-HLA,何者相關?","back":"四項全部相關。<hr>anti-HLA 為免疫性(alloimmunization)主因;ITP 為自體抗體免疫性破壞;DIC 與 HSCT 屬非免疫性消耗(HSCT 兼含致敏)。關鍵概念:PTR 同時涵蓋<u>免疫與非免疫</u>兩大類,陷阱是只圈 anti-HLA,但非免疫消耗因素其實占多數。"},
+  {"kind":"basic","front":"如何用「輸後 1 小時 vs 24 小時」的 CCI 區分免疫性 (anti-HLA) 與非免疫性 (消耗性) platelet refractoriness?","back":"看 1 小時 CCI:免疫性 → 1hr CCI 即偏低、血小板被快速清除;非免疫性 → 1hr CCI 正常、但 24hr CCI 偏低。<hr>免疫性是即時清除,故 1 小時就看不到上升;非免疫性(脾腫大、敗血症等)是輸後先升、24 小時內又落回。此區分決定是否檢測 anti-HLA 抗體並提供 HLA-matched 血小板。"},
+  {"kind":"basic","front":"Platelet refractoriness 分為哪兩大類成因?何者更常見、約占多少?其代表性原因為何?","back":"分為 immune(免疫性:anti-HLA class I 為主、anti-HPA 次之、ITP 自體抗體)與 non-immune(非免疫性消耗)兩類;非免疫性更常見,約占 80%(約 two-thirds)。<hr>非免疫因素:發燒/敗血症、DIC、脾腫大、活動性出血、藥物(amphotericin B、vancomycin)、HSCT/GVHD/VOD。故臨床須<u>先排除可治療的非免疫因素</u>,再驗 anti-HLA-I 抗體。"},
+  {"kind":"basic","front":"確認為 anti-HLA 引起的免疫性 platelet refractoriness 時,首選的輸血處置是什麼?","back":"提供 HLA-matched 或 platelet crossmatch-compatible 的血小板製品。<hr>若無法取得 HLA-matched,可嘗試 HPA-compatible。注意:即使給 HLA-matched 仍可能失敗,多因合併壓倒性的非免疫機轉,故須同時處理 sepsis/DIC 等本因。"},
+  {"kind":"basic","front":"預防 platelet transfusion 相關 alloimmunization (anti-HLA 致敏) 的關鍵措施是什麼?","back":"Leukoreduction(去除血品中的白血球)。<hr>HLA class I 致敏主要由污染的白血球引發;去白可顯著降低 anti-HLA alloimmunization 與後續免疫性 refractoriness 的發生率(TRAP trial 證實)。"}
+ ]
+}

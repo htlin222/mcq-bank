@@ -1,0 +1,13 @@
+{
+ "id": "113-051",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "DLBCL", "lymphoma", "Hans-algorithm", "cell-of-origin", "CD10", "BCL6", "MUM1", "IRF4", "GCB", "ABC", "Lymph2Cx", "IHC"],
+ "enrich_html": "<b>📌 考點</b>:Hans algorithm (Blood 2004) 是 DLBCL cell-of-origin 的 <b>IHC 三標記階層演算法</b>,依序看 CD10 → BCL6 → MUM1。四條路徑:CD10(+) → GCB｜CD10(-)/BCL6(-) → non-GCB｜CD10(-)/BCL6(+)/MUM1(+) → non-GCB｜CD10(-)/BCL6(+)/MUM1(-) → GCB。四者皆為原始演算法正確內容,故「以上判讀皆對」成立。<br><b>🏥 臨床意義</b>:GCB 預後優於 non-GCB/ABC,後者 R-CHOP 反應較差、常有 NF-&kappa;B / BTK pathway 活化,衍生 BTK inhibitor、lenalidomide 等策略探討。COO 分型是危險分層與臨床試驗納入依據。<br><b>⭐ High-yield</b>:Hans IHC 是 GEP (gold standard) 的替代法,兩者 concordance 僅約 72&ndash;74%;GEP 對 IHC-GCB 吻合 ~85%、對 IHC-non-GCB 僅 ~58% 真為 ABC｜約 10&ndash;15% 病例 GEP 無法明確歸類｜CD10/BCL6/MUM1 三者皆陽性 (aberrant coexpression) 與 GEP 不一致達 41%,富含 IRF4 rearrangement。<br><b>🔬 實證</b>:Lymph2Cx (NanoString GEP) 的 ABC 預後較差 (5-yr OS 77% vs GCB 97%),預後分層優於 Hans IHC(Hans 分型在多數研究 OS 差異不顯著)。(Hans CP et al., Blood 2004;103:275; Scott DW et al., Oncotarget 2017; Blood Adv 2022;6:2361)",
+ "cards": [
+  {"kind":"basic","front":"DLBCL 的 Hans IHC algorithm 使用哪三個免疫組織化學標記、依何順序做 cell-of-origin (GCB vs non-GCB) 分類?","back":"CD10 → BCL6 → MUM1 (IRF4),依序判讀<hr>Hans CP et al. (Blood 2004) 提出此三標記階層式演算法,把 DLBCL 分為 germinal center B-cell-like (GCB) 與 non-GCB 兩型,作為 gene expression profiling (GEP) 的 IHC 臨床替代法。"},
+  {"kind":"cloze","text":"Hans algorithm 四條判讀路徑:CD10(+) → {{c1::GCB}};CD10(-)、BCL6(-) → {{c2::non-GCB}};CD10(-)、BCL6(+)、MUM1(+) → {{c3::non-GCB}};CD10(-)、BCL6(+)、MUM1(-) → {{c4::GCB}}。","extra":"三標記依序為 CD10 → BCL6 → MUM1。記憶要點:只有 CD10(+) 或 (BCL6+/MUM1-) 才是 GCB,其餘皆 non-GCB。MUM1 (IRF4) 為 activated B-cell 標記,陽性才把腫瘤拉向 non-GCB。(Hans CP et al., Blood 2004)"},
+  {"kind":"basic","front":"為何要區分 DLBCL 的 GCB 與 non-GCB (ABC) 亞型?臨床與治療意義為何?","back":"兩型生物學與預後不同:GCB 預後較佳,non-GCB/ABC 對標準 R-CHOP 反應較差<hr>ABC 型多有 NF-κB / BTK pathway 活化,衍生 BTK inhibitor、lenalidomide 等標靶策略探討。COO 分型亦是臨床試驗納入與危險分層依據。"},
+  {"kind":"basic","front":"DLBCL cell-of-origin 分型的 gold standard 是哪種方法?Hans IHC algorithm 與它的 concordance 約多少?","back":"Gold standard 是 gene expression profiling (GEP);Hans IHC 與 GEP 的 concordance 僅約 72–74%<hr>GEP 對 IHC 判 GCB 者吻合度高 (~85%),但對 IHC 判 non-GCB 者僅約 58% 真為 ABC,顯示 non-GCB 一端較不可靠。預後分層上 GEP-based Lymph2Cx 的 ABC 型 5-yr OS 約 77% vs GCB 約 97%,優於 Hans IHC。"},
+  {"kind":"basic","front":"DLBCL 同時 CD10(+)、BCL6(+)、MUM1(+) 三標記皆陽性 (aberrant coexpression) 時,在 cell-of-origin 判讀上有何陷阱?","back":"與 GEP 不一致率最高 (約 41%),且此群富含 IRF4 rearrangement<hr>三標記同時陽性不符合 Hans 的典型階層假設,判讀最不可靠;遇到應警覺 large B-cell lymphoma with IRF4 rearrangement 此一獨立 entity。(Blood Adv 2022;6:2361)"}
+ ]
+}

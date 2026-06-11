@@ -1,0 +1,13 @@
+{
+  "id": "114-007",
+  "topic_index": 5,
+  "extra_tags": ["enriched", "PNH", "Pegcetacoplan", "Iptacopan", "Danicopan", "Ravulizumab", "Eculizumab", "complement-inhibitor", "C3-inhibitor", "Factor-D-inhibitor", "C5-inhibitor", "extravascular-hemolysis"],
+  "enrich_html": "<b>📌 考點</b>:PNH 補體抑制劑的「標靶 × 給藥途徑 × 頻率」三要素配對是高頻陷阱。近端阻斷 (proximal) 指作用於補體級聯上游的 <u>C3 抑制劑 (Pegcetacoplan, 1080 mg SC twice weekly)</u> 與 <u>Factor D 抑制劑 (Iptacopan 200 mg PO BID、Danicopan 150–200 mg PO TID)</u>;終端阻斷 (terminal) 指 C5 抑制劑 (Eculizumab IV q2wk、Ravulizumab IV q8wk)。誘餌常見手法:把 Pegcetacoplan 寫成靜脈/單藥、把 Iptacopan 寫成皮下/每週一次、把 Ravulizumab 的 IV 寫成 SC。<br><b>🏥 臨床意義</b>:C5 抑制劑只擋終端 MAC、控制血管內溶血 (IVH),但上游 C3 仍 opsonize 紅血球→脾臟清除→<b>血管外溶血 (EVH)</b> 殘留貧血;近端阻斷 (C3/Factor D) 同時壓制 IVH 與 EVH,故 Pegcetacoplan、Iptacopan 可單藥達完全溶血控制,Danicopan 則為 C5 控制不佳殘留 cs-EVH 時的 <b>add-on</b> (非主療法)。<br><b>⭐ High-yield</b>:Iptacopan = 首個 PNH 口服 monotherapy (FDA 2023)｜Danicopan = FDA 2024-04 add-on｜Pegcetacoplan 起用前須 stable eculizumab≥3 月 (PEGASUS 設計)，有 breakthrough hemolysis 風險，急性發作可 1080 mg IV 單劑或連續 3 天 SC 救援。<br><b>🔬 實證</b>:PEGASUS trial — eculizumab 治療後 Hb &lt;10.5 g/dL 者,Pegcetacoplan 在 16 週 Hb 改善優於 eculizumab。(Hillmen et al., Blood 2022;139:3361;JMCP 2024;30:618;PMC11395449, 2024)",
+  "cards": [
+    {"kind":"cloze","text":"PNH 補體抑制劑依標靶分類:{{c1::Pegcetacoplan}} 作用於 C3;{{c2::Iptacopan}} 與 {{c3::Danicopan}} 作用於 Factor D;{{c4::Eculizumab}} 與 {{c5::Ravulizumab}} 作用於 C5。","extra":"C3 與 Factor D 屬近端 (proximal) 阻斷;C5 屬終端 (terminal) 阻斷。近端阻斷可同時控制血管內溶血 (IVH) 與 C3 沉積引起的血管外溶血 (EVH)。"},
+    {"kind":"cloze","text":"PNH 補體抑制劑的給藥途徑與頻率:Pegcetacoplan 為 {{c1::皮下 (SC) 每週兩次,1080 mg}};Iptacopan 為 {{c2::口服 BID,200 mg}};Danicopan 為 {{c3::口服 TID,150–200 mg}};Ravulizumab 為 {{c4::靜脈 (IV) 每 8 週}};Eculizumab 為 {{c5::靜脈 (IV) 每 2 週}}。","extra":"常見誘餌:把 Pegcetacoplan 寫成靜脈/單劑、Iptacopan 寫成皮下/每週、Ravulizumab 的 IV 寫成 SC。Iptacopan 與 Pegcetacoplan 可作單一療法;Danicopan 為 C5 抑制劑殘留 cs-EVH 時的 add-on。"},
+    {"kind":"basic","front":"PNH 病人接受 C5 終端抑制劑 (Eculizumab/Ravulizumab) 後仍殘留貧血,最可能的機轉為何?","back":"C3 沉積導致的血管外溶血 (extravascular hemolysis, EVH)<hr>C5 抑制劑阻斷終端通路 (MAC 形成),可控制血管內溶血 (IVH);但上游 C3 仍 opsonize PNH 紅血球,使其在脾臟/肝臟被巨噬細胞清除→EVH。這正是改用近端抑制劑 (C3/Factor D) 或加上 Danicopan 的理論基礎。"},
+    {"kind":"basic","front":"PNH 用藥 Danicopan 的補體標靶、給藥途徑與在治療中的角色為何?","back":"Factor D 抑制劑;口服每天三次 (TID, 150–200 mg);作為「附加 (add-on)」療法,非主療法<hr>Danicopan 為口服 Factor D 抑制劑 (FDA 2024-04 核准),用於對 C5 抑制劑 (Eculizumab/Ravulizumab) 仍有顯著臨床血管外溶血 (cs-EVH) 的病人,作為<b>輔助/附加</b>治療,而非單獨主療法。對比之下,同為口服 Factor D 抑制劑的 Iptacopan 可作單一療法。"},
+    {"kind":"cloze","text":"PNH 近端抑制劑里程碑:{{c1::Iptacopan}} 是首個 PNH 口服單一療法 (FDA 2023);{{c2::Danicopan}} 於 2024 核准為 C5 抑制劑的附加 (add-on) 療法。","extra":"兩者皆為口服 Factor D 抑制劑;近端阻斷可同時控制 IVH 與 EVH,故 Iptacopan 可單藥達完全溶血控制,Danicopan 僅為殘留 cs-EVH 的輔助。"}
+  ]
+}

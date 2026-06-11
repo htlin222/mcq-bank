@@ -1,0 +1,44 @@
+{
+  "id": "112-079",
+  "topic_index": 2,
+  "extra_tags": [
+    "enriched",
+    "DLBCL",
+    "immune-privileged large B cell lymphoma",
+    "primary CNS lymphoma",
+    "primary vitreoretinal lymphoma",
+    "primary testicular lymphoma",
+    "WHO-HAEM5",
+    "MYD88",
+    "CD79B",
+    "EBV"
+  ],
+  "enrich_html": "<b>📌 考點</b>：WHO-HAEM5 (2022) 把三個發生於解剖性 immune sanctuary 的侵襲性 B 細胞淋巴瘤整合為 <u>immune-privileged large B-cell lymphoma (IP-LBCL)</u> umbrella term：primary DLBCL of CNS、primary vitreoretinal LBCL、primary testicular LBCL。誘餌 adrenal DLBCL 不在此列 (腎上腺非 immune sanctuary)。<br><b>🏥 臨床意義</b>：四大生物學基石 = MYD88 L265P + CD79B → My-T-BCR complex 驅動 chronic active BCR signaling｜HLA class I/II + CD58 失活 → immune escape｜CDKN2A loss｜PRDM1/TBL1XR1 失活。IHC 多為 non-GCB/ABC：CD10−、MUM1+、BCL6+、EBV−。<br><b>⭐ High-yield</b>：PCNSL 首選 HD-MTX-based induction (如 R-MT：rituximab+HD-MTX+thiotepa)；PTL 標準三件套 = R-CHOP + IT/IV CNS prophylaxis + <u>對側睪丸放療</u> (IELSG10/IELSG30)。MYD88/CD79B 突變使 BTK inhibitor 成為 R/R 治療標的。<br><b>🔬 實證</b>：IP-LBCL 概念見 Alaggio R, Leukemia 2022;36:1720；生物學基石見 Blood 2024;144:2593；PTL 三件套見 Vitolo, JCO 2011 與 IELSG30, Blood Adv 2024;8:1541。",
+  "cards": [
+    {
+      "kind": "basic",
+      "front": "WHO-HAEM5 (2022) 新設的 umbrella term「immune-privileged large B-cell lymphoma (IP-LBCL)」涵蓋哪三個解剖部位的 subtype？",
+      "back": "primary DLBCL of CNS、primary vitreoretinal (retinovitreous) large B-cell lymphoma、primary testicular large B-cell lymphoma<hr>三處對應 blood-brain barrier、blood-retina barrier、blood-testis barrier 構成的 immune sanctuaries，免疫監視較弱。Adrenal DLBCL 不屬於此 umbrella term。"
+    },
+    {
+      "kind": "basic",
+      "front": "Adrenal DLBCL 為何不屬於 WHO-HAEM5 immune-privileged large B-cell lymphoma？",
+      "back": "腎上腺不屬於解剖性 immune sanctuary 部位<hr>該 umbrella term 僅限 blood-brain、blood-retina、blood-testis barrier 形成的免疫豁免部位 (CNS、vitreoretina、testis)。腎上腺雖可發生 DLBCL，但缺乏 immune-privileged 解剖屏障，故不計入；這是常見的選項陷阱。"
+    },
+    {
+      "kind": "cloze",
+      "text": "immune-privileged large B-cell lymphoma 的四大生物學基石：{{c1::MYD88 L265P + CD79B 活化突變 (My-T-BCR complex → chronic active BCR signaling)}}、{{c2::HLA class I/II 與 CD58 失活 (immune escape)}}、{{c3::CDKN2A loss (cell cycle 失控)}}、{{c4::PRDM1 / TBL1XR1 失活 (持續增生)}}",
+      "extra": "concomitant MYD88 (L265P) + CD79B 與 TLR9、BCR 組成 My-T-BCR complex 驅動 NF-κB，是 ABC/non-GCB 表型標誌，也使 BTK inhibitor 成為復發難治治療標的。HLA/CD58 失活解釋免疫豁免部位的 immune evasion。來源：Blood 2024;144:2593。"
+    },
+    {
+      "kind": "basic",
+      "front": "primary DLBCL of CNS (PCNSL) 的第一線 induction 治療骨幹是什麼？",
+      "back": "high-dose methotrexate (HD-MTX)-based induction，常合併 rituximab<hr>代表方案如 R-MT (rituximab + HD-MTX + thiotepa) 或加 cytarabine 的 MATRix 類組合；HD-MTX 可穿越 blood-brain barrier 達治療濃度。隨後常做 consolidation (autologous HSCT 或 WBRT)。一般 CHOP 因無法穿越 BBB 而無效。"
+    },
+    {
+      "kind": "basic",
+      "front": "primary testicular large B-cell lymphoma 即使早期局限，標準治療仍包含哪三大要素？",
+      "back": "(1) R-CHOP 化學免疫治療 (常先 orchiectomy)、(2) CNS prophylaxis (IT/IV methotrexate)、(3) 對側睪丸放療 (contralateral testis irradiation)<hr>對側睪丸與 CNS 同屬 immune sanctuary，是常見復發部位。對側睪丸放療幾乎消除對側復發並改善 OS/PFS (IELSG10/IELSG30，JCO 2011；Blood Adv 2024;8:1541)。"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+ "id": "114-072",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "EBV", "Infectious-Mononucleosis", "cold-agglutinin", "anti-i", "Donath-Landsteiner", "PCH", "AIHA", "atypical-lymphocyte", "VCA-IgM", "heterophile-antibody"],
+ "enrich_html": "<b>📌 考點</b>:急性 EBV/IM 的病毒控制由 <u>EBV-specific CD8+ CTL 與 NK 細胞主導</u>,B 細胞是被感染、被攻擊的「標的」而非防禦主角。把「B 細胞主導病毒控制、隨後才由 T 細胞/體液免疫」這種順序敘述為對,即為最不正確 — 因果與主從顛倒。血中暴增的 atypical lymphocytes(Downey cells)本質是活化的 CD8+ T 細胞,不是被感染的 B 細胞。<br><b>🏥 臨床意義</b>:EBV 透過 polyclonal B-cell activation 製造多種自身抗體 → heterophile antibodies(Monospot/Paul-Bunnell)、cold agglutinins、rheumatoid factor。IM 併發 AIHA 約 0.5-3%。關鍵:<u>EBV/IM 冷凝集素以 anti-i 為主</u>,而 Mycoplasma pneumoniae 才是 anti-I — 此處最易混淆。<br><b>⭐ High-yield</b>:血清學三抗體 — IgM anti-VCA(最早、急性)｜IgG anti-VCA(終生、曾感染)｜anti-EBNA(數週至數月後才陽性,陽性可排除最近期急性感染)。EBV 終生潛伏於 memory B cells(episome)無法根除。<br><b>🔬 實證</b>:CD8+ CTL/NK 控制受感染 B 細胞增殖;IM 冷凝集素 anti-i 約見於 31.8% EBV-induced IM。(Thorley-Lawson, PMC4199828 Front Immunol/相關綜述;Schooley UpToDate 2024;PubMed 194643 cold agglutinins in IM 1976)",
+ "cards": [
+  {"kind":"basic","front":"急性 EBV 感染(infectious mononucleosis)中,主導清除受感染 B 細胞的免疫機制為何?(注意主從關係)","back":"EBV-specific CD8+ cytotoxic T lymphocytes (CTL) 與 NK 細胞主導;B 細胞是被攻擊的「標的」,非控制病毒的主力<hr>常見陷阱敘述:「B 細胞主導病毒控制、隨後才由 T 細胞/體液免疫接手」— 此為主從與因果顛倒,屬最不正確。正確時序為細胞免疫(CTL/NK)在急性期主導清除受感染 B 細胞,之後由 EBV-specific 抗體維持長期監視。"},
+  {"kind":"basic","front":"IM 血中出現的大型「非典型淋巴球(atypical lymphocytes / Downey cells)」本質上是哪一種細胞?","back":"被活化的反應性 CD8+ T 淋巴球,而非被 EBV 感染的 B 細胞<hr>EBV 感染標的是 B 細胞,但血中增生並呈非典型形態的是針對感染而活化的細胞毒性 T 細胞,是宿主免疫反應的指標,並非腫瘤細胞;通常隨感染緩解而消退。"},
+  {"kind":"basic","front":"急性 EBV 感染最早出現、用於診斷急性/近期感染的抗體是哪一種?如何與既往感染區分?","back":"IgM anti-VCA(viral capsid antigen IgM)最早出現、代表急性<hr>IgG anti-VCA 終生陽性代表曾感染;anti-EBNA 通常在感染後數週至數月才轉陽,故 anti-EBNA 陽性可排除最近期的急性感染。判讀:VCA-IgG(+)、EBNA(−)指向近期/急性;EBNA(+)代表既往感染。"},
+  {"kind":"basic","front":"EBV/infectious mononucleosis 相關的冷凝集素(cold agglutinin)針對紅血球上的哪個抗原?與 Mycoplasma 有何不同?","back":"EBV/IM 以 anti-i 為主;Mycoplasma pneumoniae 則以 anti-I 為主<hr>經典 board 鑑別:「i — Infectious mononucleosis(EBV)」、「I — Mycoplasma」。IM 的多株 B 細胞活化(polyclonal activation)亦產生 heterophile antibodies(Monospot)與 rheumatoid factor。冷凝集素在低溫凝集紅血球並活化補體,IM 相關者多為一過性;併發 AIHA 約 0.5-3%。"},
+  {"kind":"basic","front":"Donath-Landsteiner antibody 造成哪一種溶血性疾病?抗原特異性、溶血型態及與冷凝集素病(CAD)的差異為何?","back":"造成 paroxysmal cold hemoglobinuria (PCH);抗體為 IgG 抗 P 抗原的「雙相溶血素」(biphasic hemolysin),導致血管內溶血<hr>機轉:IgG 於低溫(<20°C)結合紅血球並固定補體,回溫至 37°C 完成 C5b-9 膜攻擊複合體 → 血管內溶血與血紅素尿,常見於兒童病毒感染後(含 EBV)。對照 CAD:IgM 冷凝集素(anti-i/I)固定 C3 → 肝臟 Kupffer 細胞清除 → 血管外溶血為主。Donath-Landsteiner test 為 PCH 確診試驗。"}
+ ]
+}

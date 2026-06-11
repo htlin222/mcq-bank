@@ -1,0 +1,13 @@
+{
+ "id": "113-005",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "vWD", "VWF", "VWF:GPIbM", "VWF:RCo", "DDAVP", "type-1C-VWD", "type-2B-VWD", "RIPA", "ASH-ISTH-NHF-WFH-2021"],
+ "enrich_html": "<b>📌 考點</b>:ASH/ISTH/NHF/WFH 2021 VWD 診斷指引四道誘餌。對的:VWF:GPIbM/VWF:GPIbR <u>直接</u>測 VWF 與 GPIb 結合、變異小,優於傳統 VWF:RCo(Rec 4);type 1C 疑似者用 <u>DDAVP trial + 1hr/4hr 抽血</u>確認 accelerated clearance(Rec 7)。錯的:高機率族群(受影響一等親)<u>不能</u>只靠 BAT/bleeding score 決定是否抽血(Rec 3);type 1 確診門檻是 <u>&lt; 0.30 IU/mL 才不論出血</u>,0.30–0.50 IU/mL 須合併異常出血史(Rec 6),故「&lt; 0.50 IU/mL 不論出血」為錯誤。<br><b>🏥 臨床意義</b>:type 1C 因 VWF 半衰期縮短,DDAVP 後 1hr 上升、4hr 迅速下降 → 臨床上 DDAVP 療效短暫、常需改用 VWF concentrate。<br><b>⭐ High-yield</b>:VWF cutoff &lt;0.30 不論出血、0.30–0.50 須有出血史｜VWF:GPIbM &gt; VWF:RCo｜分型 RIPA:type 2B 在低 ristocetin (&lt;0.7 mg/mL) 即增強、2A/2M 則降低 (&gt;1.2 mg/mL)｜<u>type 2B DDAVP 相對禁忌</u>(加重 thrombocytopenia)。<br><b>🔬 實證</b>:VWFpp/VWF:Ag 比值不再首選,改以 DDAVP 1hr/4hr 清除試驗。(ASH ISTH NHF WFH, Blood Adv 2021;5:280)",
+ "cards": [
+  {"kind":"basic","front":"新一代 VWF platelet-binding assay (VWF:GPIbM / VWF:GPIbR) 相較傳統 VWF:RCo 有何優勢?為何 2021 VWD 指引建議優先採用?","back":"變異性較小、低值時靈敏度較好、診斷表現優於 VWF:RCo<hr>VWF:RCo 依賴外加 ristocetin 誘發 VWF 與血小板 GPIb 結合,assay 變異係數大、低值時不可靠。VWF:GPIbM 使用 gain-of-function 突變的重組 GPIb(不需 ristocetin),VWF:GPIbR 則用重組 GPIb 加 ristocetin,皆更直接測量結合活性,降低分析變異。(ASH/ISTH/NHF/WFH 2021 Rec 4)"},
+  {"kind":"cloze","text":"VWD 確診門檻判讀:VWF {{c1::< 0.30}} IU/mL 不論出血皆可確診 type 1 VWD;VWF 介於 {{c2::0.30–0.50}} IU/mL 須合併 {{c3::異常出血史}} 才能確診。","extra":"2021 ASH/ISTH/NHF/WFH Rec 6。常見陷阱:「< 0.50 IU/mL 不論出血皆可確診」為錯誤。0.30–0.50 IU/mL 區間常稱 low VWF。數值指 VWF:Ag 及/或 platelet-dependent activity (如 VWF:GPIbM)。"},
+  {"kind":"basic","front":"VWD type 2A、2B、2M、2N 四種質性異常各自的分子機轉為何?","back":"2A:HMW multimer 減少/缺失;2B:gain-of-function 使 VWF 對血小板親和力↑;2M:VWF 與血小板或 collagen 結合↓(multimer 正常);2N:VWF 與 FVIII 結合↓,擬似 hemophilia A<hr>Type 1 為部分量缺(約 75%),type 3 為近乎完全缺失。2N 因 FVIII 偏低易誤診血友病 A,需 VWF:FVIIIB 鑑別;2B 在低劑量 RIPA (< 0.7 mg/mL ristocetin) 即增強凝集,2A/2M 則 RIPA 減弱。"},
+  {"kind":"basic","front":"為何 DDAVP 在 type 2B VWD 屬相對禁忌?","back":"DDAVP 釋放的異常 VWF 因 gain-of-function 突變過度結合血小板,會加重 thrombocytopenia,並有血栓風險之虞<hr>Type 2B 的 VWF 對血小板 GPIb 親和力增加,釋放更多會誘發血小板凝集與清除。治療多改用含 VWF 之 concentrate。"},
+  {"kind":"basic","front":"疑似 type 1C VWD(VWF 清除加速)時,2021 指引建議用什麼檢查確認 accelerated clearance?其病生理與治療意涵為何?","back":"DDAVP (desmopressin) trial,於輸注後第 1 小時與第 4 小時分別抽血測 VWF antigen 與 activity<hr>核心缺陷為 VWF 清除加速 (accelerated clearance / 半衰期縮短),非合成減少。DDAVP 後第 1 小時 VWF 上升、第 4 小時迅速下降即反映清除加速;故 DDAVP 療效短暫,常需改用 VWF concentrate。此法優於 VWF propeptide (VWFpp)/VWF:Ag 比值。(2021 Rec 7)"}
+ ]
+}

@@ -1,0 +1,13 @@
+{
+ "id": "112-094",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "hepcidin", "ferroportin", "iron metabolism", "anemia of inflammation", "IL-6", "erythroferrone", "BMP6 SMAD", "hereditary hemochromatosis", "iron homeostasis"],
+ "enrich_html": "<b>📌 考點</b>：Hepcidin 結合 ferroportin 的淨效果是<b>停止</b>細胞鐵輸出（誘發 ferroportin 內吞與 lysosomal degradation），鐵被滯留於 enterocyte／macrophage／hepatocyte，血漿鐵<u>下降</u>。「hepcidin 結合 ferroportin 使鐵流入血漿」方向完全相反，故為錯誤敘述。記憶法：hepcidin 高 = 鐵被「關起來」（hepcidin = iron jail）。<br><b>🏥 臨床意義</b>：anemia of inflammation（IL-6→hepcidin↑）呈現血清鐵↓、TIBC↓、ferritin 正常/↑ 的<b>功能性缺鐵</b>，與真正 IDA（hepcidin↓、ferritin↓、TIBC↑）鑑別；hepcidin 缺損疾病（HFE/HJV/TfR2/HAMP 突變的 hereditary hemochromatosis）則 hepcidin 不足 → ferroportin 持續輸出 → 鐵過載。<br><b>⭐ High-yield</b>：上調 hepcidin = 高鐵儲量/高 Tf sat（BMP6-SMAD，HFE+TfR2+HJV 為感應複合體）＋發炎 IL-6（JAK-STAT3）｜下調 hepcidin = erythroferrone (ERFE，erythroblast 受 EPO 刺激分泌，隔離 BMP2/6 抑制 SMAD)、缺氧、缺鐵。<br><b>🔬 實證</b>：ERFE 為紅血球→鐵→骨骼軸的關鍵介質，於 β-thalassemia ineffective erythropoiesis 過度表現致鐵過載（Kautz, Nat Genet 2014;46:678；Camaschella, Blood 2019;133:18）。",
+ "cards": [
+  {"kind":"basic","front":"Hepcidin 與 ferroportin 結合後，對「細胞鐵輸出至血漿」的淨效果為何？","back":"停止（抑制）細胞鐵輸出，血漿鐵下降。<hr>Hepcidin 結合 ferroportin 後誘發其 endocytosis 與 lysosomal degradation，使細胞表面 ferroportin 減少，enterocyte、macrophage、hepatocyte 的鐵輸出功能停止，鐵滯留於細胞內。因此「hepcidin 結合 ferroportin 使鐵流入血漿」的描述方向相反、為錯誤。記憶法：hepcidin = iron jail，高 hepcidin 把鐵關在細胞內。"},
+  {"kind":"cloze","text":"Hepcidin 調控方向：上調者為高鐵儲量/高 transferrin saturation（經 {{c1::BMP6-SMAD}} 途徑，HFE+TfR2+HJV 為感應複合體）與發炎 {{c2::IL-6}}（經 JAK-STAT3）；下調者為紅血球生成刺激下 erythroblast 分泌的 {{c3::erythroferrone (ERFE)}}、缺氧與缺鐵。","extra":"ERFE 隔離 BMP2/6 heterodimer、抑制肝臟 BMP/SMAD 訊號而降低 hepcidin。"},
+  {"kind":"basic","front":"如何用 hepcidin、ferritin、TIBC 區分 iron deficiency anemia (IDA) 與 anemia of inflammation (AI)？","back":"IDA：hepcidin↓、ferritin↓、TIBC↑；AI：hepcidin↑、ferritin 正常/↑、TIBC↓。<hr>真正缺鐵時 hepcidin 被抑制以最大化吸收；發炎時 IL-6 驅動 hepcidin 升高→ferroportin 降解→鐵困於 macrophage 無法輸出，造成功能性缺鐵。兩者共存時 ferritin 可能被發炎拉高而掩蓋缺鐵，需結合 TIBC/transferrin saturation 判讀。"},
+  {"kind":"basic","front":"Erythroferrone (ERFE) 由哪種細胞分泌、受什麼刺激、如何影響 hepcidin？","back":"由 erythroblast（紅血球前驅）受 EPO 刺激分泌；抑制（下調）hepcidin。<hr>紅血球生成需求增加時，ERFE 隔離 BMP2/6 heterodimer、抑制肝臟 BMP/SMAD 訊號→hepcidin↓→ferroportin 增加→釋出儲鐵供造血。是「紅血球→鐵→骨骼」軸的關鍵介質；於 β-thalassemia 無效造血時過度表現而致鐵過載。(Kautz et al., Nat Genet 2014;46:678)"},
+  {"kind":"basic","front":"Hereditary hemochromatosis（HFE/HJV/TfR2/HAMP 突變型）為何會造成全身鐵過載？","back":"這些基因缺損使 hepcidin 不足（合成或感應失靈）。<hr>Hepcidin↓→ferroportin 持續存在於細胞表面→腸道鐵吸收與 macrophage 釋鐵不受抑制→血漿鐵與組織鐵過載。HJV(juvenile) 與 HAMP 突變病情最重、發病早。"}
+ ]
+}

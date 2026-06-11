@@ -1,0 +1,13 @@
+{
+ "id": "113-071",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "B-ALL", "T-ALL", "immunophenotype", "flow-cytometry", "KMT2A-rearranged", "ETV6-RUNX1", "EGIL-classification", "CD10", "myeloid-antigen"],
+ "enrich_html": "<b>📌 考點</b>：B-ALL 免疫表型雙陷阱──KMT2A-rearranged ALL 停在最早的 pro-B 階段,故 <u>CD10 negative</u> (而非 CD10+/CD15+),常共表現 myeloid 抗原 CD15/CD33/CD65/CD68;而「myeloid antigen 共表現一定預後差」在強效化療年代已被否定,不可武斷。ETV6::RUNX1+ ALL 則確為 CD19+/CD10+/CD34+/CD9−、可共表現 CD13,敘述正確。<br><b>🏥 臨床意義</b>:KMT2A-r (尤其 infant) 屬高危,NG2 (7.1 antigen) 陽性約 90%、與 CNS 浸潤及較差 EFS 相關,infant 5y-EFS ~40% vs 兒童 ~70%;ETV6::RUNX1 為兒童 B-ALL 最常見融合、預後最佳,治療反應好。<br><b>⭐ High-yield</b>:EGIL B-ALL 四階段──pro-B (B-I, CD10−)｜common-B (B-II, CD10+/CALLA+)｜pre-B (B-III, cytoplasmic μ+)｜mature-B (B-IV, surface Ig 輕鏈+)。T-ALL 最特異標記 = cytoplasmic CD3 (cCD3);B-lineage 最特異 = cCD79a / cCD22。<br><b>🔬 實證</b>:KMT2A-r pro-B + myeloid co-expression、NG2+;ETV6::RUNX1 CD9−/CD20−/CD66c−、CD13+。(PMC10045821, 2023;S2772610X24000643, 2024)",
+ "cards": [
+   {"kind":"basic","front":"KMT2A-rearranged (MLL-r) B-ALL 的典型免疫表型為何?是 CD10+ 還是 CD10−?","back":"immature pro-B phenotype:CD19+、CD34+,且 <b>CD10 negative</b><hr>因 KMT2A-r ALL 停在最早的 pro-B (early-B) 分化階段,尚未到 common-B 的 CD10+ 階段。常共表現 myeloid 抗原 CD15、CD33、CD65、CD68 (及 CD117、CD13),並高度表現 NG2 (7.1 antigen,約 90%)。「KMT2A-r ALL is CD10+/CD15+」是常見錯誤敘述——關鍵錯在 CD10 應為陰性。"},
+   {"kind":"basic","front":"ETV6::RUNX1+ B-ALL (t(12;21)) 的典型免疫表型為何?","back":"CD19+ / CD10+ / CD34+ / CD9− / CD20− / CD66c−,可共表現 myeloid marker CD13<hr>ETV6::RUNX1 (舊稱 TEL-AML1) 是兒童 B-ALL <b>最常見</b>的融合基因,預後良好。CD9 陰性與 CD13 共表現為其特徵性 phenotype;與 CD10− 的 KMT2A-r ALL 形成鮮明對比。"},
+   {"kind":"basic","front":"為何「ALL 出現 myeloid antigen 共表現一定是不良預後因子」這個敘述是錯的?","back":"過於武斷——早期研究曾認為預後差,但採用強效化療後的研究顯示無顯著差異<hr>myeloid antigen (如 CD13、CD33) 共表現在 ALL 並不罕見 (KMT2A-r、ETV6::RUNX1 都常見),本身並非獨立不良預後因子。現代預後判讀應綜合 cytogenetics / 分子亞型、MRD (minimal residual disease)、年齡、初始白血球數,而非單看 myeloid marker。"},
+   {"kind":"cloze","text":"EGIL B-ALL 四階段:{{c1::pro-B (B-I)}} 為 CD10−;{{c2::common-B (B-II)}} 為 CD10+/CALLA+;{{c3::pre-B (B-III)}} 出現 cytoplasmic μ heavy chain;{{c4::mature-B (B-IV)}} 出現 surface immunoglobulin 輕鏈。","extra":"四階段共同保有早期 B-lineage 標記 CD19、cCD79a、cCD22。CD10 (CALLA) 出現定義 common-B,可作為快速分階段線索。"},
+   {"kind":"basic","front":"流式上 cytoplasmic CD3 (cCD3)、cytoplasmic CD79a (cCD79a)、cytoplasmic MPO 各代表哪一 lineage?","back":"cCD3 → T-lineage;cCD79a → B-lineage;cMPO → myeloid lineage<hr>這三個 cytoplasmic 標記是急性白血病 lineage assignment (WHO / EGIL) 的最特異依據,優於 surface 標記。B-lineage 另可用 cCD22、surface CD19 輔助。當多個 lineage 標記同時表現時須考慮 mixed-phenotype acute leukemia (MPAL)。"}
+ ]
+}

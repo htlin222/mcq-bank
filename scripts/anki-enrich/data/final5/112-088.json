@@ -1,0 +1,13 @@
+{
+ "id": "112-088",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "iron metabolism", "ferritin", "hemosiderin", "transferrin", "ferroxidase", "transfusional iron overload"],
+ "enrich_html": "<b>📌 考點</b>：鐵代謝數值題的最常見誘餌是「每 mL packed RBC 含鐵量」——正確約 <u>0.8–1 mg/mL</u>（一單位約 200–250 mg），凡看到 0.1 mg/mL 即為低 10 倍的錯誤敘述。其餘記憶錨點：Hb 含鐵 0.34 wt%（男 ~2 g、女 ~1.5 g 為 Hb-bound iron，佔全身鐵約 2/3）。<br><b>🏥 臨床意義</b>：因人體無生理排鐵途徑，累積輸血約 <u>10–20 單位</u>後鐵即沉積於心、肝、內分泌腺造成 transfusional hemosiderosis；長期輸血依賴者（thalassemia major、MDS、AML 化療）需以 serum ferritin / T2* MRI 監測並適時 chelation（deferasirox、deferoxamine、deferiprone）。<br><b>⭐ High-yield</b>：Ferritin = 24-subunit 球殼、可容 ~4500 Fe3+｜H subunit = ferroxidase（Fe2+→Fe3+，攝入必需）｜L subunit = nucleation/長期儲存｜liver/spleen → L-rich（慢、容量大），heart/RBC → H-rich（快周轉）｜Hemosiderin = ferritin 降解聚集、水不溶、Prussian blue 陽性。<br><b>🔬 實證</b>：Serum ferritin 為儲存鐵最佳指標，但屬 acute phase reactant，發炎/感染/惡性腫瘤會假性升高。(Williams Hematology；ASH Educ Program 2019:337；PMC10646083, 2023)",
+ "cards": [
+  {"kind":"basic","front":"每 mL packed RBC（pRBC）大約含多少 iron？「0.1 mg/mL」為何是錯的？","back":"約 0.8–1 mg/mL（非 0.1 mg/mL，低估約 10 倍）<hr>一單位 pRBC（約 350 mL）含約 200–250 mg 鐵。因人體無生理排鐵途徑，這是反覆輸血造成 transfusional hemosiderosis 的鐵負荷來源。"},
+  {"kind":"basic","front":"反覆 pRBC 輸血累積到大約多少單位後會開始有 iron overload（鐵沉積臟器）的風險？","back":"約 10–20 單位<hr>每單位約 200–250 mg 鐵，人體無有效排鐵機制，超過 10–20 單位後鐵開始沉積於心、肝、內分泌腺。長期輸血依賴者（thalassemia major、MDS）需監測 serum ferritin / 肝心 T2* MRI 並適時 iron chelation。"},
+  {"kind":"basic","front":"Iron 的兩種儲存形式 ferritin 與 hemosiderin 在水溶性與分佈上有何差異？","back":"Ferritin 水溶性、可快速動員；hemosiderin 水不溶、釋出慢<hr>Hemosiderin 是 ferritin 部分降解後聚集的不溶性複合物，主要堆積在肝臟 Kupffer cells、脾臟與骨髓巨噬細胞；iron overload 時 hemosiderin 比例增加，Prussian blue（Perls）染色陽性。"},
+  {"kind":"basic","front":"為什麼 serum ferritin 升高不一定代表 iron overload？","back":"因 ferritin 是 acute phase reactant<hr>發炎、感染、惡性腫瘤、肝細胞損傷時 serum ferritin 會假性升高。判讀儲存鐵時須結合 transferrin saturation、CRP 等，或在排除發炎後再評估；嚴重 iron overload 評估可輔以肝/心 T2* MRI。"},
+  {"kind":"cloze","text":"Ferritin 是由 {{c1::24}} 個 subunit 組成的球形外殼，內部最多可容納約 {{c2::4500}} 個 Fe³⁺；其中 {{c3::H（heavy）}} subunit 具 ferroxidase activity（Fe²⁺→Fe³⁺，攝入鐵必需），{{c4::L（light）}} subunit 負責 nucleation 與長期儲存。","extra":"組織不同 H/L 比例不同：liver/spleen 偏 L-rich（慢吸收、容量大），heart/RBC 偏 H-rich（快周轉）。"}
+ ]
+}

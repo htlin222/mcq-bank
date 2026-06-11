@@ -1,0 +1,13 @@
+{
+ "id": "114-058",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "von Willebrand disease", "VWF:RCo", "VWF:GPIbM", "VWF:GPIbR", "D1472H", "ristocetin", "A1 domain", "VWF assay", "ASH-ISTH-2021"],
+ "enrich_html": "<b>📌 考點</b>：傳統 VWF:RCo 依賴 ristocetin 誘導 VWF 解摺疊以結合血小板 GPIb&alpha;；D1472H (c.4414G&gt;C) 位於 VWF A1 domain ristocetin 結合位 (Leu1457&ndash;Pro1471) 旁，<u>減少 ristocetin 與 VWF 結合</u> → VWF:RCo 與 VWF:RCo/VWF:Ag 比值<b>假性偏低</b>，可將正常帶因者誤判 vWD、或將 type 1 誤分類為 type 2。誘餌：VWF:GPIbM、VWF:GPIbR、VWF:Ab 皆不受顯著影響（GPIbM/Ab 完全不需 ristocetin）。<br><b>🏥 臨床意義</b>：D1472H 只是<b>體外檢驗假象</b>、無真實止血缺損 → 無出血傾向；常見於約 63% 非裔美國人、17% 高加索人，是 VWF:RCo 在這些族群過度診斷 vWD 的重要原因。<br><b>⭐ High-yield</b>：ASH-ISTH-NHF-WFH 2021 建議以 VWF:GPIbM 或 VWF:GPIbR 取代 VWF:RCo（GPIbM &gt; GPIbR，因不需 ristocetin、不受 exon 28 多型性干擾）｜診斷門檻 VWF &lt;0.30 IU/mL（不論出血）或 &lt;0.50 IU/mL（有出血）｜分型 activity/Ag ratio <b>&lt;0.7</b>（非舊 &lt;0.5）才定 type 2。<br><b>🔬 實證</b>：VWF:GPIbR (珠粒法) 在 D1472H 帶因 vs 非帶因比值無顯著差異，38 例帶因者正確分類 37 例，而 VWF:RCo 將 5 例 type 1 誤判 type 2。(Blood Adv 2021;5:280；Commentary Blood Adv 2022;6:416；Blood 2010;116:2208)",
+ "cards": [
+  {"kind":"basic","front":"帶有 VWF D1472H 多型性的健康人，做傳統 VWF:RCo (ristocetin cofactor) 檢測會出現什麼異常結果？為何是假象？","back":"VWF:RCo 活性假性偏低、VWF:RCo/VWF:Ag 比值也假性下降<hr>D1472H 並非真正的 VWF 功能缺損，而是 in vitro 檢驗假象。VWF 與血小板的真實結合功能正常，無出血傾向。若僅依 VWF:RCo 判讀，可能把正常帶因者誤診為 vWD，或把 type 1 誤分類為 type 2。常見於約 63% 非裔美國人、17% 高加索人。"},
+  {"kind":"basic","front":"VWF D1472H 多型性造成 VWF:RCo 假性偏低的分子機轉為何？","back":"D1472H 位於 VWF A1 domain 的 ristocetin 結合位 (Leu1457&ndash;Pro1471) 附近，降低 ristocetin 與 VWF 的結合<hr>VWF:RCo 依賴 ristocetin（帶正電的陽離子抗生素）誘導 VWF A1 domain 解摺疊以結合血小板 GPIb&alpha;。D1472H (c.4414G&gt;C) 將 aspartic acid 換成 histidine，削弱 ristocetin 結合，故活性被低估；但 VWF 對血小板的真實結合功能正常。"},
+  {"kind":"basic","front":"ASH-ISTH-NHF-WFH 2021 VWD 診斷指引，為何建議以 VWF:GPIbM / VWF:GPIbR 取代傳統 VWF:RCo？GPIbM 又為何優於 GPIbR？","back":"VWF:RCo 變異大、對低 VWF 值定量差、診斷錯誤率高；GPIbM 完全不需 ristocetin、不受 exon 28 多型性干擾<hr>VWF:GPIbM、VWF:GPIbR 直接測 platelet-binding 活性，準確度較佳。GPIbM 優於 GPIbR，因 ristocetin-based 檢測（含 GPIbR）可能因 exon 28 多型性（如 D1472H、P1467S）減少 ristocetin 結合而把正常人誤判為 type 2。"},
+  {"kind":"cloze","text":"ASH-ISTH-NHF-WFH 2021 VWD 診斷關鍵數值：首選活性檢測為 {{c1::VWF:GPIbM}} 或 VWF:GPIbR（取代 VWF:RCo）；type 1 診斷門檻 VWF &lt;{{c2::0.30}} IU/mL（不論出血）或 &lt;{{c3::0.50}} IU/mL（有出血）；type 2 分型 activity/Ag ratio &lt;{{c4::0.7}}（非舊的 &lt;0.5）。","extra":"GPIbM 不需 ristocetin，避免 D1472H 等 exon 28 多型性造成的 type 2 過度診斷。ratio &lt;0.7 反映質的缺損（功能/抗原不成比例下降）提示 type 2；&ge;0.7 為量的缺損（type 1）。"},
+  {"kind":"basic","front":"某非裔病人 VWF:RCo 偏低、VWF:RCo/VWF:Ag 比值下降，但 VWF:Ag 正常且無出血史，下一步最該做什麼？","back":"應懷疑 VWF D1472H 多型性造成的 VWF:RCo 假象，改用 VWF:GPIbM（不需 ristocetin）確認<hr>若 VWF:GPIbM 正常即可排除真正的 type 2 vWD，避免過度診斷。此情境正是指引建議以 platelet-binding 活性檢測取代 VWF:RCo 的理由。"}
+ ]
+}

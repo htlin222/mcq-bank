@@ -1,0 +1,13 @@
+{
+ "id": "114-018",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "PNH", "complement-inhibitor", "C5-inhibitor", "Eculizumab", "Ravulizumab", "Crovalimab", "Pegcetacoplan", "Iptacopan", "Danicopan", "C3-inhibitor", "Factor-B-inhibitor", "Factor-D-inhibitor", "alternative-complement-pathway", "extravascular-hemolysis", "GPI-anchor", "CD55-CD59"],
+ "enrich_html": "<b>📌 考點</b>：PNH 補體抑制劑「標靶+給藥途徑+核准年」是高頻記憶點。終端 C5 抑制劑：Eculizumab(IV q2w)、Ravulizumab(IV q8w)、Crovalimab(SC q4w，2024)；近端抑制劑：Pegcetacoplan(C3，SC，2021)、Iptacopan(Factor B，口服，2023)、Danicopan(Factor D，口服 add-on，2024)。<br><b>🏥 臨床意義</b>：機轉 → 處置因果鏈：PIGA 突變致 GPI-anchor 缺失 → 紅血球失 CD55+CD59 → alternative pathway 失調 → 血管內溶血。C5 抑制劑阻斷 MAC 為一線；但 C3b 持續沉積 → 血管外溶血(EVH)→ 仍貧血/需輸血時改用或加上近端抑制劑。<br><b>⭐ High-yield</b>：Iptacopan 是首個口服「單藥(monotherapy)」近端抑制劑；Danicopan 僅核准為 C5i 的「add-on」、非單藥。所有 anti-C5 治療前須接種 meningococcal 疫苗(至少提前 2 週)以防 Neisseria meningitidis 侵襲性感染。<br><b>🔬 實證</b>：COMMODORE 2 trial 顯示 Crovalimab 溶血控制 92.9% vs Eculizumab 93.7%(非劣性)。診斷靠流式偵測 GPI-anchored 蛋白缺失(FLAER)。(rarediseaseadvisor 2024；PMC11395449 2024；Blood Adv 2025;9:3937)",
+ "cards": [
+  {"kind":"basic","front":"PNH 紅血球的血管內溶血，源於哪兩個 GPI-anchored 補體調節蛋白缺失？是哪一條補體途徑持續活化？","back":"CD55(DAF)與 CD59(MIRL)缺失；alternative complement pathway(替代途徑)持續活化<hr>造血幹細胞 PIGA 體細胞突變使 GPI-anchor 無法合成，膜上 CD55、CD59 一併喪失。CD55 缺失 → 無法加速衰解 C3/C5 convertase；CD59 缺失 → 無法阻止 MAC(C5b-9)插膜。替代途徑生理上持續低度活化(tick-over)，失去調節後即造成持續性血管內溶血。診斷以流式偵測 GPI-anchored 蛋白缺失(FLAER 最敏感)。"},
+  {"kind":"cloze","text":"已獲美國 FDA 核准用於 PNH 的「終端 C5 抑制劑(一線)」共三種：{{c1::Eculizumab(IV q2w)}}、{{c2::Ravulizumab(IV q8w)}}、{{c3::Crovalimab(SC q4w，2024)}}。","extra":"三者皆為 anti-C5 monoclonal antibody，結合 C5 阻斷其裂解為 C5a/C5b → 阻止 MAC 形成 → 控制血管內溶血。Ravulizumab、Crovalimab 經半衰期工程改造，給藥間隔顯著拉長。"},
+  {"kind":"basic","front":"開始使用 anti-C5 補體抑制劑前，必須完成哪項預防措施？為什麼？","back":"接種 meningococcal(腦膜炎雙球菌)疫苗，最好提前至少 2 週<hr>阻斷 C5/MAC 會削弱補體對被膜性細菌(尤其 Neisseria meningitidis)的殺菌力，顯著增加侵襲性腦膜炎雙球菌感染風險(黑框警示)。若需緊急開始治療而疫苗未滿 2 週，須同時給予預防性抗生素覆蓋。"},
+  {"kind":"basic","front":"PNH 患者在 C5 抑制劑控制良好下仍持續貧血/需輸血，最可能的機轉為何？應如何處置？","back":"extravascular hemolysis(C3b-mediated 血管外溶血)；改用或加上近端(proximal)補體抑制劑<hr>C5 抑制只擋下游 MAC，alternative pathway 上游仍活躍，C3b 持續 opsonize PNH 紅血球，經脾/肝巨噬細胞清除 → 血管外溶血成為新的貧血主因。近端抑制劑作用於 C3 或上游 Factor B/D，可同時阻斷血管內與血管外溶血。"},
+  {"kind":"basic","front":"近端口服補體抑制劑 Iptacopan 與 Danicopan 的標靶與臨床定位有何關鍵差異？","back":"Iptacopan = Factor B 抑制劑，可作口服「單藥(monotherapy)」(2023)；Danicopan = Factor D 抑制劑，僅核准為 C5 抑制劑的「add-on」、非單藥(2024)<hr>Factor D 裂解 Factor B 以形成 alternative pathway C3 convertase(C3bBb)；兩者皆從上游阻斷替代途徑，同時控制血管內與血管外溶血。記憶陷阱：Factor B(Iptacopan)能單飛，Factor D(Danicopan)只能加在 Eculizumab/Ravulizumab 上以改善殘存血管外溶血。另一近端單藥選項為 C3 抑制劑 Pegcetacoplan(SC，2021)。"}
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "id": "112-014",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "MDS", "TP53", "SF3B1", "RUNX1", "ICC2022", "WHO5th", "MDS-biTP53", "MDS-EB", "ring-sideroblasts", "MDS-AML"],
+ "enrich_html": "<b>📌 考點</b>:ICC-2022 診斷「MDS with mutated TP53」需 multi-hit(biallelic)證據。單一 TP53 突變(VAF 46%、核型 46,XY 正常)<u>不符合</u>:VAF 未達 >50%、無 17p deletion、無 17p cnLOH、無 complex karyotype,故不能診斷,須回歸以 blast 比例分類(BM blasts 7% → MDS-EB / ICC 的 MDS-EB)。誘餌就是用「有 TP53 突變且 VAF 看似不低」誘導誤判。<br><b>🏥 臨床意義</b>:多打擊 TP53(biallelic)MDS 預後極差,中位存活常 &lt;1 年,標準 hypomethylating agent 反應差且短暫,IPSS-M 列 very high → 體能可者首選評估 allogeneic HSCT;單一打擊(monoallelic)TP53 預後接近野生型,治療策略不同,故「打擊數」是分流關鍵。<br><b>⭐ High-yield</b>:ICC TP53 VAF 門檻 ≥10%(WHO5 不設 VAF)｜ICC 把 blast 10–19% 改稱 <b>MDS/AML</b>(WHO5 仍為 MDS-IB2)｜WHO5 無 SF3B1 突變時 RS ≥15% 仍可診斷 MDS-SF3B1;ICC 的 genetically-defined MDS-SF3B1 需 SF3B1 突變且無 RUNX1/del(5q)/−7/abn(3q)/complex 等不相容變異。<br><b>🔬 實證</b>:multi-hit 定義＝2 突變(各 VAF ≥10%)｜1 突變 VAF &gt;50%｜1 突變(VAF ≥10%)+17p del 或 cnLOH 或 complex karyotype。(Arber et al., Blood 2022;140:1200;Blood Adv 2025;9:445)",
+ "cards": [
+  {
+   "kind": "cloze",
+   "text": "ICC-2022 multi-hit TP53 的判定條件(任一即可):{{c1::兩個不同 TP53 突變,各 VAF ≥10%}}、{{c2::單一突變且 VAF >50%}}、{{c3::單一突變(VAF ≥10%)+ 17p deletion}}、{{c4::單一突變(VAF ≥10%)+ 17p 位點 copy-neutral LOH}}、{{c5::單一突變(VAF ≥10%)+ complex karyotype}}。",
+   "extra": "ICC 對所有 TP53 突變設 VAF ≥10% 門檻才計入;WHO5 不設 VAF 門檻。複雜核型作為 17p loss 的替代證據,僅 ICC 接受(在缺 17p LOH 資訊時)。"
+  },
+  {
+   "kind": "basic",
+   "front": "ICC-2022 與 WHO5 在「TP53 突變的 VAF 門檻」上有何不同?",
+   "back": "ICC-2022 設 VAF ≥10% 門檻(突變需達 ≥10% 才計入分類);WHO5 不設任何 VAF 門檻。<hr>這是兩系統最常考的差異之一。一個 VAF 8% 的 TP53 突變,在 ICC 不計入 multi-hit 判定,在 WHO5 則可能計入。臨床研究亦顯示 TP53 VAF ≥10% 與較差預後相關,故 ICC 採此門檻。"
+  },
+  {
+   "kind": "basic",
+   "front": "72 歲男性,cytopenia、BM blasts 7%、核型 46,XY[20]、僅單一 TP53 突變(VAF 46%),依 ICC-2022 應分類為何?為何不是 MDS with mutated TP53?",
+   "back": "分類為 MDS-EB(excess blasts);不能診斷 MDS with mutated TP53。<hr>單一 TP53 突變 VAF 46%(未達 >50%)、核型正常(無 17p del / cnLOH / complex),不符 multi-hit 條件。誘餌正是「VAF 看似不低」誘導誤判。回歸 blast 比例:ICC excess blasts = BM 5–9% 或 PB 2–9%,BM blasts 7% 屬此範圍 → MDS-EB。"
+  },
+  {
+   "kind": "basic",
+   "front": "ICC-2022 把 TP53-mutated myeloid neoplasm 依 blast 比例分為哪三個層級?",
+   "back": "MDS with mutated TP53(blasts <10%)、MDS/AML with mutated TP53(blasts 10–19%)、AML with mutated TP53(blasts ≥20%)。<hr>ICC 把 blast 10–19% 獨立命名為「MDS/AML」(WHO5 對應 MDS-IB2)。三層級皆需符合 multi-hit/VAF ≥10% 等 TP53 條件,呈現 MDS→MDS/AML→AML 的連續疾病譜。"
+  },
+  {
+   "kind": "basic",
+   "front": "為何 multi-hit(biallelic)TP53 與 monoallelic(single-hit)TP53 的 MDS 必須分開?臨床意義為何?",
+   "back": "multi-hit TP53 預後極差(中位存活常 <1 年、HMA 反應差且短暫),IPSS-M 列 very high,體能可者首選評估 allogeneic HSCT;monoallelic TP53 預後接近 TP53 野生型,治療策略不同。<hr>正因「打擊數」決定預後與處置,ICC/WHO5 才以 biallelic 作為定義 TP53 類別的核心,而非單純「有無 TP53 突變」。"
+  }
+ ]
+}

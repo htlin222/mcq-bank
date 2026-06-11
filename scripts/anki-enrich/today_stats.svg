@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="760" viewBox="0 0 920 760" font-family="-apple-system,Helvetica,Arial,'PingFang TC',sans-serif">
+<rect width="920" height="760" fill="#faf8f4"/>
+<text x="40" y="50" font-size="26" font-weight="700" fill="#1a1a1a">今日工作統計 · 血液專科考古題 → Anki</text>
+<text x="40" y="78" font-size="15" fill="#777">民國 114 / 113 / 112 年 · 每年 100 題 · 七大主題分類 · WebSearch 實證加值</text>
+<line x1="40" y1="96" x2="880" y2="96" stroke="#e0d9cc" stroke-width="2"/>
+
+<!-- pipeline cards -->
+<g>
+<rect x="40" y="120" width="200" height="88" rx="8" fill="#fff" stroke="#e0d9cc"/>
+<text x="140" y="150" text-anchor="middle" font-size="14" fill="#777">題目處理</text>
+<text x="140" y="188" text-anchor="middle" font-size="34" font-weight="700" fill="#c1440e">300</text>
+<rect x="260" y="120" width="200" height="88" rx="8" fill="#fff" stroke="#e0d9cc"/>
+<text x="360" y="150" text-anchor="middle" font-size="14" fill="#777">最終卡片 (5/題)</text>
+<text x="360" y="188" text-anchor="middle" font-size="34" font-weight="700" fill="#2e8b57">1500</text>
+<rect x="480" y="120" width="200" height="88" rx="8" fill="#fff" stroke="#e0d9cc"/>
+<text x="580" y="150" text-anchor="middle" font-size="14" fill="#777">OE/WebSearch 查證</text>
+<text x="580" y="188" text-anchor="middle" font-size="34" font-weight="700" fill="#1d6a96">300</text>
+<rect x="700" y="120" width="180" height="88" rx="8" fill="#fff" stroke="#e0d9cc"/>
+<text x="790" y="150" text-anchor="middle" font-size="14" fill="#777">「本例」殘留</text>
+<text x="790" y="188" text-anchor="middle" font-size="34" font-weight="700" fill="#6a4c93">0</text>
+</g>
+
+<text x="40" y="238" font-size="17" font-weight="600" fill="#1a1a1a">七大主題分佈 (卡片數 · 題數)</text>
+<text x="350" y="265" text-anchor="end" font-size="14" fill="#2b2b2b">WBC-I 骨髓白血病/急性白血病</text><rect x="360" y="250" width="460" height="22" rx="3" fill="#c1440e"/><text x="828" y="266" font-size="13" fill="#555">455 卡 · 91 題</text><text x="350" y="301" text-anchor="end" font-size="14" fill="#2b2b2b">WBC-II 淋巴瘤/骨髓瘤</text><rect x="360" y="286" width="298" height="22" rx="3" fill="#1d6a96"/><text x="666" y="302" font-size="13" fill="#555">295 卡 · 59 題</text><text x="350" y="337" text-anchor="end" font-size="14" fill="#2b2b2b">初級止血 (platelet/vWF)</text><rect x="360" y="322" width="146" height="22" rx="3" fill="#2e8b57"/><text x="514" y="338" font-size="13" fill="#555">145 卡 · 29 題</text><text x="350" y="373" text-anchor="end" font-size="14" fill="#2b2b2b">凝血血栓 (coag/DOAC)</text><rect x="360" y="358" width="141" height="22" rx="3" fill="#6a4c93"/><text x="509" y="374" font-size="13" fill="#555">140 卡 · 28 題</text><text x="350" y="409" text-anchor="end" font-size="14" fill="#2b2b2b">RBC 紅血球/貧血</text><rect x="360" y="394" width="358" height="22" rx="3" fill="#b8860b"/><text x="726" y="410" font-size="13" fill="#555">355 卡 · 71 題</text><text x="350" y="445" text-anchor="end" font-size="14" fill="#2b2b2b">輸血醫學</text><rect x="360" y="430" width="106" height="22" rx="3" fill="#0d7377"/><text x="474" y="446" font-size="13" fill="#555">105 卡 · 21 題</text><text x="350" y="481" text-anchor="end" font-size="14" fill="#2b2b2b">兒科血液</text><rect x="360" y="466" width="5" height="22" rx="3" fill="#9c4f96"/><text x="373" y="482" font-size="13" fill="#555">5 卡 · 1 題</text>
+
+<!-- pipeline funnel text -->
+<text x="40" y="532" font-size="17" font-weight="600" fill="#1a1a1a">製作流程</text>
+<text x="40" y="560" font-size="14" fill="#444">① 讀 300 題題幹+共筆詳解 → ② 七大主題分類 → ③ 每題 WebSearch 挖 high-yield 實證</text>
+<text x="40" y="582" font-size="14" fill="#444">→ ④ 生成自成一體卡 (無「本例」) + 出題者考點/臨床/實證 footer → ⑤ 精選每題最高價值 5 張</text>
+<text x="40" y="604" font-size="14" fill="#444">→ ⑥ footer 接在每張卡後 → ⑦ 灌入 AnkiWeb「02_Hematology_enrich」七個 subdeck</text>
+<text x="40" y="736" font-size="12" fill="#999">deck: 02_Hematology_enrich::1~7 · 卡片格式: 簡問 / 簡答 / &lt;hr&gt; 脈絡 + footer · 繁中保留英文專有名詞</text>
+</svg>

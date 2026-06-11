@@ -1,0 +1,13 @@
+{
+ "id": "114-045",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "HCL", "Hairy Cell Leukemia", "Purine Analogue", "Cladribine", "Pentostatin", "BRAF V600E", "Annexin A1", "Vemurafenib", "Rituximab", "HCL variant", "CD25", "CD103"],
+ "enrich_html": "<b>📌 考點</b>：HCL 第一線是 <u>purine analogue 單藥（cladribine 或 pentostatin）</u>；若要合併抗體，應為 <b>anti-CD20（rituximab）</b> 而非 anti-CD19——「purine analogue + anti-CD19 mAb 為第一線」即為錯誤敘述。HCL 細胞高度表現 CD20、不以 CD19 為治療靶點。<br><b>🏥 臨床意義</b>：classic HCL 近 100% 帶 BRAF V600E driver mutation，IHC 以 Annexin A1（最特異，可區分其他 B-cell 腫瘤）與 BRAF V600E（VE1 突變特異抗體）最敏感特異；難治或第一線後 2 年內復發者可用 BRAF inhibitor（vemurafenib ± obinutuzumab/MEK-i）salvage。<br><b>⭐ High-yield</b>：HCL variant（HCL-v）為「不同疾病」——BRAF wild-type、CD25 −、Annexin A1 −、CD123 −，常帶 MAP2K1/MEK1 突變與 IGHV4-34，對 purine analogue 反應差（ORR &lt;50%、CR &lt;10%、OS 6–9 年）。<br><b>🔬 實證</b>：randomized 顯示 cladribine + concurrent rituximab（CDAR）6 個月 MRD-free CR 97% vs 單用 24%。（JCO 2020;38:1527；NCCN HCL guideline）",
+ "cards": [
+  {"kind":"basic","front":"Hairy cell leukemia 的標準第一線治療為何?合併抗體時應選哪一種?","back":"Purine analogue 單藥：cladribine (2-CdA) 或 pentostatin，cladribine 常以單一療程 (single course) 即達高比例 CR<hr>不需常規合併抗體；若要加，應選 <b>anti-CD20 (rituximab)</b>，因 HCL 細胞高度表現 CD20。常見陷阱「purine analogue + anti-CD19 mAb 為第一線」即為錯誤——CD19 並非 HCL 治療靶點。cladribine + rituximab (CDAR) 為現代高效組合。"},
+  {"kind":"basic","front":"Classic HCL 的標誌性分子驅動突變是什麼?盛行率多少?","back":"BRAF V600E，見於近 100% 的 classic HCL，屬 driver mutation<hr>位於 MAPK pathway（BRAF→MEK→ERK），是 BRAF 抑制劑治療的分子基礎。HCL variant (HCL-v) 通常「不」帶 BRAF V600E。"},
+  {"kind":"basic","front":"骨髓檢體 IHC 染色中，最敏感且特異的兩個 HCL 標記是什麼?各代表什麼意義?","back":"Annexin A1 與 BRAF V600E mutant protein<hr>Annexin A1 是 HCL 最特異的標記，其他低惡性 B-cell 腫瘤均陰性，可資鑑別；BRAF V600E 幾乎見於所有 classic HCL，可用突變特異抗體 (VE1) 染色偵測。HCL 常因網狀纖維化呈 dry tap，診斷需靠 biopsy 加 IHC。"},
+  {"kind":"cloze","text":"HCL variant (HCL-v) 與 classic HCL 的關鍵鑑別：HCL-v 為 BRAF {{c1::wild-type（不帶 V600E）}}、CD25 {{c2::陰性}}、Annexin A1 {{c3::陰性}}、CD123 陰性。","extra":"HCL-v 被 WHO 視為「不同疾病」，常帶 MAP2K1/MEK1 突變與 IGHV4-34 rearrangement；對 purine analogue 反應差（ORR <50%、CR <10%、OS 約 6–9 年）。因不帶 BRAF V600E，單純 BRAF inhibitor 通常無效。"},
+  {"kind":"basic","front":"對多線治療難治、或第一線治療後 2 年內復發的 classic HCL，可考慮哪類 salvage 藥物?機轉為何?","back":"BRAF inhibitor（vemurafenib、dabrafenib）<hr>基於 classic HCL 近 100% 帶 BRAF V600E driver mutation，抑制 MAPK 路徑。可單用或合併 MEK inhibitor (trametinib)、或 anti-CD20 (obinutuzumab/rituximab)。其他 salvage 還包括重複 purine analogue ± rituximab。"}
+ ]
+}

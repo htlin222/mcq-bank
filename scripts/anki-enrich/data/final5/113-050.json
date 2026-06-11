@@ -1,0 +1,13 @@
+{
+ "id": "113-050",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "Para-Bombay", "Bombay-phenotype", "Oh", "ABO", "FUT1", "FUT2", "secretor", "H-antigen", "anti-H", "Ulex-europaeus-lectin", "blood-group-serology", "transfusion"],
+ "enrich_html": "<b>📌 考點</b>:Para-Bombay vs classic Bombay 的鑑別軸心是 <u>FUT2(secretor)</u>。當「父親紅血球 O 型、卻能把 A allele 遺傳給 AB 型兒子、且唾液測得 A 物質」三條件並列,只有 Para-Bombay 能同時成立:FUT1 失能使紅血球缺 H(A transferase 無受質 → 紅血球判 O),但功能性 FUT2 讓唾液產生 ABH 物質並把 A allele 傳下去。誘餌:孟買血型(classic Bombay)為 non-secretor,唾液不會有 A 物質;AB 亞型紅血球仍會與 anti-A/anti-B 凝集,不會被判成 O。<br><b>🏥 臨床意義</b>:兩型血清皆含 anti-A、anti-B 與額外 <u>anti-H</u>(37°C 有活性,可與幾乎所有 O 型供血者反應 → 急性溶血),只能輸同表型或自體血;classic Bombay 最嚴格、只能輸 Bombay 供血者。常規 forward typing 易把兩型誤判為 O,若當 O 輸入 → 致命溶血。<br><b>⭐ High-yield</b>:FUT1 → 紅血球 H type 2(A/B 前驅受質)｜FUT2 → 分泌液 H type 1｜鑑別用 anti-H lectin(Ulex europaeus):正常 O 型強凝集、Para-Bombay 弱凝集、classic Bombay 不凝集｜Bombay 盛行於印度(約 1:10,000)。<br><b>🔬 實證</b>:Para-Bombay = FUT1 null + 至少一個功能性 FUT2;classic Bombay = FUT1 null + FUT2 null。(NCBI Hh blood group NBK2268;Nature Sci Rep 2023;13:17567;ASH Blood Global 2024;2:100044)",
+ "cards": [
+  {"kind":"basic","front":"父親紅血球定型為 O 型、母親 A 型,兒子卻是 AB 型;且父親唾液可測到 A 物質。最可能的診斷是?","back":"父親為 Para-Bombay(亞孟買)血型。<hr>其基因型其實帶 A allele,但因 FUT1(H gene)失能,紅血球缺乏 H 抗原作為受質,A transferase 無法在紅血球上接出 A 抗原 → forward typing 判為 &quot;O&quot;。然而 FUT2(secretor)功能正常,唾液能合成 H 並轉成 A 物質,且把 A allele 遺傳給兒子(兒子 A 來自父、B 來自母 → AB)。"},
+  {"kind":"basic","front":"血型遺傳題中,「父親紅血球 O 型卻能把 A 抗原遺傳給 AB 型兒子」這個矛盾,為何不能用 AB 亞型(weak A subgroup)解釋?","back":"AB 亞型的紅血球仍帶(雖弱)A/B 抗原,forward typing 會與 anti-A、anti-B 凝集,不會被純判為 O。<hr>紅血球被定為 O(完全不與 anti-A/anti-B 凝集)代表連弱 A/B 都測不到,指向 H 抗原缺失(FUT1 失能)的 Para-Bombay,而非 ABO 亞型。"},
+  {"kind":"basic","front":"Para-Bombay 與 classic Bombay (Oh) 的關鍵分子差異是什麼?","back":"兩者 FUT1(H gene)皆失能;差別在 FUT2(secretor)──Para-Bombay 至少有一個功能性 FUT2,classic Bombay 為 FUT2 null(non-secretor)。<hr>FUT1 在紅血球(erythroid)上加 H 抗原,FUT2 在分泌液(唾液)中加 H 抗原。FUT1 失能 → 紅血球皆無 H/A/B。Para-Bombay 靠 FUT2 在唾液產生 ABH 物質;classic Bombay 兩者皆 null,分泌物與紅血球都無 ABH。"},
+  {"kind":"basic","front":"Bombay 與 Para-Bombay 病人血清中除了 anti-A、anti-B 還含有哪一種天然抗體?臨床輸血意義?","back":"額外含 anti-H(Para-Bombay 有時為 anti-HI)。<hr>因紅血球缺 H 抗原,免疫系統視 H 為外來抗原而產生 anti-H。Anti-H 在 37°C 有活性,可與幾乎所有一般供血者(O 型紅血球 H 抗原最多)反應 → 急性溶血。故只能輸 Bombay/Para-Bombay 同表型或自體血。"},
+  {"kind":"basic","front":"用 anti-H lectin(Ulex europaeus)做凝集試驗時,正常 O 型、Para-Bombay、classic Bombay 三者反應各如何?","back":"正常 O 型 → 強凝集(H 抗原最多);Para-Bombay → 弱凝集(weak H);classic Bombay → 不凝集(無 H)。<hr>這是區分 Bombay/Para-Bombay 與真正 O 型的關鍵試驗。一般 O 型紅血球 H 抗原量最高,Bombay 為零,故 anti-H lectin 可有效篩出 H 缺失表型。"}
+ ]
+}

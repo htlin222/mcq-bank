@@ -1,0 +1,13 @@
+{
+ "id": "112-073",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "Transfusion", "HLA matching", "platelet refractoriness", "HLA-A", "HLA-B", "HLA-C", "CCI", "leukoreduction", "HPA"],
+ "enrich_html": "<b>📌 考點</b>:HLA-matched platelet 只配對 HLA class I 的 <u>HLA-A 與 HLA-B</u>;HLA-C 因細胞表面表現密度低、免疫原性弱,臨床上未證實引發 platelet refractoriness,<b>不納入標準配對</b>(故四選一中 HLA-C 為非配對項)。HLA class II(DR/DQ/DP)亦不需配,因 platelet 主要表現 class I。<br><b>🏥 臨床意義</b>:NHSBT 配對分級 Grade A=HLA-A/B 全合 → B(輕度 mismatch)→ C/D(多個 mismatch)。C、D 級的輸後增量等同隨機血小板,無臨床實益;只有 HLA antibody screen 陽性的 immune refractoriness 病人才從 HLA-matched 受益(PMID 31602653)。<br><b>⭐ High-yield</b>:Refractoriness=連續 >=2 次充足劑量輸注後 1hr CCI &lt;7,500(範圍 5,000-7,500)且 24hr CCI &lt;4,500｜免疫性 → 1hr CCI 就低;非免疫性 → 1hr CCI 正常、24hr 才掉｜非免疫性占 &gt;80%(sepsis 最常見)｜預防靠 leukoreduction。<br><b>🔬 實證</b>:A/BU 級配對 1-4hr CCI 中位約 13,300、C 級僅約 7,800(等同隨機血小板)。(Brand/ASH Education 2020;2020:527;HLA-matched 隨機試驗 Blood 2021;137:310)",
+ "cards": [
+   {"kind":"basic","front":"HLA-matched platelet 輸血需要配對哪些 HLA class I 基因座?哪一個不配?","back":"配 HLA-A 與 HLA-B;不配 HLA-C<hr>HLA-A、HLA-B 的抗原已證實會引發 immune-mediated platelet refractoriness,須配對。HLA-C 雖屬 class I,但在血小板表面表現密度低、免疫原性弱,臨床未證實引發 refractoriness,故非標準配對項。HLA class II(DR/DQ/DP)亦不需配,因 platelet 主要表現 class I。"},
+   {"kind":"basic","front":"Platelet transfusion refractoriness 的定義(用 CCI 與輸注次數)?","back":"連續 >=2 次輸注充足劑量血小板後,1hr CCI &lt;7,500(範圍常用 5,000-7,500)且 24hr CCI &lt;4,500<hr>充足反應應為 1hr CCI &gt;7,500、24hr CCI &gt;4,500。CCI 公式=[(輸後-輸前 platelet count) × BSA(m²)] ÷ 輸入血小板數(×10^11),校正體型與劑量。"},
+   {"kind":"basic","front":"用 corrected count increment (CCI) 的「時間點」如何區分 platelet refractoriness 為免疫性 (anti-HLA) 或非免疫性 (消耗性)?","back":"看 1 小時 CCI:免疫性 → 1hr CCI 就偏低 (&lt;7,500);非免疫性 → 1hr CCI 正常 (&gt;7,500)、但 24hr CCI 偏低 (&lt;4,500)<hr>免疫性抗體在輸後極短時間內破壞血小板,故 1hr 即不佳;非免疫性消耗(發燒、sepsis、DIC、脾腫大、出血、藥物)多在 18-24hr 才使 CCI 下降。"},
+   {"kind":"basic","front":"Platelet refractoriness 的免疫性與非免疫性原因各占多少?最常見的非免疫性原因是什麼?","back":"非免疫性占 >80%,最常見為 sepsis<hr>其他非免疫性:splenomegaly(脾隔離)、fever、DIC、active bleeding、藥物(如 amphotericin B、vancomycin)、HSCT。免疫性(<20%)以 anti-HLA alloantibody 為主,少數為 anti-HPA。臨床上應先排除占多數的非免疫性原因。"},
+   {"kind":"basic","front":"HLA-matched platelet 在哪一類 refractoriness 病人才有效?HLA antibody screen 陰性者該不該用?","back":"僅在 HLA antibody screen 陽性(immune-mediated)病人有效;screen 陰性者不應使用 HLA-matched platelet<hr>抗體陰性者其 refractoriness 屬非免疫性,HLA matching 不會改善 platelet 增量,且浪費稀缺的配型血品。先做 HLA antibody screen 分流是關鍵。"}
+ ]
+}

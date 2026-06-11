@@ -1,0 +1,33 @@
+{
+  "id": "114-030",
+  "topic_index": 2,
+  "extra_tags": ["enriched", "Hodgkin lymphoma", "relapsed refractory HL", "auto-HCT", "brentuximab vedotin", "AETHERA", "PD-1 inhibitor", "nivolumab", "pembrolizumab", "KEYNOTE-204", "allo-HCT", "BTK inhibitor", "salvage chemotherapy", "9p24.1"],
+  "enrich_html": "<b>📌 考點</b>：relapsed/refractory classical Hodgkin lymphoma 的全身性治療兩大支柱是 <u>brentuximab vedotin (anti-CD30 ADC) 與 PD-1 inhibitors (nivolumab、pembrolizumab)</u>。最常見誘餌是把 <b>BTK inhibitors</b> 說成「preferred、低毒性、可達 durable remission」——BTK inhibitors (ibrutinib 等) 用於 B-cell 腫瘤 (CLL/SLL、MCL、Waldenström)，在 HL <b>無確立角色</b>，此為最不正確的陳述。<br><b>🏥 臨床意義</b>：chemosensitive 第一次復發的 standard of care 是 salvage chemo (達 PR/CR) → high-dose chemo + auto-HCT consolidation；auto-HCT 後再復發才考慮 BV/PD-1i 橋接後行 allo-HCT (利用 graft-versus-lymphoma，搭配 reduced-intensity conditioning 降低 TRM)。移植前 response status 是最重要預後因子。<br><b>⭐ High-yield</b>：PD-1i 在 HL 特別有效，因 Reed-Sternberg cells <u>9p24.1 amplification</u> → PD-L1/PD-L2 過度表現。BV 標靶 CD30、攜帶 MMAE，主要毒性 peripheral neuropathy。<br><b>🔬 實證</b>：AETHERA trial 高風險 auto-HCT 後 BV consolidation，5yr PFS 59% vs placebo 41% (HR 0.52)，但 OS 無顯著差異 (placebo 組可 crossover 接 BV) → BV 改善 PFS、OS 益處未證實為正確陳述 (Moskowitz, Lancet 2015；Blood 2018;132:2639)。KEYNOTE-204：pembrolizumab 相較 BV 改善 PFS。",
+  "cards": [
+    {
+      "kind": "basic",
+      "front": "Relapsed/refractory classical Hodgkin lymphoma 的兩大全身性治療支柱是什麼？BTK inhibitors 有角色嗎？",
+      "back": "Brentuximab vedotin (anti-CD30 ADC) 與 PD-1 inhibitors (nivolumab、pembrolizumab)；BTK inhibitors 無確立角色<hr>BTK inhibitors (ibrutinib、acalabrutinib 等) 用於 B-cell 腫瘤 (CLL/SLL、mantle cell lymphoma、Waldenström macroglobulinemia)。把 BTK inhibitors 描述為 HL「preferred、低毒性、可達 durable remission」是典型錯誤陳述。"
+    },
+    {
+      "kind": "basic",
+      "front": "對 salvage chemotherapy 有反應 (chemosensitive)、符合移植條件的 relapsed/refractory Hodgkin lymphoma 病人，standard of care 是什麼？",
+      "back": "High-dose chemotherapy + autologous HCT (auto-HCT) consolidation<hr>隨機試驗證實相較單純化療可改善 event-free survival。流程：salvage chemo 達至少 partial response → auto-HCT。移植前的 response status 是最重要的預後因子；化療完全無反應 (chemorefractory) 者可先以 BV/PD-1i 加深反應再移植。"
+    },
+    {
+      "kind": "basic",
+      "front": "為什麼 PD-1 inhibitors 在 Hodgkin lymphoma 特別有效 (分子基礎)？",
+      "back": "Reed-Sternberg cells 近乎普遍存在 9p24.1 amplification，導致 PD-L1/PD-L2 過度表現、對 PD-1 signaling 高度依賴<hr>因此 nivolumab、pembrolizumab 在 heavily pretreated、auto-HCT 後復發或不適合 auto-HCT 的病人有高 overall response rate。CheckMate 205 (nivolumab)、KEYNOTE-087 (pembrolizumab) 為關鍵 phase 2 證據。"
+    },
+    {
+      "kind": "basic",
+      "front": "Brentuximab vedotin (BV) 的標靶、藥物形式與主要毒性為何？",
+      "back": "Anti-CD30 antibody-drug conjugate (ADC)，連接 microtubule 毒素 MMAE (monomethyl auristatin E)；主要毒性為 peripheral neuropathy<hr>CD30 在 Hodgkin Reed-Sternberg cells 與 anaplastic large cell lymphoma (ALCL) 高度表現。其他毒性含 neutropenia。"
+    },
+    {
+      "kind": "basic",
+      "front": "AETHERA trial：高復發風險 Hodgkin lymphoma 病人 auto-HCT 後給 BV consolidation，對 PFS 與 OS 的影響為何？",
+      "back": "顯著改善 progression-free survival (PFS)，但 overall survival (OS) 益處未被證實<hr>5 年追蹤 PFS 59% (BV) vs 41% (placebo)，HR 0.52；OS 無顯著差異，部分因 placebo 組進展後可 crossover 接受 BV 等後線治療 (Moskowitz, Lancet 2015；Blood 2018;132:2639)。"
+    }
+  ]
+}

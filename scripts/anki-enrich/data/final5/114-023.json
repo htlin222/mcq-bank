@@ -1,0 +1,13 @@
+{
+ "id": "114-023",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "MDS", "SF3B1", "splicing-factor", "ring-sideroblast", "MDS-SF3B1", "WHO2022", "ICC2022", "luspatercept", "SRSF2", "U2AF1", "RUNX1"],
+ "enrich_html": "<b>📌 考點</b>：MDS 四大 RNA splicing factor 突變中，<u>唯有 SF3B1 屬 favorable</u>——長期 chronic phase、進展緩慢、罕快速轉 AML；SRSF2、U2AF1、ZRSR2 多屬 adverse。WHO5/ICC 2022 已把 morphology 主導的「MDS-RS」改寫為分子定義的 <b>MDS-SF3B1</b>。<br><b>🏥 臨床意義</b>：典型表現為 isolated macrocytic anemia、輸血依賴、blast <5%，全血球減少與 blast 增加少見 → 預後好但常慢性輸血依賴；低危輸血依賴貧血治療首選 luspatercept（MEDALIST：ESA 失敗後；COMMANDS：ESA-naïve 一線優於 epoetin alfa）。<br><b>⭐ High-yield</b>：MDS-SF3B1 診斷 — SF3B1 突變 VAF（WHO ≥5%／ICC ≥10%）＋ BM blast <5% ＋ 無 del(5q) ＋ 無 multihit/biallelic TP53；<u>ICC 另要求「無 RUNX1 突變」</u>。Ring sideroblast 非必要（≥15% RS，或 5–14% RS + SF3B1）。Splicing factor 突變彼此 mutually exclusive。<br><b>🔬 實證</b>：雖屬最佳預後亞型，但共存 TP53、RUNX1、EZH2 顯著惡化 OS 與 AML 轉化（Malcovati et al., IWG proposal, Blood 2020;136:157）。",
+ "cards": [
+  {"kind":"basic","front":"在 MDS 中，哪一個 RNA splicing factor 基因突變的特徵是「長期慢性期 (long chronic phase)、進展緩慢、預後良好」，而非快速轉成 AML？","back":"SF3B1。<hr>SF3B1 是剪接體 (spliceosome) 組成成分，突變常見於 ring sideroblast 型 MDS，是 WHO5/ICC 2022 中唯一屬 favorable 的單一剪接因子突變，中位無進展存活可達 5–10 年以上，較少快速轉化為 AML。相對地 SRSF2、U2AF1、ZRSR2 多屬 adverse。"},
+  {"kind":"basic","front":"MDS 的四個常見 RNA splicing factor 突變 (SF3B1 / SRSF2 / U2AF1 / ZRSR2) 在預後上如何分組？","back":"SF3B1 為 favorable；SRSF2、U2AF1、ZRSR2 為 adverse。<hr>四者皆為剪接體相關基因突變，且彼此 mutually exclusive（一名病人通常只帶其中一個）。SF3B1 進展慢、長期慢性期；SRSF2、U2AF1 常伴隨較快進展至 AML、較差存活，並常與其他高風險突變（ASXL1、RUNX1）共存。"},
+  {"kind":"cloze","text":"MDS-SF3B1 診斷需：SF3B1 突變（WHO VAF ≥{{c1::5}}%、ICC VAF ≥{{c2::10}}%）、骨髓 blast <{{c3::5}}%、無 {{c4::del(5q)}}、無 multihit {{c5::TP53}}；ICC 另須無 {{c6::RUNX1}} 突變。","extra":"WHO5 與 ICC 2022 皆以分子取代形態。Ring sideroblast 非必要：≥15% RS，或 5–14% RS + SF3B1 突變即可。這是兩分類少數差異點：ICC 多排除 RUNX1，且 VAF 門檻較高 (≥10%)。"},
+  {"kind":"basic","front":"SF3B1 突變雖屬 favorable，但哪些「共存突變」會顯著惡化其預後（OS 與 AML 轉化）？","back":"TP53（尤其 multihit/biallelic）、RUNX1、EZH2。<hr>SF3B1-mutant MDS 為最佳預後亞型，但 IWG (Malcovati, Blood 2020;136:157) 與後續研究指出，併存 TP53、RUNX1、EZH2 突變會把好預後抹除。故 ICC 2022 在定義 MDS-SF3B1 時即排除 multihit TP53 與 RUNX1。"},
+  {"kind":"basic","front":"低風險、輸血依賴的 SF3B1 突變 / MDS-RS 貧血，首選的標靶藥物是什麼？其作用機轉為何？","back":"Luspatercept（erythroid maturation agent，TGF-β superfamily ligand trap）。<hr>促進晚期紅血球成熟、改善無效造血 (ineffective erythropoiesis)。MEDALIST 試驗用於 ESA 治療失敗後的輸血依賴 MDS-RS；COMMANDS 試驗則證實在 ESA-naïve 病人作一線使用，紅血球輸血獨立率優於 epoetin alfa，改寫了過去「先試 ESA」的順位。"}
+ ]
+}

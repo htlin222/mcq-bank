@@ -1,0 +1,13 @@
+{
+  "id": "112-009",
+  "topic_index": 2,
+  "extra_tags": ["enriched", "follicular lymphoma", "DLBCL", "histologic transformation", "POD24", "rituximab", "lymphoma transformation"],
+  "enrich_html": "<b>📌 考點</b>:Follicular lymphoma (FL) 的 histologic transformation (HT) 為向 aggressive(多為 DLBCL)轉化的關鍵不良事件。四項敘述(年發生率約 3%、median OS 約 4 年、de novo HT 預後較佳、DLBCL relapse 見 FL 成分可反推 de novo HT)<u>皆正確</u>,故「以上皆對」為正解;陷阱在於數據範圍寬易令人懷疑單一數字。<br><b>🏥 臨床意義</b>:HT 病理定義為 large cells diffusely 浸潤、造成 follicular architecture 的 effacement。已治療(rituximab-exposed)後 transform 者因 clone 經選擇壓力更具抗藥性,OS 較 de novo / chemo-naïve HT 差;HT 與 POD24 高度重疊(stage III–IV、β2-microglobulin↑、B symptoms)。<br><b>⭐ High-yield</b>:年發生率約 2–3%｜competing-risk 累積 2/5/10 年約 3%/8%/16%｜歷史 median post-HT OS 僅 1–2 年,rituximab 時代升至約 5 年｜de novo HT(診斷時即 transform)5 年 OS 約 88%｜grade 3B FL 位於 low-grade↔DLBCL 連續譜。<br><b>🔬 實證</b>:PRIMA trial 報告 HT median OS 3.8 年 vs 未 HT 6.4 年(Sarkozy et al., JCO 2015;33:2575);NLCS modern-era median post-transformation survival 約 5 年(Link et al., Blood 2015;126:851)。",
+  "cards": [
+    {"kind": "basic", "front": "Follicular lymphoma (FL) 轉化(histologic transformation, HT)成 aggressive lymphoma 的年發生率約為多少?最常轉成哪一型?", "back": "年發生率約 2–3%;最常轉化為 DLBCL<hr>HT risk 為持續性,competing-risk 累積發生率 2/5/10 年約為 3%/8%/16%(PRIMA, JCO 2015)。HT 是 FL 自然病程中重要的不良預後分水嶺。"},
+    {"kind": "basic", "front": "FL 經治療(rituximab-exposed)後才發生 HT,相較於 de novo HT,預後有何不同?為什麼?", "back": "已治療(rituximab-exposed)後 transform 者預後較差;de novo HT(診斷時即發現 transformation、未接受過 FL 前線治療)預後相對較好<hr>曾接受 FL 治療後才 transform 者,clone 已歷經選擇壓力、更具抗藥性,故 OS 較差;chemo-naïve / de novo HT 因未經前線篩選,治療反應較佳。"},
+    {"kind": "basic", "front": "PRIMA trial 中,發生 histologic transformation 的 FL 患者 vs 未 transform 者,median overall survival 各為多少?", "back": "HT 者 median OS 約 3.8 年 vs 未 HT 者約 6.4 年<hr>HT 顯著惡化存活(Sarkozy et al., JCO 2015;33:2575)。為 board exam 常考的 transformed vs non-transformed FL 存活對比數字;rituximab 時代 median post-HT OS 約 5 年,歷史僅 1–2 年。"},
+    {"kind": "basic", "front": "為何 DLBCL 在 relapse 時若出現 follicular lymphoma 病理成分,可反推其初始診斷的意義?", "back": "提示當初被診斷為 DLBCL 的病灶其實可能是 FL 的 de novo histologic transformation,而非真正原發性 DLBCL<hr>relapse 呈現 FL 成分,代表 underlying indolent FL clone 始終存在;最初的 DLBCL biopsy 實為 FL 已 transform 的表現。"},
+    {"kind": "basic", "front": "follicular lymphoma 的 histologic transformation 與 POD24(progression of disease within 24 months)在臨床風險因子上有何關聯?", "back": "兩者高度重疊;共同高風險因子包括 stage III–IV、β2-microglobulin 上升、B symptoms<hr>HT 與 POD24 皆是 FL 的關鍵不良預後事件;24 個月內 transform 者存活最差。POD24 約見於 15–20% 接受前線治療的 FL 患者。"}
+  ]
+}

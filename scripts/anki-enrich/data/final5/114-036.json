@@ -1,0 +1,13 @@
+{
+ "id": "114-036",
+ "topic_index": 5,
+ "extra_tags": ["enriched","cold-agglutinin-disease","CAD","cold-AIHA","hemolytic-anemia","complement","rituximab","sutimlimab","folate","IgM"],
+ "enrich_html": "<b>📌 考點</b>:Cold agglutinin disease 的支持治療五要點——避寒、輸血加溫(in-line warmer)、積極治療感染、急性/惡化期 LMWH thromboprophylaxis、補充 folate——全是<u>正確</u>措施;唯一錯誤陳述是「不必補充 folate 或 B12」。慢性溶血使骨髓代償增生、folate 需求大增,易成 rate-limiting,須補充以防 megaloblastic crisis。<br><b>🏥 臨床意義</b>:CAD 為 IgM 介導、classical complement(C1→C3b)活化、以肝臟為主的 extravascular hemolysis;故 warm AIHA 慣用的 corticosteroid 與 splenectomy 在 CAD 多<u>無效</u>。第一線改用 rituximab ± bendamustine;complement 抑制劑 sutimlimab(抗 C1s)針對溶血,但<u>不改善</u>冷誘發的 acrocyanosis(非補體介導)。<br><b>⭐ High-yield</b>:DAT 對 C3d 陽性(±弱 IgG)為 CAD 標誌｜原發 CAD 與 Mycoplasma 續發 = anti-I,EBV 續發 = anti-i｜thermal amplitude 高(>30°C 仍凝集)比單純高 titer 更具臨床溶血意義。<br><b>🔬 實證</b>:Folate 補充見 BSH guideline(ongoing hemolysis 皆建議);sutimlimab 2022 FDA 核准(CARDINAL, NEJM 2021;384:1323);rituximab 第一線見 First International Consensus on AIHA(Jäger, Blood Rev 2020)。",
+ "cards": [
+  {"kind":"basic","front":"慢性溶血性貧血(如 cold agglutinin disease)為何需常規補充 folate?","back":"持續紅血球破壞使骨髓代償性增生、大量造血消耗 folate,易出現相對性 folate 缺乏,故須補充。<hr>慢性溶血時紅血球週轉(turnover)加速,骨髓需持續製造新紅血球;folate 為 DNA 合成必需,需求量大增,常成 rate-limiting hematinic。若不補充可誘發 megaloblastic crisis(突發造血停滯與貧血惡化)。BSH guideline 建議所有 ongoing hemolysis 患者補充 folic acid。「不必補充 folate 或 B12」為錯誤陳述。"},
+  {"kind":"basic","front":"Cold agglutinin disease 的自體抗體類型、辨識的紅血球抗原與最佳作用溫度為何?","back":"多為 IgM 自體抗體,辨識紅血球 I antigen,最佳反應溫度約 0–4°C(cold-reacting)。<hr>IgM 在肢端等低溫處與紅血球表面 I antigen 結合並凝集、活化 classical complement pathway。回到核心體溫(37°C)時 IgM 解離,但已沉積的 C3b 介導後續 extravascular hemolysis(以肝臟 Kupffer 細胞清除為主)。對比 warm AIHA:IgG、最佳作用溫度 37°C、脾臟吞噬。"},
+  {"kind":"basic","front":"Cold agglutinin disease 的核心診斷四要素為何?DAT 典型呈現?","back":"四要素:(1)臨床相關溶血;(2)DAT 對 C3d 陽性(±弱 IgG);(3)高 thermal amplitude 的 cold antibody(titer 常 ≥64);(4)骨髓 clonal B cell / monoclonal IgM。<hr>DAT 典型為 C3d 陽性、IgG 陰性或弱陽性——因 IgM 於核心體溫解離,留在紅血球上的主要是補體 C3d。原發 CAD 多有 clonal B-cell population 與 monoclonal IgM。"},
+  {"kind":"basic","front":"原發性(慢性)cold agglutinin disease 的第一線治療藥物為何?為何不用 corticosteroid/splenectomy?","back":"第一線為 rituximab(抗 CD20),可單用或併 bendamustine。<hr>原發 CAD 屬低度 clonal B 細胞淋巴增生疾病;因溶血以肝臟為主且 IgM 介導,warm AIHA 慣用的 corticosteroid 與 splenectomy 在 CAD 多無效。Rituximab 清除產生 IgM 的 B 細胞(ORR 約 50%,加 bendamustine 更高);避寒與輸血保暖為支持治療基礎。complement 抑制劑 sutimlimab(抗 C1s,FDA 2022 核准)針對溶血但不改善冷誘發的 acrocyanosis。(First International Consensus on AIHA)"},
+  {"kind":"cloze","text":"Cold agglutinin titer 與溶血關聯:單純高 titer 並非關鍵,真正決定臨床溶血的是 {{c1::thermal amplitude(熱幅度)}}——即抗體在 {{c2::較高溫度(>30°C)}} 仍能凝集紅血球者更易致病。","extra":"高 titer(如 ≥512)雖較常伴溶血,但若 thermal amplitude 低、僅在極低溫作用,於體內溫度範圍不一定致溶血。臨床相關性以 thermal amplitude 為要。"}
+ ]
+}

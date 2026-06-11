@@ -1,0 +1,33 @@
+{
+ "id": "112-072",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "APL", "differentiation syndrome", "ATRA", "arsenic trioxide", "acute promyelocytic leukemia", "AML"],
+ "enrich_html": "<b>📌 考點</b>：Differentiation syndrome (DS，舊稱 retinoic acid syndrome) 由 differentiating agent (ATRA、ATO) 誘發，<u>非 anthracycline</u>。診斷純靠臨床七徵：unexplained fever、dyspnea、weight gain &gt;5 kg、pleural/pericardial effusion、pulmonary infiltrates、hypotension、acute renal failure。<br><b>🏥 臨床意義</b>：PETHEMA 分級——≥4 徵為 severe、2–3 徵為 moderate；severe 多早發 (中位 day 6，以 pulmonary infiltrate + weight gain 為主)、moderate 多晚發 (中位 day 15)。Severe 或無反應 → 暫停 ATRA/ATO。<br><b>⭐ High-yield</b>：第一線 dexamethasone 10 mg IV Q12H (0.5–1 mg/kg) 於<u>最早懷疑時即給</u>，勿等確診；hyperleukocytosis 時併用 cytoreduction (chemotherapy/hydroxyurea) 可降 DS 風險。<br><b>🔬 實證</b>：早期辨識＋類固醇使 DS 死亡率由歷史~30% 降至近期~1%。(Montesinos et al., Blood 2009;113:775；Cancers 2023;15:4767)",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "Differentiation syndrome (DS，舊稱 retinoic acid syndrome) 是由哪一類藥物誘發？常被誤認為哪個藥物所致？",
+   "back": "由 differentiating agents（ATRA、ATO）誘發。<hr>DS 出現於 acute promyelocytic leukemia (APL) 病人接受 ATRA (all-trans retinoic acid) 或 ATO (arsenic trioxide) 誘導治療時。常見考試陷阱是把它歸咎於 anthracycline 單獨使用——這是錯的，anthracycline 不會引起 DS。"
+  },
+  {
+   "kind": "cloze",
+   "text": "Differentiation syndrome 的診斷靠臨床表現（七徵）：unexplained {{c1::fever}}、{{c2::dyspnea}}、weight gain {{c3::&gt;5 kg}}、{{c4::pleural / pericardial effusion}}、pulmonary {{c5::infiltrates}}、{{c6::hypotension}}、acute {{c7::renal failure}}。",
+   "extra": "無特異性實驗室或影像診斷標準，純靠臨床判斷。CXR 常見 pulmonary edema/infiltrates 與 pleural/pericardial effusion。為 APL 誘導治療中危及生命的併發症。"
+  },
+  {
+   "kind": "basic",
+   "front": "Differentiation syndrome 如何依臨床徵象數目分為 moderate 與 severe？分級如何影響處置？（PETHEMA 分級）",
+   "back": "≥4 個徵象 = severe；2–3 個徵象 = moderate。<hr>七徵為 fever、dyspnea、weight gain &gt;5 kg、pleural/pericardial effusion、pulmonary infiltrates、hypotension、acute renal failure。分級決定處置：moderate 通常可在持續 ATRA/ATO 下以類固醇控制；severe 或對類固醇無反應時須暫停 ATRA/ATO。(Montesinos et al., Blood 2009;113:775)"
+  },
+  {
+   "kind": "basic",
+   "front": "懷疑 differentiation syndrome 時的第一線處置、藥物與劑量為何？給藥時機是？",
+   "back": "立即 dexamethasone 10 mg IV Q12H（或 0.5–1 mg/kg，max 10 mg/dose Q12H），於「最早臨床懷疑」即給、不需等確診。<hr>類固醇抑制 DS 的發炎與毛細血管滲漏反應，延遲處置增加死亡率。Severe 或對類固醇無反應時須暫停 ATRA/ATO。早期辨識＋類固醇使 DS 死亡率由歷史~30% 降至近期~1%。(Cancers 2023;15:4767)"
+  },
+  {
+   "kind": "basic",
+   "front": "Differentiation syndrome 與 leukostasis（白血球淤積）在 APL 中如何鑑別？",
+   "back": "DS 是 differentiating agent 誘發的發炎/毛細血管滲漏症候群（fever、effusion、肺浸潤、腎衰竭），對 dexamethasone 有反應；leukostasis 是極高白血球數造成微血管阻塞（CNS、肺症狀），處置為 cytoreduction（hydroxyurea/化療）±白血球分離術。<hr>兩者可並存於 hyperleukocytic APL；DS 以類固醇為處置核心，leukostasis 以降低白血球負荷為核心。注意 hyperleukocytosis 時併用 cytoreduction 反而可降低 DS 風險，因 DS 的真正觸發者是 ATRA/ATO 而非化療。"
+  }
+ ]
+}

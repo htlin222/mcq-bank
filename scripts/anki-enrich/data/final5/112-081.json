@@ -1,0 +1,13 @@
+{
+  "id": "112-081",
+  "topic_index": 3,
+  "extra_tags": ["enriched", "vWD", "vWF", "DDAVP", "desmopressin", "rVWF", "vonicog_alfa", "cryoprecipitate", "Humate_P", "Haemate_P", "FVIII", "HMW_multimer", "primary_hemostasis"],
+  "enrich_html": "<b>📌 考點</b>:vWD 替代治療的關鍵是補充含 high-molecular-weight (HMW) vWF multimer 的製劑。含治療性 vWF 者包括重組 rVWF (vonicog alfa)、cryoprecipitate、與中等純度 pdVWF/FVIII 濃縮劑 (Humate-P/Haemate P);DDAVP 不含外源性 vWF,僅刺激內生釋放。<br><b>🏥 臨床意義</b>:DDAVP 對 severe (Type 3) vWD 與 severe hemophilia A 無效 (儲存池不足);Type 2B 禁用——釋出 gain-of-function、對 GPIbα 親和力增高的異常 vWF 會誘發血小板凝集與 thrombocytopenia。<br><b>⭐ High-yield</b>:rVWF 由 CHO cell 製造、<u>未暴露於 ADAMTS13</u> → 保留 large/ultra-large multimer,給藥時不必同時補 FVIII (內生 FVIII 會被穩定);純高純度/重組 FVIII 缺 HMW multimer,只升 FVIII、無法矯正出血時間,不可替代治 vWD。<br><b>🔬 實證</b>:cryoprecipitate 因病毒不活化不足,僅限危及生命/肢體且無病毒去活化 vWF 製劑可用時使用;FDA 核准之 vWD 製劑含 Humate-P、Wilate、Alphanate、Vonvendi。(NBDF MASAC #266, 2023;Connell et al. ASH/ISTH/NHF/WFH VWD Treatment Guideline, Blood Adv 2021;5:301)",
+  "cards": [
+    {"kind":"cloze","text":"含「治療性 vWF (HMW multimer)」可直接補充者包括 {{c1::重組 rVWF / vonicog alfa (Vonvendi)}}、{{c2::cryoprecipitate 冷凍沉澱品}} 與 {{c3::中等純度血漿衍生 vWF/FVIII 濃縮劑 (Humate-P/Haemate P)}};而 {{c4::DDAVP / desmopressin}} 只刺激內生性 vWF 釋放,不含外源性 vWF。","extra":"DDAVP 為 vasopressin 類似物,動員內皮 Weibel-Palade body 儲存池;嚴格定義「含外源 vWF 蛋白的製劑」時不納入 DDAVP。"},
+    {"kind":"basic","front":"哪一型 vWD 禁用 DDAVP?機轉為何?","back":"Type 2B vWD 禁用。<hr>Type 2B 的 gain-of-function 突變使 vWF 對血小板 GPIbα 親和力異常增高;DDAVP 釋出更多此高親和力 vWF 會促進自發性血小板凝集並被清除,誘發或加重 thrombocytopenia。"},
+    {"kind":"basic","front":"為何高純度 / 重組 FVIII 製劑不可替代用於治療 vWD?","back":"因其缺乏 high-molecular-weight (HMW) vWF multimer。<hr>HMW multimer 是 vWF 介導血小板黏附 (primary hemostasis) 的關鍵;只補 FVIII 雖能升高 FVIII 活性,但無法矯正初級止血缺陷(出血時間/PFA 仍延長)。治 vWD 須用含 HMW multimer 的 vWF 製劑 (Humate-P、Wilate、rVWF)。"},
+    {"kind":"basic","front":"rVWF (vonicog alfa) 在 multimer 結構上有何獨特優勢?為何臨床上初次給藥常不需同時補 FVIII?","back":"由 CHO cell 製造、未暴露於 ADAMTS13,保留 large 與 ultra-large multimer。<hr>因不受 ADAMTS13 蛋白水解切割,rVWF 含完整高分子量 multimer,止血效力強;它能穩定病人內生 FVIII,使內生 FVIII 隨之上升,故多數出血情境初次給藥不必同時輸注 FVIII。"},
+    {"kind":"basic","front":"Cryoprecipitate 含 vWF,為何現代 vWD 治療不以它為首選?何時才用?","back":"因病毒不活化 (viral attenuation) 處理不足,有病原傳播風險。<hr>Cryoprecipitate 含 vWF、FVIII、fibrinogen、FXIII;指引建議僅在「危及生命/肢體的緊急情況、且無病毒去活化的 vWF/FVIII 濃縮劑可立即取得」時才用,常規應改用 pdVWF/FVIII 濃縮劑或 rVWF。"}
+  ]
+}

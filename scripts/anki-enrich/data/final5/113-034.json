@@ -1,0 +1,13 @@
+{
+ "id": "113-034",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "AIHA", "DAT", "Coombs", "warm-AIHA", "cold-agglutinin-disease", "PNH", "FLAER", "CD55", "CD59", "thermal-amplitude", "hemolysis", "thromboprophylaxis"],
+ "enrich_html": "<b>📌 考點</b>:DAT 陽性溶血性貧血的鑑別,核心是用 <u>monospecific DAT(anti-IgG vs anti-C3d)分型 warm/cold AIHA</u>,再用 thermal amplitude 判定 cold agglutinin 的臨床致病性。C3/C4 serum level 只在懷疑 SLE 等補體消耗性疾病時才輔助使用,在無自體免疫病史下並非釐清 AIHA 種類的必要步驟,故屬「不需做」的選項。<br><b>🏥 臨床意義</b>:warm AIHA(IgG 主)首選 corticosteroid;CAD(C3d/IgM 主)對類固醇反應差,治療靠保暖 + rituximab。AIHA 屬高血栓風險(溶血促凝),活動性溶血應考量 thromboprophylaxis;且自體抗體為 panreactive 難找完全相合血,但輸血非絕對禁忌,危及生命時應輸 least incompatible 血品。<br><b>⭐ High-yield</b>:小 PNH clone(<10%)常與 aplastic anemia/MDS/AIHA 並存,反映免疫攻擊下 GPI 缺陷 clone 逃逸擴增;clone &lt;30% 且無症狀者一般不需針對 PNH 治療,但須年度追蹤(可擴增為典型溶血性 PNH)。FLAER 偵測 GPI anchor 缺失,對 granulocyte/monocyte 比單用 CD55/CD59 更靈敏(敏感度可至 0.01%)。<br><b>🔬 實證</b>:PNH(+)的 aplastic anemia 對 IST 反應較佳、存活較好(PNH(−)死亡 HR 約 2.37)。(ASH Education 2021;Front Immunol 2020;11:1006;IJMS 2024;25:4296)",
+ "cards": [
+  {"kind":"basic","front":"溶血性貧血 DAT (direct antiglobulin test) 陽性後,要區分 warm vs cold AIHA,下一步該做什麼?","back":"做 monospecific DAT,分別鑑定包覆紅血球的成分是 anti-IgG 還是 anti-C3d。<hr>Warm AIHA 以 <b>IgG</b> 陽性為主(±C3d),抗體在 37°C 最活躍;Cold agglutinin disease 以 <b>C3d</b> 陽性為主(IgM 抗體在低溫結合後活化補體,洗脫時 IgM 已脫落只剩 C3d)。因此 monospecific DAT(anti-IgG vs anti-C3d)是鑑別 warm/cold 的關鍵第一步。(IJMS 2024;25:4296)"},
+  {"kind":"cloze","text":"AIHA 依抗體最適反應溫度分型:{{c1::Warm}} AIHA 主要抗體為 {{c2::IgG}},monospecific DAT 以 anti-{{c2::IgG}} 陽性;{{c3::Cold}} agglutinin disease 主要抗體為 {{c4::IgM}},DAT 以 anti-{{c5::C3d}} 陽性。","extra":"Warm AIHA 最常見,首選 corticosteroid;Cold agglutinin disease 對類固醇反應差,治療重點是保暖與 rituximab,並依 thermal amplitude(非效價)判斷臨床致病性。"},
+  {"kind":"basic","front":"懷疑 cold agglutinin disease 時,thermal amplitude test 評估的是什麼?為何比效價更重要?","back":"評估 cold agglutinin 能造成凝集/溶血反應的最高溫度範圍。<hr>Cold agglutinin 的臨床致病性取決於 thermal amplitude,而非單純抗體效價。若 thermal amplitude 接近體溫(如 28–30°C 以上仍有活性),即使效價不高也具臨床致病性;反之低 thermal amplitude 的冷凝集素通常無害。"},
+  {"kind":"basic","front":"在尚未有 SLE 等自體免疫病史的 AIHA,C3/C4 serum level 在初步鑑別中的角色為何?","back":"屬輔助性檢查,非釐清 AIHA 種類的第一線必做項目。<hr>C3/C4 定量主要用於評估補體消耗(如 SLE、補體相關疾病)。在無 SLE 背景下,AIHA 初步鑑別應聚焦 monospecific DAT 抗體分型與 thermal amplitude;C3/C4 並非區分 warm/cold AIHA 的必要步驟,故常為「不需做」的鑑別選項。"},
+  {"kind":"basic","front":"溶血性貧血 FLAER 顯示僅 2% 的 CD55/CD59 陰性 clone(小 PNH clone),臨床意義與處置為何?","back":"小 PNH clone(<10%)常見於骨髓衰竭/自體免疫情境,未必代表典型溶血性 PNH;clone <30% 且無症狀者一般不需針對 PNH 治療,但須年度追蹤。<hr>小 clone 常與 aplastic anemia、MDS、AIHA 等免疫媒介骨髓病變並存,反映免疫攻擊下 GPI 缺陷 clone 的逃逸擴增,並可隨時間擴增為典型溶血性 PNH,故須監測。若同時 DAT 陽性、主要溶血機轉為 AIHA,則以 AIHA 治療為主、PNH clone 列為追蹤。(ASH Education 2021)"}
+ ]
+}

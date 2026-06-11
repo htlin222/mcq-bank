@@ -1,0 +1,13 @@
+{
+ "id": "114-001",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "adult ALL", "MRD", "BCR-ABL1", "Ph-positive ALL", "blinatumomab", "ponatinib", "dasatinib", "E1910", "D-ALBA", "prognostic factor", "complete molecular response"],
+ "enrich_html": "<b>📌 考點</b>:成人 ALL 預後因子中,「達 complete remission 的速度」方向常被考。<u>延遲緩解(未能在 ~4 週、或 &gt;3 週達 CR、或需 &gt;1 療程)才是不利因子;早期快速達 CR 反而有利</u>。把「4 週內達 CR」說成不利因子是方向相反的錯誤。<br><b>🏥 臨床意義</b>:現代 ALL 以 MRD(EOI 週4–6 flow &lt;0.01% 或 RQ-PCR)為主導預後因子,凌駕多數傳統因子;早期清除速度(day 7 PB blast、day 7–21 髓內 blast)是反應深度的代理指標,持續存在=化療抗藥=不利。<br><b>⭐ High-yield</b>:E1910(MRD-neg BCP-ALL,consolidation 加 blinatumomab)3-yr OS 85% vs 68%(HR 0.41)、RFS 80% vs 64%｜blinatumomab=anti-CD19/CD3 BiTE｜Ph+ ALL:HCVAD+ponatinib 3月 CMR 84%(&gt;dasatinib 63%)、多數免 alloSCT;chemo-free(D-ALBA、ponatinib+blinatumomab)4-yr OS ~81–91%。<br><b>🔬 實證</b>:E1910(Litzow et al., NEJM 2024;390:320);ELN 2024 ALL 建議(Gökbuget et al., Blood 2024;143:1891);HCVAD+ponatinib 80月追蹤(Kantarjian et al., Am J Hematol 2023)。",
+ "cards": [
+  {"kind":"basic","front":"成人 ALL 中,induction 後「早期(~4 週內)達成 complete remission」屬於有利還是不利的預後因子?","back":"有利因子(favorable)。<hr>快速清除白血病細胞代表對化療反應良好。相反地,延遲緩解(未能在 ~4 週達 CR、達 CR 需 &gt;3 週、或需 &gt;1 療程)才是不利因子;把「4 週內達 CR」誤稱為不利因子是方向相反的常見陷阱。"},
+  {"kind":"basic","front":"成人 ALL 診斷時(治療前)的不利預後因子有哪些?(年齡、WBC、遺傳)","back":"高齡、初診高白血球(B-ALL ≥30,000/µL、T-ALL ≥100,000/µL)、高危遺傳(Ph-like、KMT2A 重排、低二倍體 hypodiploidy;Ph+ 傳統上不利但 TKI 時代已大幅改善)。<hr>年輕(&lt;~35 歲)與 WBC &lt;30,000/µL 為有利。治療反應因子(達 CR 速度、MRD)比診斷期因子更具決定性。"},
+  {"kind":"basic","front":"為何 MRD 已成為成人 ALL 的主導性預後因子?舉一個量化對比。","back":"MRD 反應凌駕多數傳統診斷期因子。<hr>BCR::ABL1-negative ALL 第一療程化療後達 complete molecular response 者 3-yr OS 約 94%,而 MRD &gt;1×10⁻⁴ 者僅約 32%;EOI(週4–6)MRD &lt;0.01% 或轉陰為有利,持續陽性為高危。(ELN 2024, Blood 2024;143:1891)"},
+  {"kind":"basic","front":"E1910 試驗:對已達 MRD-negative remission 的成人 BCP-ALL,在 consolidation chemotherapy 中加入 blinatumomab,對 overall survival 的效益(含數值)?","back":"顯著改善 OS:中位追蹤 43 個月,3-yr OS 85% vs 單純化療 68%(HR 0.41, P=.002);RFS 80% vs 64%。<hr>採改良 MRC UKALL XII/ECOG E2993 化療骨架,納入 30–70 歲、MRD-neg(骨髓 flow &lt;0.01%)患者。確立即使已達 MRD 陰性,加入 blinatumomab 仍進一步延長存活。(Litzow et al., NEJM 2024;390:320)"},
+  {"kind":"basic","front":"blinatumomab 的作用機轉與標靶為何?用於哪類 ALL?其主要毒性?","back":"anti-CD19 / anti-CD3 bispecific T-cell engager(BiTE),引導 T 細胞攻擊 CD19+ B 淋巴細胞。<hr>用於 B-cell precursor ALL(BCP-ALL),可清除 MRD,為 E1910 中改善 OS 的關鍵藥物。常見毒性:cytokine release syndrome(CRS)與神經毒性(neurotoxicity)。"}
+ ]
+}

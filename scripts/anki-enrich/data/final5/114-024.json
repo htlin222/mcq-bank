@@ -1,0 +1,33 @@
+{
+ "id": "114-024",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "AML", "FLT3 inhibitor", "FLT3-ITD", "FLT3-TKD", "midostaurin", "gilteritinib", "quizartinib", "crenolanib", "sorafenib", "venetoclax", "BCL-2 inhibitor", "oral azacitidine", "CC-486"],
+ "enrich_html": "<b>📌 考點</b>：AML 標靶藥的「核准機關」與「FLT3 type I/II 對應突變」是雙重高頻誘餌。Venetoclax + low-dose Ara-C（或 + HMA）由<u>美國 FDA</u>核准（2018 加速核准、2020 完全核准），適用 ≥75 歲或不適合 intensive chemotherapy 的新診斷 AML — 寫成「TFDA（台灣）核准」即為錯誤敘述。<br><b>🏥 臨床意義</b>：FLT3 type I（midostaurin、gilteritinib、crenolanib）結合 active+inactive 構型 → 對 ITD 與 TKD 皆有效；type II（sorafenib、quizartinib）僅結合 inactive 構型 → 僅對 ITD 有效。D835（codon 835）TKD 突變使受體鎖在 active 構型，是 type II 的經典抗藥機轉；gilteritinib 對 D835 仍有效，故 R/R 情境優先選 type I。<br><b>⭐ High-yield</b>：midostaurin = RATIFY（frontline + 化療）｜gilteritinib = ADMIRAL（R/R 單藥）｜venetoclax = VIALE-A（+aza）/ VIALE-C（+LDAC）｜oral azacitidine = QUAZAR AML-001（CR1 維持）。<br><b>🔬 實證</b>：VIALE-C ven+LDAC vs placebo+LDAC：OS 7.2 vs 4.1 mo、CR 27% vs 7.4%（ASCO Post 2020）；type I/II 抗藥對比見 FLT3 inhibitors in AML（PMC6280371）。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "AML 標靶治療中，venetoclax + low-dose Ara-C（或 + HMA）用於新診斷、年齡 >75 歲或不適合 intensive chemotherapy 者，其正式核准機關是哪一個？",
+   "back": "美國 FDA（不是台灣 TFDA）。<hr>2018 年 accelerated approval、2020 年轉為 full approval，適用新診斷 AML 且 ≥75 歲或因共病不適合 intensive induction chemotherapy 者；併用藥物可為 azacitidine、decitabine 或 low-dose cytarabine。把核准機關誤寫成 TFDA 即為常見錯誤敘述。"
+  },
+  {
+   "kind": "basic",
+   "front": "為何 type I FLT3 inhibitor 對 FLT3-ITD 與 FLT3-TKD（如 D835）都有效，而 type II 只對 FLT3-ITD 有效？",
+   "back": "Type I 同時抑制 FLT3-ITD 與 FLT3-TKD；type II 僅抑制 FLT3-ITD。<hr>Type I 結合 active（含 inactive）構型，不受活化態影響；type II 僅結合 inactive（DFG-out）構型。TKD 突變（如 codon D835）使受體傾向 active 構型，type II 因需 inactive 構型而失去結合力，故 D835 是 type II（sorafenib、quizartinib）的經典抗藥機轉。"
+  },
+  {
+   "kind": "cloze",
+   "text": "FLT3 inhibitor 依結合機轉分類：type I（結合 active+inactive 構型、對 ITD 與 TKD 皆有效）代表藥物為 {{c1::midostaurin}}、{{c2::gilteritinib}}、{{c3::crenolanib}}；type II（僅結合 inactive 構型、僅對 ITD 有效）代表藥物為 {{c4::sorafenib}}、{{c5::quizartinib}}。",
+   "extra": "Type 是「機轉分類」，generation 是「世代分類」，兩者獨立：quizartinib 雖為第二代 FLT3 inhibitor，機轉上仍屬 type II（僅抑 ITD）；gilteritinib 為第二代且機轉為 type I（ITD+TKD）。"
+  },
+  {
+   "kind": "basic",
+   "front": "FLT3-TKD codon D835 突變對 sorafenib / quizartinib 與 gilteritinib 的療效有何差異？",
+   "back": "D835 是 sorafenib、quizartinib（type II）的主要抗藥突變；但 gilteritinib（type I）對 D835 仍有效。<hr>D835 使受體鎖在 active 構型，type II 因需 inactive 構型而失效。臨床上 type II 治療後出現的 acquired D835 是常見抗藥來源，此時轉用 type I 的 gilteritinib 可保留活性，為 R/R FLT3-mutated AML 的優先選擇。"
+  },
+  {
+   "kind": "basic",
+   "front": "把 AML 四個標靶藥配對其代表性臨床試驗：midostaurin、gilteritinib、venetoclax、oral azacitidine。",
+   "back": "midostaurin → RATIFY（frontline + 化療）；gilteritinib → ADMIRAL（R/R 單藥）；venetoclax → VIALE-A（+azacitidine）/ VIALE-C（+LDAC）；oral azacitidine → QUAZAR AML-001（CR1 維持）。<hr>記憶法：誘導期看 RATIFY、復發期看 ADMIRAL、不耐受強化化療看 VIALE、緩解後維持看 QUAZAR。"
+  }
+ ]
+}

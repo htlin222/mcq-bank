@@ -1,0 +1,13 @@
+{
+ "id": "112-093",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "MRD", "measurable-residual-disease", "flow-cytometry", "RQ-PCR", "NGS", "blinatumomab", "prognosis"],
+ "enrich_html": "<b>📌 考點</b>:MRD 在 ALL 是「獨立於傳統 pretherapeutic risk factors(WBC、cytogenetics、immunophenotype、age)之外、最強的預後因子」,且其預後價值在 <u>children 與 adults 皆已驗證</u>——「僅在兒童驗證」是經典錯誤陳述。<br><b>🏥 臨床意義</b>:臨床有效 MRD assay 之最低可接受靈敏度為 <b>≥10⁻⁴(0.01% blasts in BM)</b>。End-of-induction MRD ≥0.01% 判為 MRD high-risk,影響 HSCT 與 immunotherapy 決策;Blinatumomab 自 2018 FDA 核准用於 CR 但 MRD ≥10⁻³(0.1%)之 BCP-ALL(首個以 MRD 為 inclusion + endpoint 的藥物,BLAST trial)。<br><b>⭐ High-yield</b>:方法靈敏度 NGS(10⁻⁶~10⁻⁷)&gt; RQ-PCR(Ig/TCR rearrangement 或 fusion transcript,10⁻⁵)&gt; multiparameter flow cytometry(10⁻⁴);NGS 本質仍屬 PCR-based。MRD 的 clearance kinetics(下降動態)亦預測 relapse risk;EOI 達 MRD− 可抵銷 day-7 殘存 blasts 的不良預後。<br><b>🔬 實證</b>:預後對比——兒童 10-yr EFS MRD− 77% vs MRD+ 32%;成人 64% vs 21%。(PMC8943430; Haematologica 2022, PMC9713546; NEJM 2024;390:NEJMoa2312948)",
+ "cards": [
+  {"kind":"basic","front":"ALL 之 MRD 的預後價值僅在兒童驗證,對嗎?它在 risk stratification 中的地位為何?","back":"錯;在 children 與 adults 皆已驗證,且是獨立於傳統 pretherapeutic risk factors 之外最強的預後因子<hr>傳統因子包含 WBC count、cytogenetics、immunophenotype、age。「MRD 預後價值僅在兒童成立」是經典錯誤敘述。"},
+  {"kind":"basic","front":"ALL 三種主要 MRD 偵測方法(MFC、RQ-PCR、NGS)的靈敏度由高到低排序為何?","back":"NGS(10⁻⁶~10⁻⁷)> RQ-PCR(10⁻⁵)> multiparameter flow cytometry(10⁻⁴)<hr>NGS 偵測 Ig/TCR clonotype 序列,靈敏度最高且本質屬 PCR-based;RQ-PCR 偵測 Ig/TCR rearrangement 或 fusion transcript;MFC 偵測 leukemia-associated aberrant immunophenotype,優點是幾乎所有病人皆適用、turnaround 快。"},
+  {"kind":"basic","front":"臨床上一個有效的 ALL MRD assay,其最低可接受的靈敏度為何?","back":"至少 10⁻⁴,即 0.01% leukemia cells in bone marrow<hr>低於此靈敏度的方法不足以可靠地分層 relapse risk。NGS 雖可偵測達 10⁻⁶~10⁻⁷ 的 ultra-low MRD,但如此極低 MRD level 的臨床意義尚未完全確立。"},
+  {"kind":"basic","front":"第一個以 MRD 作為納入條件與療效終點獲核准的 ALL 藥物為何?核准的 MRD 門檻?","back":"Blinatumomab(anti-CD19 BiTE),2018 FDA 核准用於 CR 且 MRD ≥10⁻³(0.1%)之 BCP-ALL<hr>依據 BLAST trial。Blinatumomab 為 CD19×CD3 雙特異抗體,可清除 MRD;現行 guideline 對 molecular failure / molecular relapse(MRD >10⁻⁴)亦使用 blinatumomab。"},
+  {"kind":"basic","front":"MRD-negative 與 MRD-positive 的 ALL 病人,長期 event-free survival(EFS)差距有多大?(兒童與成人)","back":"兒童:10-yr EFS MRD− 77% vs MRD+ 32%;成人:64% vs 21%<hr>無論年齡,MRD 陽性者復發與死亡風險顯著升高,佐證 MRD 是橫跨兒童與成人、最強的獨立預後因子。成人 pre-HSCT NGS-MRD ≥10⁻⁴ 者移植後較易復發。"}
+ ]
+}

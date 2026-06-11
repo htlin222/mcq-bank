@@ -1,0 +1,13 @@
+{
+ "id": "114-049",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "VITT", "HIT", "autoimmune-HIT", "spontaneous-HIT", "anti-PF4-antibody", "PF4", "FcgammaRIIa", "heparin", "CVST", "immunothrombosis"],
+ "enrich_html": "<b>📌 考點</b>：anti-PF4 免疫血栓四分類 (Greinacher/Warkentin)：classical HIT (heparin-dependent)、autoimmune HIT、VITT (疫苗觸發、heparin-independent)、spontaneous VITT-like (無 heparin 亦無疫苗)。試題以 &quot;Except&quot; 要求挑出敘述錯誤者；官方答案 C，理由認定 VITT-like 抗體應與疫苗/感染相關而非完全無誘因。<u>須留意：最新文獻 (Blood 2023) 其實證實 spontaneous anti-PF4 disorder 可在無 heparin、無疫苗下發生</u>，故 C 之命題具爭議，但選項 D 把 VITT 抗體寫成 &quot;heparin dependent&quot; 亦屬明顯錯誤——VITT 抗體為 heparin-INDEPENDENT。<br><b>🏥 臨床意義</b>：VITT 偏好非典型部位血栓 (cerebral venous sinus thrombosis、splanchnic vein)，伴 supraraised D-dimer；死亡率 &gt;20% 高於 classical HIT (約 10%)。遇疫苗後 5–30 天血小板低下+血栓+極高 D-dimer 須立即驗 anti-PF4 ELISA。<br><b>⭐ High-yield</b>：治療鐵律 = IVIG (阻斷 FcγRIIa) + non-heparin 抗凝 (argatroban/bivalirudin/fondaparinux/DOAC)，<u>禁用 heparin、禁血小板輸注</u>；難治者加 plasma exchange + 類固醇。<br><b>🔬 實證</b>：thrombosis 在 HIT 約 20–60%、在 VITT 幾乎 100%；VITT 抗體 mono/oligoclonal 而 HIT polyclonal。(Warkentin & Greinacher, Blood 2023;142:2305; ASH Education Program 2023:1)",
+ "cards": [
+  {"kind":"cloze","text":"Greinacher/Warkentin 將 anti-PF4 immunothrombosis 分四類：{{c1::classical HIT}} (heparin-dependent)、{{c2::autoimmune HIT}} (heparin-independent)、{{c3::VITT}} (疫苗觸發、heparin-independent)、與 {{c4::spontaneous (VITT-like) HIT}} (無 heparin 亦無疫苗暴露)。","extra":"四類共同機轉：anti-PF4 IgG 免疫複合物經血小板 FcγRIIa 活化 → 血栓 + 血小板低下；治療皆避免 heparin。(ASH Education 2023; Blood 2023;142:2305)"},
+  {"kind":"basic","front":"VITT 抗體活化血小板是否依賴 heparin？這如何與 classical HIT 區分？","back":"不依賴 heparin（heparin-INDEPENDENT）<hr>classical HIT 需 heparin-PF4 複合物才活化血小板；VITT 抗體結合 PF4 上接近 heparin-binding site 的位置，可在無 heparin 存在下直接活化血小板。故若選項把 VITT 抗體描述為 &quot;heparin dependent&quot;，即為錯誤敘述（區分 VITT 與 HIT 的核心命題陷阱）。"},
+  {"kind":"basic","front":"與 classical HIT 相比，VITT 的血栓率、死亡率與抗體 clonality 如何？","back":"VITT 血栓率近 100%、死亡率 >20%、抗體 mono/oligoclonal；classical HIT 血栓率約 20–60%、死亡率約 10%、抗體 polyclonal<hr>VITT 常見不尋常部位血栓 (cerebral venous sinus thrombosis、splanchnic vein thrombosis)，合併 supraraised (極度升高) D-dimer，整體預後較典型 HIT 差。"},
+  {"kind":"basic","front":"VITT 的核心治療組合為何？為什麼要避免 heparin 與血小板輸注？","back":"IVIG + non-heparin 抗凝 ± plasma exchange / 免疫抑制劑；禁用 heparin、禁血小板輸注<hr>IVIG 競爭性阻斷 FcγRIIa 介導的血小板活化、快速回升血小板。因抗體 heparin-independent 且 heparin 可能加重活化，抗凝改用 argatroban、bivalirudin、fondaparinux 或 DOAC。輸血小板會「火上加油」加重血栓。嚴重/難治者加 plasma exchange 與類固醇。"},
+  {"kind":"basic","front":"VITT / HIT 類抗體活化血小板的下游受體機轉為何？這如何解釋 IVIG 的療效？","back":"anti-PF4 IgG 與 PF4 形成免疫複合物，其 Fc 端交聯血小板表面的 FcγRIIa 受體 → 血小板活化、聚集與促凝表面形成<hr>活化造成血栓，同時血小板被消耗 → 血小板低下。高劑量 IVIG 競爭性占據 / 阻斷 FcγRIIa 路徑，是快速止血栓、回升血小板的治療基礎。"}
+ ]
+}

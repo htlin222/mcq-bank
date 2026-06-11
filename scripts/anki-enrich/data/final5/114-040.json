@@ -1,0 +1,33 @@
+{
+  "id": "114-040",
+  "topic_index": 2,
+  "extra_tags": ["enriched", "CLL", "CLL-IPI", "IGHV", "TP53", "beta2-microglobulin", "del13q", "del17p", "Binet", "Rai", "prognosis"],
+  "enrich_html": "<b>📌 考點</b>:CLL-IPI 五項加權因子須記分數而非僅記名稱:TP53 異常 (del17p 和/或 TP53 mutation) 4 分、unmutated IGHV 2 分、β2-microglobulin &gt;3.5 mg/L 2 分、advanced stage (Binet B-C / Rai I-IV) 1 分、age &gt;65 1 分,總分 0-10。每項的 favorable 值 (TP53 wild-type、<u>mutated</u> IGHV、β2M ≤3.5、Binet A/Rai 0、≤65 歲) 才算「較佳預後」;<u>unmutated</u> IGHV 是不良因子 (2 分),為最常見的混淆誘餌。<br><b>🏥 臨床意義</b>:四風險組 5 年 OS — low (0-1) 93.2%、intermediate (2-3) 79.3%、high (4-6) 63.3%、very high (7-10) 23.3%,差距達 70%,直接影響治療強度與追蹤密度。<br><b>⭐ High-yield</b>:Cytogenetic 階層 (Döhner) del(13q) sole (最佳) &gt; normal &gt; trisomy 12 &gt; del(11q) &gt; del(17p) (最差)｜TP53 異常 + unmutated IGHV 兩者皆禁用 chemoimmunotherapy,首選 BTKi 或 venetoclax-based targeted therapy;del(17p)/TP53 偏好持續性 BTKi。<br><b>🔬 實證</b>:TP53(4) &gt; IGHV(2) = β2M(2) &gt; stage(1) = age(1)。(International CLL-IPI working group, Lancet Oncol 2016;17:779;治療 Blood Cancer J 2025;15:01434)",
+  "cards": [
+    {
+      "kind": "cloze",
+      "text": "CLL-IPI 五項加權因子與分數:{{c1::TP53 異常 (del17p/TP53 mutation) = 4 分}}、{{c2::unmutated IGHV = 2 分}}、{{c3::β2-microglobulin >3.5 mg/L = 2 分}}、{{c4::advanced clinical stage (Binet B-C / Rai I-IV) = 1 分}}、{{c5::age >65 = 1 分}}。",
+      "extra": "總分 0-10。記憶法:TP53(4) 最重 > IGHV(2) = β2M(2) > stage(1) = age(1)。每項分到的是「不良」值;反之 (TP53 wild-type、mutated IGHV、β2M ≤3.5、Binet A/Rai 0、≤65 歲) 即 favorable,不計分。(Lancet Oncol 2016;17:779)"
+    },
+    {
+      "kind": "cloze",
+      "text": "CLL-IPI 四個風險組依分數分為:{{c1::low (0-1 分)}}、{{c2::intermediate (2-3 分)}}、{{c3::high (4-6 分)}}、{{c4::very high (7-10 分)}};對應 5 年 OS 約 {{c5::93% / 79% / 63% / 23%}}。",
+      "extra": "very high 組 (≥7 分,代表至少帶 TP53 異常 4 分再加其他因子) 預後最差,5 年 OS 僅約 23%,與 low risk 相差約 70%。CLL-IPI 用於初診 prognostic stratification,而非治療時機決定 (治療時機看 iwCLL active disease criteria)。"
+    },
+    {
+      "kind": "basic",
+      "front": "CLL 患者中,IGHV 突變狀態 (mutated vs unmutated) 哪一個代表較佳預後?在 CLL-IPI 佔幾分?",
+      "back": "Mutated IGHV 預後較佳 (0 分);Unmutated IGHV 預後較差 (2 分)。<hr>IGHV (immunoglobulin heavy-chain variable region) 體細胞突變代表 B cell 已經過 germinal center 成熟,行為較惰性。Unmutated IGHV 反映較不成熟、增殖較快的 clone,與較短 time-to-treatment 及較差 overall survival 相關,在 CLL-IPI 列為高風險因子 (2 分)。最常見考點誘餌:把「unmutated」誤認成預後好。"
+    },
+    {
+      "kind": "basic",
+      "front": "CLL 的細胞遺傳異常中,哪一項預後最差?涉及哪個基因、哪條染色體臂?其在 Döhner 階層的位置為何?",
+      "back": "del(17p) 預後最差,因移除 17p13 上的 TP53 腫瘤抑制基因。<hr>del(17p) 常合併 TP53 mutation,導致對 DNA-damage 化療抗性;CLL-IPI 將「del(17p) 和/或 TP53 mutation」合併為 TP53 status,佔最高 4 分。Döhner 細胞遺傳預後階層:del(13q) sole (最佳) > normal karyotype > trisomy 12 > del(11q) (涉及 ATM, 11q22-23) > del(17p)/TP53 (最差)。"
+    },
+    {
+      "kind": "basic",
+      "front": "CLL 帶 TP53 異常或 unmutated IGHV 的病人,初始治療為何不應選 chemoimmunotherapy (如 FCR)?首選為何?",
+      "back": "因 TP53 異常對 DNA-damage 化療抗性、unmutated IGHV 化療後 PFS 短;首選 targeted therapy。<hr>選項:持續性 BTK inhibitor (ibrutinib / acalabrutinib / zanubrutinib) 或固定療程 venetoclax-based (合併 obinutuzumab)。del(17p)/TP53 偏好持續性 BTKi (relapse 風險較低)。(Blood Cancer J 2025;15:01434)"
+    }
+  ]
+}

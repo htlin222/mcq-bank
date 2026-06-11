@@ -1,0 +1,13 @@
+{
+ "id": "112-016",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "AML", "ELN2022", "risk-stratification", "NPM1", "FLT3-ITD", "TP53", "CEBPA", "KIT", "DEK-NUP214", "RUNX1-RUNX1T1", "CBFB-MYH11", "allo-HSCT"],
+ "enrich_html": "<b>📌 考點</b>:2022 ELN 風險分層中,t(6;9)(p23.3;q34.1)/DEK::NUP214 是 <u>adverse-defining recurrent lesion</u>,其分層<b>不受是否合併 mutated NPM1 影響</b>——把它寫成 intermediate 即為錯誤。誘餌設計:mutated NPM1 平時是 favorable,但只要合併任一 adverse 細胞遺傳/分子病灶(t(6;9)、complex/monosomal karyotype、−7 等),favorable 效應即被抵銷、整體降為 adverse。<br><b>🏥 臨床意義</b>:t(6;9)/DEK::NUP214 約占 AML 1%、高度合併 FLT3-ITD,單純化療復發率高 → 屬 adverse、CR1 即規劃 allogeneic HSCT(EBMT 資料 CR1 移植 2-yr OS 約 72%、LFS 約 66%);有趣的是此 entity 中 FLT3-ITD 對移植後預後並無顯著惡化。<br><b>⭐ High-yield</b>:三大更新一次記——CEBPA 只看 bZIP in-frame(廢 biallelic)｜FLT3-ITD 全歸 intermediate(廢 allelic ratio)｜TP53 VAF ≥10% 歸 adverse。CBF-AML(t(8;21)、inv(16)) 即使帶 KIT 突變仍維持 favorable。<br><b>🔬 實證</b>:Döhner et al., Blood 2022;140:1345(2022 ELN recommendations);t(6;9) 移植預後 EBMT/ALWP, Bone Marrow Transplant 2024-2026。",
+ "cards": [
+  {"kind":"basic","front":"在 2022 ELN AML 風險分層中,帶 t(6;9)(p23.3;q34.1)/DEK::NUP214 的 AML 屬於哪一風險組?若同時帶 mutated NPM1 會改變嗎?","back":"Adverse risk(不良風險),且不因合併 mutated NPM1 而改變。<hr>DEK::NUP214 本身即為 adverse-defining lesion;當 mutated NPM1(平時 favorable)合併任一 adverse 細胞遺傳/分子病灶時,favorable 效應被抵銷,整體歸 adverse。臨床上 t(6;9) 約占 AML 1%、高度合併 FLT3-ITD。"},
+  {"kind":"cloze","text":"2022 ELN 三大更新一句話記:CEBPA 只認 {{c1::bZIP region in-frame}} 突變(廢除 biallelic 要求);FLT3-ITD {{c2::全部歸 intermediate}}(廢除 allelic ratio);TP53 突變 VAF {{c3::≥10%}} 即歸 adverse。","extra":"來源:Döhner et al., Blood 2022;140:1345。FLT3-ITD 改為一律 intermediate 反映 FLT3 抑制劑(midostaurin)時代的預後改善;TP53 的 10% VAF 閾值僅適用於 TP53。"},
+  {"kind":"basic","front":"2022 ELN 中,單純 mutated NPM1 何時是 favorable、何時不是?","back":"無 FLT3-ITD 且無 adverse 細胞遺傳/分子病灶時為 favorable;合併 FLT3-ITD 則降為 intermediate;合併 adverse 病灶則降為 adverse。<hr>NPM1 的良好效應會被併存的不良病灶抵銷,這是 2022 ELN 三段式分層的核心邏輯。"},
+  {"kind":"basic","front":"2022 ELN 中,core-binding factor AML(t(8;21)/RUNX1::RUNX1T1 或 inv(16)/t(16;16)/CBFB::MYH11)若合併 KIT 突變,風險分層為何?","back":"仍歸 favorable risk。<hr>2022 ELN 不因 KIT 突變而將 CBF-AML 降級;KIT 突變雖臨床上可能增加復發風險,但不改變 favorable 分類。此為常見誘餌——勿因 KIT 而誤判為 intermediate。"},
+  {"kind":"cloze","text":"2022 ELN AML adverse-risk 病灶包含:{{c1::t(6;9)/DEK::NUP214}}、{{c2::TP53 突變 (VAF≥10%)}}、{{c3::complex karyotype 或 monosomal karyotype}}、{{c4::t(9;22)/BCR::ABL1}}、{{c5::KMT2A(MLL) 重組(t(9;11) 除外)}}、{{c6::inv(3)/t(3;3) 或其他 MECOM 重排}}。","extra":"其他 adverse 尚有 −5/del(5q)、−7、−17/abn(17p),以及 MDS-related 基因突變:ASXL1、BCOR、EZH2、RUNX1、SF3B1、SRSF2、STAG2、U2AF1、ZRSR2。"}
+ ]
+}

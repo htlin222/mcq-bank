@@ -1,0 +1,13 @@
+{
+ "id": "114-091",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "spinal cord compression", "MESCC", "oncologic emergency", "myeloid sarcoma", "chloroma", "Patchell trial", "NOMS framework", "SINS", "laminectomy"],
+ "enrich_html": "<b>📌 考點</b>:惡性脊髓壓迫 (MESCC) 是腫瘤急症,核心是「診斷未明 → 手術兼切片與減壓;診斷已明 → 依 chemo/RT/surgery 利弊與腫瘤敏感度個別化」。誘餌在於把單一模式絕對化。<br><b>🏥 臨床意義</b>:Patchell trial (Lancet 2005) 證實單一節段壓迫且為 surgical candidate 者,direct decompressive surgery + 術後 RT 優於單純 RT — 術後可行走率 84% vs 57%、維持行走 122 天 vs 13 天 → 神經惡化快、機械不穩或 radioresistant 腫瘤傾向先手術。<br><b>⭐ High-yield</b>:Radiosensitive (lymphoma、myeloma、SCLC、myeloid sarcoma) 優先 RT｜radioresistant (renal、melanoma、sarcoma、thyroid) 走 separation surgery + SRS｜MRI 為首選影像 + 立即 dexamethasone｜年輕病人避免 laminectomy 以免脊柱不穩/後凸 (orthopedic sequela)。<br><b>🔬 實證</b>:NOMS 決策框架 = Neurologic (Bilsky ESCC grade) + Oncologic (RT 敏感度) + Mechanical (SINS score) + Systemic。(Patchell, Lancet 2005;366:643;Laufer NOMS, Oncologist 2013;18:744)",
+ "cards": [
+  {"kind":"basic","front":"惡性脊髓壓迫 (malignant epidural spinal cord compression, MESCC) 屬什麼層級的問題?懷疑時的首選影像與第一線藥物各為何?","back":"屬腫瘤急症 (oncologic emergency);首選影像為全脊椎 MRI、第一線藥物為高劑量 dexamethasone。<hr>延遲處理會導致不可逆神經後遺症 (下肢癱瘓、括約肌失能)。全脊椎 MRI 可定位壓迫節段並偵測多節段受累;dexamethasone 減輕脊髓水腫、暫時穩定神經功能,爭取放療或手術時間。"},
+  {"kind":"basic","front":"血液中出現 myeloblasts 的白血病病人發生脊髓壓迫時,治療考量有何特別之處?","back":"以全身化療為主 (白血病/chloroma 對化療高度敏感),但起效不夠快時急性壓迫仍可能殘留神經後遺症,故需評估是否同時局部減壓 (RT 或手術)。<hr>白血病可形成 myeloid sarcoma (granulocytic sarcoma / chloroma) 壓迫脊髓;化療能縮小腫塊,但無法即時解除機械壓迫,神經惡化時須加局部治療以保功能。chloroma 切面因 myeloperoxidase 含量呈綠色而得名,最常見於 acute myeloid leukemia (AML)。"},
+  {"kind":"basic","front":"Patchell trial (Lancet 2005) 比較了惡性脊髓壓迫的哪兩種策略?主要結論與關鍵數據為何?","back":"比較 direct decompressive surgery + 術後 RT vs 單純 RT;結論為符合條件者「手術 + RT」優於單純 RT。<hr>關鍵數據:術後可行走率 84% (42/50) vs 57% (29/51);維持行走天數中位數 122 天 vs 13 天。適用對象:單一節段壓迫、為 surgical candidate、非極度 radiosensitive 腫瘤。"},
+  {"kind":"basic","front":"惡性脊髓壓迫的 NOMS 決策框架包含哪四個面向?各用什麼工具評估?","back":"Neurologic、Oncologic、Mechanical、Systemic 四面向。<hr>Neurologic:脊髓病變程度,用 Bilsky ESCC grade (六級,MRI based);Oncologic:腫瘤對放療的敏感度;Mechanical:脊柱穩定性,用 SINS (Spinal Instability Neoplastic Score);Systemic:全身疾病負擔與病人耐受度。四者整合決定 RT / surgery / SRS / 化療的組合。"},
+  {"kind":"basic","front":"惡性脊髓壓迫時,腫瘤對放療敏感與否如何影響手術決策?radioresistant 者的現代標準作法為何?","back":"Radiosensitive 腫瘤優先放療;radioresistant 腫瘤傾向先做 separation surgery (分離手術) 再加立體定位放射手術 (SRS)。<hr>Radiosensitive:lymphoma、multiple myeloma、SCLC、germ cell、myeloid sarcoma。Radioresistant:renal cell、melanoma、sarcoma、thyroid。Separation surgery 把腫瘤與脊髓拉開安全距離後給高劑量 SRS,1 年局部控制佳 (24 Gy 單次 local progression 約 4-6%)。"}
+ ]
+}

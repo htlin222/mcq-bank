@@ -1,0 +1,33 @@
+{
+  "id": "114-092",
+  "topic_index": 6,
+  "extra_tags": ["enriched", "Transfusion", "Pretransfusion testing", "Type and screen", "Antibody screen", "Crossmatch", "Electronic crossmatch", "Antibody identification", "ABO typing", "Kidd Jka", "Delayed hemolytic transfusion reaction"],
+  "enrich_html": "<b>📌 考點</b>:輸血前配血 (pretransfusion testing) 四步驟環環相扣 — ABO/Rh 血型確認 → antibody screen → crossmatch →（篩檢陽性才追加）antibody identification。常見誘餌是把 antibody screen 與 identification 當同一步,或誤以為 screen 陰性就一定可省略所有 crossmatch。<br><b>🏥 臨床意義</b>:ABO 不相容 (typing/檢體標示錯誤) → 致命的<u>急性血管內溶血</u> (acute intravascular hemolysis),故 ABO 多要求兩次獨立採檢確認;有臨床意義同種抗體 (IgG、37°C/AHG 反應:Rh, K, Fya, Jka, Ss) 多造成<u>遲發性血管外溶血</u> (DHTR)。<br><b>⭐ High-yield</b>:Major crossmatch = 供者 RBC + 受者 serum｜Electronic crossmatch 條件 = ABO/Rh 兩次確認 + 現在及過去 antibody screen 皆陰性、無臨床意義抗體史,且僅偵測 ABO 不相容｜anti-Jka (Kidd) 因 evanescence + dosage effect 易漏檢,是 DHTR 最常見原因 (約 1/3)。<br><b>🔬 實證</b>:有臨床意義抗體致 DHTR/DSTR 頻率依序 Kidd &gt; Duffy &gt; Kell &gt; MNS;DHTR 診斷靠新出現的 positive DAT + 抗體篩檢/elution 偵得同種抗體。(StatPearls Pretransfusion Testing NBK585033, 2023;Pathology Outlines, Kidd system)",
+  "cards": [
+    {
+      "kind": "cloze",
+      "text": "輸血前配血檢驗 (pretransfusion testing) 的四個步驟,依序為:{{c1::ABO/Rh 血型確認 (blood typing)}}、{{c2::抗體篩檢 (antibody screen)}}、{{c3::交叉試驗 (crossmatch)}}、{{c4::（篩檢陽性時）抗體鑑定 (antibody identification)}}。",
+      "extra": "目的是確保供者紅血球與受者血清相容、避免溶血性輸血反應。四步驟環環相扣,缺一不可;抗體篩檢回答「有沒有」,抗體鑑定才回答「是哪一個」。"
+    },
+    {
+      "kind": "basic",
+      "front": "交叉試驗 (crossmatch) 中的 major crossmatch 檢測的是哪兩者的相容性?",
+      "back": "「供者紅血球」與「受者血清/血漿」的相容性。<hr>Major crossmatch = 供者 RBC + 受者 serum,是發血前最後一道把關,可攔截受者血清中對該袋血的抗體。Minor crossmatch（供者血清 + 受者 RBC）因現代紅血球濃厚液血漿量極少,現已多省略。記法:major 看的是「要輸進去的紅血球」。"
+    },
+    {
+      "kind": "basic",
+      "front": "何時可用「electronic (computer) crossmatch」取代血清學交叉試驗?它只能偵測什麼不相容?",
+      "back": "條件:受者 ABO/Rh 已經「兩次獨立檢測」確認,且現在及過去的抗體篩檢皆陰性、無有臨床意義抗體病史。它僅能偵測「ABO 不相容」。<hr>Electronic crossmatch 由驗證過的電腦程式比對供受者 ABO/Rh 相容性,省去 immediate-spin/AHG 試管交叉。若抗體篩檢陽性或有抗體史,則必須做完整 AHG (antiglobulin) crossmatch (AABB Standards)。"
+    },
+    {
+      "kind": "basic",
+      "front": "「有臨床意義 (clinically significant)」的紅血球同種抗體有哪些共同特徵?最常涉及哪些血型系統?",
+      "back": "特徵:多為 IgG、在 37°C / AHG (antiglobulin) phase 反應、可造成輸血紅血球存活縮短或 HDFN,主要導致「遲發性血管外溶血 (DHTR)」。<hr>最常涉及 Rh、Kell (K)、Duffy (Fya)、Kidd (Jka)、Ss (MNS) 系統。相對地,多數冷反應性 IgM (如 anti-M、anti-Lea/Leb、anti-P1) 在室溫以下反應、37°C 不反應,通常無臨床意義。另須記:ABO 不相容才是最致命的「急性血管內溶血」,多源於檢體標示或發血錯誤。"
+    },
+    {
+      "kind": "basic",
+      "front": "為何 Kidd 系統的 anti-Jka 抗體是遲發性溶血性輸血反應 (DHTR) 最常見的原因,且容易在抗體篩檢被漏掉?",
+      "back": "因為 anti-Jka 有「evanescence (抗體效價隨時間降到偵測閾值以下)」與「dosage effect (僅與 Jk(a+b+) homozygous 細胞強反應)」雙重特性。<hr>初次致敏後抗體常於數月內降至測不到 → 再次輸入 Jka+ 血時 anamnestic (記憶 B 細胞) 反應迅速衝高效價 → 輸血後數天發生遲發性血管外（甚至活化補體致血管內）溶血。Kidd 約占所有 DHTR 的 1/3。診斷:新出現的 positive DAT + 抗體篩檢/elution 偵得同種抗體。"
+    }
+  ]
+}

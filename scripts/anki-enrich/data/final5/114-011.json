@@ -1,0 +1,13 @@
+{
+ "id": "114-011",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "VTE", "DOAC", "DVT", "PE", "anticoagulation", "Dabigatran", "Edoxaban", "Apixaban", "Rivaroxaban", "FXa-inhibitor", "thrombin-inhibitor", "idarucizumab", "andexanet-alfa", "warfarin", "LMWH"],
+ "enrich_html": "<b>📌 考點</b>:DOAC 的「short half-life」是把雙面刃。考題常把它包裝成「簡化出血/過量/術前管理」的單純優勢 → <u>錯</u>。短半衰期確實讓計畫性停藥後作用快速消退(術前管理較便利),但在<b>急性大出血或過量</b>時,若無即時專一逆轉劑,半衰期短不足以保證緊急逆轉,且 DOAC 缺乏如 warfarin 的廣泛可用 antidote(Vit K)。<br><b>🏥 臨床意義</b>:VTE 起始抗凝分兩路徑——single-oral(Apixaban 10mg BID×7天、Rivaroxaban 15mg BID×21天,高劑量導入免打針)vs parenteral lead-in(Dabigatran、Edoxaban 皆需先給 ≥5 天 heparin/LMWH 才轉口服)。選藥要看腎功能:Dabigatran ~80% 經腎排除,CrCl 低時禁用。<br><b>⭐ High-yield</b>:-gatran(Dabigatran)= direct thrombin/FIIa inhibitor｜-xaban(Apixaban/Rivaroxaban/Edoxaban)= FXa inhibitor｜專一逆轉:idarucizumab→dabigatran、andexanet alfa→FXa inhibitors｜VKA 逆轉:Vit K + 4F-PCC。<br><b>🔬 實證</b>:EINSTEIN-DVT/PE(rivaroxaban)、AMPLIFY(apixaban)single-oral 設計;Hokusai-VTE(edoxaban)、RE-COVER(dabigatran)採 parenteral lead-in;DOAC 致死性與顱內出血風險低於 warfarin。(Springer J Thromb Thrombolysis 2016;AC Forum/ISTH reversal guidance 2019;2025 DOAC practical guidance, PMC12240022)",
+ "cards": [
+  {"kind":"basic","front":"大多數 VTE(DVT/PE)病人,首選的抗凝藥物「類別」是什麼?為何?","back":"DOACs(direct oral anticoagulants)<hr>EINSTEIN-DVT/PE、AMPLIFY、Hokusai-VTE 等 RCT 顯示 DOAC 治療 VTE 之療效非劣於(noninferior)LMWH/warfarin,且致死性出血與顱內出血(intracranial bleeding)更少,加上免常規監測,故成為多數病人首選。"},
+  {"kind":"cloze","text":"VTE 急性期起始抗凝分兩路徑:可「單一口服免打針」者為 {{c1::Apixaban(10mg BID×7天)}} 與 {{c2::Rivaroxaban(15mg BID×21天)}};須先給 ≥5 天注射型抗凝(parenteral lead-in)再轉口服者為 {{c3::Dabigatran}} 與 {{c4::Edoxaban}}。","extra":"記憶陷阱:Edoxaban 雖屬 FXa inhibitor,卻與 Dabigatran 一樣需要 lead-in,不能被「FXa inhibitor 都能單一口服」的直覺帶偏。single-oral 採高劑量導入後降為維持劑量(Apixaban→5mg BID、Rivaroxaban→20mg QD)。"},
+  {"kind":"cloze","text":"DOAC 與作用標的配對:Dabigatran(-gatran)→ {{c1::direct thrombin (FIIa) inhibitor}};Apixaban / Rivaroxaban / Edoxaban(-xaban)→ {{c2::factor Xa (FXa) inhibitor}}。","extra":"記憶法:字尾 -gatran 抑制 thrombin(IIa),字尾 -xaban 抑制 Xa。三個 -xaban 同屬 FXa 抑制劑。"},
+  {"kind":"basic","front":"為何「DOAC 半衰期短可簡化出血、過量、術前管理」這個敘述常被判為錯誤?","back":"因為短半衰期是雙面刃,不能一概視為簡化管理的優勢<hr>計畫性停藥後作用確實快速消退(術前管理較便利),但在急性大出血或過量時,若無即時可用的專一逆轉劑,半衰期短(~12 小時)並不足以保證緊急逆轉;且相較 warfarin 有廣泛可用的 Vit K,DOAC 的緊急逆轉曾長期受限。腎功能不全還會顯著延長半衰期(尤以 ~80% 腎排的 Dabigatran),反而增加蓄積與出血。"},
+  {"kind":"cloze","text":"DOAC 之專一性逆轉劑(specific reversal agents):對抗 Dabigatran 用 {{c1::idarucizumab}};對抗 FXa inhibitors(apixaban / rivaroxaban / edoxaban)用 {{c2::andexanet alfa}}。對比 VKA(warfarin)逆轉:{{c3::Vitamin K + 4-factor PCC}}。","extra":"Idarucizumab 數分鐘內可完全中和 dabigatran;andexanet alfa 為 decoy FXa,於急性大出血可使約 82% 病人達良好止血。Warfarin 抑制 vitamin-K 依賴因子(II、VII、IX、X),故補 Vit K + 直接補因子(4F-PCC)逆轉。"}
+ ]
+}

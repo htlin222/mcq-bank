@@ -1,0 +1,13 @@
+{
+ "id": "114-044",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "TTP", "TMA", "VITT", "aHUS", "ADAMTS13", "plasma-exchange", "caplacizumab", "eculizumab", "PNH", "COVID-19", "thrombocytopenia"],
+ "enrich_html": "<b>📌 考點</b>：Eculizumab (anti-C5 終端補體抑制劑) 的核心適應症是 <u>aHUS、PNH、generalized MG、NMOSD</u> 等補體驅動疾病，<b>不是 TTP 或 VITT 的標準療法</b>。微血管病性溶血 (MAHA) + 嚴重 thrombocytopenia + 神經/腎/心受累且 ANA 高、反覆血栓的病人，疑為 TTP 或 COVID 相關 TMA / VITT，正確處置是 TPE、IVIG、high-dose steroid 與抗凝 — 把 eculizumab 當作上述無效時的選項屬於錯誤敘述。<br><b>🏥 臨床意義</b>：TTP 未治療死亡率達 90%，臨床懷疑 (MAHA + thrombocytopenia 且無其他解釋) 即須在數小時內啟動 TPE，不可枯等 ADAMTS13 結果；ADAMTS13 活性 &lt;10% 可確診 iTTP。<br><b>⭐ High-yield</b>：TTP→TPE｜aHUS→eculizumab｜兩者鑑別靠 ADAMTS13 (TTP &lt;10%、aHUS 正常)｜VITT→IVIG + 非肝素抗凝、禁血小板輸注｜TTP/HIT/VITT 中血小板輸注是相對禁忌 (火上加油)。<br><b>🔬 實證</b>：iTTP 一線 = TPE + corticosteroids + caplacizumab (+ rituximab)；caplacizumab 為 anti-vWF A1 domain nanobody，阻斷 GPIb–vWF 結合。(ISTH guidelines, J Thromb Haemost 2020；Japan TTP guideline, Int J Hematol 2023)",
+ "cards": [
+  {"kind":"basic","front":"懷疑 TTP (微血管病性溶血 + 嚴重血小板低下) 時，最關鍵且救命的第一線治療是什麼？","back":"緊急 therapeutic plasma exchange (TPE, 血漿置換)<hr>TTP 為 ADAMTS13 嚴重缺乏 (活性 &lt;10%) 導致 ULvWF multimer 堆積、微血管血栓。TPE 同時補充 ADAMTS13 並移除自體抗體與 ULvWF multimer；未治療死亡率達 90%，故一旦臨床懷疑即立即啟動，不可僅以 FFP 取代。一線並加 high-dose corticosteroids，建議再加 caplacizumab 與 rituximab。(ISTH 2020)"},
+  {"kind":"basic","front":"TTP 與 aHUS 在病生理、主要受累器官、確診檢驗與首選治療上如何鑑別？","back":"TTP：ADAMTS13 活性 &lt;10%、神經學症狀為主、靠 TPE；aHUS：ADAMTS13 正常、急性腎衰竭為主、補體調節缺陷、靠 eculizumab<hr>兩者皆為 TMA (MAHA + thrombocytopenia + 器官缺血)。ADAMTS13 活性是鑑別核心：嚴重缺乏指向 TTP，正常則考慮補體介導 aHUS。Eculizumab 為 anti-C5 單株抗體，僅對補體驅動的 aHUS/PNH 有效。"},
+  {"kind":"basic","front":"MAHA + 嚴重 thrombocytopenia + 神經/腎受累的 TTP/TMA 病人，為何「以 eculizumab 作為標準治療無效時的救援」是錯誤敘述？","back":"Eculizumab 的適應症是補體驅動的 aHUS / PNH，並非 TTP / VITT 的標準或救援療法<hr>TTP 正確處置為 TPE + high-dose corticosteroid (+ caplacizumab / rituximab)；VITT 為 IVIG + 非肝素抗凝。把 anti-C5 抑制劑當成 TTP/VITT 治療，混淆了 TTP (ADAMTS13 缺乏，靠 TPE) 與 aHUS (補體調節缺陷，靠 eculizumab) 的治療分歧。"},
+  {"kind":"basic","front":"VITT (vaccine-induced immune thrombotic thrombocytopenia) 的致病機轉與標準治療為何？","back":"抗 PF4 抗體經 FcγRIIa 活化血小板，造成血栓 + 血小板低下；治療為 high-dose IVIG + 非肝素類抗凝 (argatroban / DOAC / bivalirudin)，避免血小板輸注<hr>機轉類似自發性 HIT。IVIG 阻斷 FcγRIIa 介導的血小板活化。Eculizumab 並非 VITT 標準療法；經典上避免 heparin (僅在無非肝素抗凝可用時才考慮)。"},
+  {"kind":"basic","front":"在 TTP / HIT / VITT 等病人，為何輸注血小板 (platelet transfusion) 通常為相對禁忌？","back":"這些疾病的血小板低下源於免疫活化/消耗而非生成不足，補血小板等於提供更多血栓原料、火上加油，加重微血管血栓與器官缺血<hr>應針對病因治療 (TTP→TPE、HIT/VITT→非肝素抗凝、IVIG)。僅在危及生命的大出血或須侵入性手術時才權衡輸注。"}
+ ]
+}

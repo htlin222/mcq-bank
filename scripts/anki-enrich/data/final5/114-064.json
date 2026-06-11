@@ -1,0 +1,33 @@
+{
+ "id": "114-064",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "hemophilia", "non-factor therapy", "emicizumab", "fitusiran", "concizumab", "marstacimab", "rebalancing agents", "antithrombin", "TFPI", "TMA", "aPCC", "siRNA"],
+ "enrich_html": "<b>📌 考點</b>:Hemophilia non-factor therapy 兩大類記憶框架——(1) <u>FVIII mimetic</u>:emicizumab,bispecific Ab 橋接 FIXa 與 FX 取代 FVIIIa;(2) <u>rebalancing agents</u>:靶向天然抗凝物(fitusiran↓antithrombin、concizumab/marstacimab 抑制 TFPI)。考題誘餌常設「emicizumab 適用 A/B 型」(錯,僅 A 型)與「rebalancing agents 主副作用為出血」(錯,應為血栓)。<br><b>🏥 臨床意義</b>:Emicizumab 與高劑量 aPCC(&gt;100 U/kg/24h 持續 ≥24h)併用會誘發 thrombotic microangiopathy 與血栓,故 breakthrough bleeding 首選 recombinant FVIIa、限制 aPCC 劑量。Fitusiran 帶 boxed warning(血栓事件 + 膽囊疾病)。<br><b>⭐ High-yield</b>:Emicizumab 僅 hemophilia A｜Fitusiran 跨 A/B 型且 ± inhibitor 皆可(2025/3 FDA 核准 Qfitlia)｜Concizumab + marstacimab 皆 anti-TFPI(2024 FDA 核准)｜三類共通優點:皮下注射、長效、不受 inhibitor 影響。<br><b>🔬 實證</b>:HAVEN-1 顯示 emicizumab 合併 aPCC 之 TMA 發生率 9.7%(整體僅 0.8%);rebalancing agents 第三期試驗皆觀察到血栓事件。(Mancuso et al., Haemophilia 2024;30:489;FDA 2024-2025)",
+ "cards": [
+  {
+   "kind": "cloze",
+   "text": "Hemophilia 的 non-factor therapy 主要分兩大類:{{c1::FVIII mimetic(emicizumab,bispecific Ab 橋接 FIXa-FX)}} 與 {{c2::rebalancing agents(靶向天然抗凝物)}}。",
+   "extra": "FVIII mimetic 僅適用 hemophilia A;rebalancing agents(fitusiran↓antithrombin、concizumab/marstacimab 抑制 TFPI)可跨 A/B 型。兩類共通優勢:皮下注射、長效、不受 inhibitor 影響。"
+  },
+  {
+   "kind": "basic",
+   "front": "Emicizumab 治療 hemophilia A 的作用機轉是什麼?",
+   "back": "Bispecific antibody,同時結合 FIXa 與 FX,模擬 FVIIIa 的輔因子橋接功能。<hr>使 FIXa 得以活化 FX、繞過缺失的 FVIII,故屬 FVIII mimetic。與血漿 FVIII 濃度無關,有或無 inhibitor 的患者皆可使用,採皮下注射、長效預防給藥。"
+  },
+  {
+   "kind": "basic",
+   "front": "為何 emicizumab 只能用於 hemophilia A,而不能用於 hemophilia B?",
+   "back": "因 emicizumab 模擬 FVIIIa 功能(橋接 FIXa-FX),對 FIX 缺乏的 hemophilia B 無效。<hr>Hemophilia A = FVIII 缺乏、hemophilia B = FIX 缺乏。Emicizumab 取代的是 FVIII 的橋接角色,故僅 A 型有效。相對地,rebalancing agents(fitusiran、concizumab、marstacimab)靶向天然抗凝物,可跨 hemophilia A/B、有無 inhibitor 皆適用。"
+  },
+  {
+   "kind": "basic",
+   "front": "接受 emicizumab 預防的 hemophilia A 病人發生 breakthrough bleeding,為何首選 rFVIIa 而非 aPCC?其劑量門檻為何?",
+   "back": "因 emicizumab 與高劑量 aPCC 併用會誘發 thrombotic microangiopathy (TMA) 與血栓;門檻為 aPCC &gt;100 U/kg/24h 且持續 ≥24 小時。<hr>HAVEN-1 顯示在此劑量/時程下 TMA/血栓風險顯著上升(aPCC 組 TMA 率約 9.7% vs 整體 0.8%)。故 breakthrough bleed 應優先用 recombinant FVIIa;若需 aPCC 則須限制劑量並監測 TMA/血栓徵象。"
+  },
+  {
+   "kind": "basic",
+   "front": "Rebalancing agents(fitusiran、concizumab、marstacimab)最主要的安全性顧慮是什麼?其分子標的各為何?(注意風險方向)",
+   "back": "主要風險為血栓事件 (thrombosis),而非出血增加。<hr>Fitusiran 為 siRNA,↓肝臟 antithrombin (SERPINC1);concizumab 與 marstacimab 為單株抗體,抑制 TFPI。三者皆藉降低天然抗凝活性、上推整體止血來「重新平衡」,過度時導致血栓。考題若稱「主要副作用為出血」屬錯誤——風險方向恰相反。Fitusiran 另帶膽囊疾病的 boxed warning。"
+  }
+ ]
+}

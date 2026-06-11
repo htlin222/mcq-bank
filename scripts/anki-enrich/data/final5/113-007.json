@@ -1,0 +1,13 @@
+{
+ "id": "113-007",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "vWD", "VWF", "DDAVP", "desmopressin", "Type-2A", "Type-2B", "Type-2M", "Type-2N", "Type-3", "GPIb", "ADAMTS13", "RIPA"],
+ "enrich_html": "<b>📌 考點</b>：VWD 分型口訣——Type 1 = partial quantitative（量少質正常，最常見 70-80%）；Type 3 = severe quantitative（近乎全缺）；Type 2 = qualitative。Type 2 四亞型分子定位是高頻誘餌：2A 病灶在 <u>A2 domain</u>（HMWM 選擇性缺失），2B 與 2M 病灶在 <u>A1 domain</u>。常見陷阱是把「A1 domain、GPIb 結合」歸給 Type 2A（實為 2B/2M），或把「HMWM 缺失」歸給 2B（實為 2A 的定義性特徵；2B 的 HMWM 缺失是繼發於血小板過度結合與清除）。<br><b>🏥 臨床意義</b>：DDAVP（desmopressin）在 Type 3 無效（無 VWF 可釋放）、在 Type 2B 屬相對禁忌（釋出 hyperfunctional VWF 加重血小板黏附與 thrombocytopenia），2A/2M/2N 反應常不足 → 這些情況首選 VWF/FVIII concentrate 補充。<br><b>⭐ High-yield</b>：DDAVP 有效定義為 VWF 活性升至 baseline ≥2 倍且 VWF 與 FVIII 持續上升，於 1hr 與 4hr 各評估（懷疑 1C 型看 1hr，因清除加速）｜2N 似 hemophilia A 但為 autosomal recessive、男女皆患｜2B 與 platelet-type VWD 皆低濃度 ristocetin 即聚集，靠 mixing study / 基因鑑別。<br><b>🔬 實證</b>：2021 guideline 建議以 targeted genetic testing 優於 low-dose RIPA 來確診 Type 2B。(ASH ISTH NHF WFH 2021, Blood Adv 2021;5:280；ASH How I treat type 2B VWD, Blood 2018;131:1292)",
+ "cards": [
+  {"kind":"cloze","text":"VWD 亞型對應機轉：Type 1 = {{c1::partial quantitative deficiency（量少、質正常，最常見）}}；Type 2A = {{c2::A2 domain 突變、HMWM 選擇性缺失}}；Type 2B = {{c3::A1 domain gain-of-function、GPIbα 結合過強、可血小板低下}}；Type 2M = {{c4::A1 domain loss-of-function、結合下降但 multimer 正常}}；Type 2N = {{c5::D'/D3 區 FVIII 結合缺陷、FVIII 偏低似 hemophilia A}}；Type 3 = {{c6::近乎完全缺失（severe quantitative）}}","extra":"四亞型分子定位是高頻誘餌：2A 在 A2 domain，2B 與 2M 同在 A1 domain（方向相反，2B gain / 2M loss）。"},
+  {"kind":"basic","front":"Type 2A VWD 的分子病灶位於哪個 domain？對 VWF multimer 有何特徵性影響？","back":"A2 domain；造成 high-molecular-weight multimers (HMWM) 選擇性缺失<hr>A2 domain 突變使大型多聚體無法正常組裝，或增加對 ADAMTS-13 的切割敏感度，導致最具功能活性的 HMWM 喪失。注意「HMWM 缺失」是 2A 的定義性特徵；A1 domain 突變對應的是 Type 2B / 2M，而非 2A。"},
+  {"kind":"basic","front":"Type 2B VWD 的 gain-of-function 突變位於哪個 domain？造成什麼後果（含血小板數變化）？","back":"A1 domain；使 VWF 對血小板 GPIbα 的親和力過度增強<hr>VWF 自發性過度黏附血小板，HMWM 與血小板被一起清除，可出現 thrombocytopenia。雖然結果也丟失 HMWM，但原發機轉是「血小板結合增強」，與 Type 2A 的「多聚體製造/切割異常」本質不同。"},
+  {"kind":"basic","front":"Type 2N (Normandy) VWD 的功能缺陷為何？易與哪種疾病混淆，如何用遺傳模式鑑別？","back":"VWF 的 FVIII 結合區（D'/D3）缺陷，VWF 無法攜帶/穩定 FVIII，使 FVIII 半衰期縮短、FVIII 偏低<hr>VWF 量與血小板結合功能正常，臨床表現類似 hemophilia A，但為 autosomal recessive（男女皆可患，hemophilia A 為 X-linked），靠 VWF:FVIII binding (VWF:FVIIIB) assay 或基因檢測鑑別。"},
+  {"kind":"cloze","text":"VWD 對 DDAVP (desmopressin) 的反應：Type {{c1::3}} 完全無效（無 VWF 可釋放）；Type {{c2::2B}} 屬相對禁忌（釋出 hyperfunctional VWF 惡化 thrombocytopenia）；Type {{c3::2A / 2M / 2N}} 反應常不足；反應最好的是 Type {{c4::1}}。","extra":"有效定義為 VWF 活性升至 baseline ≥2 倍且 VWF 與 FVIII 持續上升，於 1hr 與 4hr 各評估（懷疑 1C 型看 1hr）。無效/不足者首選 VWF/FVIII concentrate 補充。"}
+ ]
+}

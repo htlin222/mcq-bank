@@ -1,0 +1,13 @@
+{
+  "id": "114-029",
+  "topic_index": 1,
+  "extra_tags": ["enriched", "PMF", "primary_myelofibrosis", "MIPSS70", "MIPSS70v2", "HMR", "ASXL1", "EZH2", "SRSF2", "IDH1", "IDH2", "U2AF1", "DNMT3A", "CALR", "MPN"],
+  "enrich_html": "<b>📌 考點</b>：MIPSS70+ v2.0 的 high molecular risk (HMR) 突變僅五組——<u>ASXL1、EZH2、SRSF2、IDH1/2、U2AF1Q157</u>。DNMT3A 雖在其他髓系腫瘤有預後意義，<b>不</b>列入 HMR；曾測試 CBL、NRAS、KRAS、RUNX1、TP53 加入但未顯著改善預後而被排除 (Tefferi, Am J Hematol 2021)。<br><b>🏥 臨床意義</b>：MIPSS70 系列專為 transplantation-age (≤70 歲) PMF 設計，整合臨床+細胞遺傳學+分子突變，直接服務 allogeneic HSCT 的時機決策；≥2 個 HMR 或 VHR karyotype 通常推向早期移植。<br><b>⭐ High-yield</b>：v2.0 五級中位存活——very low 未達｜low 16.4y｜intermediate 7.7y｜high 4.1y｜VHR 1.8y。HMR 計分：1 個=1 分、≥2 個=2 分；absence of CALR type 1=+2；VHR karyotype=+4、unfavorable=+3。<br><b>🔬 實證</b>：v2.0 相較原始 MIPSS70 (2018) 三大更新——加入 U2AF1Q157、改用 sex-adjusted Hb 閾值 (女&lt;8/男&lt;9 為 severe)、納入修訂的 VHR karyotype 分層。(Tefferi et al., J Clin Oncol 2018;36:1769;ASH Blood 2025;145:257)",
+  "cards": [
+    {"kind": "cloze", "text": "MIPSS70+ v2.0 (primary myelofibrosis) 的 high molecular risk (HMR) 突變共五組：{{c1::ASXL1}}、{{c2::EZH2}}、{{c3::SRSF2}}、{{c4::IDH1/2}}、{{c5::U2AF1Q157}}。", "extra": "前四者來自原始 MIPSS70 (2018)，U2AF1 須為 Q157 特定變異才算數。HMR 突變數目越多預後越差，直接影響 allogeneic HSCT 適應症評估。"},
+    {"kind": "basic", "front": "在 MIPSS70+ v2.0 中，DNMT3A 是否屬於 high molecular risk (HMR) 突變？", "back": "否，DNMT3A 不屬於 HMR<hr>HMR 僅含 ASXL1、EZH2、SRSF2、IDH1/2、U2AF1Q157。DNMT3A 雖在其他髓系腫瘤有預後意義，但不在 MIPSS70 系列的 HMR 清單內。經典誘餌題型：給 DNMT3A、ASXL1、IDH1、SRSF2、EZH2 問「何者不是 HMR」，答案即 DNMT3A。"},
+    {"kind": "basic", "front": "MIPSS70+ v2.0 中，HMR 突變數目如何計分？", "back": "1 個 HMR = 1 分；≥2 個 HMR = 2 分<hr>注意與原始 MIPSS70 (2018) 不同：原始版中 SRSF2 會額外單獨加分，v2.0 則將所有 HMR（含 SRSF2）統一以數目計分，不再為 SRSF2 另計。HMR 數目是分子預後的核心變項。"},
+    {"kind": "basic", "front": "U2AF1 突變要符合什麼條件才算 MIPSS70+ v2.0 的 HMR？", "back": "必須是 U2AF1Q157 這個特定變異<hr>加入 U2AF1Q157 正是 v2.0 相較原始 MIPSS70 的更新之一。並非所有 U2AF1 突變都計入，僅 Q157 位點；其他位點（如 S34）不算 HMR。"},
+    {"kind": "cloze", "text": "MIPSS70+ v2.0 的五級風險中位存活：very low {{c1::未達 (not reached)}}、low {{c2::16.4 年}}、intermediate {{c3::7.7 年}}、high {{c4::4.1 年}}、very high risk (VHR) {{c5::1.8 年}}。", "extra": "對應 10 年存活率約 86%、50%、30%、10%、<3%。VHR 病人預後極差，是早期 allogeneic HSCT 的強適應症。"}
+  ]
+}

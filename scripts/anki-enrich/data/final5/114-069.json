@@ -1,0 +1,13 @@
+{
+ "id": "114-069",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "hemophilia", "emicizumab", "fitusiran", "antithrombin", "marstacimab", "concizumab", "anti-TFPI", "gene-therapy", "AAV", "FVIII-inhibitor", "rebalancing-therapy"],
+ "enrich_html": "<b>📌 考點</b>:血友病新藥分兩大策略 — (1)<u>模擬因子</u>:emicizumab(bispecific Ab 橋接 FIXa-FX,僅 hem A,含 inhibitor 可用);(2)<u>rebalancing 再平衡</u>:降低天然抗凝物 — fitusiran(↓antithrombin 的 siRNA)、marstacimab/concizumab(anti-TFPI Ab)。後者 A/B 型皆適用。題目四敘述中『fitusiran 與 emicizumab 同屬平衡概念且有血栓風險』『A/B 型基因治療皆有產品上市』『可影響肝功能』均正確 → 答案 1,2,3 correct(選項 A)。<br><b>🏥 臨床意義</b>:high-titer FVIII inhibitor 病人 emicizumab 不被 anti-FVIII 中和,可繞過抑制體做常規皮下預防,取代 bypassing agents(rFVIIa、aPCC);AAV gene therapy 單次輸注長期表現,但 immune-mediated transaminitis 需監測 ALT 並給 corticosteroid。<br><b>⭐ High-yield</b>:emicizumab 僅 hem A｜fitusiran 維持 AT 活性 15-35%(AT-based dose regimen 以降血栓/TMA)｜marstacimab 2024-10 FDA 核准但限『無 inhibitor』≥12 歲｜concizumab 美國 CRL、加拿大核准(含 inhibitor)｜emicizumab + aPCC 曾致 TMA。<br><b>🔬 實證</b>:fitusiran ATLAS 系列(ASH Blood 2024;143:2256)、marstacimab BASIS(NEJM/FDA 2024-10-11)、emicizumab HAVEN trials。(Blood 2024-2025;FDA;PMC12745896)",
+ "cards": [
+  {"kind":"basic","front":"Emicizumab 治療 hemophilia A 的作用機轉?可用於哪型、是否受 inhibitor 影響?","back":"雙特異性抗體(bispecific antibody)橋接 activated FIX 與 FX,模擬 FVIIIa 的輔因子功能,不需 FVIII 即可活化 FX。<hr>因結構非 FVIII,不被 anti-FVIII inhibitor 中和,可繞過 high-titer inhibitor 取代 bypassing agents(rFVIIa、aPCC)做常規皮下預防(HAVEN trials)。僅用於 hemophilia A;B 型缺 FIX,機轉不適用。"},
+  {"kind":"basic","front":"Fitusiran(Qfitlia)的標的與機轉為何?為降血栓/TMA 採何給藥策略、監測哪一項?","back":"GalNAc-conjugated siRNA,標的 antithrombin(SERPINC1)mRNA,降低 antithrombin 以恢復 thrombin 生成(rebalancing)。hemophilia A 與 B(含 inhibitor)皆適用,皮下注射,2025 FDA 核准。<hr>因不補因子而降天然抗凝物,固定劑量曾致死性血栓,故改採 AT-based dose regimen,滴定使 antithrombin 活性維持 15-35%,並以 FDA-cleared 法監測 AT。"},
+  {"kind":"basic","front":"『rebalancing(再平衡)』非因子療法(fitusiran、anti-TFPI 抗體)最需警惕的不良事件?機轉為何?","back":"血栓事件(thrombosis / thrombotic microangiopathy, TMA)。<hr>藉降低天然抗凝物(antithrombin 或 TFPI)恢復凝血,過度抑制即偏高凝。fitusiran 降 antithrombin 有血栓與 TMA 風險;emicizumab 合併 aPCC 亦曾致 TMA。處置強調劑量滴定、避免併用 bypassing agents。"},
+  {"kind":"basic","front":"Anti-TFPI 抗體 marstacimab 與 concizumab 的標的、抗體類型、給藥與核准差異?","back":"皆結合 TFPI 阻斷其對 FXa/TF-FVIIa 的抑制(rebalancing,A/B 型皆適用)。marstacimab:IgG1、每週皮下,2024-10 FDA 核准用於 hem A/B『無 inhibitor』≥12 歲。concizumab:IgG4、每日皮下,設計涵蓋含 inhibitor,美國收到 CRL、加拿大已核准。<hr>考點:marstacimab 核准適應症限『無 inhibitor』為易錯點。"},
+  {"kind":"basic","front":"血友病 AAV 基因治療:A、B 型已上市產品為何?需監測哪一項器官毒性、如何處理?","back":"以 AAV 載體遞送基因至肝細胞,單次輸注長期提升內源性因子。hem A:valoctocogene roxaparvovec(F8);hem B:etranacogene dezaparvovec(F9)。<hr>主要監測肝功能 — immune-mediated transaminitis(ALT/AST 上升),定期測 ALT 並常給 corticosteroid 維持轉殖基因表現;亦須評估抗 AAV neutralizing antibody。療效持久性有個體差異。"}
+ ]
+}

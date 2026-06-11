@@ -1,0 +1,13 @@
+{
+ "id": "114-088",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "beta-thalassemia", "TDT", "hypertransfusion", "iron-overload", "iron-chelation", "pre-transfusion-Hb", "ineffective-erythropoiesis", "TIF-guidelines"],
+ "enrich_html": "<b>📌 考點</b>:Transfusion-dependent β-thalassemia (TDT) 的 hypertransfusion regimen,pre-transfusion Hb 目標為 <u>9.5-10.5 g/dL</u> (TIF 5th ed, Grade C/Class I),每 2-5 週輸血一次。低於 9 g/dL 無法抑制 ineffective erythropoiesis → 骨髓擴張、thalassemic facies、extramedullary hematopoiesis;高於 11 g/dL 則徒增 iron overload。<br><b>🏥 臨床意義</b>:post-transfusion Hb 上限約 14-15 g/dL,過高引發 hyperviscosity。每單位 RBC 帶入約 200-250 mg 鐵且人體無排鐵途徑;ineffective erythropoiesis 又抑制 hepcidin、增加腸道吸鐵 → 鐵雙重來源,須 iron chelation 與每年 cardiac/liver T2* MRI 監測。<br><b>⭐ High-yield</b>:特例可提高目標至 10-11 g/dL — 心臟疾病、pulmonary hypertension、顯著 extramedullary hematopoiesis、或低目標下骨髓活性抑制不足者。螯合啟動門檻:ferritin &gt;1000 ng/mL (約輸 10-20 單位後);cardiac T2* &lt;20 ms 代表心臟鐵沉積。<br><b>🔬 實證</b>:moderate (vs super-) transfusion 在達標下可減少鐵負荷;成人 TDT 中 pre-transfusion Hb 過低與死亡率上升相關。(TIF 5th ed 2021; Blood 2024;143:930)",
+ "cards": [
+  {"kind":"basic","front":"Transfusion-dependent β-thalassemia (TDT) 患者建議的「輸血前 (pre-transfusion)」血紅素目標範圍為何?","back":"9.5-10.5 g/dL<hr>此為 TIF 第 5 版 (2021) hypertransfusion regimen 目標 (Grade C, Class I),搭配每 2-5 週輸血一次。維持此 pre-transfusion Hb 可抑制骨髓 ineffective erythropoiesis,避免代償性骨髓擴張造成骨骼變形與脾腫大,同時不至於輸血過量。"},
+  {"kind":"basic","front":"哪些 TDT 患者的 pre-transfusion Hb 目標可由標準的 9.5-10.5 g/dL 提高到 10-11 g/dL?","back":"心臟疾病 (含 pulmonary hypertension)、臨床上顯著的 extramedullary hematopoiesis、或在標準較低目標下骨髓活性仍抑制不足者。<hr>這些情況需更積極抑制 ineffective erythropoiesis 或維持氧供,代價是更高的 iron overload 風險,須同步加強 iron chelation。"},
+  {"kind":"basic","front":"TDT 患者何時應啟動 iron chelation?用哪些指標監測鐵負荷?","back":"約規律輸血 10-20 單位後、或 serum ferritin >1000 ng/mL 時啟動。<hr>監測:serum ferritin (簡便但受發炎影響)、liver iron concentration (LIC,以 MRI R2/T2* 估計) 及 cardiac T2* MRI。>6 歲且 ferritin >1000 者建議每年做 liver + cardiac T2* MRI。"},
+  {"kind":"basic","front":"Cardiac MRI T2* 多少 ms 代表心臟鐵沉積?哪一種口服螯合劑對清除心臟鐵特別有效?","back":"Cardiac T2* <20 ms 代表有心臟鐵沉積 (<10 ms 為嚴重,心衰竭與心律不整風險高);deferiprone 對清除心臟鐵特別有效。<hr>心臟鐵過載是 TDT 死亡主因。T2* >20 ms 一年內通常不會累積心臟鐵。嚴重者常用 deferiprone-based 合併療法;deferasirox 則為常用口服首選 (每日一次)。"},
+  {"kind":"basic","front":"β-thalassemia 的鐵狀態與 iron deficiency anemia (IDA) 有何根本不同?最重要的臨床警訊為何?","back":"β-thalassemia 是鐵「過載」(輸血 + 腸道吸收增加),IDA 是鐵「缺乏」;切忌將 thalassemia 誤當 IDA 補鐵,會加重鐵過載。<hr>thalassemia 因 ineffective erythropoiesis 抑制 hepcidin,使腸道鐵吸收增加,再加上輸血帶入的鐵,造成全身鐵超載。鑑別靠 ferritin / transferrin saturation 升高與 Hb 電泳。"}
+ ]
+}

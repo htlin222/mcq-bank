@@ -1,0 +1,13 @@
+{
+ "id": "112-056",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "Transfusion", "blood products", "FFP", "Cryoprecipitate", "platelet storage", "RBC storage", "component storage temperature", "cold-stored platelets"],
+ "enrich_html": "<b>📌 考點</b>:血品保存「三溫」記憶法 — 血漿類(FFP、Cryoprecipitate)<b>冷凍 ≤ −18∼−20℃</b>、紅血球<b>冷藏 1∼6℃</b>、血小板<b>室溫 20∼24℃</b>。血小板是唯一室溫保存的血品,選項中標 37℃、4℃、−4℃ 三者皆與規範不符,只有 FFP −20℃ 正確。<br><b>🏥 臨床意義</b>:RBC 不可冷凍(冷凍→細胞內結晶→溶血);血小板不可冷藏(低溫→GPIbα 聚集→肝臟 Kupffer cell 加速清除→體內存活縮短),且須<u>持續輕搖維持氣體交換</u>。<br><b>⭐ High-yield</b>:效期 — RBC(SAGM)42 天｜RBC(CPDA-1)35 天｜Platelet 5 天(FDA 認可污染防治可延至 7 天)｜FFP/Cryo 1 年。融化後 — FFP 置 1∼6℃、Cryoprecipitate 置 20∼24℃ 且 <b>6 小時內</b>用畢(fibrinogen 不穩)。<br><b>🔬 實證</b>:室溫保存血小板自 1970s 為標準 — 室溫 in vivo circulation 8∼10 天 vs 冷藏 2∼4 天;但 cold-stored platelets(2∼6℃)近年復興,可延效期至 14∼21 天且止血功能佳,適用急性出血/外傷大量輸血。(AABB Standards; Front Med 2025, PMC12745256)",
+ "cards": [
+  {"kind":"cloze","text":"血品保存溫度對照:FFP 與 Cryoprecipitate {{c1::≤ −18∼−20℃ 冷凍}};Red Blood Cells {{c2::1∼6℃ 冷藏}};Platelet {{c3::20∼24℃ 室溫並持續搖盪}}。","extra":"記憶:血漿類冷凍、紅血球冷藏、血小板室溫。血小板是唯一室溫保存的血品。"},
+  {"kind":"cloze","text":"血品保存效期:RBC (SAGM) {{c1::42 天}};RBC (CPDA-1) {{c2::35 天}};Platelet {{c3::5 天(FDA 認可污染防治可延至 7 天)}};FFP / Cryoprecipitate {{c4::1 年}}。","extra":"SAGM (additive solution) 提供額外養分,效期較 CPDA-1 長。血小板效期最短,受室溫細菌污染風險限制。"},
+  {"kind":"basic","front":"血小板為何不能像紅血球一樣冷藏 (1∼6℃) 保存?","back":"冷藏會誘發 GPIbα 聚集 (clustering),被肝臟 Kupffer cell 加速清除,使體內存活時間大幅縮短。<hr>室溫保存的血小板 in vivo circulation 約 8∼10 天,冷藏者僅 2∼4 天 — 這是 1970s 起以室溫為標準的原因。代價是室溫細菌增殖風險高,故效期短(5 天)。"},
+  {"kind":"basic","front":"輸血血品保存中,哪一品項是「唯一」以室溫 (20∼24℃) 保存,而其餘均需冷藏或冷凍?","back":"血小板 (platelet) 是唯一室溫保存的血品。<hr>RBC 冷藏 1∼6℃;FFP 與 Cryoprecipitate 冷凍 ≤ −18∼−20℃;僅血小板於 20∼24℃ 並持續搖盪。考題常見陷阱是把血小板誤標為 37℃ 或冷藏。"},
+  {"kind":"basic","front":"Cryoprecipitate 的正確保存溫度、效期,以及融化後須多久內使用?","back":"≤ −18∼−20℃ 冷凍,效期 1 年;融化後置 20∼24℃ 須於 6 小時內用畢。<hr>由 FFP 製備,富含 fibrinogen、factor VIII、vWF、factor XIII 及 fibronectin。融化後 fibrinogen 活性不穩,故時限比融化後 FFP 更短。"}
+ ]
+}

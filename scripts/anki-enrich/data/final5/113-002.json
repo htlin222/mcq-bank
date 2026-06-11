@@ -1,0 +1,13 @@
+{
+ "id": "113-002",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "D-dimer", "VTE", "DIC", "fibrinolysis", "pretest-probability", "age-adjusted-cutoff", "Wells-score"],
+ "enrich_html": "<b>📌 考點</b>:D-dimer 是 cross-linked fibrin 經 plasmin 降解的產物,只要體內有 fibrin 生成並被纖溶分解就會升高,因此<u>高 sensitivity、低 specificity</u>。「除了 venous thrombosis 與 DIC,還有哪些情況使 D-dimer 升高?」答案是全部 — hormone use、pregnancy、cancer、increased age 皆會,故 all-inclusive 選項正解。<br><b>🏥 臨床意義</b>:D-dimer 陰性(結合低 pretest probability)可安全排除 VTE、免影像;陽性無法確診,須影像佐證。孕婦、癌症、老年人 D-dimer 幾乎都超標,單獨判讀價值低。<br><b>⭐ High-yield</b>:Age-adjusted cutoff = 年齡×10 µg/L FEU(>50 歲)、500 µg/L FEU(≤50 歲);例 70 歲 = 700。specificity 從 ≤50 歲 49–67% 跌到 ≥80 歲 0–18%。<br><b>🔬 實證</b>:ADJUST-PE 採 age-adjusted cutoff 失敗率僅 1/331(0.3%),≥75 歲排除一個 PE 的 NNT 由 16 降到 3.4。(Franchini M, et al. Haematologica 2024;109:1035; Righini M, et al. JAMA 2014 ADJUST-PE)",
+ "cards": [
+  {"kind":"basic","front":"除了 venous thrombosis 與 DIC,hormone use、pregnancy、cancer、increased age 何者會造成 D-dimer 升高?","back":"四者全部 — hormone use、pregnancy、cancer、increased age 皆會使 D-dimer 升高。<hr>D-dimer 升高並不專一於血栓,凡有 fibrin 生成與降解之處(包括生理高凝、發炎、惡性等)皆升高,故 all-inclusive 的選項為正解。判讀務必結合 pretest probability,避免過度診斷。"},
+  {"kind":"basic","front":"為何 D-dimer 適合「排除」VTE,而不適合「確診」VTE?","back":"因為具高 sensitivity、低 specificity:陰性有高陰性預測值可排除,陽性卻無法確診。<hr>許多非血栓情況(懷孕、癌症、感染、年齡)都會升高 D-dimer,造成假陽性。應先評估 pretest probability(如 Wells score):低機率 + D-dimer 陰性可安全排除、不需影像;高機率則直接影像,不應單靠 D-dimer。"},
+  {"kind":"basic","front":"Age-adjusted D-dimer cutoff 的公式為何?70 歲病人的數值是多少?","back":">50 歲:cutoff = 年齡 × 10 µg/L FEU;≤50 歲:固定 500 µg/L FEU。<hr>70 歲 = 700 µg/L FEU。此法在不顯著降低 sensitivity 下提高 specificity(≤50 歲 specificity 約 49–67%,≥80 歲固定 cutoff 僅 0–18%),減少老年人不必要的 CT/影像。"},
+  {"kind":"basic","front":"DIC 中 D-dimer 扮演什麼角色?如何與 fibrinogen、platelet、PT/aPTT 一起判讀?","back":"DIC 為全身性凝血活化,大量 fibrin 生成與降解使 D-dimer 顯著升高,是 DIC 評分(如 ISTH overt-DIC score)的核心纖維蛋白相關標記。<hr>典型 DIC:D-dimer↑、fibrinogen↓、platelet↓、PT/aPTT 延長。單看 D-dimer 升高不等於 DIC,須合併血小板下降、凝血時間延長與臨床情境(sepsis、產科、惡性、外傷)綜合判讀。"},
+  {"kind":"basic","front":"支持 age-adjusted D-dimer cutoff 安全性的關鍵 trial 與數據為何?","back":"ADJUST-PE study:採 age-adjusted cutoff 的 3 個月 VTE 失敗率僅 1/331(0.3%;95% CI 0.1–1.7%),證實安全。<hr>在 ≥75 歲族群,排除一個 PE 所需檢測人數(NNT)由傳統 cutoff 的 16 降到 3.4,大幅提升效率。此策略現已被主流診斷流程採納。"}
+ ]
+}

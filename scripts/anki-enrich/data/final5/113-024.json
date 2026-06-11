@@ -1,0 +1,13 @@
+{
+ "id": "113-024",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "Ph-positive ALL", "BCR-ABL", "T315I", "ponatinib", "asciminib", "dasatinib", "blinatumomab", "bosutinib", "TKI", "MRD", "EWALL", "D-ALBA", "IKZF1"],
+ "enrich_html": "<b>📌 考點</b>：Ph+ ALL 出現 BCR::ABL1 <b>T315I</b>（gatekeeper residue Thr315→Ile）後，imatinib／dasatinib／nilotinib／<u>bosutinib 全數抗藥</u>——四者皆為 ATP 競爭性、依賴 T315 形成的 hydrogen bond 與構形。故 dasatinib 後出現 T315I，下一線「換 bosutinib」是錯的；應換 <b>ponatinib</b>（第三代）或 <b>asciminib</b>（STAMP，結合 myristoyl pocket 的變構抑制，T315I 核可劑量 200 mg BID）。<br><b>🏥 臨床意義</b>：復發時須做 kinase domain mutation analysis 指引換藥；T315I 是最常見且最棘手的抗藥突變。asciminib + ponatinib 併用可壓制 compound mutant，為高度抗藥情境的研究方向。<br><b>⭐ High-yield</b>：對 T315I 有效＝ponatinib｜asciminib（變構）｜無效＝imatinib／dasatinib／nilotinib／bosutinib（皆 ATP-site）。BCR::ABL1 RT-qPCR MRD 靈敏度 10⁻⁴–10⁻⁵（0.01–0.001%）。chemo-free 首選＝dasatinib + blinatumomab（anti-CD19/CD3 BiTE）。<br><b>🔬 實證</b>：D-ALBA 新診斷成人 Ph+ ALL CR 98%、18 月 OS 95%／DFS 88%（IKZF1plus 較差），53 月 DFS 75.8%（NEJM 2020;383:1613）｜EWALL-PH-01 老年 Ph+ ALL dasatinib+VCR+DEX 誘導 CR 96%（Blood 2016;128:774）｜asciminib 200 mg BID 治 T315I CP-CML 62% 達 BCR::ABL1 ≤1%（NEJM 2019;381:2315）。",
+ "cards": [
+  {"kind":"basic","front":"Ph+ B-ALL 接受 dasatinib 後出現 BCR::ABL1 T315I 突變，下一線 TKI 應選什麼？為何不能換 bosutinib？","back":"換 ponatinib 或 asciminib；bosutinib 對 T315I 無效。<hr>T315I 是 gatekeeper 突變，對 imatinib／dasatinib／nilotinib／bosutinib（皆 ATP 競爭性）全數抗藥。僅 ponatinib（第三代 TKI）與 asciminib（STAMP inhibitor，作用於 myristoyl pocket 而非 ATP-binding site）對 T315I 仍有效。"},
+  {"kind":"basic","front":"Asciminib 與傳統 TKI（imatinib／dasatinib）在 BCR::ABL1 上的結合位點有何根本不同？臨床意義為何？","back":"Asciminib 結合 myristoyl pocket（allosteric／STAMP），傳統 TKI 結合 ATP-binding site。<hr>STAMP＝Specifically Targeting the ABL Myristoyl Pocket。此 allosteric 機轉使 asciminib 對含 T315I 等 ATP-pocket 抗藥突變仍有效；T315I 情境核可劑量為 200 mg BID。"},
+  {"kind":"basic","front":"哪個試驗確立 dasatinib + blinatumomab 作為新診斷成人 Ph+ ALL 的 chemo-free 第一線？其療效數據為何？","back":"D-ALBA 試驗（NEJM 2020）：dasatinib 誘導後序貫 blinatumomab 鞏固。<hr>CR 達 98%；day85 分子緩解 29%，2 cycle blinatumomab 後升至 60%；18 月 OS 95%、DFS 88%（IKZF1plus 較差）；53 月更新 DFS 75.8%、OS 80.7%。確立 TKI + 免疫治療的低毒性 chemo-free 路徑。"},
+  {"kind":"basic","front":"Blinatumomab 的標靶與作用機轉為何？主要毒性是什麼？","back":"Anti-CD19/CD3 雙特異性 T 細胞銜接抗體（BiTE），引導 T 細胞毒殺 CD19+ B 細胞。<hr>一端結合 B-ALL 細胞表面 CD19，另一端結合 T 細胞 CD3，形成免疫突觸活化 T 細胞。主要毒性為 cytokine release syndrome（CRS）與神經毒性。"},
+  {"kind":"basic","front":"以 RT-qPCR 偵測 BCR::ABL1 transcript 作分子 MRD，靈敏度約為多少？","back":"約 10⁻⁴ 至 10⁻⁵（0.01%–0.001%）。<hr>用於追蹤 Ph+ ALL 治療反應與早期偵測復發；分子 MRD 陰性是現代 Ph+ ALL 的重要治療目標與預後指標。"}
+ ]
+}

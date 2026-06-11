@@ -1,0 +1,13 @@
+{
+  "id": "112-054",
+  "topic_index": 5,
+  "extra_tags": ["enriched", "PNH", "eculizumab", "ravulizumab", "pegcetacoplan", "C5-inhibitor", "complement", "thromboembolism", "anticoagulation", "GPI-anchor", "CD55", "CD59", "MDS", "aplastic-anemia"],
+  "enrich_html": "<b>📌 考點</b>:PNH 的首要早期死因是 thrombosis(非溶血性貧血、非輸血 hemochromatosis 心肌病),且好發於<u>非典型靜脈部位</u>(Budd-Chiari 肝靜脈、腦靜脈竇、腸繫膜/門靜脈)。在 eculizumab/ravulizumab 達到<b>有效終端補體阻斷</b>後血栓風險大幅下降,故無血栓病史者<u>不需常規終身預防性抗凝</u>;但已發生急性血栓時,抗凝必須與補體抑制劑<b>同時立即</b>給予,不可僅靠 eculizumab。<br><b>🏥 臨床意義</b>:機轉鏈為 PIGA 突變→缺 GPI anchor→紅血球缺 CD55(DAF)/CD59(MIRL)→補體介導血管內溶血並釋出游離 Hb 清除 NO→平滑肌張力異常+促血栓。起始 C5 抑制劑前須接種 <u>meningococcal vaccine</u>(終端補體阻斷使 Neisseria 感染風險升高)。<br><b>⭐ High-yield</b>:IPIG 三分類——classical(顆粒球 clone 常 &gt;50%、LDH 可達正常 10 倍)｜PNH with BMF(合併 AA/MDS,clone 多 &lt;10%,故 pancytopenia 在 PNH 並不罕見)｜subclinical(clone &lt;1%、無溶血,治療針對 AA、補體抑制劑無效)。約 70% AA 病人可測得 PNH clone。<br><b>🔬 實證</b>:長期 eculizumab 觀察中,無血栓史者停用 primary prophylactic warfarin(21 例)平均 10.8 個月無血栓事件(Hillmen, Blood 2011;117:6786)。C5 抑制劑下約 20–25% 出現 C3 介導 extravascular hemolysis,可換 C3 抑制劑 pegcetacoplan(Blood Adv 2025;9:3937)。",
+  "cards": [
+    {"kind": "basic", "front": "PNH (paroxysmal nocturnal hemoglobinuria) 患者最主要的早期死因為何?", "back": "血栓栓塞 (thromboembolism)<hr>PNH 的 thrombosis 常發生於非典型部位(肝靜脈 Budd-Chiari、腦靜脈竇、腸繫膜/門靜脈),是 PNH 早期死亡的首要原因。並非反覆溶血性嚴重貧血所致心衰,也非頻繁輸血造成 hemochromatosis 相關心肌病。"},
+    {"kind": "basic", "front": "PNH 患者發生急性血栓事件時,可否僅靠 eculizumab 而延後抗凝治療?", "back": "不可,須立即抗凝並同時使用 eculizumab<hr>急性 thrombosis 屬緊急狀況,anticoagulant 與補體抑制劑必須合併、立即使用,不能等待 eculizumab 發揮效果後再處置。延遲抗凝會增加血栓進展與死亡風險。(註:無血栓病史者在有效終端補體阻斷下並不需常規終身預防性抗凝。)"},
+    {"kind": "basic", "front": "PNH 紅血球為何對補體破壞異常敏感?(分子機轉)", "back": "PIGA 基因突變→無法合成 GPI anchor→細胞表面缺 CD55 與 CD59<hr>CD55 (DAF) 加速 C3 convertase 衰變,CD59 (MIRL) 阻止 MAC 形成。兩者缺失使紅血球對補體介導的血管內溶血失去保護,造成持續溶血並釋出游離 Hb 清除 NO,進而促血栓。"},
+    {"kind": "basic", "front": "PNH 起始 eculizumab/ravulizumab(C5 抑制劑)前,必須先接種何種疫苗?為什麼?", "back": "腦膜炎雙球菌疫苗 (Neisseria meningitidis / meningococcal vaccine)<hr>阻斷終端補體會使 encapsulated organisms(尤其 Neisseria meningitidis)感染風險大增,故起始 C5 抑制劑前須接種 meningococcal vaccine,理想為治療前至少 2 週;若需立即治療則同時加上抗生素預防。"},
+    {"kind": "cloze", "text": "International PNH Interest Group (IPIG) 將 PNH 分三類:{{c1::classical PNH}}(顆粒球 clone 常 &gt;50%、有溶血/血栓)、{{c2::PNH with bone marrow failure}}(合併 AA 或 MDS、clone 多 &lt;10%)、{{c3::subclinical PNH}}(clone &lt;1%、無溶血/血栓證據)。", "extra": "classical 型 LDH 可升高達正常 10 倍,為補體抑制劑主要適應對象;BMF 型治療兼顧底層骨髓衰竭,故 pancytopenia 在 PNH 並不罕見;subclinical 型 clone 極小,治療針對 AA,補體抑制劑無效。"}
+  ]
+}

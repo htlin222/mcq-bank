@@ -1,0 +1,13 @@
+{
+ "id": "113-021",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "FNHTR", "transfusion-reaction", "leukoreduction", "HLA-alloimmunization", "platelet-transfusion", "cytokines", "AABB", "transfusion-medicine"],
+ "enrich_html": "<b>📌 考點</b>:FNHTR 的「預防」與「治療」是不同概念、常被混為一談。在普遍 leukoreduction 年代,<u>預防性 premedication(acetaminophen ± antihistamine)被兩個 RCT 證實無法降低 FNHTR 發生率</u>(誤述常以「premedication is helpful」出現);但<u>反應發生後給 antipyretic 確可縮短發燒、提供 analgesia</u>。真正有效的預防是 prestorage leukoreduction。<br><b>🏥 臨床意義</b>:FNHTR 為排除性診斷,輸血相關發燒須優先排除 acute hemolytic transfusion reaction(可致命的 ABO 不合)與 bacterial contamination/septic reaction(血小板室溫儲存風險最高);誤把溶血或敗血當 FNHTR 處理可致死。<br><b>⭐ High-yield</b>:診斷門檻 體溫升 ≥1°C 且 >38°C,onset 在輸血中至輸血後 4 小時｜platelet > RBC(血小板室溫儲存,白血球持續釋 cytokine)｜prestorage 優於 poststorage(bedside)leukoreduction｜leukoreduction 可使發生率 ~20% → <1%。<br><b>🔬 實證</b>:Prestorage leukoreduction 降 FNHTR 風險約 50%;premedication 無預防效益。(Goel et al., Blood 2019;133:1831;UpToDate, Immunologic transfusion reactions 2024)",
+ "cards": [
+  {"kind":"basic","front":"關於 febrile non-hemolytic transfusion reaction (FNHTR),為何「預防性 premedication with antipyretics (acetaminophen) is helpful」是錯誤敘述?","back":"預防性 premedication 無法降低 FNHTR 發生率,已被兩個 RCT 否定,故為誤述。<hr>關鍵在區分「prophylaxis(反應前 premedication)」與「treatment(反應後給藥)」:後者(acetaminophen)確可緩解已發生的發燒並提供 analgesia,前者無效。真正有效的預防手段是 prestorage leukoreduction,而非投藥。"},
+  {"kind":"basic","front":"FNHTR (febrile non-hemolytic transfusion reaction) 的診斷門檻(體溫與時間)為何?","back":"體溫上升 ≥1°C 且 >38°C,發生於輸血中或停止輸血後 4 小時內(典型 onset 1-6 小時)。<hr>免疫低下患者可僅見 chills/rigors 而無明顯發燒。無任何實驗室檢查可確診 FNHTR,屬排除性診斷(diagnosis of exclusion)。"},
+  {"kind":"basic","front":"FNHTR (febrile non-hemolytic transfusion reaction) 的兩大主要機轉是什麼?","back":"(1) 受血者 anti-leukocyte/HLA 抗體與 donor 殘存白血球反應;(2) 製品儲存期間白血球凋亡/壞死釋出的 pro-inflammatory cytokines(以 IL-1、IL-6、TNF-α 為主)。<hr>理解此二機轉即可推導:為何 leukoreduction 有效、為何室溫儲存的血小板較易誘發、為何已 alloimmunized 者更易發生。"},
+  {"kind":"basic","front":"Leukoreduction 對 FNHTR 的預防效果為何?prestorage 與 poststorage 何者較佳?","back":"可顯著降低 FNHTR 發生率(風險下降約 50%,長期可使發生率由 ~20% 降至 <1%),對 whole blood-derived 與 apheresis platelets 均有效;prestorage(採集後立即過濾)優於 poststorage/bedside 過濾。<hr>機轉:在白血球大量凋亡釋放 cytokine 之前就移除白血球,故 prestorage 能同時阻斷 cytokine 機轉與減少 alloimmunization。"},
+  {"kind":"basic","front":"確診 FNHTR 之前,輸血相關發燒須優先排除哪兩個危急鑑別診斷?","back":"(1) Acute hemolytic transfusion reaction(常見 ABO 不合);(2) Septic/bacterial contamination reaction(血小板室溫儲存風險最高)。<hr>FNHTR 為排除性診斷且 self-limited,但這兩者可致命,故發燒先停輸血、檢查 plasma 是否溶血(粉紅/紅)、回送血袋培養,排除後才歸因 FNHTR。"}
+ ]
+}

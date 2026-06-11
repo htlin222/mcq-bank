@@ -1,0 +1,13 @@
+{
+ "id": "114-097",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "hypercalcemia of malignancy", "multiple myeloma", "Denosumab", "Calcitonin", "Dexamethasone", "bisphosphonate", "zoledronic acid", "calcitriol", "RANKL"],
+ "enrich_html": "<b>📌 考點</b>:惡性腫瘤高血鈣 (HCM) 的四大降鈣武器各有時序與適應症。Endocrine Society 2023 指引:中重度 HCM 首選 IV bisphosphonate 或 denosumab;<u>腎功能不佳或 bisphosphonate-refractory 時 denosumab 優先</u>(不經腎清除、無需依 CrCl 調量),而 zoledronic acid 在 CrCl &lt;30 mL/min 禁用。<br><b>🏥 臨床意義</b>:Calcitonin 4-6 小時即起效但 48-72 小時內因 <u>tachyphylaxis</u>(受體 downregulation)失效 → 僅作橋接、不可長期維持;故嚴重高血鈣 (corrected Ca &gt;14 mg/dL) 建議 calcitonin + (bisphosphonate 或 denosumab) 合併起始,快速 + 持久互補。<br><b>⭐ High-yield</b>:Multiple myeloma / lymphoma / 肉芽腫之高血鈣為 <u>calcitriol 媒介</u> → glucocorticoid (dexamethasone) 抑制 1-alpha-hydroxylase 降 calcitriol 特別有效(對 PTHrP 媒介實體癌則差)｜denosumab 用於腎差者須警惕嚴重低血鈣,務必補鈣與維生素 D｜hemodialysis 保留給腎衰竭或危及生命之高血鈣。<br><b>🔬 實證</b>:denosumab 對 bisphosphonate-refractory HCM 約 60-70% 於 day 10 達 corrected Ca &lt;=11.5 mg/dL;phase III 頭對頭顯示 denosumab 較 zoledronic acid 延長無高血鈣時間。(Endocrine Society Clinical Practice Guideline, JCEM 2023;108:507)",
+ "cards": [
+  {"kind":"basic","front":"Endocrine Society 2023 指引中, 中重度惡性腫瘤高血鈣的首選降骨吸收藥物為何?","back":"IV bisphosphonate (如 zoledronic acid) 或 denosumab<hr>腎功能不佳或 bisphosphonate-refractory 時 denosumab 優先 (不經腎清除、無需依 CrCl 調量)。Denosumab 對 bisphosphonate-refractory HCM 約 60-70% 於 day 10 達 corrected Ca &lt;=11.5 mg/dL。(Endocrine Society 2023)"},
+  {"kind":"basic","front":"肝腎功能不佳的惡性腫瘤高血鈣患者, denosumab 與 bisphosphonate 何者較安全? 為何?","back":"Denosumab 較安全, 因不經腎臟清除、無需依 CrCl 調整劑量<hr>Zoledronic acid 經腎排除, CrCl &lt;30 mL/min 禁用且中度腎損即需減量。Denosumab 經網狀內皮系統代謝, 不傷腎; 但腎功能差者用 denosumab 須警惕嚴重低血鈣, 務必補充鈣與維生素 D。(Endocrine Society 2023)"},
+  {"kind":"basic","front":"惡性腫瘤高血鈣中, calcitonin 的起效時間、作用持續性與治療角色為何?","back":"4-6 小時內快速起效, 但 48-72 小時內因 tachyphylaxis 失效, 僅適合急性短期橋接、不可長期維持<hr>Calcitonin 機轉為抑制蝕骨細胞 (osteoclast) + 增加腎臟排鈣, 起效快但因受體 downregulation 產生快速耐受 (tachyphylaxis), 故與起效慢 (2-4 天) 但持久的 bisphosphonate 或 denosumab 併用作橋接。(Endocrine Society 2023)"},
+  {"kind":"basic","front":"Multiple myeloma 引起的高血鈣中, dexamethasone (glucocorticoid) 降鈣的主要分子機轉為何?","back":"抑制 1-alpha-hydroxylase, 減少 calcitriol (1,25-(OH)2-vitamin D) 生成而降鈣<hr>Glucocorticoid 對 <b>calcitriol 媒介</b>的高血鈣 (myeloma、lymphoma、肉芽腫病如 sarcoidosis) 特別有效; 在 myeloma 中還兼具腫瘤毒殺作用。對 PTHrP 媒介的實體癌高血鈣則效果差。"},
+  {"kind":"cloze","text":"惡性腫瘤高血鈣的機轉分型: 大多數實體癌經 {{c1::PTHrP}} (humoral hypercalcemia of malignancy) 媒介, glucocorticoid 對其效果差; 而 {{c2::multiple myeloma}}、lymphoma、肉芽腫病經 {{c3::calcitriol (1,25-(OH)2-vitamin D)}} 媒介, glucocorticoid 透過抑制 {{c4::1-alpha-hydroxylase}} 特別有效; 骨轉移則經局部 osteolysis 釋鈣。","extra":"分清媒介機轉可預測 glucocorticoid 反應: calcitriol 媒介者反應佳, PTHrP 媒介者反應差。"}
+ ]
+}

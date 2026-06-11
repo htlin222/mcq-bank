@@ -1,0 +1,13 @@
+{
+ "id": "114-060",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "ITP", "immune-thrombocytopenia", "pregnancy", "gestational-thrombocytopenia", "neonatal-thrombocytopenia", "neuraxial-anesthesia", "thrombocytopenia"],
+ "enrich_html": "<b>📌 考點</b>：孕婦 ITP 四大臨床事實——①新生兒嚴重血小板低下（&lt;50K）約 8.9-14.7%、&lt;20K 約 1-5%、ICH &lt;1-1.5%，整體嚴重出血&lt;1%（題敘「新生兒發病率&lt;1%」指嚴重出血/ICH，正確）；②母體 plt 與新生兒 plt <u>無可靠相關</u>，無單一 cutoff 可預測，故分娩方式應依<b>產科適應症</b>而非胎兒 plt 決定；③neuraxial（脊髓/硬脊膜外）麻醉 plt ≥70K 風險低可施行、&lt;70-80K 審慎避免（題敘「&lt;80K 避免脊髓麻醉」正確）。<br><b>🏥 臨床意義</b>：孕期血小板低下最常見為 gestational thrombocytopenia（70-80%、plt &gt;70K、新生兒不受影響），ITP 僅佔 1-4% 但<u>唯一會造成胎兒/新生兒血小板低下者</u>；plt &lt;50K 高度傾向 ITP。第一線治療 corticosteroids + IVIG，&lt;10% 孕婦需治療。<br><b>⭐ High-yield</b>：剖腹產<b>不降低</b>新生兒 ICH，不應為保護胎兒而常規剖腹；避免 vacuum/forceps 器械陰道生產｜neuraxial 安全門檻 plt ≥70K（SOAP 2021）｜gestational thrombocytopenia 與 ITP 鑑別靠嚴重度（&lt;50K 偏 ITP）、時序（ITP 任何期、gestational 多中後期）與新生兒結局。<br><b>🔬 實證</b>：母體 term plt 與新生兒 plt 無臨床相關（NEJM 1990;323:229）；neuraxial plt ≥70K 低風險（SOAP Consensus, Anesth Analg 2021;132:1531）；ASH 2019 ITP guideline（Blood Adv 2019;3:3829）。",
+ "cards": [
+  {"kind":"basic","front":"孕期血小板低下的眾多病因中，哪一種是「唯一」會造成胎兒/新生兒血小板低下的？","back":"ITP（immune thrombocytopenia）<hr>母體 anti-platelet IgG 可經胎盤傳給胎兒。Gestational thrombocytopenia 的新生兒從不受影響。ITP 僅佔孕期血小板低下約 1-4%，但臨床重要性正在於其新生兒風險。"},
+  {"kind":"basic","front":"如何用「血小板數值」初步區分孕婦的 gestational thrombocytopenia 與 ITP？","back":"plt 越低越傾向 ITP；plt &lt;50K 高度懷疑 ITP，&gt;80K 多為 gestational thrombocytopenia<hr>Gestational thrombocytopenia 罕見 &lt;70K。plt 落在 50-80K 之間時無法排除 ITP。輔助鑑別：ITP 可發生於任何孕期（含第一孕期）且常有孕前病史；gestational thrombocytopenia 多見於中後期、產後恢復。"},
+  {"kind":"basic","front":"ITP 孕婦欲接受 neuraxial anesthesia（脊髓/硬脊膜外麻醉）時，血小板的安全門檻為何？","back":"plt ≥70K 風險低、可施行；&lt;70-80K 應審慎避免<hr>主要顧慮為 epidural hematoma（硬脊膜外血腫）。SOAP 2021 共識：plt ≥70×10⁹/L 屬低風險。系統性回顧 326 例 neuraxial（含 plt 50-70K 甚至 &lt;50K）無出血併發症，故門檻可個別化評估。"},
+  {"kind":"basic","front":"為什麼不能用「母體血小板數目」來預測 ITP 孕婦的新生兒是否會血小板低下？分娩方式又該如何決定？","back":"母體 term plt 與新生兒出生時 plt 無臨床上有意義的相關性，無單一 cutoff 可篩出高風險胎兒；故分娩方式應依產科適應症決定，而非依胎兒 plt<hr>NEJM 1990;323:229 大型研究證實母嬰 plt 無相關。剖腹產不降低新生兒 ICH，不應為保護胎兒常規剖腹；應避免器械陰道生產（vacuum/forceps）。最佳新生兒風險預測因子為「前一胎曾發生新生兒血小板低下」之病史。"},
+  {"kind":"cloze","text":"孕期血小板低下的鑑別診斷：最常見、新生兒不受影響者為 {{c1::gestational thrombocytopenia}}；唯一造成胎兒血小板低下、自體免疫破壞者為 {{c2::ITP}}；伴高血壓/溶血/肝酵素升高者為 {{c3::preeclampsia/HELLP}}；伴神經學症狀與 ADAMTS13 嚴重缺乏者為 {{c4::TTP}}。","extra":"Gestational thrombocytopenia 通常 plt &gt;70K、中後期出現；ITP 可發生於任何孕期且 plt 可較低（&lt;50K 偏向 ITP），第一線治療 corticosteroids + IVIG、僅 &lt;10% 孕婦需治療；HELLP 與 TTP/HUS 屬產科急症需快速處置。TTP 在孕期需與 HELLP 鑑別，ADAMTS13 活性 &lt;10% 支持 TTP。"}
+ ]
+}

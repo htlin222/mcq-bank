@@ -1,0 +1,13 @@
+{
+ "id": "113-087",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "G6PD deficiency", "hemolytic anemia", "enzymopathy", "X-linked", "favism", "pentose phosphate pathway", "Lyonization", "Heinz bodies", "bite cells", "WHO classification"],
+ "enrich_html": "<b>📌 考點</b>：G6PD deficiency 為 X-linked。<u>Hemizygous males 僅一條 X，攜突變者全身紅血球皆缺乏酵素 → full（一致且完整）表現，非 variable/intermediate</u>。「variable/intermediate」實為 heterozygous females 的特徵（隨機 X-inactivation/Lyonization 造成 mosaic）。誘餌邏輯：把女性的鑲嵌中間表現錯置於男性。<br><b>🏥 臨床意義</b>：最常見 RBC enzymopathy，全球約 4 億人，集中於瘧疾流行區（雜合帶因者對 falciparum malaria 相對保護 → heterozygote advantage 天擇保留）。急性溶血為 oxidant drug（primaquine、dapsone、rasburicase、sulfonamides、nitrofurantoin）、fava beans、感染誘發，呈血管內溶血。<br><b>⭐ High-yield</b>：2022 WHO 新分類把舊 class II+III 併為 <b>class B</b>（所有 common polymorphic 變異，含 A-、Mediterranean、Canton、Kaiping）；class A=活性 &lt;10% 且慢性非球形溶血、class C=正常。Mediterranean 活性 0–7%（嚴重，favism）｜A- 活性 7–20%（較輕）。抹片：Heinz bodies（supravital stain）＋ bite cells。<br><b>🔬 實證</b>：Hemizygous male 表現可與 homozygous female 一樣嚴重；heterozygous female 表現型橫跨正常到全缺。(Luzzatto et al., Blood 2020;136:1225；新 WHO classification, BJH 2023;202:1006)",
+ "cards": [
+  {"kind":"basic","front":"G6PD deficiency 中，hemizygous males（半合子男性）的酵素表現程度為何？","back":"完全（full）且一致的缺陷表現，非 variable/intermediate。<hr>男性只有一條 X 染色體，攜帶突變者全身所有紅血球皆缺乏 G6PD，因此表現型一致而完整。將「variable/intermediate expression」歸於 hemizygous males 是常見誘餌——那是 heterozygous females 才有的特徵。"},
+  {"kind":"basic","front":"為何 G6PD deficiency 的 heterozygous females（雜合子女性）呈現 variable/intermediate 表現？","back":"因 X 染色體隨機去活化（Lyonization）造成紅血球鑲嵌（mosaicism）。<hr>雜合子女性同時帶正常與突變的 X 染色體。隨機 X-inactivation 使部分紅血球表現正常酵素、部分缺乏，整體活性落在中間範圍。鑲嵌比例個體差異大，故表現型可從接近正常到如 hemizygous male 般嚴重。"},
+  {"kind":"basic","front":"G6PD 在紅血球抗氧化防禦中扮演什麼角色？為何缺乏時紅血球特別易溶血？","back":"經 pentose phosphate pathway 產生 NADPH，維持 glutathione 還原態（GSH）。<hr>NADPH 將氧化型 glutathione（GSSG）還原為 GSH，GSH 清除氧化壓力下的過氧化物。紅血球缺乏粒線體，PPP 是其產生 NADPH 的唯一途徑，故 G6PD 缺乏時紅血球無法抵禦氧化壓力而易溶血。"},
+  {"kind":"basic","front":"G6PD deficiency 急性溶血時，周邊血抹片可見哪兩個特徵性發現？機轉為何？","back":"Heinz bodies 與 bite cells（degmacytes）。<hr>氧化壓力使 hemoglobin 變性沉積為 Heinz bodies（需 supravital stain，如 crystal violet，Wright 染色看不到）。脾臟巨噬細胞咬除含 Heinz body 的膜片段，形成 bite cells。兩者並見高度提示氧化性溶血。"},
+  {"kind":"basic","front":"G6PD Mediterranean 與 G6PD A- 的殘餘酵素活性與臨床嚴重度差異？","back":"Mediterranean 活性 0–7%（嚴重，會 favism）；A- 活性 7–20%（較輕、常自限）。<hr>Mediterranean 見於地中海、中東；電泳遷移率正常。A- 見於非洲裔，電泳遷移較快（faster mobility）；因網織紅血球酵素活性較高，溶血常自限於老化紅血球被清除後緩解。蠶豆（vicine/convicine）的強氧化壓力多只在 Mediterranean、Canton 等極低活性變異型才誘發臨床顯著 favism。"}
+ ]
+}

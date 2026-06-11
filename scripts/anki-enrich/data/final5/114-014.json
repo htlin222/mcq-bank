@@ -1,0 +1,33 @@
+{
+  "id": "114-014",
+  "topic_index": 1,
+  "extra_tags": ["enriched", "B-ALL", "ETV6-RUNX1", "t(12;21)", "DUX4", "MEF2D", "BCR-ABL1", "MYC", "IKZF1", "ICC-2022", "prognosis"],
+  "enrich_html": "<b>📌 考點</b>:ICC 2022 把 B-ALL 依驅動性遺傳變異分型並各自帶預後。t(12;21)/ETV6::RUNX1 是兒童 B-ALL 最常見反覆性變異(約 20-25%)、且為<u>良好預後</u>;若被敘述為 poor risk 即為錯誤。常見誘餌:DUX4 重排(good)、MEF2D 重排(poor)、BCR::ABL1 兩亞群區分,皆為正確敘述。<br><b>🏥 臨床意義</b>:預後分層直接決定治療強度與是否需 allogeneic HSCT;ETV6::RUNX1 與 high hyperdiploid 化療反應佳、多可省去移植,而 BCR::ABL1、KMT2A、MEF2D、TCF3::HLF、hypodiploid 屬 high-risk,常需強化治療 ± HSCT。<br><b>⭐ High-yield</b>:Good = ETV6::RUNX1、high hyperdiploid、DUX4｜Poor = BCR::ABL1、KMT2A、MEF2D、TCF3::HLF、hypodiploid｜t(12;21) 常為 cryptic,需 FISH/RT-PCR 偵測。<br><b>🔬 實證</b>:MEF2D 重排 2-yr EFS 約 39%;BCR::ABL1 lymphoid 亞群帶 IKZF1 缺失者 3-yr DFS 約 57%(最差)。(ICC ALL, Blood 2022;Duffield, Blood 2022)",
+  "cards": [
+    {
+      "kind": "cloze",
+      "text": "B-ALL 預後分群(ICC 2022):良好預後 = {{c1::ETV6::RUNX1 / t(12;21)}}、high hyperdiploid、{{c2::DUX4}} 重排;不良預後 = {{c3::BCR::ABL1}}、KMT2A 重排、{{c4::MEF2D}} 重排、TCF3::HLF、hypodiploid。",
+      "extra": "記憶:t(12;21) 與 DUX4 = good;MEF2D、BCR::ABL1、KMT2A(MLL)、TCF3::HLF、hypodiploid = poor。最常被當成誘餌的是把 good 的 ETV6::RUNX1 寫成 poor。預後分層直接決定治療強度與是否需 allogeneic HSCT。"
+    },
+    {
+      "kind": "basic",
+      "front": "B-ALL 帶 t(12;21)(p13.2;q22.1) 形成何種融合基因?在 ICC 2022 屬好預後還是差預後?為何常被例行 karyotype 漏診?",
+      "back": "ETV6::RUNX1 融合,屬<b>良好預後(favorable)</b>亞型。<hr>t(12;21) 是兒童 B-ALL 最常見的反覆性遺傳變異之一(約 20-25%),化療反應佳、多數可不需 allogeneic HSCT。因屬<b>cryptic(隱藏性)易位</b>,在傳統 G-banding 下不易看出,需 FISH/RT-PCR 偵測;漏掉會低估好預後比例。常被誤稱為 poor risk 而成為錯誤敘述。"
+    },
+    {
+      "kind": "basic",
+      "front": "ICC 2022 將 BCR::ABL1-positive ALL 區分為哪兩個生物學亞群?哪一個 cooperating 基因缺失與最差預後相關?",
+      "back": "分為<b>lymphoid-only(lymphoid BCR)型</b>與<b>multilineage / CML-like 型</b>;<b>IKZF1(Ikaros)缺失</b>與最差預後相關。<hr>lymphoid 型侷限淋巴系、常伴 IKZF1 缺失;multilineage 型涉及多系(含髓系),接近 CML lymphoid blast crisis。兩亞群在 TKI + 化療下整體 OS 相近,但帶 IKZF1 缺失的 lymphoid 亞群預後最差(3-yr DFS 約 57%),為重要 risk refiner。"
+    },
+    {
+      "kind": "basic",
+      "front": "在免疫球蛋白 V(H) 基因突變狀態上,B-ALL with MYC rearrangement 與 high-grade B-cell lymphoma with MYC rearrangement 有何不同?機轉為何?",
+      "back": "B-ALL 帶 MYC 重排為<b>unmutated(未突變)IgVH</b>;high-grade B-cell lymphoma 帶 MYC 重排則通常顯示<b>somatic hypermutation(體細胞高度突變)</b>。<hr>差異反映細胞來源:B-ALL 源自尚未經過生發中心(germinal center)的前驅 B 細胞,故 IgVH 未突變;高級別淋巴瘤源自經過/接近生發中心的成熟 B 細胞,已歷經 SHM。此特徵可協助鑑別兩者。"
+    },
+    {
+      "kind": "basic",
+      "front": "B-ALL 的 hypodiploid(低二倍體)與 high hyperdiploid(高度超二倍體)在預後上有何相反含義?",
+      "back": "hypodiploid =<b>不良預後</b>;high hyperdiploid =<b>良好預後</b>。<hr>high hyperdiploid(51-65 條染色體,常含 +4/+10/+17)是兒童 B-ALL 最常見好預後群之一。near-haploid/low-hypodiploid 常伴 TP53 變異(可為胚系 Li-Fraumeni),預後差。倍體數方向決定預後方向。"
+    }
+  ]
+}

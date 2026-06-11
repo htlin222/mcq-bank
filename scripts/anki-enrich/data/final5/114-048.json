@@ -1,0 +1,13 @@
+{
+ "id": "114-048",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "Waldenstrom Macroglobulinemia", "lymphoplasmacytic lymphoma", "MYD88 L265P", "CXCR4", "Ibrutinib", "Zanubrutinib", "ASPEN trial", "hyperviscosity", "plasmapheresis", "IgM flare", "Rituximab"],
+ "enrich_html": "<b>📌 考點</b>：Waldenström Macroglobulinemia (WM) 即 IgM 型 lymphoplasmacytic lymphoma，四大高頻考點——(1) MYD88 L265P 見於約 93%，近乎 universal、為診斷與分子標記；(2) 高 IgM (常以 &gt;4000 mg/dL 為門檻) 或 hyperviscosity 時，含 Rituximab 方案前須先 plasmapheresis(避黏滯 + 防 IgM flare)；(3) Rituximab maintenance 證據有限、僅 selected patients；(4) ASPEN trial 顯示 zanubrutinib 與 ibrutinib 療效相當但耐受性較佳、停藥較少。四句皆正確 → 答案 (E)。<br><b>🏥 臨床意義</b>：基因型決定 covalent BTKi 反應——MYD88-mut/CXCR4-WT 主要反應率約 91%，合併 CXCR4-mut 降至約 61%，MYD88-WT/CXCR4-mut 僅約 29%，且 CXCR4-mut 使 BTKi treatment-free survival 縮短;故治療前建議測 MYD88 與 CXCR4。<br><b>⭐ High-yield</b>：hyperviscosity 三聯症=視覺障礙 + 黏膜出血 + 神經症狀,眼底 'sausage-link' retinal veins｜IgM 為五聚體、主要分布血管內 → plasmapheresis 移除效率高｜Rituximab 'IgM flare' 數週內暫升 IgM、高 IgM 者禁單用起始。<br><b>🔬 實證</b>：ASPEN 主終點 CR+VGPR zanubrutinib 28% vs ibrutinib 19% (P=.09，NS)；atrial fibrillation 及停藥不良事件 zanubrutinib 較少。(Tam et al., Blood 2020;136:2038;AJH 2025 WM Update)",
+ "cards": [
+  {"kind":"basic","front":"哪一個分子標記幾乎普遍存在 (near-universal) 於 Waldenström Macroglobulinemia (WM),可用於與 IgM MGUS、marginal zone lymphoma 鑑別?","back":"MYD88 L265P mutation<hr>約 93% 的 WM 帶 MYD88 L265P (T→C，amino acid 265 leucine→proline)。它活化 NF-κB 路徑(經 IRAK / BTK)，既是診斷與鑑別線索，也是 BTK inhibitor 有效的機轉基礎。2016 起 NCCN 建議疑似 WM 病人檢測 MYD88 L265P。"},
+  {"kind":"basic","front":"依基因型,WM 對 ibrutinib 的主要反應率 (major response) 如何分層?","back":"MYD88-mut/CXCR4-WT ≈91% &gt; MYD88-mut/CXCR4-mut ≈61% &gt; MYD88-WT/CXCR4-mut ≈29%<hr>CXCR4 mutation(約 30% WM、hyperviscosity 者中約 53%)削弱 covalent BTKi 反應深度並縮短 treatment-free survival;MYD88 wild-type 反應最差。故 WM 治療前建議檢測 MYD88 與 CXCR4 以預測 BTKi 療效。"},
+  {"kind":"basic","front":"WM 病人 IgM 過高 (如 >4000 mg/dL) 或有黏滯症狀時,在給含 Rituximab 方案前應先做什麼?為何?","back":"先做 plasmapheresis (血漿置換)<hr>兩個原因:(1) 直接降低 IgM 與血漿黏滯度，避免 hyperviscosity 併發症;(2) 預防 Rituximab 引起的 'IgM flare'(起始後數週內 IgM 反而暫時上升)惡化黏滯。IgM 為五聚體、主要分布血管內，plasmapheresis 移除效率高;高 IgM 者亦應避免單獨以 Rituximab 起始。"},
+  {"kind":"basic","front":"ASPEN trial 比較哪兩種藥物於 symptomatic WM?主要結論為何?","back":"比較 zanubrutinib vs ibrutinib;兩者療效相當,但 zanubrutinib 安全性較佳、停藥較少<hr>head-to-head phase 3 RCT。主終點 CR+VGPR 率 zanubrutinib 28% vs ibrutinib 19% (P=.09，未達統計顯著)。zanubrutinib 對 BTK 選擇性更高、off-target 較少，故 atrial fibrillation、出血、腹瀉、周邊水腫及『導致停藥之不良事件』皆較少。(Tam et al., Blood 2020;136:2038)"},
+  {"kind":"basic","front":"WM 對 covalent BTK inhibitor 治療失敗或復發後,有哪一種不受 CXCR4 突變影響的有效選擇?","back":"Venetoclax (BCL-2 inhibitor)<hr>研究顯示 venetoclax 對既往治療(含 BTKi 治療後)的 WM 安全且高度有效，且療效不受 CXCR4 mutation 狀態影響——與 covalent BTKi 反應受 CXCR4 削弱形成對比。"}
+ ]
+}

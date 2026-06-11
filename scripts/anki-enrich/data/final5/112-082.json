@@ -1,0 +1,13 @@
+{
+ "id": "112-082",
+ "topic_index": 7,
+ "extra_tags": ["enriched", "TPOG-ALL", "pediatric-ALL", "MRD", "HSCT", "blinatumomab", "venetoclax", "KMT2A", "infant-ALL", "BiTE", "IKZF1", "risk-stratification"],
+ "enrich_html": "<b>📌 考點</b>:兒科 ALL 是否需 allo-HSCT 由 risk group 決定;唯有 SR(standard risk)走 continuation therapy 不需移植,HR/VHR 皆須評估 HSCT。分層四參數:WBC、age、cytogenetics/molecular、以及 induction 結束(EOI)的 MRD。關鍵 cutoff:<u>MRD ≥0.01% (10⁻³) 即視為陽性/high-risk</u>;AIEOP-BFM ALL 2000 中 EOC MRD ≥0.1% 或 prednisone poor response → HR,day 78 MRD ≥10⁻³ / no CR day 33 / t(4;11) → VHR。<br><b>🏥 臨床意義</b>:MRD re-emergence(陰轉陽,molecular relapse)、強力免疫療法(blinatumomab)或標靶(venetoclax)強化後 MRD 仍陽性,皆代表 chemo/immuno-refractory → 屬移植範疇。KMT2A(MLL)-rearranged infant ALL(age &lt;180 天或 CNS+)預後最差,即使 2nd-line 把 MRD 壓到陰性,復發風險仍高,仍建議 HSCT 鞏固。<br><b>⭐ High-yield</b>:Blinatumomab = anti-CD19 × anti-CD3 BiTE,清 MRD 首選免疫療法;2025 NCCN 對 Ph⁻ 兒童 induction 後 MRD⁺ 建議 blinatumomab → bridge to allo-HSCT。IKZF1plus + day15 MRD ≥0.01% 識別 ~50% 復發風險亞群。<br><b>🔬 實證</b>:Pre-HCT blinatumomab 使 93% 病人 MRD 測不到、1yr OS 93.3%、100 天無 TRM。(AIEOP Blood 2014;123:1470;JPLSG MLL-10 Blood 2020;136:1813;Interfant-06 JCO 2021;PMC6616259;NCCN 2025)",
+ "cards": [
+  {"kind":"basic","front":"TPOG-ALL(及 BFM 系)兒科 ALL 療方用哪四個參數做 risk stratification?","back":"WBC count、age、cytogenetics/molecular alteration、以及 induction 結束(EOI)的 MRD<hr>據此分為 SR(standard risk)、HR(high risk)、VHR(very high risk);風險越高越需強化治療與評估 allo-HSCT。其中唯有 SR 走 continuation therapy 而不需移植,HR/VHR 皆須評估 HSCT。"},
+  {"kind":"basic","front":"兒科 ALL 的 MRD 多少被視為「陽性 / high-risk」的標準 cutoff?","back":"MRD ≥0.01%(即 10⁻³,1 顆白血病細胞/萬顆)<hr>AIEOP-BFM ALL 2000:EOI 與 end-of-consolidation(EOC)MRD <0.01% → SR;EOC MRD ≥0.1% 或 prednisone poor response → HR;day 78 MRD ≥10⁻³、no CR at day 33、t(4;11) → VHR 需 HSCT。"},
+  {"kind":"basic","front":"Blinatumomab 的作用機轉與在 B-ALL 的主要用途?","back":"anti-CD19 × anti-CD3 雙特異性 T-cell engager(BiTE),引導自身 T 細胞毒殺 CD19⁺ B-ALL;主要用於清除 MRD<hr>同時結合腫瘤 B 細胞的 CD19 與 T 細胞的 CD3 形成免疫突觸。對 MRD⁺ 或 relapsed/refractory B-ALL 特別有效;2025 NCCN 對 Ph⁻ 兒童 induction 後 MRD⁺ 建議 blinatumomab → bridge to allo-HSCT。"},
+  {"kind":"basic","front":"已用上最強免疫(blinatumomab)或標靶(venetoclax)療法強化後 MRD 仍陽性,為何一律導向 allo-HSCT?","back":"代表 chemo/immuno-refractory,殘留病灶將驅動復發,單靠化療維持復發率極高<hr>移植提供 graft-versus-leukemia(GvL)效應與根治機會。核心原則:MRD 反應差(尤其強力療法後仍陽)或高危細胞遺傳學 → 升級至 allo-HSCT。MRD 由陰轉陽(re-emergence / molecular relapse)同理屬移植範疇。"},
+  {"kind":"cloze","text":"AIEOP-BFM ALL 2000 風險分層 cutoff:EOI 與 EOC MRD {{c1::<0.01%}} → SR;EOC MRD {{c2::≥0.1%}} 或 prednisone poor response → HR;day 78 MRD {{c3::≥10⁻³}}、no CR at day 33、{{c4::t(4;11)}} → VHR 需評估 HSCT。","extra":"MRD ≥0.01%(10⁻³)是區分 SR 與 high-risk 的關鍵門檻;VHR 與移植適應症高度連動。(Blood 2014;123:1470)"}
+ ]
+}

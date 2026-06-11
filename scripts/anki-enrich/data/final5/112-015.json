@@ -1,0 +1,13 @@
+{
+ "id": "112-015",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "PMF", "myelofibrosis", "MPN", "Ruxolitinib", "Fedratinib", "Momelotinib", "Pacritinib", "JAK2", "DIPSS", "NCCN"],
+ "enrich_html": "<b>📌 考點</b>:Myelofibrosis 治療是<b>風險分層 (DIPSS/DIPSS-plus) 驅動</b>的演算法。誘餌常以「籠統把所有 Int-1 都治療」或「把 B12 當成 fedratinib 須查項目」設陷。正解骨幹:transplant-ineligible + higher-risk + constitutional symptoms → ruxolitinib (JAK1/2i),能改善脾大與全身症狀。<br><b>🏥 臨床意義</b>:allogeneic HSCT 是<u>唯一具治癒潛力</u>的療法但 TRM 高,僅保留給 higher-risk (Int-2/high) 且 transplant-eligible 者;Int-1 有症狀脾大應先用 ruxolitinib 或 peginterferon alfa-2a 而非直接移植。platelet &lt;50 ×10⁹/L 時改用 pacritinib;合併 anemia 者 momelotinib (兼抑 ACVR1) 可增 transfusion independence。<br><b>⭐ High-yield</b>:Fedratinib 黑框=encephalopathy (含 Wernicke's) → 起始前查 <u>thiamine (B1)</u>,非 B12｜ESA 僅在 anemia + serum EPO &lt;500 mU/mL 才用｜pacritinib 用於 platelet &lt;50。<br><b>🔬 實證</b>:Ruxolitinib pooled COMFORT-I/II 在 Int-2/high-risk 顯示 OS 好處 (HR ~0.61);momelotinib MOMENTUM trial vs danazol 證實 anemia 族群 transfusion-independence 優勢。(NCCN MPN v1.2024;Blood 2024;144:708;JHO 2017;10:55)",
+ "cards": [
+  {"kind":"basic","front":"Transplant-ineligible 的 higher-risk (Int-2/high) myelofibrosis 合併 constitutional symptoms (發燒、夜汗、體重減輕),首選藥物治療是什麼?","back":"Ruxolitinib (JAK1/2 inhibitor)<hr>JAK inhibitor 能有效縮小 splenomegaly、改善 constitutional symptoms。對不適合 allo-HSCT 的 higher-risk 患者,且 platelet ≥50 ×10⁹/L 時,ruxolitinib 是症狀緩解主力。"},
+  {"kind":"basic","front":"Allogeneic HSCT 在 myelofibrosis 中保留給哪一類患者?它有何獨特地位?","back":"Higher-risk (Int-2/high) 且 transplant-eligible 患者;是唯一具治癒潛力的療法<hr>allo-HSCT 雖可治癒,但 transplant-related mortality (TRM) 高,故僅用於高風險族群。Int-1 即使有 symptomatic splenomegaly,也應先以 ruxolitinib 或 peginterferon alfa-2a 緩解症狀,不直接移植。"},
+  {"kind":"basic","front":"啟動 Fedratinib 治療前,必須檢測哪一種維生素?其黑框警語為何?(常與 B12 混淆)","back":"Thiamine (vitamin B1),不是 vitamin B12;黑框警語為 encephalopathy (含 Wernicke's encephalopathy)<hr>起始前須測 thiamine、CBC with platelets 並評估營養,thiamine 缺乏時不可起始。這是與 ruxolitinib (無此警語、無 thiamine 要求) 鑑別的高頻考點。"},
+  {"kind":"basic","front":"Myelofibrosis 患者 platelet count <50 ×10⁹/L (嚴重 thrombocytopenia) 時,首選哪一種 JAK inhibitor?","back":"Pacritinib (JAK2/FLT3/IRAK1 inhibitor)<hr>Pacritinib 在 platelet &lt;50 ×10⁹/L 仍可全劑量使用,獲 FDA accelerated approval 用於嚴重血小板低下的 MF;ruxolitinib/fedratinib 一般需 platelet ≥50。依 PERSIST-2 trial。"},
+  {"kind":"basic","front":"Myelofibrosis 合併顯著 anemia / 輸血依賴的患者,哪一種 JAK inhibitor 兼具改善貧血的機轉與證據?","back":"Momelotinib (JAK1/JAK2 + ACVR1 inhibitor)<hr>抑制 ACVR1 可降低 hepcidin、改善 anemia。MOMENTUM trial (vs danazol) 證實在已用過 JAK inhibitor 且有 anemia 的患者,momelotinib 改善症狀與 transfusion independence。"}
+ ]
+}

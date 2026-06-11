@@ -1,0 +1,13 @@
+{
+ "id": "114-041",
+ "topic_index": 4,
+ "extra_tags": ["enriched", "COVID-19", "coagulopathy", "thrombosis", "VWF", "ADAMTS13", "antithrombin", "caplacizumab", "D-dimer", "immunothrombosis", "TTP"],
+ "enrich_html": "<b>📌 考點</b>：COVID-19 凝血異常屬 <u>thromboinflammation／immunothrombosis</u>。考點集中在「抗凝 vs 抗血小板」分層：Antithrombin 是 serpin，抑制 thrombin(FIIa)、FXa（heparin 可加速 1000 倍），屬<b>抗凝血</b>路徑，<u>不</u>抑制血小板黏附與聚集（後者為 GPIb-VWF、GPIIb/IIIa 介導）；故「antithrombin 抑制血小板附著及凝聚」為錯誤敘述。<br><b>🏥 臨床意義</b>：內皮損傷 → Weibel-Palade body 釋放 ultra-large VWF multimer，ADAMTS13 相對耗竭 → VWF/ADAMTS13 比值升高 → 微血管血栓。Caplacizumab（anti-VWF nanobody，結合 A1 domain 阻斷 GPIb 結合）為針對此軸的藥物，主用於 acquired TTP。<br><b>⭐ High-yield</b>：D-dimer 顯著升高（&gt;5000 ng/mL）預後差｜CRP 升高與發炎/不良預後相關（並非無關）｜VWF:RCo/ADAMTS13 &gt;6.5 預測院內死亡、&gt;5.7 預測 ICU 入住。<br><b>🔬 實證</b>：Caplacizumab 於 acquired TTP 的關鍵試驗為 HERCULES（Scully et al., NEJM 2019;380:335）；VWF/ADAMTS13 預後 cutoff 見 PMC8468613。",
+ "cards": [
+  {"kind":"basic","front":"Antithrombin 的抗凝作用機轉為何？它是否抑制血小板黏附與聚集？","back":"抑制 thrombin(FIIa)及 FXa 等活化凝血酶；<b>不</b>抑制血小板黏附與聚集<hr>Antithrombin 是 serine protease inhibitor(serpin)，中和 thrombin、FXa、FIXa 等活化凝血因子，heparin 可加速此反應約 1000 倍 → 屬<b>抗凝血</b>路徑。血小板的附著與聚集由 GPIb-VWF、GPIIb/IIIa-fibrinogen 介導（初級止血），與 antithrombin 無關。考題常以「antithrombin 抑制血小板附著及凝聚」設誘餌 → 為錯誤敘述。"},
+  {"kind":"basic","front":"VWF/ADAMTS13 比值升高在血栓性疾病（含 COVID-19）中代表什麼？臨床 cutoff 為何？","back":"比值升高反映血栓風險增加、病情較嚴重；VWF:RCo/ADAMTS13 &gt;6.5 預測院內死亡、&gt;5.7 預測 ICU 入住<hr>ADAMTS13 負責切割高分子量 VWF multimer。當 VWF 大量釋放（內皮損傷）且 ADAMTS13 相對不足，比值升高 → 殘留 ultra-large VWF multimer 促進血小板黏附聚集，造成微血管血栓。（PMC8468613）"},
+  {"kind":"basic","front":"COVID-19 內皮損傷如何透過 VWF-ADAMTS13 軸促進血栓（immunothrombosis）？","back":"內皮釋放大量 ultra-large VWF，ADAMTS13 相對耗竭 → 血小板過度黏附聚集形成微血栓<hr>SARS-CoV-2 造成內皮細胞活化/損傷，Weibel-Palade body 釋放高分子量 VWF；ADAMTS13 來不及切割 → VWF/ADAMTS13 失衡偏高 → 免疫血栓(immunothrombosis)與微血管阻塞。此為抗 VWF 策略（如 caplacizumab）的理論基礎。"},
+  {"kind":"basic","front":"Caplacizumab 的作用機轉、藥物類別與主要適應症為何？","back":"anti-VWF nanobody；結合 VWF A1 domain，阻斷 VWF 與血小板 GPIb-IX-V 結合；用於 acquired TTP<hr>Caplacizumab 是 humanized single-domain antibody(nanobody)，使 ultra-large VWF multimer 無法與血小板 GPIb 受體作用 → 減少 VWF 介導的血小板黏附與微血栓。關鍵試驗為 HERCULES（Scully et al., NEJM 2019），加在 plasma exchange + 免疫抑制之上可加速血小板正常化、減少死亡/復發與器官缺血。"},
+  {"kind":"basic","front":"COVID-19 凝血異常中，D-dimer 顯著升高（如 &gt;5000 ng/mL）代表什麼？","back":"提示血栓負荷高、預後不佳<hr>D-dimer 為交聯 fibrin 的降解產物，反映凝血活化與纖溶；COVID-19 重症常見明顯升高，與靜脈/動脈血栓事件、ICU 入住及死亡率上升相關，是常用的分層與監測指標。"}
+ ]
+}

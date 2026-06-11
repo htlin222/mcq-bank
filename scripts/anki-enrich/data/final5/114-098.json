@@ -1,0 +1,13 @@
+{
+  "id": "114-098",
+  "topic_index": 1,
+  "extra_tags": ["enriched", "6-MP", "mercaptopurine", "ALL", "TPMT", "NUDT15", "thiopurine", "pharmacogenomics", "TGN", "CPIC", "R139C", "xanthine-oxidase"],
+  "enrich_html": "<b>📌 考點</b>：6-MP 是 thiopurine prodrug，活化生成 thioguanine nucleotides (TGNs) 嵌入 DNA/RNA 達細胞毒殺；TGN 同時是療效與骨髓抑制毒性的共同媒介。<u>TPMT（甲基化）與 NUDT15（水解已活化的 thioguanine 核苷酸）皆為去活化/解毒酵素</u>，失能 variant → TGN 蓄積 → 嚴重 myelosuppression。<br><b>🏥 臨床意義</b>：族群分布是高頻考點——TPMT 失能 allele 在歐洲人/非洲人較多；<u>NUDT15 失能 allele 在東亞人較多</u>，故亞洲族群預測 thiopurine 毒性 NUDT15 比 TPMT 更具價值。NUDT15 c.415C&gt;T (R139C) 為東亞最常見失能變異（allele frequency &gt;10%）。<br><b>⭐ High-yield</b>：CPIC 分層——normal metabolizer 標準劑量｜intermediate 減量約 30–80%｜poor metabolizer（homozygous 失能）起始劑量降至約 10%（10-fold reduction）並降頻或換藥。R139C homozygote 僅耐受約 8% 標準劑量。6-MP 須空腹睡前服（食物/牛奶降低吸收）；併用 allopurinol（XO 抑制劑）須減量至約 25–33%；急性胰臟炎屬少見副作用，劑量限制毒性是骨髓抑制與肝毒性。<br><b>🔬 實證</b>：基因型導向減量可降低急性毒性而不增加 ALL 復發率。(CPIC Thiopurine Guideline, Clin Pharmacol Ther 2018 update；2025 update, CPT 2026)",
+  "cards": [
+    {"kind":"basic","front":"TPMT 與 NUDT15 在 thiopurine (6-MP) 代謝中各扮演什麼角色？失能 variant 會造成什麼後果？","back":"兩者皆為 6-MP 的去活化/解毒酵素，失能 variant 會使 TGN 累積、毒性上升<hr>TPMT (thiopurine S-methyltransferase) 把 6-MP 甲基化導向非活性代謝；NUDT15 (nudix hydrolase 15) 水解已活化的 thioguanine 核苷酸（去磷酸化），阻止其嵌入核酸。任一酵素活性不足，活性 thioguanine nucleotides (TGN) 蓄積增加 → 嚴重骨髓抑制（白血球低下）。故用藥前基因型檢測可指導劑量。"},
+    {"kind":"basic","front":"TPMT 與 NUDT15 失能 (no/decreased-function) variant 的族群分布差異為何？臨床上有何意義？","back":"TPMT 失能 variant 在歐洲人/非洲人較常見；NUDT15 失能 variant 在東亞人較常見<hr>臨床重點：對亞洲族群，NUDT15 基因型預測 thiopurine 毒性的價值高於 TPMT。NUDT15 c.415C&gt;T (rs116855232, R139C) 是東亞最常見的失能變異，East Asian allele frequency &gt;10%，而歐洲/拉丁裔 &lt;1%；R139C homozygote 僅能耐受約 8% 標準劑量。"},
+    {"kind":"cloze","text":"CPIC thiopurine 劑量分層：normal metabolizer → {{c1::標準劑量}}；intermediate metabolizer（heterozygous 失能）→ 減量約 {{c2::30–80%}}；poor metabolizer（homozygous 失能）→ 起始劑量降至約 {{c3::10%（10-fold reduction）}}並降頻或換藥。","extra":"依 TPMT 與 NUDT15 phenotype 組合判定。失能酵素無法清除 TGN，標準劑量會致延長且嚴重的骨髓抑制；基因型導向（pre-emptive）減量可降低急性毒性而不增加 ALL 復發率。(CPIC Thiopurine Guideline 2018 update；2025 update)"},
+    {"kind":"basic","front":"6-MP 與 allopurinol（或 febuxostat）併用時為何需大幅減量？減至多少？","back":"Xanthine oxidase (XO) 抑制劑阻斷 6-MP 去活化途徑，使活性代謝物與毒性上升；須減至約原劑量的 25–33%<hr>6-MP 部分經 XO 代謝為非活性 thiouric acid。XO 被抑制後，更多 6-MP 走向 TGN 路徑 → 骨髓抑制風險大增。經典處置為 6-MP 減至 1/4–1/3 並監測血球。"},
+    {"kind":"basic","front":"6-MP 用於 ALL 維持治療時，最主要的劑量限制毒性是什麼？急性胰臟炎常見嗎？","back":"劑量限制毒性是骨髓抑制與肝毒性；急性胰臟炎屬少見<hr>相對地，thiopurine 類（如 azathioprine）在發炎性腸道疾病較常討論胰臟炎，但 6-MP 用於 ALL 時 acute pancreatitis 少見，臨床監測重點放在血球與肝功能。"}
+  ]
+}

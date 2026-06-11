@@ -1,0 +1,13 @@
+{
+ "id": "114-080",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "CML", "TFR", "treatment-free-remission", "TKI-discontinuation", "BCR-ABL1", "qPCR", "MR4", "e13a2", "e14a2", "EURO-SKI", "STIM"],
+ "enrich_html": "<b>📌 考點</b>:CML treatment-free remission (TFR) 的停藥三要件(NCCN/ELN)為 — 已用 TKI &ge;3 年、達 deep molecular response (MR4,BCR-ABL1 &le;0.01% IS)、且該深度維持 &ge;2 年(EURO-SKI 放寬至 &ge;1 年)。監測必須用標準化 International Scale 的 qPCR,且 transcript 須為可量化的典型 p210(e13a2/b2a2、e14a2/b3a2)。FISH 敏感度不足、atypical transcript(e1a2/p190、e19a2/p230)無 IS 標準化,皆不適合指導停藥。<br><b>🏥 臨床意義</b>:停藥後復發定義為失去 MMR(BCR-ABL1 &gt;0.1% IS)即重啟 TKI;約 80% 分子復發發生在前 6 個月內,故前 6-12 月每月 qPCR。重啟 TKI 後幾乎所有人可重新達 DMR,故 TFR 嘗試安全。約 30% 出現 TKI withdrawal syndrome(停藥後數週肌肉骨骼疼痛)。<br><b>⭐ High-yield</b>:TFR 成功率約 40-60%(EURO-SKI 24 月 molecular relapse-free ~50%、6 月 ~61%)。停藥當下 MR4 vs MR4.5 vs MR5 之復發率無顯著差異 — 重點是「夠深 + 夠久」。兒童 CML 停藥證據有限,非標準做法。<br><b>🔬 實證</b>:EURO-SKI 758 例(94% 一線 imatinib),49% 停藥後失去 MMR;STIM 以 undetectable &ge;2 年為門檻,6 月 relapse-free ~43%。(EURO-SKI, Saussele et al., Lancet Oncol 2018;19:747;NCCN CML Guidelines)",
+ "cards": [
+  {"kind":"cloze","text":"CML 嘗試 treatment-free remission 的前提條件:已使用 TKI {{c1::&ge;3 年}}、達到 {{c2::MR4 (BCR-ABL1 &le;0.01% IS)}} 以上的 deep molecular response、且該深度反應已維持 {{c3::&ge;2 年(EURO-SKI 放寬至 &ge;1 年)}}。","extra":"關鍵是「夠深 + 夠久」;停藥當下 MR4 vs MR4.5 vs MR5 之復發率無顯著差異。另需具備可靠的 IS 標準化 qPCR 與快速重啟 TKI 的能力。"},
+  {"kind":"basic","front":"CML 停用 TKI (TFR) 後追蹤殘存疾病,為何要用 qPCR 而不能用 FISH?","back":"應用高敏感度 quantitative RT-PCR (qPCR) 量化 BCR-ABL1 transcript;FISH 敏感度不足。<hr>FISH 即使檢測數百個細胞,仍無法偵測停藥後極低量的殘存疾病或早期分子復發;qPCR 可量化到 MR4-MR4.5,並用 International Scale (IS) 標準化,才能即時抓到 MMR 喪失並重啟 TKI。"},
+  {"kind":"basic","front":"哪些 BCR-ABL1 融合 transcript 才適合用標準化 IS qPCR 追蹤、進行 CML 的 TFR 停藥流程?","back":"典型 p210 transcript:e13a2 (b2a2) 與 e14a2 (b3a2)。<hr>這兩種有國際標準化(International Scale)的 qPCR 量化方法,可可靠評估 MR4/MR4.5。atypical transcript(e1a2/p190、e19a2/p230)缺乏 IS 標準化,難以可靠量化 deep molecular response,不適合常規 TFR。"},
+  {"kind":"cloze","text":"CML 停藥後復發監測重點:重啟 TKI 的門檻為失去 {{c1::MMR (BCR-ABL1 &ge;0.1% IS)}};約 {{c2::80%}} 的分子復發發生在前 {{c3::6 個月}}內,故前 6-12 月每月以 qPCR 監測。","extra":"重啟 TKI 後幾乎都能再達 deep molecular response,故 TFR 嘗試整體安全。約 30% 出現 TKI withdrawal syndrome(肌肉骨骼痛),非真正復發,需區分。"},
+  {"kind":"basic","front":"CML TFR 的整體成功率(停藥後維持無分子復發的比例)大約是多少?","back":"約 40-60%(維持 deep molecular response 足夠久後停藥)。<hr>EURO-SKI(758 例,94% 一線 imatinib):6 月 ~61%、24 月 ~50% molecular relapse-free,49% 失去 MMR。STIM(undetectable &ge;2 年門檻):6 月 ~43%。約半數患者可長期維持無治療緩解。"}
+ ]
+}

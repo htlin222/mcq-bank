@@ -1,0 +1,13 @@
+{
+ "id": "113-060",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "follicular lymphoma", "indolent lymphoma", "bendamustine", "rituximab", "lenalidomide", "tazemetostat", "EZH2", "fludarabine", "POD24", "NCCN"],
+ "enrich_html": "<b>📌 考點</b>:relapsed/refractory low-grade follicular lymphoma 的療法選擇中，<u>fludarabine-based therapy (FR) 已被 NCCN 移出建議</u>。關鍵證據是 randomized phase III (n=230，relapsed indolent lymphoma 或 MCL) 顯示 BR (bendamustine+rituximab) 的 PFS 顯著優於 FR (約 34 vs. 12 個月)，且血液毒性/感染較少，BR 因此取代 FR。<br><b>🏥 臨床意義</b>:fludarabine 帶來深度且持久的淋巴球耗竭 → 高度骨髓抑制、機會性感染 (PJP、CMV)、二次 MDS/AML 風險，並損害日後幹細胞動員，故在 indolent lymphoma 已被棄用。<br><b>⭐ High-yield</b>:可接受選項 = rituximab 單藥｜R² (rituximab+lenalidomide，AUGMENT 試驗 PFS 優於 R 單藥，MZL 除外)｜BR｜tazemetostat (EZH2 inhibitor，≥3 線)。EZH2-mutated 對 tazemetostat 反應較佳 (ORR ~69% vs. wild-type ~34%)，但核准不限突變狀態。<br><b>🔬 實證</b>:POD24 (前線治療後 24 個月內 progression) 約佔 FL 20%，是最強不良預後因子 (5 年 OS 顯著下降)，需積極治療甚至 auto-HSCT consolidation。(Rummel et al., Lancet Oncol 2016;17:57-66；Leonard et al., J Clin Oncol 2019;37:1188；Morschhauser et al., Lancet Oncol 2020;21:1433)",
+ "cards": [
+  {"kind":"cloze","text":"NCCN 對 relapsed low-grade follicular lymphoma 的可接受療法包括 {{c1::rituximab 單藥}}、{{c2::R² (rituximab + lenalidomide)}}、{{c3::BR (rituximab + bendamustine)}} 及 {{c4::tazemetostat (EZH2 inhibitor)}};而 {{c5::fludarabine-based therapy (FR)}} 已被移出建議。","extra":"FR 被 BR 取代的依據:一項 230 例 relapsed/refractory indolent lymphoma 或 MCL 的 randomized phase III 顯示 BR 的 PFS 顯著優於 FR (約 34 vs. 12 個月) 且毒性較低 (Rummel et al., Lancet Oncol 2016;17:57-66)。"},
+  {"kind":"basic","front":"為何 fludarabine-based regimen 在 indolent (follicular) lymphoma 已不再受青睞 (毒性面向)?","back":"造成深度且持久的淋巴球耗竭 → 高骨髓抑制、機會性感染 (PJP、CMV)、二次 MDS/AML 風險，並損害日後幹細胞動員<hr>相較之下 bendamustine 組合療效更好且毒性較低，故 BR 取代 FR。fludarabine 主要保留於 CLL，而非 FL。"},
+  {"kind":"basic","front":"Tazemetostat 的作用機轉、適應的 lymphoma 與使用線數為何?其反應與 EZH2 突變狀態的關係?","back":"EZH2 (histone methyltransferase) inhibitor，用於 relapsed/refractory follicular lymphoma 第三線及後續 (≥3 線)<hr>FDA 2020 accelerated approval，不限 EZH2 突變狀態。phase II (n=99) 中 EZH2-mutated ORR 約 69% > wild-type ORR 約 34%，突變者反應較佳但兩組皆有效 (Morschhauser et al., Lancet Oncol 2020;21:1433)。"},
+  {"kind":"basic","front":"POD24 在 follicular lymphoma 的定義與預後意義為何?","back":"POD24 = 前線治療開始後 24 個月內發生 progression of disease<hr>約佔 FL 病人 20%，是最強的不良預後因子 (5 年 OS 顯著下降，約 50-70%)。需積極治療，可考慮 autologous HSCT consolidation;同時應評估是否已組織轉化 (transformation)。"},
+  {"kind":"basic","front":"follicular lymphoma 病人短期內病程急速惡化 (LDH 驟升、單一病灶快速長大)，臨床上首先要懷疑並排除什麼?","back":"組織學轉化 (histological transformation) 成 DLBCL (或類 Burkitt)<hr>轉化後多對 salvage 治療抗藥、預後差，需切片確認。FL 每年約 2-3% 風險轉化;PET 上 SUV 特高的病灶為切片優先部位。"}
+ ]
+}

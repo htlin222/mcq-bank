@@ -1,0 +1,13 @@
+{
+ "id": "112-033",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "T-cell lymphoma", "Mycosis fungoides", "Sezary syndrome", "ALCL", "ALK", "NK-T-cell lymphoma", "ATLL", "HTLV-1", "AITL", "TFH", "CD7", "CD26", "EBV"],
+ "enrich_html": "<b>📌 考點</b>：MF/Sézary syndrome 腫瘤細胞雖為 mature helper T cell (CD2+ CD3+ CD4+ CD5+ TCRβ+)，但其診斷指紋是<u>成熟 T-cell 標誌的異常缺失</u>——CD7−、CD26−，故任何把 MF/SS 寫成「CD7+」的選項即為錯誤。<br><b>🏥 臨床意義</b>：流式以「免疫表型 aberrant CD4+ T cells」量化血液侵犯 (B 分期)；CD26 loss ≥80% 與/或 CD7 loss ≥40% 對 Sézary 區分紅皮症性皮膚炎可達 100% specificity。CD8−、CD4:CD8 ratio &gt;10 亦支持。<br><b>⭐ High-yield</b>：CD26− 最常見 (70–100%)、CD7− 約 50%；ALK+ ALCL extranodal 較多 (約60% vs ALK− 約20%)、年輕 (25–35 歲)、5-yr OS 約70%，ALK− 年長 (55–60 歲)、stage III–IV 約71%、5-yr OS 約49%；DUSP22-rearranged ALK− 預後接近 ALK+。<br><b>🔬 實證</b>：CD26/CD7 雙標準 specificity 100% (Pulitzer, Cytometry B 2021；Horna 2021)；ALK− ALCL 預後 (Blood Adv 2021;5:640)；AITL TFH 突變譜 TET2/DNMT3A/RHOA G17V/IDH2 (Front Oncol 2023;13:1177590)。",
+ "cards": [
+  {"kind":"basic","front":"Mycosis fungoides / Sézary syndrome 腫瘤細胞最具診斷特異性的免疫表型「異常」是什麼？","back":"成熟 T-cell 標誌的異常缺失 (aberrant loss)，最典型為 CD7 缺失與 CD26 缺失。<hr>MF/SS 為 mature helper T cell：CD2+、CD3+、CD4+、CD5+、TCRβ+，但腫瘤細胞常呈 CD7− 與 CD26−。常見出題陷阱是把 CD7 寫成「陽性 (CD7+)」——這是錯誤陳述，CD7 應為缺失。"},
+  {"kind":"basic","front":"在 MF/Sézary syndrome 中，CD7 缺失與 CD26 缺失各以多少比例 cutoff 判定、何者較常見？","back":"CD26− 較常見 (70–100% 病例)；CD7− 約 50% 病例。<hr>常用 cutoff：CD7 loss ≥40% CD4+ T cells 與/或 CD26 loss ≥80% CD4+ T cells。兩標準並用區分 Sézary 與紅皮症性發炎性皮膚炎可達約 100% specificity (Pulitzer/Horna, Cytometry B 2021)。輔助旁證：CD8−、CD4:CD8 ratio &gt;10。"},
+  {"kind":"basic","front":"ALK-positive 與 ALK-negative ALCL 在好發年齡、extranodal involvement、分期與預後上有何差異？","back":"ALK+：年輕 (25–35 歲)、extranodal involvement 較多 (約60%)、預後較佳 (5-yr OS 約70%)；ALK−：年長 (55–60 歲)、extranodal 較少 (約20%)、stage III–IV 約71%、預後較差 (5-yr OS 約49%)。<hr>「ALK+ 比 ALK− 有更多 extranodal involvement」為正確陳述。DUSP22-rearranged 的 ALK− ALCL 預後接近 ALK+ (Blood Adv 2021;5:640)。"},
+  {"kind":"basic","front":"Extranodal NK/T-cell lymphoma 的典型免疫表型與病毒關聯為何？特別注意 CD3 怎麼表現？","back":"CD2+、surface CD3−（cytoplasmic CD3+）、CD56+，與 EBV 強烈相關。<hr>關鍵陷阱：表面 CD3 陰性但細胞質 CD3 陽性。EBV-encoded RNA (EBER) 原位雜交陽性是診斷重點。好發鼻腔/鼻竇 (nasal type)，常呈 angiocentric/angiodestructive。"},
+  {"kind":"cloze","text":"各 T-cell lymphoma 辨識核心：{{c1::ALCL}} 以 ALK 狀態分預後 (ALK+ extranodal 較多、預後較佳)；{{c2::Mycosis fungoides / Sézary syndrome}} 以 CD7−/CD26− aberrant loss 為診斷指紋；{{c3::Extranodal NK/T-cell lymphoma}} 為 surface CD3−、CD56+ 且 EBV (EBER) 相關；{{c4::ATLL}} 由 HTLV-1 引起並有 hypercalcemia/flower cells；{{c5::AITL (nTFHL-AI)}} 源自 TFH cells、伴自體免疫表現與 TET2/RHOA G17V/IDH2 突變。","extra":"board exam high-yield 對照表：先看病毒 (HTLV-1→ATLL、EBV→NK/T)、再看標誌 (ALK→ALCL、TFH/CD10/CXCL13→AITL、CD7−CD26−→MF/SS)。"}
+ ]
+}

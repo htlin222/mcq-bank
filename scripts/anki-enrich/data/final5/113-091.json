@@ -1,0 +1,13 @@
+{
+ "id": "113-091",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "WHO analgesic ladder", "cancer pain", "palliative care", "opioids", "breakthrough pain", "supportive care"],
+ "enrich_html": "<b>📌 考點</b>:WHO 癌症疼痛管理（1986 提出、2018 改版適用 ≥10 歲）五原則為 <u>by mouth、by the clock、by the ladder、by the individual、attention to detail</u>。最易考的陷阱是「by the clock」——必須 around-the-clock <b>定時給藥</b>,而非「視疼痛時(PRN/on-demand)」才給;故凡敘述主張 on-demand 給藥即違反原則。<br><b>🏥 臨床意義</b>:三階梯 Step1 non-opioid(NSAID/paracetamol)→ Step2 weak opioid(codeine/tramadol)→ Step3 strong opioid(morphine 為首選);中重度或 breakthrough pain 可直接跳階(leapfrog),不必逐階爬升。各階皆可疊加 adjuvant(corticosteroid、gabapentinoid、TCA/SNRI)。<br><b>⭐ High-yield</b>:strong opioid <b>無 ceiling effect</b>,須 titrate;breakthrough pain 用 immediate-release opioid 作 rescue(約日總量 10–20%)｜opioid 副作用中<b>唯便祕不產生耐受性</b>,須常規併用 senna ± docusate｜neuropathic pain 首選 adjuvant 而非單靠 opioid。<br><b>🔬 實證</b>:WHO 2018 cancer pain guideline；StatPearls (NBK554435, 2023)；ecancer review (PMC11959144, 2025)。",
+ "cards": [
+   {"kind":"cloze","text":"WHO 癌症疼痛管理五原則:{{c1::by the mouth(口服優先)}}、{{c2::by the clock(定時 around-the-clock 給藥)}}、{{c3::by the ladder(依三階梯選藥)}}、{{c4::by the individual(劑量個別化)}}、{{c5::attention to detail}}。","extra":"1986 年提出,2018 年改版適用 ≥10 歲。最常被當誘餌的是 by the clock——必須定時給藥而非視疼痛時(PRN)給藥。"},
+   {"kind":"basic","front":"WHO 癌症疼痛管理為何主張定時給藥(by the clock)而非「視疼痛時(PRN/on-demand)」給藥?","back":"應 around-the-clock 定時給藥,而非待疼痛發作才給。<hr>定時給藥維持血中藥物濃度穩定,可預防疼痛重現並減少 breakthrough pain;等到痛了才給(PRN)會讓病人經歷不必要的疼痛波動。「視疼痛時給藥並依反應調整」這類敘述即違反 by the clock 原則。"},
+   {"kind":"basic","front":"WHO 止痛階梯(analgesic ladder)由弱到強的三階藥物分別為何?","back":"Step1 non-opioid(NSAID / paracetamol)→ Step2 weak opioid(codeine、tramadol、hydrocodone)→ Step3 strong opioid(morphine 為傳統首選)。<hr>各階皆可加 adjuvant(corticosteroid、anticonvulsant、antidepressant)。中重度或 breakthrough pain 可跳階(leapfrog),依疼痛強度決定起始階,而非強制逐階爬升。"},
+   {"kind":"basic","front":"使用 strong opioid 控制癌痛時,哪一個副作用不會隨時間產生耐受性、須常規預防性處理?","back":"便祕(constipation)。<hr>嗜睡、噁心、呼吸抑制等多會隨時間產生耐受,但便祕不會,因此開立 opioid 時應常規併用緩瀉劑(senna ± docusate)預防 opioid-induced constipation。"},
+   {"kind":"basic","front":"癌症相關 neuropathic pain(神經病變性疼痛)的首選用藥類別為何?","back":"adjuvant 藥物,而非單靠 opioid。<hr>包括 gabapentinoid(gabapentin、pregabalin)、TCA、SNRI(duloxetine);corticosteroid 用於神經/脊髓壓迫。可在止痛階梯任一階疊加使用。"}
+ ]
+}

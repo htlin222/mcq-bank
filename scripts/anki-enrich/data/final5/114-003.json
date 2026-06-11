@@ -1,0 +1,13 @@
+{
+  "id": "114-003",
+  "topic_index": 5,
+  "extra_tags": ["enriched", "PNH", "hemolytic anemia", "FLAER", "CD59", "CD55", "haptoglobin", "DAT", "aHUS", "complement", "iron deficiency", "eculizumab"],
+  "enrich_html": "<b>📌 考點</b>：Coombs 陰性 + 血管內溶血 (LDH 高、haptoglobin 低、retic 升高) + 鐵耗盡 (ferritin 5、TSAT 10%) 的組合高度指向 PNH。診斷靠 high-sensitivity flow cytometry 而非骨髓切片；當 reticulocyte 已適當代償 (絕對值 180,000/μL、6.2%) 表示骨髓造血良好，bone marrow biopsy 並非必要檢查。<br><b>🏥 臨床意義</b>：PNH 為 PIGA 突變致 GPI anchor 缺失、失去 CD55/CD59 保護的 alternative complement pathway 血管內溶血；慢性 hemoglobinuria/hemosiderinuria 使鐵隨尿流失 → 鐵缺乏 (與一般溶血鐵滯留體內相反)。治療主軸為 anti-C5 (eculizumab/ravulizumab)。<br><b>⭐ High-yield</b>：clone size 以 granulocyte/monocyte 為準 (RBC 因溶血與輸血會低估)｜FLAER+CD24 查 neutrophils、FLAER+CD14 查 monocytes、CD59 查 RBC｜偵測靈敏度可達 0.01%｜DAT 陰性才把 AIHA 排除在外。<br><b>🔬 實證</b>：診斷標準與試劑組合依 ICCS/ESCCA 2018 共識 (Cytometry B 2018)；aHUS 鑑別之補體基因 NGS 涵蓋 CFH(40-45%)、CD46/MCP(10-15%)、CFI(5-15%)、C3(5-15%)、CFB、THBD (GeneReviews NBK1367)。",
+  "cards": [
+    {"kind":"basic","front":"診斷 PNH (paroxysmal nocturnal hemoglobinuria) 的金標準檢查是什麼？","back":"Peripheral blood high-sensitivity flow cytometry 偵測 GPI-anchored proteins 缺失。<hr>以 FLAER (fluorescent aerolysin) 直接結合 GPI anchor，搭配 CD59、CD24、CD14 等 GPI-anchored 標記，可量化 PNH clone 大小。比傳統 Ham test / sucrose lysis 更敏感且可定量，靈敏度可達 0.01% (ICCS/ESCCA 2018)。"},
+    {"kind":"basic","front":"PNH flow cytometry 為何 clone size 要以 granulocytes/monocytes 為準，而非 RBC？","back":"RBC 因溶血或近期輸血會低估 clone 大小，granulocytes/monocytes 才反映真實 clone size。<hr>PNH RBC 易被補體溶解或被正常輸血紅血球稀釋，使 RBC clone 看起來偏小。Granulocytes 與 monocytes 不受溶血影響，是評估 clone 大小最可靠的群體 (ICCS/ESCCA 2018 強調報告 neutrophil + monocyte clone%)。"},
+    {"kind":"basic","front":"PNH 的溶血由補體哪一條途徑媒介？缺失哪些保護蛋白？","back":"alternative complement pathway 媒介；因 PIGA 突變致 GPI anchor 缺失，RBC 失去 CD55 (DAF) 與 CD59 (MIRL)。<hr>CD55 抑制 C3 convertase，CD59 阻止 MAC (C5b-9) 形成。兩者皆為 GPI-anchored，缺失後 RBC 對補體溶解敏感 → 血管內溶血、LDH 升高、haptoglobin 下降、血紅素尿。Eculizumab (anti-C5) 即針對此機轉。"},
+    {"kind":"basic","front":"PNH 病人 ferritin 5 ng/mL、iron saturation 10% (鐵缺乏)，機轉為何？","back":"慢性血管內溶血造成持續 hemoglobinuria 與 hemosiderinuria，使鐵隨尿流失 → iron deficiency。<hr>這是 PNH 特有的鐵缺乏機轉，與一般 (血管外) 溶血鐵多滯留體內相反。故 PNH 可同時有溶血與鐵耗盡 (ferritin 極低)。Eculizumab 阻斷血管內溶血後尿鐵流失減少，但可能轉為 C3-mediated 血管外溶血。"},
+    {"kind":"basic","front":"PNH 一線治療藥物與其作用標的為何？","back":"Eculizumab / ravulizumab，為 anti-C5 單株抗體。<hr>阻斷 C5 切割 → 阻止 MAC (C5b-9) 形成 → 減少血管內溶血、降血栓風險、減輸血需求。用藥前須接種 Neisseria meningitidis 疫苗 (因 terminal complement 被抑制易感腦膜炎雙球菌)。新一代近端抑制劑 (如 pegcetacoplan, anti-C3) 可處理 C3-mediated 血管外溶血。"}
+  ]
+}

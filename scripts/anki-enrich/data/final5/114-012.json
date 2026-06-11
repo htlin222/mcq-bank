@@ -1,0 +1,33 @@
+{
+ "id": "114-012",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "t-AML", "therapy-related-AML", "therapy-related-myeloid-neoplasm", "alkylating-agents", "topoisomerase-II-inhibitors", "KMT2A", "11q23", "del5q", "monosomy-7", "TP53", "PPM1D", "clonal-hematopoiesis", "AML"],
+ "enrich_html": "<b>📌 考點</b>:t-MN 依致病劑分兩型且各有「潛伏期 × 細胞遺傳」的鎖鏈式對應。Alkylating agent/radiation 型:潛伏期長(4-7 年)、常先經 MDS 期、unbalanced translocation 與 deletion(典型 -5/del(5q)、-7/del(7q)、complex karyotype)。Topoisomerase II inhibitor 型:潛伏期短(median 2-3 年)、多不經 MDS、balanced translocation(主 11q23/KMT2A、較少 21q22/RUNX1)。最常見誘餌:把 nucleoside analog(如 AraC)誤當典型致病劑 —— AraC 是配 anthracycline 的標準藥但非 t-AML 主因。<br><b>🏥 臨床意義</b>:t-AML 比 de novo AML 預後差(median/overall survival 均較低,Blood 2011;117:2137),因常合併 adverse cytogenetics(-5/-7、complex)、高頻 TP53,加上前次治療造成的器官儲備與化療耐受下降 → CR1 後傾向 allogeneic HSCT。<br><b>⭐ High-yield</b>:t-MN 約 1/3 帶 TP53、約 1/5 帶 PPM1D,多源自治療前 clonal hematopoiesis 經化療壓力選擇性擴增(PPM1D 與 cisplatin 暴露強相關)｜在 t-MN 中即使 monoallelic TP53(VAF &ge;10%)其預後即等同 biallelic(中位 OS 8.3 vs 21.6 月),與 de novo MDS 中 monoallelic TP53 預後近似 wild-type 不同。<br><b>🔬 實證</b>:WHO 第 5 版把 cytotoxic 後續發病列為獨立類別「myeloid neoplasm post cytotoxic therapy」;ICC 2022 則視為 diagnostic qualifier 而非分類軸。(Khoury, Leukemia 2022;Arber, Blood 2022;PMC10090194, 2023)",
+ "cards": [
+  {
+   "kind": "cloze",
+   "text": "t-AML 兩大致病機轉對照:{{c1::Alkylating agents}}(及 radiation)造成 chromosome deletion 與 unbalanced translocation(典型 -5/-7、complex karyotype);{{c2::Topoisomerase II inhibitors}} 造成 balanced translocation(典型 11q23 KMT2A、較少 21q22 RUNX1)。",
+   "extra": "潛伏期:alkylating 型長(4-7 年)、常經 MDS 期;topo II 型短(median 2-3 年)、多不經 MDS。兩者常伴隨治療前已存在的 TP53/PPM1D clone 選擇性擴增。"
+  },
+  {
+   "kind": "basic",
+   "front": "Alkylating agent 相關與 topoisomerase II inhibitor 相關 t-AML,哪一類潛伏期較短?各約多久?是否經 MDS 期?",
+   "back": "Topoisomerase II inhibitor 型潛伏期較短<hr>Topo II inhibitor 型:潛伏期短,median 約 <b>2-3 年</b>,通常<b>不</b>經 MDS 前驅期。<br>Alkylating agent/radiation 型:潛伏期長,約 <b>4-7 年</b>,常先經過 MDS 期再轉 AML。"
+  },
+  {
+   "kind": "cloze",
+   "text": "t-AML 致病劑:典型為 {{c1::alkylating agents}} 與 {{c2::topoisomerase II inhibitors}};另 {{c3::radiation}} 與 antitubulins 亦相關;而 nucleoside analogs(如 AraC){{c4::並非}} 典型致病劑。",
+   "extra": "AraC 是 AML 化療骨幹(常配 anthracycline),但不是 t-AML 的致病劑,為考題常見誘餌。"
+  },
+  {
+   "kind": "basic",
+   "front": "Therapy-related myeloid neoplasm 中約 1/3 與約 1/5 分別帶哪兩個基因突變?其來源為何?",
+   "back": "約 1/3 帶 TP53,約 1/5 帶 PPM1D<hr>兩者多源自治療前已存在的 clonal hematopoiesis,經化療壓力選擇性擴增;PPM1D 為 DNA damage response 調節因子,與 cisplatin 等 cytotoxic 暴露強相關。TP53 突變與化療抗性及預後不良強相關。"
+  },
+  {
+   "kind": "basic",
+   "front": "在 therapy-related myeloid neoplasm 中,monoallelic TP53 mutation(VAF &ge;10%)的預後意義與 de novo MDS 有何不同?",
+   "back": "在 t-MN 中,monoallelic TP53(VAF &ge;10%)預後即等同 biallelic、明顯差<hr>t-MN 中 TP53 mutant VAF &ge;10% 中位 OS 約 8.3 vs wild-type 21.6 月;與 de novo MDS 中 monoallelic TP53 預後近似 wild-type 不同。(PMC10090194, 2023)"
+  }
+ ]
+}

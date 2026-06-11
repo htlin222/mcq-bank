@@ -1,0 +1,33 @@
+{
+ "id": "113-013",
+ "topic_index": 3,
+ "extra_tags": ["enriched", "vWF", "vWD", "Weibel-Palade bodies", "alpha-granule", "Factor VIII", "Desmopressin", "DDAVP", "blood group O", "ADAMTS13", "primary hemostasis", "type 2N"],
+ "enrich_html": "<b>📌 考點</b>:vWF 僅由 endothelial cells（儲存於 Weibel-Palade bodies）與 megakaryocytes/platelets（儲存於 &lt;u&gt;α-granule&lt;/u&gt;，非 dense granule）合成。誘答常把 vWF 誤植於血小板 dense granule——dense granule 實際儲存的是 ADP、ATP、serotonin、calcium、polyphosphate 等小分子。<br><b>🏥 臨床意義</b>:vWF 攜帶並穩定 FVIII（保護免受 APC 降解），故 severe/type 3 vWD 之 FVIII 連帶偏低、aPTT 可延長，臨床兼具初級止血（黏膜出血）與凝血表現。血型 O 型者 vWF 較非 O 型低約 20–30%（O 型 vWF 清除較快），判讀 vWF 數值與診斷 type 1 時須校正血型。<br><b>⭐ High-yield</b>:DDAVP 刺激 Weibel-Palade bodies 釋放 vWF+FVIII，用於 type 1 vWD 與 mild hemophilia A，對 type 3（無可釋放儲存池）無效｜ASH/ISTH 2021:VWF:Ag 或 activity &lt;30 IU/dL 可確診 vWD,30–50 IU/dL+出血 = low VWF/type 1｜type 2 之 VWF activity/Ag ratio &lt;0.7。<br><b>🔬 實證</b>:type 2N（FVIII 結合缺陷,FVIII/VWF:Ag &lt;0.7）酷似 mild hemophilia A,靠 VWF:FVIIIB assay 區分(2N 降低、hemophilia A 正常)。(ASH ISTH NHF WFH 2021, Blood Adv 2021;5:280)",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "vWF 在內皮細胞與血小板中分別儲存於哪個 granule？",
+   "back": "內皮細胞:Weibel-Palade bodies;血小板:α-granule（非 dense granule）<hr>vWF 僅由 endothelial cells 與 megakaryocytes 合成表現,受刺激後由這兩個儲存池釋出至循環。常見誘答:把 vWF 誤植在血小板 dense granule——dense granule 實際儲存的是 ADP、ATP、serotonin、calcium 等小分子。"
+  },
+  {
+   "kind": "basic",
+   "front": "vWF 如何影響 Factor VIII 的半衰期？缺乏 vWF 對 FVIII 與 aPTT 有何連帶影響？",
+   "back": "vWF 與 FVIII 結合,保護其免受 activated protein C (APC) 降解,顯著延長 FVIII 在循環中的半衰期<hr>因此 severe/type 3 vWD（vWF 極低）會連帶造成 FVIII 偏低、aPTT 延長（內在路徑），但 PT 正常（外在/共同路徑不受 FVIII 影響）。臨床因而兼具初級止血（黏膜出血）與凝血兩方面表現,為與單純血小板功能異常的鑑別線索。"
+  },
+  {
+   "kind": "cloze",
+   "text": "ASH/ISTH/NHF/WFH 2021 vWD 診斷數值:VWF:Ag 或 VWF activity {{c1::<30}} IU/dL 可確診 vWD;{{c2::30–50}} IU/dL 且有出血症狀 → {{c3::low VWF / type 1}};質的缺陷（type 2）以 VWF activity / VWF:Ag ratio {{c4::<0.7}} 認定。",
+   "extra": "高頻 cutoff。<30 確診、30–50+出血為 low VWF、activity/Ag <0.7 提示 type 2 之質的缺陷（2A/2B/2M）。判讀 vWF 數值時須以 ABO 血型校正（O 型較非 O 型低約 20–30%）。來源:Blood Adv 2021;5:280。"
+  },
+  {
+   "kind": "basic",
+   "front": "Desmopressin (DDAVP) 提升 vWF 與 FVIII 的機轉為何？適用與不適用的情況分別是？",
+   "back": "刺激內皮細胞 Weibel-Palade bodies 釋放儲存的 vWF（連同 FVIII）至血液<hr>DDAVP = 1-deamino-8-D-arginine vasopressin,為 vasopressin 類似物。適用:type 1 vWD、mild hemophilia A。不適用:type 3 vWD（無可釋放之儲存池,無效）;type 2B（可加重血小板減少,通常避免）。"
+  },
+  {
+   "kind": "basic",
+   "front": "Type 2N vWD 與 mild hemophilia A 臨床表現相似,如何用實驗室檢查區分？",
+   "back": "用 VWF:FVIII binding (VWF:FVIIIB) assay:type 2N 之 VWF 無法結合 FVIII → VWF:FVIIIB 明顯降低;hemophilia A 之 VWF:FVIIIB 正常<hr>兩者皆 FVIII 偏低（FVIII/VWF:Ag <0.7）。關鍵差異:type 2N 為 AR 遺傳、女性亦可患病;hemophilia A 為 X-linked。誤診影響治療（2N 需含 vWF 製劑,單純 FVIII 製劑半衰期短）。"
+  }
+ ]
+}

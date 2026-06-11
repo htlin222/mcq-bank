@@ -1,0 +1,33 @@
+{
+ "id": "114-050",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "Follicular Lymphoma", "Bendamustine-Rituximab", "Obinutuzumab", "GALLIUM", "Tafasitamab", "Lenalidomide", "inMIND", "anti-CD20", "anti-CD19", "rituximab maintenance", "PRIMA", "BRIGHT"],
+ "enrich_html": "<b>📌 考點</b>：Follicular lymphoma 一線與復發/難治治療全景，四敘述皆為正確 (答 E)。一線可選 BR、R-CHOP、R-CVP，BR 在 BRIGHT 試驗 CR rate non-inferior (31% vs 25%, p=0.0225)；Obinutuzumab 在 GALLIUM 較 rituximab 延長 PFS 但毒性增加；maintenance 用於 selected 患者；inMIND 確立 Tafasitamab+R2 於 R/R FL 的 PFS 益處。<br><b>🏥 臨床意義</b>：Obinutuzumab (GALLIUM 5-yr PFS 70.5% vs 63.2%, HR 0.76) 與 rituximab maintenance (PRIMA 3-yr PFS 74.9% vs 57.6%, HR 0.55) <u>皆只改善 PFS、無 OS 益處</u> → 臨床需權衡毒性與生活品質，非人人適用。Tafasitamab+Lenalidomide+Rituximab (inMIND median PFS 22.4 vs 13.9 月, HR 0.43) 為 R/R FL 潛在新標準。<br><b>⭐ High-yield</b>：anti-CD20 type II = Obinutuzumab (ADCC↑、直接細胞死亡↑、CDC↓)｜anti-CD19 = Tafasitamab｜BR 毒性差異：少落髮/neuropathy、多 lymphopenia/感染｜FL 系統治療多數只延長 PFS 不延長 OS (indolent、可救援)。<br><b>🔬 實證</b>：BRIGHT (Blood 2014;123:2944)｜GALLIUM (NEJM 2017;377:1331)｜PRIMA (Lancet 2011;377:42)｜inMIND (Lancet 2025, phase 3, n=548)。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "Follicular lymphoma 一線使用 Bendamustine-Rituximab (BR) 相較 R-CHOP / R-CVP，療效如何？",
+   "back": "Non-inferior (不劣於)。<hr>BRIGHT 試驗顯示 BR 對 indolent NHL 的 CR rate non-inferior 於 R-CHOP/R-CVP (31% vs 25%, p=0.0225)；StiL NHL1 並顯示 BR 的 PFS 較 R-CHOP 長。BR 毒性型態不同：較少落髮、neuropathy、心毒性 (無 anthracycline/vincristine)，但較多 lymphopenia、感染與皮膚反應，需注意 PJP/帶狀疱疹預防。常作為 FL 一線首選之一。"
+  },
+  {
+   "kind": "basic",
+   "front": "FL 一線以 Obinutuzumab-based 相較 Rituximab-based chemoimmunotherapy (GALLIUM 試驗)，療效與毒性差異？",
+   "back": "Obinutuzumab 療效較佳 (PFS 較長)，但 treatment-related adverse events 較多。<hr>GALLIUM (NEJM 2017)：3-yr PFS 80.0% vs 73.3%、5-yr 70.5% vs 63.2% (HR 0.76)；但 ORR 相當 (88.5% vs 86.9%)、OS 無差異 (5-yr 約 90%)。G3-4 AE 較多 (74.6% vs 67.8%)，neutropenia 46.7% vs 40.4%、febrile neutropenia 7.6% vs 4.7%、infusion reaction 較多。"
+  },
+  {
+   "kind": "basic",
+   "front": "Obinutuzumab 與 rituximab 同為 anti-CD20，為何分屬 type II 與 type I、機轉有何不同？",
+   "back": "Rituximab = type I (CDC 較強)；Obinutuzumab = type II (CDC 較弱，但直接 non-apoptotic 細胞死亡與 ADCC 較強)。<hr>Obinutuzumab 為 glycoengineered (去 fucose 化) 全人源化抗體，對 FcγRIIIa 親和力增強 → ADCC 顯著提升，這是其在 GALLIUM 中 PFS 優於 rituximab 的機轉基礎。"
+  },
+  {
+   "kind": "basic",
+   "front": "FL 的全身性治療 (Obinutuzumab、rituximab maintenance、新藥) 多數改善哪個 endpoint、卻常未改善哪個？為什麼？",
+   "back": "多數顯著延長 PFS，但常未改善 OS。<hr>GALLIUM (Obinutuzumab) 與 PRIMA (rituximab maintenance) 皆 PFS 獲益、OS 無差異。原因：FL 屬 indolent、病程長且復發後仍有多種有效救援治療 (cross-over、後線藥物) 攤平了 OS 差異。臨床決策須權衡毒性與生活品質，並非人人適用。"
+  },
+  {
+   "kind": "cloze",
+   "text": "R/R FL：inMIND (phase 3) 證實 {{c1::Tafasitamab}} (anti-{{c2::CD19}}) + {{c3::Lenalidomide}} + Rituximab 相較 placebo+R2，median PFS {{c4::22.4}} vs 13.9 月 (HR {{c5::0.43}})。",
+   "extra": "inMIND (Lancet 2025, n=548)：ORR 84% vs 72%、CMR 49% vs 40%；含 POD24、anti-CD20 難治亞群皆獲益，潛在 2L 新標準。Tafasitamab 標靶為 CD19，與 anti-CD20 (rituximab/obinutuzumab) 不同，對先前 anti-CD20 難治者仍可能有效。"
+  }
+ ]
+}

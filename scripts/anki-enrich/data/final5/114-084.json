@@ -1,0 +1,33 @@
+{
+ "id": "114-084",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "AML", "FLT3-ITD", "FLT3-TKD", "midostaurin", "sorafenib", "quizartinib", "gilteritinib", "venetoclax", "gemtuzumab-ozogamicin", "CD33", "BCL2-inhibitor"],
+ "enrich_html": "<b>📌 考點</b>:AML 的 FLT3 與 novel agents 是 board 高頻題。記住四條主軸——(1) FLT3-ITD 預後差、FLT3-TKD 中立;(2) FLT3 inhibitor 分 Type I (ITD+TKD) vs Type II (僅 ITD);(3) Venetoclax+HMA 是 unfit/老年 AML 新標準;(4) GO 對兒童 AML「有益」(陷阱常把它寫成無益)。<br><b>🏥 臨床意義</b>:FLT3-ITD high allelic ratio + NPM1wt 屬 ELN 2022 adverse risk,CR1 即考慮 allogeneic HSCT;HSCT 後可用 sorafenib 維持降低復發 (SORMAIN)。Venetoclax+azacitidine 讓無法接受 intensive chemo 者 median OS 由 ~9.6 延長至 14.7 月。<br><b>⭐ High-yield</b>:Type I = midostaurin / gilteritinib / crenolanib(對 D835 TKD 也有效)｜Type II = sorafenib / quizartinib(對 TKD 無效)｜gilteritinib 用於 R/R FLT3+ AML (ADMIRAL)｜GO = anti-CD33 ADC,VOD/SOS 風險。<br><b>🔬 實證</b>:RATIFY (midostaurin) median OS 74.7 vs 25.6 月 (NEJM 2017;377:454)｜VIALE-A (Ven+AZA) OS 14.7 vs 9.6 月、ORR 65% (NEJM 2020;383:617)｜AAML0531 (GO 兒童) 3-yr EFS 53.1% vs 46.9%, p=0.04 (JCO 2014;32:3021)。",
+ "cards": [
+  {
+   "kind": "basic",
+   "front": "AML 中 FLT3-ITD 與 FLT3-TKD mutation 的預後意義各為何?有何不同?",
+   "back": "FLT3-ITD 預後較差(relapse↑、OS 差);FLT3-TKD 一般視為預後中立 (neutral)。<hr>FLT3-ITD (internal tandem duplication) 造成 receptor tyrosine kinase 持續活化,風險受 allelic ratio 與 NPM1 修飾:NPM1mut + ITD-low 較佳;ITD-high(尤其 NPM1wt)屬 ELN 2022 adverse risk,CR1 即考慮 allogeneic HSCT。FLT3-TKD(常見 D835 點突變)預後影響弱且不明確,且只能被 Type I FLT3 inhibitor 抑制。"
+  },
+  {
+   "kind": "basic",
+   "front": "FLT3 inhibitor 如何分成 Type I 與 Type II?各能抑制哪種 FLT3 突變?舉例。",
+   "back": "Type I 抑制 FLT3-ITD + FLT3-TKD;Type II 僅抑制 FLT3-ITD。<hr>Type I(結合 active conformation):midostaurin、gilteritinib、crenolanib。Type II(結合 inactive conformation,需 DFG-out):sorafenib、quizartinib——因 D835 TKD 突變鎖住 active conformation,故 Type II 對 TKD 無效。考點:病人帶 D835 TKD 時應選 Type I。"
+  },
+  {
+   "kind": "basic",
+   "front": "Venetoclax + azacitidine 在 unfit/老年 AML 的機轉、適應症與關鍵實證 (VIALE-A) 為何?",
+   "back": "Venetoclax 為 BCL-2 inhibitor,解除 BCL-2 對 apoptosis 的抑制;與 HMA (azacitidine/decitabine) 合併,用於無法接受 intensive chemotherapy 的 unfit/老年 AML。VIALE-A:Ven+AZA 優於 azacitidine 單藥,ORR 65% vs 22%、median OS 14.7 vs 9.6 月。<hr>IDH1/2 mutation 亞群反應最佳 (ORR 82%、median OS 19.9 vs 6.2 月),確立 venetoclax+HMA 為此族群的 frontline 新標準。(NEJM 2020;383:617, NEJMoa2012971)"
+  },
+  {
+   "kind": "basic",
+   "front": "Up-front gemtuzumab ozogamicin (GO) 加入兒童 AML 治療是否有益?標靶與藥物結構為何?",
+   "back": "有益處——「GO 對兒童 AML 無益」是錯誤敘述。COG AAML0531 phase III:加入 GO 使 3-year EFS 由 46.9% 提升至 53.1% (p=0.04),主靠降低 relapse,KMT2A-rearranged 亞群尤其顯著 (EFS 48% vs 29%)。<hr>GO 標靶 CD33,結構為 anti-CD33 monoclonal antibody 偶聯 calicheamicin 的 antibody-drug conjugate (ADC);主要毒性為 hepatic veno-occlusive disease / sinusoidal obstruction syndrome (VOD/SOS)。(JCO 2014;32:3021)"
+  },
+  {
+   "kind": "cloze",
+   "text": "AML 的 FLT3-targeted 與 novel agents:Type I FLT3 inhibitor(ITD+TKD)包括 {{c1::midostaurin}}、{{c2::gilteritinib}};Type II(僅 ITD)包括 {{c3::sorafenib}}、{{c4::quizartinib}};BCL-2 inhibitor 為 {{c5::venetoclax}};anti-CD33 ADC 為 {{c6::gemtuzumab ozogamicin (GO)}}。",
+   "extra": "Type I 結合 active conformation 故對 D835 TKD 也有效;Type II 需 DFG-out inactive conformation 故對 TKD 無效。Gilteritinib 用於 R/R FLT3+ AML (ADMIRAL);venetoclax 常與 HMA 合併用於 unfit AML;GO 標靶 CD33,於兒童 (AAML0531) 與成人 AML 皆具角色。"
+  }
+ ]
+}

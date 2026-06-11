@@ -1,0 +1,13 @@
+{
+ "id": "112-023",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "ALL", "T-ALL", "B-ALL", "nelarabine", "clofarabine", "inotuzumab ozogamicin", "blinatumumab", "rituximab", "BiTE", "ADC", "novel agents"],
+ "enrich_html": "<b>📌 考點</b>：ALL 新型藥物適應症與標靶為高頻考點。Clofarabine 是 deoxyadenosine analog，FDA 2004 加速核准<u>僅限 1–21 歲兒科/青少年</u> relapsed/refractory ALL（須 ≥2 線失敗），<u>未核准成人</u>——「同時核准成人」即典型錯誤陳述。<br><b>🏥 臨床意義</b>：標靶配對要背熟——Nelarabine→T-cell 譜系（唯一核准 T-ALL/T-LBL，劑量限制毒性為神經毒性）；Inotuzumab ozogamicin→CD22（ADC，VOD/SOS 風險，尤其續接 HSCT）；Blinatumumab→CD19×CD3（BiTE，毒性 CRS + neurotoxicity）；Rituximab→CD20。<br><b>⭐ High-yield</b>：Blinatumumab 在 R/R B-ALL（TOWER）mOS 7.7 vs 4 個月；E1910 顯示 MRD-negative consolidation 加 blina 3 年 OS 85% vs 68%（2024/6/14 FDA 擴大核准）。Inotuzumab（INO-VATE）CR/CRi 73.8% vs SOC 30.9%。Rituximab 加化療於 CD20+ Ph-neg B-ALL 改善 <u>EFS 而非 OS</u>。<br><b>🔬 實證</b>：Kantarjian, NEJM 2017;376:836 (TOWER) ｜ Kantarjian, NEJM 2016;375:740 (INO-VATE) ｜ Litzow, NEJM 2024;391:320 (E1910) ｜ Maury, NEJM 2016;375:1044 (GRAALL-2005 R)。",
+ "cards": [
+  {"kind":"basic","front":"Clofarabine 的 FDA 核准適應症限於哪個年齡族群？是否核准用於成人 ALL？","back":"僅核准 1–21 歲兒科/青少年的 relapsed/refractory ALL（須至少 2 線治療失敗後），<b>並未</b>核准用於成人。<hr>Clofarabine 為 second-generation purine nucleoside analog（deoxyadenosine analog），FDA 於 2004 年加速核准。考題常見陷阱即聲稱「同時核准成人」——此為錯誤描述。成人僅有 phase I/II 研究性質使用，無 FDA 核准適應症。"},
+  {"kind":"basic","front":"Nelarabine 被核准用於哪一類 ALL？其作用機轉與特徵性毒性為何？","back":"用於 relapsed/refractory T-ALL 或 T-lymphoblastic lymphoma (T-LBL)，是目前唯一專為 T-cell 譜系核准的藥物。<hr>Nelarabine 為 prodrug，去甲基化轉換為 deoxyguanosine analog（ara-G），在 T 細胞內累積三磷酸代謝物抑制 DNA 合成而毒殺。劑量限制毒性為周邊與中樞<b>神經毒性</b>。"},
+  {"kind":"cloze","text":"ALL 新型藥物之標靶配對：Nelarabine 用於 {{c1::T-cell}} 譜系；Inotuzumab ozogamicin 標靶 {{c2::CD22}}（ADC，payload 為 calicheamicin）；Blinatumumab 標靶 {{c3::CD19 與 CD3}}（BiTE）；Rituximab 標靶 {{c4::CD20}}。","extra":"B-ALL 免疫表面標記譜系決定可用的標靶治療；T-ALL 選擇有限，nelarabine 為主力。四種藥分屬 nucleoside analog／ADC／BiTE／裸抗體不同類別，常為鑑別重點。"},
+  {"kind":"cloze","text":"ALL 新型藥物的特徵性毒性：Blinatumumab (anti-CD19×CD3 BiTE) 最須警覺 {{c1::cytokine release syndrome (CRS)}} 與 {{c2::neurotoxicity}}；Inotuzumab ozogamicin (anti-CD22 ADC) 最須警覺 {{c3::VOD/SOS（肝竇阻塞症候群）}}，尤其後續接受 HSCT 者；Nelarabine 的劑量限制毒性為 {{c4::神經毒性}}。","extra":"BiTE 與 CD19 CAR-T 共享 CRS／神經毒性議題（活化 T 細胞攻擊 CD19+）；ADC 因 calicheamicin payload 而以肝毒性為主。"},
+  {"kind":"basic","front":"TOWER trial 中 Blinatumumab 單療相較 standard-of-care chemotherapy，在 R/R Ph-negative B-ALL 的存活結果為何？","back":"中位 overall survival 7.7 個月 vs 化療 4 個月，達顯著存活益處。<hr>Phase 3 TOWER trial：271 名 blinatumumab vs 134 名化療（2:1 隨機），首次證實單藥免疫治療在成人 R/R Ph-neg B-ALL 優於化療。(Kantarjian H et al. NEJM 2017;376:836–847)"}
+ ]
+}

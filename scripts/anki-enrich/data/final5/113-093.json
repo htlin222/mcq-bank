@@ -1,0 +1,13 @@
+{
+ "id": "113-093",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "beta-thalassemia", "thalassemia-major", "iron-overload", "endocrinopathy", "hypogonadotropic-hypogonadism", "hypoparathyroidism", "transfusion-dependent", "iron-chelation"],
+ "enrich_html": "<b>📌 考點</b>:Beta-thalassemia major 的內分泌損傷源自<u>輸血依賴鐵過載</u>:鐵直接沉積腺體並破壞 hypothalamic-pituitary axis。典型五項為 growth retardation、hypogonadotropic hypogonadism、hypothyroidism、hypoparathyroidism、diabetes mellitus。<b>陷阱</b>:是 diabetes mellitus(胰臟 islet 鐵沉積)而非 diabetes insipidus(ADH 不足)── DI 不屬鐵過載併發症。<br><b>🏥 臨床意義</b>:anterior pituitary 的 gonadotrope 對鐵最敏感,故 <u>hypogonadotropic hypogonadism 是最常見的內分泌異常</u>,表現為青春期延遲、無月經、不孕;副甲狀腺受損是 hypoparathyroidism(低血鈣)而非亢進。<br><b>⭐ High-yield</b>:Serum ferritin &gt;2,500 ng/mL(vs ≤1,000)使 DM 風險約 3.5 倍、hypothyroidism 約 3.25 倍、hypoparathyroidism 約 3.27 倍、hypogonadism 約 2.75 倍｜高 ferritin、chelation 順從性差、splenectomy 皆增加風險｜心臟鐵沉積為最常見死因,cardiac T2* MRI &lt;20 ms 即顯著心肌鐵負荷。<br><b>🔬 實證</b>:鐵螯合劑 deferoxamine(注射)、deferasirox(口服)、deferiprone(口服,對心肌鐵效果佳)可逆轉部分內分泌損傷;早期排鐵是預防關鍵。(Endocrinopathies in beta thalassemia, PubMed 38103163, 2023;β-Thalassemia, NEJM 2005;353:1135)",
+ "cards": [
+  {"kind":"cloze","text":"Beta-thalassemia major 因鐵過載常見的內分泌併發症包括:{{c1::growth retardation 生長遲滯}}、{{c2::hypogonadotropic hypogonadism}}、{{c3::hypothyroidism}}、{{c4::hypoparathyroidism}}、{{c5::diabetes mellitus}}。","extra":"是 diabetes mellitus 而非 diabetes insipidus;副甲狀腺受損為 hypoparathyroidism(低血鈣)而非亢進;甲狀腺亦為功能低下而非亢進。"},
+  {"kind":"basic","front":"Beta-thalassemia major 中最常見的內分泌異常是哪一種?機轉為何?","back":"Hypogonadotropic hypogonadism(低促性腺素性性腺低下),屬 secondary / central<hr>anterior pituitary 的 gonadotrope 對鐵沉積最敏感,鐵沉積使 LH/FSH 分泌不足 → 性腺刺激不足,故 gonadotropin 偏低而非偏高。表現為青春期延遲、無月經、不孕。"},
+  {"kind":"basic","front":"Beta-thalassemia major 鐵過載造成的血糖異常是 diabetes mellitus 還是 diabetes insipidus?","back":"Diabetes mellitus(糖尿病),不是 diabetes insipidus<hr>鐵沉積於胰臟 islet cells 造成 insulin 分泌不足與 insulin resistance,導致 DM。Diabetes insipidus(ADH 不足或腎臟反應不良)源自 posterior pituitary 軸,並非鐵過載併發症,是常見的 EXCEPT 陷阱選項。"},
+  {"kind":"basic","front":"Beta-thalassemia major 病人最常見的死亡原因是什麼?如何監測?","back":"心臟鐵過載(cardiac siderosis)引起的心臟併發症<hr>以 cardiac T2* MRI 監測心肌鐵:T2* ≥20 ms 表示無顯著心肌鐵負荷;<u>T2* &lt;20 ms 代表顯著心肌鐵沉積</u>,需強化鐵螯合治療。心肌鐵與血清 ferritin 相關性不佳,故須影像直接評估。"},
+  {"kind":"cloze","text":"Beta-thalassemia major 常用的三種鐵螯合劑:{{c1::deferoxamine}}(注射/皮下輸注)、{{c2::deferasirox}}(口服,每日一次)、{{c3::deferiprone}}(口服,對心肌鐵清除效果佳)。","extra":"deferiprone 常與 deferoxamine 合併用於嚴重心肌鐵過載。早期排鐵可預防並部分逆轉內分泌損傷。"}
+ ]
+}

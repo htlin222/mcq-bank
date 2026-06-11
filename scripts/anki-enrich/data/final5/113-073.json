@@ -1,0 +1,13 @@
+{
+ "id": "113-073",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "hepcidin", "ferroportin", "iron-homeostasis", "iron-metabolism", "IL-6", "STAT3", "BMP-SMAD", "TMPRSS6", "IRIDA", "anemia-of-chronic-disease", "ferroportin-disease", "SLC40A1"],
+ "enrich_html": "<b>📌 考點</b>:Hepcidin 與 ferroportin 結合是<u>抑制</u>鐵輸出而非促進。Hepcidin 結合 ferroportin → 引發其 internalization + degradation → 阻斷鐵從 enterocyte/macrophage/hepatocyte 進入血漿 → hypoferremia。誘餌「will lead to iron exported ... into the plasma」把作用方向寫反。<br><b>🏥 臨床意義</b>:此軸是 anemia of chronic disease 的核心 —— IL-6→JAK2→STAT3 上調 hepcidin,鐵被困在 RE macrophage,呈現低血清鐵、低 TIBC、ferritin 正常或偏高;治療發炎本身比補鐵更關鍵。<br><b>⭐ High-yield</b>:上調 hepcidin = 鐵儲存↑ + 發炎;下調 hepcidin = erythropoiesis↑(ERFE) + hypoxia。兩種極端疾病:TMPRSS6 失功能 → hepcidin 過高 → IRIDA(口服鐵無效);SLC40A1 gain-of-function → hepcidin resistance → HH type 4B(autosomal dominant、實質鐵過載)。<br><b>🔬 實證</b>:鐵感應主走 BMP6(liver sinusoidal endothelial cells 分泌)/HJV/SMAD1-5-8,HFE+TfR2 為共調節。(Ganz, Blood 2011;117:4425;Piperno et al., SLC40A1 spectra, PMC11919020, 2024)",
+ "cards": [
+  {"kind":"basic","front":"Hepcidin 與 ferroportin 結合後,對細胞釋放鐵入血漿的作用是「促進」還是「抑制」?","back":"抑制(造成 hypoferremia)<hr>Hepcidin 結合 ferroportin → 引發 ferroportin 的 internalization 及 degradation → 阻斷鐵從 enterocytes、reticuloendothelial macrophages、hepatocytes 輸出至血漿。常見考試誘餌會把方向寫反成「促進鐵輸出入血漿」。Hepcidin 升高 → 血中鐵下降。"},
+  {"kind":"cloze","text":"Hepcidin 表現受四條路徑調控:{{c1::iron status(鐵儲存量)}}、{{c2::inflammation(發炎,經 IL-6→STAT3)}}、{{c3::erythropoiesis(紅血球生成,經 ERFE)}}、{{c4::oxygen tension(氧分壓/hypoxia)}}。","extra":"上調 hepcidin:鐵儲存↑、發炎。\n下調 hepcidin:erythropoiesis↑、hypoxia(讓更多鐵釋放供造血)。"},
+  {"kind":"basic","front":"為什麼發炎(IL-6 升高)會導致 hypoferremia 與 anemia of chronic disease?","back":"IL-6 → JAK2 → STAT3 上調 hepcidin → ferroportin 降解 → 鐵被困在 macrophages/enterocytes 內<hr>實驗室呈現:血清鐵低、TIBC(transferrin)低、ferritin 正常或升高(鐵滯留於 RE system)。鐵其實「夠」只是被鎖住(functional iron deficiency),治療重點是控制潛在發炎而非盲目補鐵。可與真正缺鐵(ferritin 低、TIBC 高)鑑別。"},
+  {"kind":"basic","front":"TMPRSS6(matriptase-2)失功能突變會造成哪種貧血?其特徵與治療反應為何?","back":"IRIDA(Iron-Refractory Iron Deficiency Anemia)<hr>機轉:TMPRSS6/matriptase-2 失功能 → 無法切割 hemojuvelin(HJV) → hepcidin 不當升高。特徵:microcytic hypochromic anemia、極低 MCV、低 transferrin saturation、ferritin 低-正常、血/尿 hepcidin 相對偏高;口服鐵幾乎無效、靜脈鐵僅部分有效;autosomal recessive。"},
+  {"kind":"basic","front":"SLC40A1(ferroportin 基因)的 loss-of-function 與 gain-of-function 突變各造成什麼鐵過載表型?","back":"Loss-of-function → ferroportin disease(HH type 4A);gain-of-function → hepcidin resistance → HH type 4B<hr>4A:鐵輸出受損 → 鐵主要滯留於 RE/macrophages、血漿鐵相對偏低、TSAT 低。4B:ferroportin 抗拒 hepcidin 降解 → 持續輸出 → 實質細胞鐵過載、TSAT 高,似典型 hemochromatosis。兩者皆 autosomal dominant。"}
+ ]
+}

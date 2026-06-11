@@ -1,0 +1,13 @@
+{
+ "id": "113-079",
+ "topic_index": 5,
+ "extra_tags": ["enriched", "cobalamin deficiency", "vitamin B12", "megaloblastic anemia", "pernicious anemia", "reticulocytosis", "hypersegmentation", "treatment response"],
+ "enrich_html": "<b>📌 考點</b>：B12 缺乏補充後血液學反應的<b>時序與「誰快誰慢」</b>是高頻考點。記憶骨架——bone marrow megaloblastic change 最先且最快逆轉(12–48 小時轉 normoblastic、2–3 天全恢復);reticulocytosis 第 3–10 天上升、約第 5–10 天達高峰可達約 20%;Hb 約 1–2 週後以 ~1 g/dL/週回升;<u>peripheral blood neutrophil hypersegmentation 最晚消退(約第 11–14 天)</u>。誘餌敘述「骨髓 megaloblastic change 需數個月才消退」恰恰相反——骨髓恢復比外周血 hypersegmentation 快。<br><b>🏥 臨床意義</b>：每針 1,000µg 僅保留約 150µg(逾 binding protein 飽和量者尿排),故 repletion 需多次注射;治療初期需監測 <b>transient hypokalemia</b>(大量造血鉀內移)與 <b>thrombocytosis</b>,並注意 iron stores 被快速消耗而暴露出 iron deficiency、限制 Hb 回升。<br><b>⭐ High-yield</b>：reticulocyte 在第 2–3 天前有 lag(megaloblast 無效造血持續、需由 stem cell 重建);LDH/indirect bilirubin/serum iron 因 intramedullary hemolysis 停止而快速下降;neurologic 改善第 1 週起、6 週–3 個月完成。<br><b>🔬 實證</b>：恢復速度 骨髓 &gt; reticulocyte &gt; Hb &gt; hypersegmentation。(Carmel R, Blood 2008;112:2214;Bills &amp; Spivak, Ann Intern Med 1979;90:757)",
+ "cards": [
+  {"kind":"cloze","text":"B12 補充後血液學反應「恢復快慢」排序(快→慢)：{{c1::bone marrow megaloblastic change}}(12–48 小時逆轉)→ {{c2::reticulocytosis}}(第 3–10 天、約第 5–10 天達高峰可達約 20%)→ {{c3::hemoglobin}}(~1 g/dL/週、約 8 週正常)→ {{c4::peripheral blood neutrophil hypersegmentation}}(約第 11–14 天才消退)。","extra":"關鍵 pearl：骨髓變化恢復「快」、外周血 hypersegmentation 消退「慢」——方向與直覺相反，是高頻誘餌。"},
+  {"kind":"basic","front":"B12 缺乏開始補充後，reticulocytosis 何時出現、何時達高峰、可達多高？","back":"第 3–10 天上升，約第 5–10 天達高峰，可達約 20%<hr>無效造血(intramedullary hemolysis)停止後，骨髓恢復有效紅血球生成並大量釋出 reticulocyte(reticulocyte crisis)。reticulocyte 反應是確認 B12 缺乏診斷的第一個客觀里程碑;治療後約 2–3 天前有 lag,因 megaloblast 無效造血需先停止、由 stem cell 重建新的 normoblast series。"},
+  {"kind":"basic","front":"B12 補充後，bone marrow 的 megaloblastic change 多久消退？(高頻易錯)","back":"消退「很快」——12–48 小時內即轉為 normoblastic，約 2–3 天完全恢復<hr>骨髓恢復速度反而快於 peripheral blood hypersegmentation。因此「骨髓 megaloblastic change 需數個月才消退」是錯誤敘述(cobalamin 治療題常見誘餌)。"},
+  {"kind":"basic","front":"B12 補充後，peripheral blood 的 neutrophil hypersegmentation 多久才消退？","back":"消退「慢」——約第 11–14 天才恢復正常<hr>Bills & Spivak (Ann Intern Med 1979) 顯示 neutrophil lobe average 約第 11.4 天開始下降、第 13.9 天恢復正常。已存在的 hypersegmented neutrophil 需待其壽命結束清除，故比骨髓變化恢復得慢——是所有血液學里程碑中最晚正常化者之一。"},
+  {"kind":"basic","front":"B12 缺乏病人造血恢復期，需特別監測哪兩項可能因「大量有效造血」而異常的指標？","back":"transient hypokalemia 與 thrombocytosis<hr>嚴重貧血對 cobalamin(或 iron)反應時血鉀可一過性下降(鉀隨新生細胞內移),嚴重時需補鉀;血小板亦可反應性上升。此外造血快速恢復大量消耗 iron stores,可暴露潛在 iron deficiency 而限制 Hb 回升。"}
+ ]
+}

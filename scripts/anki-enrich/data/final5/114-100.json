@@ -1,0 +1,13 @@
+{
+ "id": "114-100",
+ "topic_index": 6,
+ "extra_tags": ["enriched", "Transfusion", "ABO typing", "Pretransfusion testing", "Crossmatch", "Antibody screen", "Type and screen", "Electronic crossmatch", "Acute hemolytic transfusion reaction"],
+ "enrich_html": "<b>📌 考點</b>:輸血前相容性檢驗(pretransfusion testing)為固定順序的階層流程 — <u>ABO/Rh typing → antibody screen →（篩檢陽性時）antibody identification → crossmatch</u>。第一步永遠是 ABO/Rh 血型測定,因 ABO 不合是最致命的急性溶血。誘餌「抗體篩檢、交叉試驗、抗體鑑定」皆屬後續步驟,且抗體鑑定僅在篩檢陽性時才做。<br><b>🏥 臨床意義</b>:ABO 不合輸血 → anti-A/anti-B(天然 IgM)活化補體至 C5b-9 → 血管內溶血(intravascular hemolysis)→ DIC、急性腎衰竭、休克,死亡率高;故 ABO 把關優先於一切。<br><b>⭐ High-yield</b>:type and screen = ABO/Rh typing + antibody screen｜篩檢陰性 → immediate-spin 或 electronic crossmatch｜篩檢陽性 → 用對應抗原陰性血做 full AHG(IAT) crossmatch｜Electronic crossmatch 需檔案中有<b>兩次一致</b>的受者 ABO 結果(其一為當次檢體),否則改用 immediate-spin。<br><b>🔬 實證</b>:Pretransfusion Testing, StatPearls NBK585033 (2023);Requirements for the electronic crossmatch, Judd, Vox Sang 1998 (PMID 9704475)。",
+ "cards": [
+  {"kind": "cloze", "text": "輸血前配血檢驗的標準順序:{{c1::ABO/Rh 血型測定}} → {{c2::抗體篩檢 (antibody screen)}} →（若篩檢陽性）{{c3::抗體鑑定 (antibody identification)}} → {{c4::交叉試驗 (crossmatch)}}", "extra": "ABO 相容性永遠第一優先;type and screen 涵蓋前兩步;交叉試驗是發血前最後相容性確認。抗體鑑定只在篩檢陽性時才執行。"},
+  {"kind": "basic", "front": "為何 ABO 不相容輸血會造成立即、嚴重的溶血反應?(機轉)", "back": "因 anti-A / anti-B 為天然存在的 IgM 抗體,可活化補體造成血管內溶血(intravascular hemolysis)<hr>IgM 能高效固定補體(complement)走 classical pathway 至 C5b-9 (MAC),使紅血球在血管內裂解,釋出游離血紅素,導致 DIC、急性腎衰竭、休克。這是 acute hemolytic transfusion reaction 最典型且最致命的型態,也是 ABO typing 須最優先的原因。"},
+  {"kind": "basic", "front": "抗體篩檢(antibody screen)<b>陰性</b>時,可使用哪種簡化的交叉試驗?其理據為何?", "back": "Immediate-spin crossmatch 或 electronic(computer)crossmatch<hr>篩檢陰性表示無臨床重要的 IgG 同種抗體,溶血風險主要僅剩 ABO 不合。Immediate-spin 在室溫即可偵測 ABO 不合;electronic crossmatch 則由電腦比對血型紀錄,皆不需耗時的完整 AHG crossmatch,可縮短備血時間。"},
+  {"kind": "basic", "front": "抗體篩檢(antibody screen)<b>陽性</b>時,交叉試驗必須採用哪一種方式?選血原則為何?", "back": "Full AHG (IAT) crossmatch — 完整抗人球蛋白(間接 Coombs)交叉試驗,並選用對應抗原陰性(antigen-negative)的供血單位<hr>篩檢陽性代表存在臨床重要 IgG 同種抗體;須先以抗體鑑定確認特異性,挑選相對應抗原陰性的供血單位,再以 full AHG crossmatch 確認受者血漿與該單位紅血球不發生 IgG 媒介的凝集/溶血。Immediate-spin 與 electronic crossmatch 此時皆不適用。"},
+  {"kind": "cloze", "text": "Electronic(computer)crossmatch 的安全要件:電腦邏輯防止發出 {{c1::ABO 不相容}} 血品｜受者目前及過去皆 {{c2::無臨床重要抗體}}｜檔案中有 {{c3::兩次一致}} 的受者 ABO 結果(其一須為當次檢體)｜系統經 {{c4::現場驗證}}。", "extra": "要求兩次一致的 ABO 結果旨在防範 WBIT(wrong blood in tube,抽錯管/貼錯標);若紀錄不足兩次,須改用 immediate-spin crossmatch。來源:Judd, Vox Sang 1998 (PMID 9704475)。"}
+ ]
+}

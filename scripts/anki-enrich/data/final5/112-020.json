@@ -1,0 +1,13 @@
+{
+ "id": "112-020",
+ "topic_index": 1,
+ "extra_tags": ["enriched", "AML", "t-AML", "therapy-related-myeloid-neoplasm", "alkylating-agents", "topoisomerase-II-inhibitor", "11q23-KMT2A", "complex-karyotype", "TP53", "WHO-2022-ICC"],
+ "enrich_html": "<b>📌 考點</b>：t-MN 的「潛伏期 × 細胞遺傳學 × 是否經 MDS」三軸要記牢，且兩型不可對調。Alkylating agents → 潛伏期<u>長</u>（約 5-7 年）、常先經 MDS、unbalanced translocation／缺失（-5/-7）、complex karyotype；topoisomerase II inhibitors → 潛伏期<u>短</u>（約 1-5 年，多 1-3 年）、不經 MDS、balanced translocation 累及 11q23(KMT2A) 與較少的 21q22(RUNX1)。把兩者潛伏期數字互換即為陷阱敘述。<br><b>🏥 臨床意義</b>：alkylating 型高頻 TP53 突變且常合併 -5/-7、complex/monosomal karyotype → ELN adverse risk，median OS 短；TP53 mutant／17p loss median OS 約 8.8 個月 vs TP53 WT 約 37.4 個月，allogeneic HSCT 為改善預後的關鍵手段。<br><b>⭐ High-yield</b>：alkylating 潛伏長＋經 MDS＋TP53/complex；topo II 潛伏短＋不經 MDS＋KMT2A balanced fusion｜其他可致 t-MN：nucleoside analogs、antitubulins、radiation｜TP53 突變與 prior alkylating exposure 為潛伏期 &lt;5 年的最強預測因子。<br><b>🔬 實證</b>：WHO5(2022)/ICC 2022 已不再細分 t-MN 亞型，改以診斷修飾詞標註，並新增 AML with KMT2A rearrangement。(PMC3042191；Blood 2011;117:2137；Frontiers Hematol 2025)",
+ "cards": [
+  {"kind":"basic","front":"Alkylating agent 相關 therapy-related AML 的潛伏期約多久？細胞遺傳學與病程有何典型特徵？","back":"潛伏期長，約 5-7 年，且常先經過 MDS 前期。<hr>機轉為累積 DNA 損傷；典型為 unbalanced translocation／染色體缺失（-5/del(5q)、-7/del(7q)），complex 或 monosomal karyotype，高頻 TP53 突變 → adverse risk、預後最差。風險與 alkylating agent 累積劑量相關。"},
+  {"kind":"basic","front":"Topoisomerase II inhibitor（如 etoposide、anthracyclines）相關 therapy-related AML 的潛伏期約多久？細胞遺傳學有何特徵？11q23 與 21q22 各對應哪個基因？","back":"潛伏期短，約 1-5 年（多為 1-3 年），通常不經 MDS、直接表現為 AML。<hr>典型為 balanced（平衡）translocation 形成 fusion gene，最常累及 11q23，較少累及 21q22。11q23 = KMT2A(MLL) 重排（如 KMT2A-MLLT3）；21q22 = RUNX1(AML1)。整體仍差於 de novo AML。"},
+  {"kind":"basic","front":"「t-AML 接受 topoisomerase II inhibitor 後潛伏期 5-9 年，較 alkylating agents（6 個月-5 年）為長」——這句敘述錯在哪裡？","back":"錯在把兩者潛伏期對調。<hr>正確：topoisomerase II inhibitor 潛伏期<b>短</b>（約 1-5 年），alkylating agents 潛伏期<b>長</b>（約 5-7 年）。記法：alkylating 慢慢累積 DNA 損傷＋常先經 MDS → 慢（長）；topo II 直接造成斷裂重接 balanced translocation → 快（短）。"},
+  {"kind":"basic","front":"為什麼 therapy-related myeloid neoplasm 常見 TP53 突變？TP53 狀態對存活有何影響？","back":"先前細胞毒治療（尤其 alkylating agents）對帶有 TP53 突變、具抗藥性的造血幹細胞 clone 形成選擇壓力，使其擴增（clonal selection）。<hr>TP53 mutant／17p loss median OS 約 8.8 個月，遠差於 TP53 wild type 約 37.4 個月。prior alkylating exposure 與 TP53 陽性是潛伏期 &lt;5 年的最強預測因子。"},
+  {"kind":"basic","front":"WHO 第 5 版(2022)與 ICC 2022 對 therapy-related myeloid neoplasm 的分類有何重要更動？","back":"不再將 t-MN 列為獨立可細分的亞型，改以「診斷修飾詞 (diagnostic qualifier)」標註於對應的 AML/MDS 類別之後。<hr>同時新增 AML with KMT2A rearrangement 作為獨立類別。意義：強調以底層 genetics 驅動分類與治療，而非單以「是否曾接受治療」分群。"}
+ ]
+}

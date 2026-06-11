@@ -1,0 +1,13 @@
+{
+ "id": "112-058",
+ "topic_index": 2,
+ "extra_tags": ["enriched", "LGL leukemia", "T-LGL", "STAT3", "STAT5b", "NK-cell lymphocytosis", "immunosuppressive therapy", "neutropenia", "Felty syndrome", "lymphoproliferative disorder"],
+ "enrich_html": "<b>📌 考點</b>：T-LGL leukemia 治療目標是<u>控制 cytopenias、反覆感染與 autoimmune 合併症，而非清除血液/骨髓中的 leukemic LGL（非 cytoreduction）</u>——LGL clone 多持續存在，僅在出現症狀時介入。啟動治療四大指徵：severe neutropenia（ANC &lt;0.5×10⁹/L）、中度 neutropenia 伴反覆感染、症狀性/輸血依賴 anemia、需治療之 associated autoimmune conditions。<br><b>🏥 臨床意義</b>：屬 chronic、indolent disease，10 年 OS ~70%，疾病相關死亡 &lt;10%（主因嚴重感染），多數死於其他 comorbidities。常與 rheumatoid arthritis、Felty syndrome 共病（Felty 與 LGL 共享 STAT3 突變機轉，43% Felty 帶 STAT3 突變）。<br><b>⭐ High-yield</b>：診斷需循環 LGL 持續 &gt;6 個月（常 2–20×10⁹/L、典型 &gt;2,000/μL）+ TCR gene rearrangement 證實 clonality（gold standard）｜免疫表現 CD3+/CD8+/CD57+/TCRαβ+/CD16+/CD28−｜一線為低強度免疫抑制（low-dose MTX、cyclophosphamide、cyclosporine A），非高強度化療。<br><b>🔬 實證</b>：30–40% 帶 STAT3 SH2-domain gain-of-function 突變（STAT5b ~2%，富集 CD4+ 亞型且 CD3+CD8+CD56+ 型較侵襲）；STAT3 突變者 treatment-free survival 較短（5 vs 19 個月）但對 MTX 反應佳；MTX 初始反應率 ~86%。(A modern view of LGL leukemia, Blood 2024;144:1910；ASH Education Book 2024;2024:143；Blood 2017;129:1082)",
+ "cards": [
+  {"kind":"basic","front":"為什麼 T-LGL leukemia 大多數患者的治療目標「不是」清除血液與骨髓中的 leukemic LGL 細胞（cytoreduction）?","back":"因為 LGL clone 多持續存在且為惰性，治療目標是緩解 cytopenias、反覆感染及 autoimmune 合併症，而非消滅 LGL clone<hr>這是常見的錯誤敘述陷阱：T-LGL 採低強度免疫抑制以「控制併發症」，不追求把循環/骨髓中的 LGL 數量降下來（≠ cytoreduction）。屬 chronic、indolent disease，10 年 OS ~70%。"},
+  {"kind":"basic","front":"T-LGL leukemia 啟動治療的四大指徵為何? 其中 severe neutropenia 的 ANC cutoff 是多少?","back":"四大指徵：嚴重 neutropenia（ANC &lt;0.5×10⁹/L）、中度 neutropenia 伴反覆感染、症狀性/輸血依賴性 anemia、需治療的 associated autoimmune conditions<hr>無症狀者可觀察追蹤（watch & wait）；neutropenia 是 T-LGL 最常見的血液學異常。"},
+  {"kind":"basic","front":"診斷 T-LGL leukemia 對「循環 LGL 增多」有何時間與數量要求? 確認 clonality 的 gold standard 是什麼?","back":"循環 LGL 須持續增多 &gt;6 個月、典型 &gt;2,000/μL（常見 2–20×10⁹/L）；確認 clonality 的 gold standard 為 TCR gene rearrangement analysis<hr>單次升高不足以診斷，須以 TCR 重排與反應性 LGL 增生（感染、病毒）鑑別。"},
+  {"kind":"cloze","text":"T-LGL leukemia 一線採低強度 immunosuppressive therapy（非高強度化療），常用三藥：{{c1::low-dose methotrexate (MTX)}}、{{c2::cyclophosphamide}}、{{c3::cyclosporine A}}。","extra":"目的在改善 cytopenias 與 autoimmune 問題而非 cytoreduction。法國 phase II RCT（NCT01976182）比較 MTX vs cyclophosphamide 作為一線；MTX 初始反應率約 86%。"},
+  {"kind":"basic","front":"T-LGL leukemia 最常見的驅動突變是什麼? 盛行率及對預後/治療反應的影響為何?","back":"STAT3 gain-of-function 突變（SH2 domain），盛行率約 30–40%；突變者 treatment-free survival 較短（中位 5 vs 19 個月）但對 methotrexate 反應較佳<hr>STAT5b 突變較少（~2%），富集於罕見 CD4+ 亞型，CD3+CD8+CD56+ STAT5b 型病程較侵襲、預後較差。"}
+ ]
+}
