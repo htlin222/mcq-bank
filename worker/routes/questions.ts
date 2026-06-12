@@ -3,7 +3,7 @@ import type { D1PreparedStatement } from "@cloudflare/workers-types";
 import type { AppContext, Question, Explanation } from "../types";
 import { optionsToRecord } from "../lib/db";
 import { ftsQuery } from "./search";
-import { getActiveChallenge } from "../lib/challenges";
+import { getActiveChallenges } from "../lib/challenges";
 import { isAdminEmail } from "../lib/admin";
 
 export const questionsRoutes = new Hono<AppContext>();
@@ -98,7 +98,7 @@ questionsRoutes.get("/:id", async (c) => {
 		.bind(id)
 		.all<{ tag: string }>();
 
-	const [progress, bookmark, note, backRefRows, activeChallenge, commentCountRow] = await Promise.all([
+	const [progress, bookmark, note, backRefRows, activeChallenges, commentCountRow] = await Promise.all([
 		c.env.DB.prepare(
 			"SELECT times_seen, times_correct, last_chosen, last_correct FROM review_progress WHERE user_email = ? AND question_id = ?",
 		)
@@ -136,7 +136,7 @@ questionsRoutes.get("/:id", async (c) => {
 				source_number: number;
 				source_stem: string;
 			}>(),
-		getActiveChallenge(c.env.DB, id, email),
+		getActiveChallenges(c.env.DB, id, email),
 		// Comment count for the 討論串 tab badge — cheap COUNT(*), runs in parallel
 		// with everything else so it adds no latency.
 		c.env.DB.prepare(
@@ -174,7 +174,7 @@ questionsRoutes.get("/:id", async (c) => {
 		my_progress,
 		my_note: note || null,
 		back_refs,
-		active_challenge: activeChallenge,
+		active_challenges: activeChallenges,
 		comment_count: commentCountRow?.n ?? 0,
 		can_edit_answer: isAdminEmail(email, c.env),
 	});

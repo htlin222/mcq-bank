@@ -5,7 +5,7 @@ import {
   castVote,
   retractVote,
   withdrawChallenge,
-  getActiveChallenge,
+  getActiveChallenges,
   listChallengesForQuestion,
   listRecentChallenges,
   recomputeAndMaybeResolve,
@@ -14,9 +14,11 @@ import {
 // Routes that hang off /api/questions/:id/* — mounted under /api/questions.
 export const questionChallengeRoutes = new Hono<AppContext>();
 
+// Returns ALL active (open/contested) challenges for the question — an
+// array, possibly empty. Multiple actives may coexist (one per letter).
 questionChallengeRoutes.get('/:id/challenges/active', async (c) => {
   const id = c.req.param('id');
-  const active = await getActiveChallenge(c.env.DB, id, c.var.email);
+  const active = await getActiveChallenges(c.env.DB, id, c.var.email);
   return c.json(active);
 });
 
@@ -41,8 +43,8 @@ questionChallengeRoutes.post('/:id/challenges', async (c) => {
     body.rationale_json
   );
   if (!result.ok) return c.json({ error: result.error }, result.status);
-  // Echo back the new active row so the client can render immediately.
-  const active = await getActiveChallenge(c.env.DB, id, c.var.email);
+  // Echo back the active rows so the client can render immediately.
+  const active = await getActiveChallenges(c.env.DB, id, c.var.email);
   return c.json({ ok: true, id: result.id, active }, 201);
 });
 

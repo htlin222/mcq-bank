@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, Check, X } from 'lucide-react';
+import { AlertTriangle, Check, X, MessageSquare } from 'lucide-react';
 import { ApiError } from '../lib/api';
 import { useChallenge, type ActiveChallenge, type ResolvedChallenge } from '../hooks/useChallenge';
 import { RichEditor } from './RichEditor';
@@ -41,35 +41,39 @@ export function ChallengePanel({ questionId, currentAnswer, availableLetters, me
     return null;
   }
 
+  // Letters already under an active challenge — can't be re-proposed.
+  const challengedLetters = active.map((c) => c.proposed_answer);
+
   return (
     <div className="mt-4 space-y-3">
-      {active && (
+      {active.map((ch) => (
         <ActiveBanner
-          challenge={active}
+          key={ch.id}
+          challenge={ch}
           meEmail={meEmail}
-          onVote={(v) => doWith(() => vote(active.id, v))}
-          onRetract={() => doWith(() => retract(active.id))}
-          onWithdraw={() => doWith(() => withdraw(active.id))}
+          onVote={(v) => doWith(() => vote(ch.id, v))}
+          onRetract={() => doWith(() => retract(ch.id))}
+          onWithdraw={() => doWith(() => withdraw(ch.id))}
         />
-      )}
+      ))}
 
-      {!active && recentPromotion && (
+      {active.length === 0 && recentPromotion && (
         <RecentPromotionPill challenge={recentPromotion} />
       )}
 
-      {!active && (
-        <FileChallengeButton
-          onOpen={() => {
-            setError(null);
-            setFiling(true);
-          }}
-        />
-      )}
+      <FileChallengeButton
+        hasActive={active.length > 0}
+        onOpen={() => {
+          setError(null);
+          setFiling(true);
+        }}
+      />
 
       {filing && (
         <FileChallengeModal
           currentAnswer={currentAnswer}
           availableLetters={availableLetters}
+          challengedLetters={challengedLetters}
           onCancel={() => {
             setFiling(false);
             setError(null);
@@ -81,7 +85,7 @@ export function ChallengePanel({ questionId, currentAnswer, availableLetters, me
               setFiling(false);
             } catch (e) {
               if (e instanceof ApiError && e.status === 409) {
-                setError('已有進行中的挑戰,請先參與既有討論。');
+                setError('該答案已有進行中的挑戰,請參與既有挑戰的投票。');
                 await refresh();
               } else if (e instanceof ApiError) {
                 setError(String(e.data?.error ?? e.message));
@@ -127,6 +131,9 @@ function ActiveBanner({
   onRetract: () => void | Promise<void>;
   onWithdraw: () => void | Promise<void>;
 }) {
+  // Expanded by default; collapsible to save vertical space when several
+  // challenges are active at once.
+  const [showRationale, setShowRationale] = useState(true);
   const isProposer = meEmail !== null && meEmail === challenge.proposer_email;
   const proposerLabel =
     challenge.proposer_name && challenge.proposer_name.trim().length > 0
@@ -208,9 +215,15 @@ function ActiveBanner({
             撤回挑戰
           </button>
         )}
+        <button
+          onClick={() => setShowRationale((v) => !v)}
+          className="ml-auto text-xs text-ink-600 dark:text-ink-300 hover:text-accent inline-flex items-center gap-1"
+        >
+          <MessageSquare size={12} /> {showRationale ? '收起理由' : '查看挑戰理由'}
+        </button>
       </div>
 
-      {!!rationaleDoc && (
+      {showRationale && !!rationaleDoc && (
         <article className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-700/60 prose-tight">
           <ReadOnlyContent content={rationaleDoc} />
         </article>
@@ -267,14 +280,14 @@ function RecentPromotionPill({ challenge }: { challenge: ResolvedChallenge }) {
 // File-challenge entry button + modal
 // ──────────────────────────────────────────────────────────────
 
-function FileChallengeButton({ onOpen }: { onOpen: () => void }) {
+function FileChallengeButton({ hasActive, onOpen }: { hasActive: boolean; onOpen: () => void }) {
   return (
     <button
       onClick={onOpen}
       className="text-sm text-ink-500 dark:text-ink-400 hover:text-accent inline-flex items-center gap-1"
       title="對本題答案有疑義?發起挑戰,讓社群投票決定。"
     >
-      🤔 對答案有疑問?發起挑戰
+      {hasActive ? '🤔 主張其他答案?發起新挑戰' : '🤔 對答案有疑問?發起挑戰'}
     </button>
   );
 }
@@ -284,12 +297,15 @@ const EMPTY_DOC = { type: 'doc', content: [{ type: 'paragraph' }] };
 function FileChallengeModal({
   currentAnswer,
   availableLetters,
+  challengedLetters,
   onCancel,
   onSubmit,
   error,
 }: {
   currentAnswer: string;
   availableLetters: string[];
+  /** Letters already under an active challenge — vote there instead. */
+  challengedLetters: string[];
   onCancel: () => void;
   onSubmit: (proposed: string, rationale: unknown) => Promise<void>;
   error: string | null;
@@ -298,7 +314,9 @@ function FileChallengeModal({
   const [doc, setDoc] = useState<unknown>(EMPTY_DOC);
   const [submitting, setSubmitting] = useState(false);
 
-  const candidates = availableLetters.filter((L) => L !== currentAnswer);
+  const candidates = availableLetters.filter(
+    (L) => L !== currentAnswer && !challengedLetters.includes(L),
+  );
 
   async function submit() {
     if (!proposed || submitting) return;
@@ -330,6 +348,11 @@ function FileChallengeModal({
 
         <div className="mb-4">
           <div className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-2">主張答案應為</div>
+          {candidates.length === 0 && (
+            <p className="text-sm text-ink-500 dark:text-ink-400">
+              所有其他選項都已有進行中的挑戰,請直接參與投票。
+            </p>
+          )}
           <div className="flex gap-2 flex-wrap">
             {candidates.map((L) => (
               <button

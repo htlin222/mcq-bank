@@ -143,30 +143,40 @@ export async function createChallenge(
     return { ok: false, status: 400, error: 'proposed_answer is not an option of this question' };
   }
 
-  // Reject if an active challenge already exists.
+  // Multiple actives per question are allowed, but only one per proposed
+  // letter — a second person proposing the same answer should vote on the
+  // existing challenge instead.
   const active = await db
     .prepare(
       `SELECT id FROM answer_challenges
-       WHERE question_id = ? AND status IN ('open', 'contested')
+       WHERE question_id = ? AND proposed_answer = ? AND status IN ('open', 'contested')
        LIMIT 1`
     )
-    .bind(questionId)
+    .bind(questionId, proposedAnswer)
     .first<{ id: string }>();
   if (active) {
-    return { ok: false, status: 409, error: 'an active challenge already exists for this question' };
+    return { ok: false, status: 409, error: 'an active challenge for this answer already exists' };
   }
 
   const id = uuid();
   const rationaleStr = JSON.stringify(rationaleJson);
-  await db
-    .prepare(
-      `INSERT INTO answer_challenges
-         (id, question_id, proposer_email, proposed_answer,
-          original_answer_at_challenge, rationale_json, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'open', ?)`
-    )
-    .bind(id, questionId, proposerEmail, proposedAnswer, q.answer, rationaleStr, now)
-    .run();
+  try {
+    await db
+      .prepare(
+        `INSERT INTO answer_challenges
+           (id, question_id, proposer_email, proposed_answer,
+            original_answer_at_challenge, rationale_json, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'open', ?)`
+      )
+      .bind(id, questionId, proposerEmail, proposedAnswer, q.answer, rationaleStr, now)
+      .run();
+  } catch (e) {
+    // Race on the partial UNIQUE (question_id, proposed_answer) index.
+    if (String(e).includes('UNIQUE')) {
+      return { ok: false, status: 409, error: 'an active challenge for this answer already exists' };
+    }
+    throw e;
+  }
 
   await fanoutFiledNotifications(db, {
     challengeId: id,
@@ -466,6 +476,51 @@ async function promote(
     newAnswer,
     now,
   });
+
+  await supersedeSiblings(db, ch, now);
+}
+
+// The answer just flipped, so every other active challenge on this question
+// argues against a baseline that no longer exists. Archive them and tell
+// their proposers they may re-file against the new answer.
+async function supersedeSiblings(db: D1Database, promoted: Challenge, now: number): Promise<void> {
+  const { results: siblings } = await db
+    .prepare(
+      `SELECT * FROM answer_challenges
+         WHERE question_id = ? AND id != ? AND status IN ('open', 'contested')`
+    )
+    .bind(promoted.question_id, promoted.id)
+    .all<Challenge>();
+  if (siblings.length === 0) return;
+
+  const ops: ReturnType<D1Database['prepare']>[] = siblings.map((s) =>
+    db
+      .prepare(
+        `UPDATE answer_challenges
+           SET status = 'archived', resolved_at = ?, resolution_reason = 'auto:superseded'
+         WHERE id = ? AND status IN ('open', 'contested')`
+      )
+      .bind(now, s.id)
+  );
+  for (const s of siblings) {
+    ops.push(
+      db
+        .prepare(
+          `INSERT INTO notifications
+             (id, recipient, kind, question_id, challenge_id, actor_email, preview, created_at)
+           VALUES (?, ?, 'challenge_superseded', ?, ?, NULL, ?, ?)`
+        )
+        .bind(
+          uuid(),
+          s.proposer_email,
+          s.question_id,
+          s.id,
+          `本題答案已修正為 ${promoted.proposed_answer},你主張 ${s.proposed_answer} 的挑戰已失效,可重新發起`,
+          now
+        )
+    );
+  }
+  await db.batch(ops);
 }
 
 async function reject(
@@ -558,52 +613,55 @@ export type ChallengeWithCounts = Challenge & {
   proposer_name: string | null;
 };
 
-export async function getActiveChallenge(
+export async function getActiveChallenges(
   db: D1Database,
   questionId: string,
   meEmail: string,
   now: number = Date.now()
-): Promise<ChallengeWithCounts | null> {
-  // Take the most recent open/contested row; partial UNIQUE makes the
-  // count at most 1, but ORDER BY future-proofs us.
-  const ch = await db
+): Promise<ChallengeWithCounts[]> {
+  const { results } = await db
     .prepare(
       `SELECT * FROM answer_challenges
          WHERE question_id = ? AND status IN ('open','contested')
-         ORDER BY created_at DESC LIMIT 1`
+         ORDER BY created_at ASC`
     )
     .bind(questionId)
-    .first<Challenge>();
-  if (!ch) return null;
+    .all<Challenge>();
 
-  // Lazy-evaluate time-based transitions on read.
-  const decision = await recomputeAndMaybeResolve(db, ch.id, now);
-  if (decision.ok && decision.status !== 'open' && decision.status !== 'contested') {
-    return null; // it just resolved; caller will fetch resolved list separately
+  const out: ChallengeWithCounts[] = [];
+  for (const ch of results) {
+    // Lazy-evaluate time-based transitions on read. Note a promote here
+    // supersedes the remaining siblings; their recompute below then sees a
+    // terminal status and they drop out of the list naturally.
+    const decision = await recomputeAndMaybeResolve(db, ch.id, now);
+    if (!decision.ok || (decision.status !== 'open' && decision.status !== 'contested')) {
+      continue;
+    }
+
+    const counts = await loadCounts(db, ch.id);
+    const myVoteRow = await db
+      .prepare(
+        'SELECT vote FROM challenge_votes WHERE challenge_id = ? AND voter_email = ?'
+      )
+      .bind(ch.id, meEmail)
+      .first<{ vote: 'agree' | 'disagree' }>();
+    const proposer = await db
+      .prepare('SELECT display_name FROM users WHERE email = ?')
+      .bind(ch.proposer_email)
+      .first<{ display_name: string | null }>();
+
+    // Re-read the post-transition row so contested_at is current.
+    const fresh = (await loadChallenge(db, ch.id)) ?? ch;
+
+    out.push({
+      ...fresh,
+      agrees: counts.agrees,
+      disagrees: counts.disagrees,
+      my_vote: myVoteRow?.vote ?? null,
+      proposer_name: proposer?.display_name ?? null,
+    });
   }
-
-  const counts = await loadCounts(db, ch.id);
-  const myVoteRow = await db
-    .prepare(
-      'SELECT vote FROM challenge_votes WHERE challenge_id = ? AND voter_email = ?'
-    )
-    .bind(ch.id, meEmail)
-    .first<{ vote: 'agree' | 'disagree' }>();
-  const proposer = await db
-    .prepare('SELECT display_name FROM users WHERE email = ?')
-    .bind(ch.proposer_email)
-    .first<{ display_name: string | null }>();
-
-  // Re-read the post-transition row so contested_at is current.
-  const fresh = (await loadChallenge(db, ch.id)) ?? ch;
-
-  return {
-    ...fresh,
-    agrees: counts.agrees,
-    disagrees: counts.disagrees,
-    my_vote: myVoteRow?.vote ?? null,
-    proposer_name: proposer?.display_name ?? null,
-  };
+  return out;
 }
 
 export async function listChallengesForQuestion(

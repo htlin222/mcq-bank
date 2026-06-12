@@ -12,7 +12,8 @@ type Notification = {
     | 'edit'
     | 'challenge_filed'
     | 'challenge_promoted'
-    | 'challenge_rejected';
+    | 'challenge_rejected'
+    | 'challenge_superseded';
   question_id: string | null;
   challenge_id: string | null;
   actor_email: string | null;
@@ -35,6 +36,8 @@ function notificationLabel(n: Notification): string {
       return '本題答案已由社群修正';
     case 'challenge_rejected':
       return '挑戰未通過';
+    case 'challenge_superseded':
+      return '挑戰因答案修正而失效';
   }
 }
 
