@@ -97,38 +97,38 @@ export function Home() {
 
       {/* Countdown to exam — date and label come from /config.toml [exam]. */}
       <section className="mb-8">
-        <div className="bg-gradient-to-r from-accent/10 to-amber-50 border border-accent/30 rounded-lg p-5 sm:p-6 flex items-center gap-5">
-          <CalendarDays className="text-accent shrink-0" size={36} strokeWidth={1.5} />
-          <div className="flex-1">
-            <div className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400">
-              {config.exam.countdown_label}
-            </div>
-            {finished ? (
-              <div className="font-serif mt-0.5 text-2xl sm:text-3xl text-ink-700 dark:text-ink-200">
-                考試已開始 — 加油!
-              </div>
-            ) : (
-              <div className="font-serif mt-0.5 flex items-baseline gap-2 flex-wrap">
-                <span className={`text-4xl sm:text-5xl ${daysLeft <= 30 ? 'text-rose-700' : daysLeft <= 60 ? 'text-amber-700' : 'text-accent'}`}>
+        <div className="bg-gradient-to-r from-accent/10 to-amber-50 border border-accent/30 rounded-lg px-5 py-3 sm:px-6 flex items-baseline gap-x-3 gap-y-1 flex-wrap">
+          <CalendarDays className="text-accent shrink-0 self-center" size={22} strokeWidth={1.5} />
+          <span className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400">
+            {config.exam.countdown_label}
+          </span>
+          {finished ? (
+            <span className="font-serif text-xl sm:text-2xl text-ink-700 dark:text-ink-200">
+              考試已開始 — 加油!
+            </span>
+          ) : (
+            <>
+              <span className="font-serif flex items-baseline gap-2">
+                <span className={`text-3xl sm:text-4xl ${daysLeft <= 30 ? 'text-rose-700' : daysLeft <= 60 ? 'text-amber-700' : 'text-accent'}`}>
                   {daysLeft}
                 </span>
                 <span className="text-ink-600 dark:text-ink-300 text-base">天</span>
-                <span
-                  className="font-mono tabular-nums text-ink-600 dark:text-ink-300 text-sm sm:text-base ml-1"
-                  aria-live="polite"
-                >
-                  {String(countdown.hours).padStart(2, '0')}
-                  <span className="text-ink-400 dark:text-ink-500">:</span>
-                  {String(countdown.minutes).padStart(2, '0')}
-                  <span className="text-ink-400 dark:text-ink-500">:</span>
-                  {String(countdown.seconds).padStart(2, '0')}
-                </span>
-                <span className="ml-2 text-ink-500 dark:text-ink-400 text-xs sm:text-sm">
-                  · {config.exam.date_label}
-                </span>
-              </div>
-            )}
-          </div>
+              </span>
+              <span
+                className="font-mono tabular-nums text-ink-600 dark:text-ink-300 text-sm sm:text-base"
+                aria-live="polite"
+              >
+                {String(countdown.hours).padStart(2, '0')}
+                <span className="text-ink-400 dark:text-ink-500">:</span>
+                {String(countdown.minutes).padStart(2, '0')}
+                <span className="text-ink-400 dark:text-ink-500">:</span>
+                {String(countdown.seconds).padStart(2, '0')}
+              </span>
+              <span className="text-ink-500 dark:text-ink-400 text-xs sm:text-sm">
+                · {config.exam.date_label}
+              </span>
+            </>
+          )}
         </div>
       </section>
 
