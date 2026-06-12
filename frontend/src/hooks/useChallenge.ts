@@ -114,5 +114,15 @@ export function useChallenge(questionId: string | null | undefined) {
     [refresh],
   );
 
-  return { active, recent, refresh, file, vote, retract, withdraw };
+  const editRationale = useCallback(
+    async (challengeId: string, rationaleJson: unknown) => {
+      await api.patch(`/api/challenges/${challengeId}/rationale`, {
+        rationale_json: rationaleJson,
+      });
+      await refresh();
+    },
+    [refresh],
+  );
+
+  return { active, recent, refresh, file, vote, retract, withdraw, editRationale };
 }

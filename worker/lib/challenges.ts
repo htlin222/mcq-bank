@@ -316,6 +316,36 @@ export async function withdrawChallenge(
 }
 
 // ──────────────────────────────────────────────────────────────
+// Public: editRationale — proposer may revise the rationale while the
+// challenge is still active. Votes are NOT reset; for a small study group
+// the social cost of re-voting outweighs the staleness risk.
+// ──────────────────────────────────────────────────────────────
+
+export async function editChallengeRationale(
+  db: D1Database,
+  email: string,
+  challengeId: string,
+  rationaleJson: unknown
+): Promise<CastVoteResult> {
+  const ch = await loadChallenge(db, challengeId);
+  if (!ch) return { ok: false, status: 404, error: 'challenge not found' };
+  if (ch.proposer_email !== email) {
+    return { ok: false, status: 403, error: 'only the proposer can edit the rationale' };
+  }
+  if (ch.status !== 'open' && ch.status !== 'contested') {
+    return { ok: false, status: 409, error: `challenge is already ${ch.status}` };
+  }
+  await db
+    .prepare(
+      `UPDATE answer_challenges SET rationale_json = ?
+       WHERE id = ? AND status IN ('open', 'contested')`
+    )
+    .bind(JSON.stringify(rationaleJson), challengeId)
+    .run();
+  return { ok: true, status: ch.status };
+}
+
+// ──────────────────────────────────────────────────────────────
 // Public: recomputeAndMaybeResolve — called after each vote insert/update/delete
 // and lazily on GETs of an active challenge.
 // ──────────────────────────────────────────────────────────────

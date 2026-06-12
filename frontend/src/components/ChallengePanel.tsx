@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, Check, X, MessageSquare } from 'lucide-react';
+import { AlertTriangle, Check, X, MessageSquare, Pencil } from 'lucide-react';
 import { ApiError } from '../lib/api';
 import { useChallenge, type ActiveChallenge, type ResolvedChallenge } from '../hooks/useChallenge';
 import { RichEditor } from './RichEditor';
@@ -18,7 +18,7 @@ type Props = {
 const RECENT_PILL_MS = 30 * 24 * 60 * 60 * 1000; // 30d
 
 export function ChallengePanel({ questionId, currentAnswer, availableLetters, meEmail }: Props) {
-  const { active, recent, file, vote, retract, withdraw, refresh } = useChallenge(questionId);
+  const { active, recent, file, vote, retract, withdraw, editRationale, refresh } = useChallenge(questionId);
   const [filing, setFiling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +54,7 @@ export function ChallengePanel({ questionId, currentAnswer, availableLetters, me
           onVote={(v) => doWith(() => vote(ch.id, v))}
           onRetract={() => doWith(() => retract(ch.id))}
           onWithdraw={() => doWith(() => withdraw(ch.id))}
+          onEditRationale={(doc) => editRationale(ch.id, doc)}
         />
       ))}
 
@@ -124,16 +125,21 @@ function ActiveBanner({
   onVote,
   onRetract,
   onWithdraw,
+  onEditRationale,
 }: {
   challenge: ActiveChallenge;
   meEmail: string | null;
   onVote: (vote: 'agree' | 'disagree') => void | Promise<void>;
   onRetract: () => void | Promise<void>;
   onWithdraw: () => void | Promise<void>;
+  onEditRationale: (doc: unknown) => Promise<void>;
 }) {
   // Expanded by default; collapsible to save vertical space when several
   // challenges are active at once.
   const [showRationale, setShowRationale] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<unknown>(null);
+  const [saving, setSaving] = useState(false);
   const isProposer = meEmail !== null && meEmail === challenge.proposer_email;
   const proposerLabel =
     challenge.proposer_name && challenge.proposer_name.trim().length > 0
@@ -215,15 +221,62 @@ function ActiveBanner({
             撤回挑戰
           </button>
         )}
-        <button
-          onClick={() => setShowRationale((v) => !v)}
-          className="ml-auto text-xs text-ink-600 dark:text-ink-300 hover:text-accent inline-flex items-center gap-1"
-        >
-          <MessageSquare size={12} /> {showRationale ? '收起理由' : '查看挑戰理由'}
-        </button>
+        <span className="ml-auto inline-flex items-center gap-3">
+          {isProposer && !editing && (
+            <button
+              onClick={() => {
+                setDraft(rationaleDoc ?? EMPTY_DOC);
+                setEditing(true);
+                setShowRationale(true);
+              }}
+              className="text-xs text-ink-600 dark:text-ink-300 hover:text-accent inline-flex items-center gap-1"
+            >
+              <Pencil size={12} /> 編輯理由
+            </button>
+          )}
+          <button
+            onClick={() => setShowRationale((v) => !v)}
+            className="text-xs text-ink-600 dark:text-ink-300 hover:text-accent inline-flex items-center gap-1"
+          >
+            <MessageSquare size={12} /> {showRationale ? '收起理由' : '查看挑戰理由'}
+          </button>
+        </span>
       </div>
 
-      {showRationale && !!rationaleDoc && (
+      {showRationale && editing && (
+        <div className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-700/60">
+          <RichEditor content={draft} onChange={setDraft} autofocus />
+          <div className="mt-2 flex gap-3 justify-end">
+            <button
+              onClick={() => setEditing(false)}
+              disabled={saving}
+              className="px-3 py-1.5 text-xs text-ink-600 hover:text-ink-900 dark:text-ink-300 dark:hover:text-ink-100"
+            >
+              取消
+            </button>
+            <button
+              onClick={async () => {
+                if (saving) return;
+                setSaving(true);
+                try {
+                  await onEditRationale(draft);
+                  setEditing(false);
+                } catch (e) {
+                  alert('儲存失敗:' + String(e instanceof ApiError ? e.data?.error ?? e.message : e));
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={saving}
+              className="bg-accent hover:bg-accent-dark text-white px-4 py-1.5 text-xs rounded font-medium disabled:opacity-40"
+            >
+              {saving ? '儲存中…' : '儲存理由'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showRationale && !editing && !!rationaleDoc && (
         <article className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-700/60 prose-tight">
           <ReadOnlyContent content={rationaleDoc} />
         </article>

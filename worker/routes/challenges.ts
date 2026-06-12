@@ -5,6 +5,7 @@ import {
   castVote,
   retractVote,
   withdrawChallenge,
+  editChallengeRationale,
   getActiveChallenges,
   listChallengesForQuestion,
   listRecentChallenges,
@@ -71,6 +72,18 @@ challengesRoutes.post('/:cid/votes', async (c) => {
 challengesRoutes.delete('/:cid/votes', async (c) => {
   const cid = c.req.param('cid');
   const result = await retractVote(c.env.DB, c.var.email, cid);
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json({ ok: true, status: result.status });
+});
+
+// Proposer revises the rationale while the challenge is still active.
+challengesRoutes.patch('/:cid/rationale', async (c) => {
+  const cid = c.req.param('cid');
+  const body = await c.req.json<{ rationale_json: unknown }>();
+  if (body.rationale_json == null) {
+    return c.json({ error: 'rationale_json is required' }, 400);
+  }
+  const result = await editChallengeRationale(c.env.DB, c.var.email, cid, body.rationale_json);
   if (!result.ok) return c.json({ error: result.error }, result.status);
   return c.json({ ok: true, status: result.status });
 });
