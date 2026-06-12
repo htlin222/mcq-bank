@@ -83,6 +83,9 @@ importers:
       react:
         specifier: ^18.3.1
         version: 18.3.1
+      react-animals:
+        specifier: ^0.0.82
+        version: 0.0.82(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
@@ -1548,6 +1551,12 @@ packages:
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+
+  react-animals@0.0.82:
+    resolution: {integrity: sha512-kxuRHOqt1Y+uA1ecuPR0fJhA7o4XXc/rz1rC+dcS1lYC+OkDC+/LrGn5+ixz5IjrImYKAFpni7kNWJ2w45OUiQ==}
+    peerDependencies:
+      react: ^16.13.1
+      react-dom: ^16.13.1
 
   react-dom@18.3.1:
     resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
@@ -3127,6 +3136,11 @@ snapshots:
   punycode.js@2.3.1: {}
 
   queue-microtask@1.2.3: {}
+
+  react-animals@0.0.82(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   react-dom@18.3.1(react@18.3.1):
     dependencies:
