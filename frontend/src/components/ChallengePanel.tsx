@@ -15,25 +15,17 @@ type Props = {
   meEmail: string | null;
 };
 
-const RECENT_PILL_MS = 30 * 24 * 60 * 60 * 1000; // 30d
-
 export function ChallengePanel({ questionId, currentAnswer, availableLetters, meEmail }: Props) {
   const { active, recent, file, vote, retract, withdraw, editRationale, refresh } = useChallenge(questionId);
   const [filing, setFiling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Most recent promoted challenge in the last 30d, for the "recently corrected" pill.
-  const recentPromotion = useMemo<ResolvedChallenge | null>(() => {
-    const now = Date.now();
-    return (
-      recent.find(
-        (c) =>
-          c.status === 'promoted' &&
-          c.resolved_at !== null &&
-          now - (c.resolved_at as number) < RECENT_PILL_MS,
-      ) ?? null
-    );
-  }, [recent]);
+  // Most recent promoted challenge — shown permanently so the community
+  // correction (and its rationale) stays visible on the question.
+  const recentPromotion = useMemo<ResolvedChallenge | null>(
+    () => recent.find((c) => c.status === 'promoted') ?? null,
+    [recent],
+  );
 
   if (active === undefined) {
     // Loading — render nothing to avoid layout flicker. Reviewed below the
