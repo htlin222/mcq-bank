@@ -316,15 +316,44 @@ function VoteButton({
 // ──────────────────────────────────────────────────────────────
 
 function RecentPromotionPill({ challenge }: { challenge: ResolvedChallenge }) {
+  // The promotion rationale stays readable after the flip — expanded by
+  // default, collapsible to save space.
+  const [showRationale, setShowRationale] = useState(true);
   const when = challenge.resolved_at
     ? new Date(challenge.resolved_at).toLocaleDateString('zh-TW')
     : '';
+
+  let rationaleDoc: unknown = null;
+  try {
+    rationaleDoc = JSON.parse(challenge.rationale_json);
+  } catch {
+    rationaleDoc = null;
+  }
+
   return (
-    <div className="inline-flex items-center gap-2 px-3 py-1.5 text-xs rounded bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-200">
-      ✏️ {when} 由社群修正:
-      <span className="font-mono">{challenge.original_answer_at_challenge}</span>
-      →
-      <span className="font-mono font-semibold">{challenge.proposed_answer}</span>
+    <div className="rounded-lg px-4 py-3 text-xs bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-200">
+      <div className="flex items-center gap-2 flex-wrap">
+        ✏️ {when} 由社群修正:
+        <span className="font-mono">{challenge.original_answer_at_challenge}</span>
+        →
+        <span className="font-mono font-semibold">{challenge.proposed_answer}</span>
+        <span className="text-emerald-700/70 dark:text-emerald-300/70">
+          (由 {challenge.proposer_email.split('@')[0]} 發起)
+        </span>
+        {!!rationaleDoc && (
+          <button
+            onClick={() => setShowRationale((v) => !v)}
+            className="ml-auto inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-emerald-100"
+          >
+            <MessageSquare size={12} /> {showRationale ? '收起理由' : '查看修正理由'}
+          </button>
+        )}
+      </div>
+      {showRationale && !!rationaleDoc && (
+        <article className="mt-2.5 pt-2.5 border-t border-emerald-200 dark:border-emerald-700/60 prose-tight text-ink-800 dark:text-ink-200">
+          <ReadOnlyContent content={rationaleDoc} />
+        </article>
+      )}
     </div>
   );
 }
