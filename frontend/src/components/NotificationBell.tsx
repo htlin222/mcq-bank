@@ -22,6 +22,15 @@ type Notification = {
   created_at: number;
 };
 
+// Question ids encode year+number ("114-020") — render as a human label so
+// the notification says WHICH question it's about.
+function questionRefLabel(qid: string | null): string | null {
+  if (!qid) return null;
+  const m = /^(\d+)-(\d+)$/.exec(qid);
+  if (!m) return null;
+  return `${m[1]} 年第 ${parseInt(m[2], 10)} 題`;
+}
+
 function notificationLabel(n: Notification): string {
   switch (n.kind) {
     case 'mention':
@@ -141,7 +150,17 @@ export function NotificationBell() {
                     {notificationLabel(n)}
                   </div>
                   <div className="text-xs text-ink-500 dark:text-ink-400 mt-1 line-clamp-2">
-                    {n.preview}
+                    {questionRefLabel(n.question_id) ? (
+                      <>
+                        <span className="font-medium text-ink-700 dark:text-ink-300">
+                          {questionRefLabel(n.question_id)}
+                        </span>
+                        {' · '}
+                        {n.preview}
+                      </>
+                    ) : (
+                      n.preview
+                    )}
                   </div>
                   <time className="text-[11px] text-ink-400 dark:text-ink-500 mt-1 block">
                     {new Date(n.created_at).toLocaleString('zh-TW')}
