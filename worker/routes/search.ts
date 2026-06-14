@@ -87,7 +87,10 @@ searchRoutes.get('/', async (c) => {
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
     return c.json({ items: results, q });
   } catch (e) {
-    return c.json({ error: 'search failed', detail: String(e), q }, 400);
+    // Usually FTS5 syntax the user typed; log the specifics, keep the
+    // response generic so SQL/schema detail never reaches the client.
+    console.warn('search failed:', String(e));
+    return c.json({ error: 'search failed', q }, 400);
   }
 });
 

@@ -58,10 +58,10 @@ feedbackRoutes.post('/', async (c) => {
 
   if (!ghRes.ok) {
     const detail = await ghRes.text().catch(() => '');
-    return c.json(
-      { error: 'github rejected', status: ghRes.status, detail: detail.slice(0, 500) },
-      502,
-    );
+    // GitHub's error body can reveal token/scope/rate-limit state — log it
+    // for triage, return only the status code to the client.
+    console.error(`feedback: github rejected (${ghRes.status})`, detail.slice(0, 500));
+    return c.json({ error: 'github rejected', status: ghRes.status }, 502);
   }
 
   const issue = (await ghRes.json()) as { html_url?: string; number?: number };

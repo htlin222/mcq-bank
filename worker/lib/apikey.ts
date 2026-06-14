@@ -92,10 +92,14 @@ export const apiKeyMiddleware: MiddlewareHandler<AppContext> = async (c, next) =
   )
     .bind(email)
     .first<{ mcq_key_version: number }>();
-  if (!row) return c.json({ error: 'email not in allowlist' }, 403);
 
-  const expected = await deriveMcqKey(secret, email, row.mcq_key_version);
-  if (!(await safeEqual(presented, expected))) {
+  // Unknown email and bad key must be indistinguishable: this path is
+  // Access-bypassed (public), so a distinct 403 would let anyone enumerate
+  // roster membership. Versions start at 1, so deriving with 0 for unknown
+  // emails can never match a minted key, and the HMAC + compare still run
+  // to keep timing uniform.
+  const expected = await deriveMcqKey(secret, email, row?.mcq_key_version ?? 0);
+  if (!row || !(await safeEqual(presented, expected))) {
     return c.json({ error: 'unauthorized' }, 401);
   }
 

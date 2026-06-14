@@ -20,6 +20,9 @@ imagesRoutes.get('/:key{.+}', async (c) => {
       'Content-Type': obj.httpMetadata?.contentType || 'application/octet-stream',
       'Content-Length': String(obj.size),
       'Cache-Control': 'private, max-age=86400',
+      // Stored content type is client-declared at upload; forbid sniffing
+      // past it so a non-image disguised as one is never executed.
+      'X-Content-Type-Options': 'nosniff',
       ETag: obj.httpEtag,
     },
   });

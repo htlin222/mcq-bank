@@ -1,0 +1,18 @@
+# Cloudflare Pages response headers (applies to Pages-served assets only;
+# Worker routes /api, /img, /pdf set their own headers in worker/).
+#
+# CSP allowances, each load-bearing — verify before tightening:
+#   style-src 'unsafe-inline'        React/TipTap set style attributes
+#   fonts.googleapis / fonts.gstatic  webfonts in index.html
+#   script-src 'wasm-unsafe-eval'     pdfium WASM (EmbedPDF lecture reader)
+#   worker-src blob:                  EmbedPDF engine worker
+#   connect-src cdn.jsdelivr.net      pdfium.wasm + CJK font packs at runtime
+#   img-src data: blob:               TipTap pasted images, PDF tile rendering
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'

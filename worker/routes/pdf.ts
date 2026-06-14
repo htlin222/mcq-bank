@@ -63,6 +63,7 @@ pdfRoutes.get('/:key{.+}', async (c) => {
           'Content-Range': `bytes ${start}-${end}/${total}`,
           'Accept-Ranges': 'bytes',
           'Cache-Control': 'private, max-age=86400',
+          'X-Content-Type-Options': 'nosniff',
           ETag: obj.httpEtag,
         },
       });
@@ -79,6 +80,7 @@ pdfRoutes.get('/:key{.+}', async (c) => {
       'Content-Length': String(obj.size),
       'Accept-Ranges': 'bytes',
       'Cache-Control': 'private, max-age=86400',
+      'X-Content-Type-Options': 'nosniff',
       ETag: obj.httpEtag,
     },
   });

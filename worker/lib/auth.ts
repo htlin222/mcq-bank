@@ -74,7 +74,10 @@ export async function authMiddleware(c: Context<AppContext>, next: Next) {
     await upsertUser(c.env.DB, email);
     return next();
   } catch (err) {
-    return c.json({ error: 'invalid token', detail: String(err) }, 401);
+    // Verification failure detail (issuer/audience/expiry mismatch) goes to
+    // the log only — it describes our Access config to whoever sent the token.
+    console.warn('access jwt rejected:', String(err));
+    return c.json({ error: 'invalid token' }, 401);
   }
 }
 

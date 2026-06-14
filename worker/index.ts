@@ -31,11 +31,24 @@ const app = new Hono<AppContext>();
 app.use('*', logger());
 
 // CORS — Pages and Worker share the same origin in production behind Access,
-// but local dev runs Pages on :5173 and Worker on :8787.
+// but local dev runs Pages on :5173 and Worker on :8787. Allowlist instead of
+// reflecting: with `credentials: true`, reflecting any Origin would let an
+// arbitrary website ride the CF_Authorization cookie if it is ever sent
+// cross-site (e.g. an Access SameSite config change).
 app.use(
   '*',
   cors({
-    origin: (origin) => origin, // reflect (acceptable since Access gates upstream)
+    origin: (origin, c) => {
+      if (!origin) return origin;
+      if (origin === new URL(c.req.url).origin) return origin;
+      try {
+        const { hostname } = new URL(origin);
+        if (hostname === 'localhost' || hostname === '127.0.0.1') return origin;
+      } catch {
+        // fall through — malformed Origin is not allowed
+      }
+      return null;
+    },
     credentials: true,
     allowHeaders: ['Content-Type', 'X-Dev-Email', 'X-Lock-Token'],
   })
@@ -78,8 +91,9 @@ app.route('/api/lectures', lectureRoutes);
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 
 app.onError((err, c) => {
-  console.error('unhandled', err);
-  return c.json({ error: 'internal error', detail: String(err) }, 500);
+  // Detail goes to the log (`wrangler tail`), never to the client.
+  console.error('unhandled', c.req.method, c.req.path, err);
+  return c.json({ error: 'internal error' }, 500);
 });
 
 export default {
