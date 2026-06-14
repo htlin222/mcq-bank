@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import {
 	ChevronLeft,
@@ -22,6 +22,17 @@ import { ReadOnlyContent } from "../components/ReadOnlyContent";
 import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
+
+// Resizable two-pane split (≥lg). `splitPct` is the left pane's share of the
+// row width; the rest goes to the right pane. Persisted as a UI layout pref.
+const SPLIT_MIN = 28;
+const SPLIT_MAX = 72;
+const SPLIT_DEFAULT = 42; // ≈ the previous fixed 5fr / 7fr ratio
+const SPLIT_KEY = "review-split-pct";
+
+function clampSplit(p: number) {
+	return Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, p));
+}
 
 type Tab = "explanation" | "note" | "discussion";
 
@@ -51,6 +62,62 @@ export function Question() {
 	const { state: lockState, acquire, release } = useLock(id || "");
 
 	const [tab, setTab] = useState<Tab>("explanation");
+
+	// Desktop two-pane split ratio (left pane %). Persisted as a UI layout pref.
+	const splitRowRef = useRef<HTMLDivElement>(null);
+	const [splitPct, setSplitPct] = useState<number>(() => {
+		const raw =
+			typeof localStorage !== "undefined"
+				? localStorage.getItem(SPLIT_KEY)
+				: null;
+		const n = raw ? Number(raw) : NaN;
+		return Number.isFinite(n) ? clampSplit(n) : SPLIT_DEFAULT;
+	});
+
+	useEffect(() => {
+		try {
+			localStorage.setItem(SPLIT_KEY, String(splitPct));
+		} catch {
+			/* ignore quota/availability errors */
+		}
+	}, [splitPct]);
+
+	// Drag the middle handle to repan the split. We map the pointer's x within
+	// the row to a left-pane percentage so the divide tracks the cursor exactly.
+	const onSplitResizeStart = useCallback(
+		(e: React.PointerEvent<HTMLDivElement>) => {
+			e.preventDefault();
+			const row = splitRowRef.current;
+			if (!row) return;
+			const handle = e.currentTarget;
+			handle.setPointerCapture(e.pointerId);
+			document.body.style.userSelect = "none";
+			document.body.style.cursor = "col-resize";
+
+			const onMove = (ev: PointerEvent) => {
+				const rect = row.getBoundingClientRect();
+				if (rect.width === 0) return;
+				const pct = ((ev.clientX - rect.left) / rect.width) * 100;
+				setSplitPct(clampSplit(pct));
+			};
+			const onUp = (ev: PointerEvent) => {
+				handle.releasePointerCapture?.(ev.pointerId);
+				handle.removeEventListener("pointermove", onMove);
+				handle.removeEventListener("pointerup", onUp);
+				handle.removeEventListener("pointercancel", onUp);
+				document.body.style.userSelect = "";
+				document.body.style.cursor = "";
+			};
+			handle.addEventListener("pointermove", onMove);
+			handle.addEventListener("pointerup", onUp);
+			handle.addEventListener("pointercancel", onUp);
+		},
+		[],
+	);
+
+	// Double-click the handle to reset the split to the default ratio.
+	const onSplitResetSplit = useCallback(() => setSplitPct(SPLIT_DEFAULT), []);
+
 	const [editing, setEditing] = useState(false);
 	const [draft, setDraft] = useState<any>(null);
 	const [saving, setSaving] = useState(false);
@@ -377,13 +444,19 @@ export function Question() {
 			</header>
 
 			{/* Two-column on wide screens (≥lg): question left, everything else right.
-			    Collapses to a single stacked column below lg. On lg+ the grid is
-			    pinned to the remaining viewport height and each pane is its own
-			    scroll container, so the two sides scroll fully independently —
-			    the page itself no longer scrolls. */}
-			<div className="lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8 lg:h-[calc(100vh-9.5rem)]">
+			    Collapses to a single stacked column below lg. On lg+ this is a flex
+			    row pinned to the remaining viewport height; each pane is its own
+			    scroll container, so the two sides scroll fully independently — the
+			    page itself no longer scrolls. The middle handle drags the split. */}
+			<div
+				ref={splitRowRef}
+				className="lg:flex lg:h-[calc(100vh-9.5rem)]"
+			>
 			{/* Left: question stem / options / answer */}
-			<div className="lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8">
+			<div
+				className="lg:h-full lg:min-w-0 lg:shrink-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8"
+				style={{ flexBasis: `${splitPct}%` }}
+			>
 			<QuestionCard
 				key={data.id}
 				question={data}
@@ -392,13 +465,26 @@ export function Question() {
 			/>
 			</div>
 
+			{/* Drag handle (desktop only). Drag to repan the split; double-click to
+			    reset to the default ratio. */}
+			<div
+				onPointerDown={onSplitResizeStart}
+				onDoubleClick={onSplitResetSplit}
+				role="separator"
+				aria-orientation="vertical"
+				aria-label="調整左右欄寬度（雙擊還原）"
+				className="group hidden shrink-0 cursor-col-resize select-none items-stretch justify-center lg:flex lg:w-6"
+			>
+				<div className="w-1 rounded-full bg-ink-200 transition-colors group-hover:bg-accent dark:bg-ink-700" />
+			</div>
+
 			{/* Right: 詳解共筆 / 個人筆記 tabs → 相似題目 → 被引用 → 討論 */}
-			<div className="mt-8 lg:mt-0 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8">
+			<div className="mt-8 lg:mt-0 lg:h-full lg:min-w-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8">
 
 			{/* 詳解 / 個人筆記 tabs */}
 			<section className="mt-0">
 				<div className="flex items-center justify-between mb-3 gap-3">
-					<div className="inline-flex border-b border-ink-200 dark:border-ink-700">
+					<div className="flex flex-wrap border-b border-ink-200 dark:border-ink-700">
 						<TabButton
 							active={tab === "explanation"}
 							onClick={() => setTab("explanation")}
@@ -971,7 +1057,7 @@ function TabButton({
 		<button
 			onClick={onClick}
 			className={
-				"px-4 py-2 -mb-px border-b-2 font-serif text-base transition " +
+				"px-4 py-2 -mb-px border-b-2 font-serif text-base whitespace-nowrap transition " +
 				(active
 					? "border-accent text-ink-900 dark:text-ink-100"
 					: "border-transparent text-ink-500 hover:text-ink-700 dark:hover:text-ink-300") +
