@@ -365,27 +365,6 @@ aiRoutes.post("/suggest-tags", async (c) => {
 	return c.json(parsed);
 });
 
-// AI-assisted explanation expansion (called from TipTap toolbar)
-aiRoutes.post("/expand", async (c) => {
-	const body = await c.req.json<{ context: string; instruction?: string }>();
-
-	const out = await c.env.AI.run(TEXT_MODEL, {
-		messages: [
-			{
-				role: "system",
-				content:
-					"你是醫學考題詳解協作助手。根據使用者提供的草稿,擴充或改寫成更完整的詳解。保留 markdown 格式。用繁體中文。直接給內容,不要客套。",
-			},
-			{
-				role: "user",
-				content: `指示:${body.instruction || "請擴充這段詳解"}\n\n草稿:\n${body.context.slice(0, 4000)}`,
-			},
-		],
-	});
-
-	return c.json({ text: (out as any).response });
-});
-
 // Convert text to Traditional Chinese (Taiwan), preserving medical terminology.
 // Used to "rescue" 詳解 that contains 簡體 or English passages.
 aiRoutes.post("/translate-zh-tw", async (c) => {

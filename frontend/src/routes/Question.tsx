@@ -5,10 +5,8 @@ import {
 	ChevronRight,
 	Pencil,
 	LinkIcon,
-	Sparkles,
 	Search as SearchIcon,
 	Eye,
-	X as XIcon,
 	ExternalLink,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
@@ -45,15 +43,6 @@ type SimilarItem = {
 	shared_tags: number;
 	source: "tag" | "fts";
 };
-
-type AiKind = "summary" | "translate" | "qa";
-type AiQaItem = {
-	question: string;
-	answer: string[];
-};
-type AiOutput =
-	| { kind: "summary" | "translate"; text: string; version: number }
-	| { kind: "qa"; items: AiQaItem[]; version: number };
 
 export function Question() {
 	const { id } = useParams<{ id: string }>();
@@ -138,16 +127,6 @@ export function Question() {
 	const [noteSaving, setNoteSaving] = useState(false);
 	const [noteError, setNoteError] = useState<string | null>(null);
 
-	// AI panel — one shared display for 摘要 / 翻譯 / 生成問答.
-	// `version` is the explanation version snapshot so we can invalidate
-	// stale output when the explanation moves forward.
-	const [aiOutput, setAiOutput] = useState<AiOutput | null>(null);
-	const [aiLoading, setAiLoading] = useState<AiKind | null>(null);
-	const [aiError, setAiError] = useState<{
-		kind: AiKind;
-		message: string;
-	} | null>(null);
-
 	const explanationJson = useMemo(() => {
 		if (!data?.explanation?.content_json) return null;
 		try {
@@ -165,15 +144,6 @@ export function Question() {
 			return null;
 		}
 	}, [data?.my_note?.content_json]);
-
-	// Invalidate cached AI output when its source (explanation version) changes.
-	useEffect(() => {
-		const v = data?.explanation?.version ?? 0;
-		if (aiOutput && aiOutput.version !== v) {
-			setAiOutput(null);
-			setAiError(null);
-		}
-	}, [data?.explanation?.version, aiOutput]);
 
 	// Re-blur the 詳解 whenever the user navigates to a different question
 	// (prev/next, similar, back-refs, deep link). Same component instance, so
@@ -309,52 +279,6 @@ export function Question() {
 		setNoteEditing(false);
 		setNoteDraft(null);
 		setNoteError(null);
-	}
-
-	async function runAi(kind: AiKind) {
-		if (!data || aiLoading) return;
-		const version = data.explanation?.version ?? 0;
-		setAiLoading(kind);
-		setAiError(null);
-		try {
-			if (kind === "summary") {
-				if (!explanationJson) throw new Error("尚無詳解可摘要");
-				const plain = tiptapToText(explanationJson);
-				if (plain.length < 50) throw new Error("詳解內容太短,無法摘要。");
-				const r = await api.post<{ summary: string }>("/api/ai/summarize", {
-					text: plain,
-				});
-				setAiOutput({ kind, text: r.summary, version });
-			} else if (kind === "qa") {
-				if (!explanationJson) throw new Error("尚無詳解可生成問答");
-				const plain = tiptapToText(explanationJson);
-				if (plain.length < 80) throw new Error("詳解內容太短,無法生成問答。");
-				const r = await api.post<{ items: AiQaItem[] }>(
-					"/api/ai/generate-qa",
-					{
-						stem: data.stem,
-						options: data.options,
-						answer: data.answer,
-						tags: data.tags,
-						explanation: plain,
-					},
-				);
-				if (!r.items?.length) throw new Error("AI 未產生可用問答。");
-				setAiOutput({ kind, items: r.items, version });
-			} else {
-				if (!explanationJson) throw new Error("尚無詳解可翻譯");
-				const plain = tiptapToText(explanationJson);
-				if (plain.length < 2) throw new Error("詳解內容太短,無法翻譯。");
-				const r = await api.post<{ text: string }>("/api/ai/translate-zh-tw", {
-					text: plain,
-				});
-				setAiOutput({ kind, text: r.text, version });
-			}
-		} catch (e) {
-			setAiError({ kind, message: e instanceof Error ? e.message : String(e) });
-		} finally {
-			setAiLoading(null);
-		}
 	}
 
 	async function saveNote() {
@@ -513,36 +437,6 @@ export function Question() {
 					</div>
 					{tab === "explanation" && !editing && (
 						<div className="flex items-center gap-3 flex-wrap justify-end">
-							{hasExplanation && (
-								<AiActionButton
-									label="AI 摘要"
-									loadingLabel="摘要中…"
-									busy={aiLoading === "summary"}
-									disabled={!!aiLoading && aiLoading !== "summary"}
-									onClick={() => runAi("summary")}
-									title="用 AI 產生 2-3 句重點摘要"
-								/>
-							)}
-							{hasExplanation && (
-								<AiActionButton
-									label="AI 生成問答"
-									loadingLabel="生成中…"
-									busy={aiLoading === "qa"}
-									disabled={!!aiLoading && aiLoading !== "qa"}
-									onClick={() => runAi("qa")}
-									title="依題幹與詳解產生高價值複習問答"
-								/>
-							)}
-							{hasExplanation && (
-								<AiActionButton
-									label="AI 繁中翻譯"
-									loadingLabel="翻譯中…"
-									busy={aiLoading === "translate"}
-									disabled={!!aiLoading && aiLoading !== "translate"}
-									onClick={() => runAi("translate")}
-									title="把目前詳解轉成台灣繁體用語"
-								/>
-							)}
 							<a
 								href={buildOpenEvidenceUrl(data)}
 								target="_blank"
@@ -622,16 +516,6 @@ export function Question() {
 						</div>
 					) : hasExplanation ? (
 						<>
-							{(aiOutput || aiError) && (
-								<AiPanel
-									output={aiOutput}
-									error={aiError}
-									onClose={() => {
-										setAiOutput(null);
-										setAiError(null);
-									}}
-								/>
-							)}
 							<article className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
 								<div
 									className={
@@ -687,16 +571,6 @@ export function Question() {
 						</>
 					) : (
 						<>
-							{(aiOutput || aiError) && (
-								<AiPanel
-									output={aiOutput}
-									error={aiError}
-									onClose={() => {
-										setAiOutput(null);
-										setAiError(null);
-									}}
-								/>
-							)}
 							<div className="bg-ink-50 dark:bg-ink-800/60 border border-dashed border-ink-200 dark:border-ink-700 rounded-lg p-8 text-center">
 								<p className="text-ink-500 dark:text-ink-400 mb-3">
 									尚無詳解,你願意第一個寫嗎?
@@ -894,149 +768,6 @@ export function Question() {
 			</div>{/* /two-column grid */}
 		</div>
 	);
-}
-
-function AiActionButton({
-	label,
-	loadingLabel,
-	busy,
-	disabled,
-	onClick,
-	title,
-}: {
-	label: string;
-	loadingLabel: string;
-	busy: boolean;
-	disabled: boolean;
-	onClick: () => void;
-	title: string;
-}) {
-	return (
-		<button
-			onClick={onClick}
-			disabled={busy || disabled}
-			className="text-sm text-ink-500 dark:text-ink-400 hover:text-accent disabled:opacity-40 inline-flex items-center gap-1"
-			title={title}
-		>
-			<Sparkles size={14} />
-			{busy ? loadingLabel : label}
-		</button>
-	);
-}
-
-const AI_PANEL_HEADINGS: Record<AiKind, string> = {
-	summary: "AI 摘要 · 僅供快速回顧",
-	translate: "AI 繁中翻譯 · 機器轉換,請核對",
-	qa: "AI 生成問答 · 請核對後使用",
-};
-
-function AiPanel({
-	output,
-	error,
-	onClose,
-}: {
-	output: AiOutput | null;
-	error: { kind: AiKind; message: string } | null;
-	onClose: () => void;
-}) {
-	const kind = output?.kind ?? error?.kind ?? "summary";
-	return (
-		<aside className="mb-3 bg-amber-50/60 dark:bg-amber-900/10 border border-amber-200/70 dark:border-amber-800/40 rounded-lg p-4 text-sm">
-			<div className="flex items-start justify-between gap-3 mb-1">
-				<span className="inline-flex items-center gap-1 text-xs text-amber-800 dark:text-amber-300 font-medium tracking-wide">
-					<Sparkles size={12} /> {AI_PANEL_HEADINGS[kind]}
-				</span>
-				<button
-					onClick={onClose}
-					className="text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300"
-					aria-label="關閉 AI 面板"
-				>
-					<XIcon size={14} />
-				</button>
-			</div>
-			{error ? (
-				<p className="text-rose-700">{error.message}</p>
-			) : output?.kind === "qa" ? (
-				<ol className="mt-3 space-y-4">
-					{output.items.map((item, index) => (
-						<li
-							key={`${item.question}-${index}`}
-							className="grid grid-cols-[1.75rem_1fr] gap-3 border-t border-amber-200/60 dark:border-amber-800/40 pt-4 first:border-t-0 first:pt-0"
-						>
-							<span className="font-semibold tabular-nums text-ink-900 dark:text-ink-100">
-								{index + 1}.
-							</span>
-							<div className="min-w-0">
-								<h3 className="font-semibold leading-snug text-ink-900 dark:text-ink-100">
-									{item.question}
-								</h3>
-								<ul className="mt-2 space-y-1.5">
-									{item.answer.map((line, answerIndex) => (
-										<li
-											key={`${line}-${answerIndex}`}
-											className="grid grid-cols-[0.65rem_1fr] gap-2 leading-relaxed text-ink-800 dark:text-ink-200"
-										>
-											<span className="mt-[0.65em] h-1.5 w-1.5 rounded-full bg-ink-500 dark:bg-ink-400" />
-											<span>{line}</span>
-										</li>
-									))}
-								</ul>
-							</div>
-						</li>
-					))}
-				</ol>
-			) : output ? (
-				<p className="text-ink-800 dark:text-ink-200 whitespace-pre-wrap leading-relaxed">
-					{output.text}
-				</p>
-			) : null}
-		</aside>
-	);
-}
-
-// Flatten a TipTap doc to plain text — paragraphs joined by \n\n, headings prefixed
-// with #, list items with • / 1. We strip image and mention nodes; the AI doesn't
-// need them for these prompts and they only inflate the request.
-function tiptapToText(doc: any): string {
-	const parts: string[] = [];
-	function walkInline(node: any): string {
-		if (!node) return "";
-		if (node.type === "text") return node.text || "";
-		if (node.type === "mention")
-			return `@${node.attrs?.label || node.attrs?.id || ""}`;
-		if (node.type === "hardBreak") return "\n";
-		if (Array.isArray(node.content))
-			return node.content.map(walkInline).join("");
-		return "";
-	}
-	function walkBlock(node: any) {
-		if (!node || !node.type) return;
-		if (node.type === "paragraph" || node.type === "blockquote") {
-			const t = (node.content || []).map(walkInline).join("").trim();
-			if (t) parts.push(t);
-			return;
-		}
-		if (node.type === "heading") {
-			const t = (node.content || []).map(walkInline).join("").trim();
-			const level = node.attrs?.level ?? 1;
-			if (t) parts.push("#".repeat(level) + " " + t);
-			return;
-		}
-		if (node.type === "bulletList" || node.type === "orderedList") {
-			const ordered = node.type === "orderedList";
-			(node.content || []).forEach((li: any, i: number) => {
-				const t = (li.content || [])
-					.map((c: any) => walkInline(c))
-					.join("")
-					.trim();
-				if (t) parts.push((ordered ? `${i + 1}. ` : "• ") + t);
-			});
-			return;
-		}
-		if (Array.isArray(node.content)) node.content.forEach(walkBlock);
-	}
-	walkBlock(doc);
-	return parts.join("\n\n").slice(0, 4000);
 }
 
 function TabButton({

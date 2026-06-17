@@ -1,5 +1,5 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, type ReactNode } from 'react';
 import {
   Bold,
   Italic,
@@ -12,7 +12,6 @@ import {
   Quote,
   Code2,
   Image as ImageIcon,
-  Sparkles,
   Undo2,
   Redo2,
 } from 'lucide-react';
@@ -96,8 +95,6 @@ export function RichEditor({ content, onChange, placeholder, editable = true, au
 }
 
 function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: File) => void }) {
-  const [aiBusy, setAiBusy] = useState(false);
-
   const fileInput = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -108,41 +105,6 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
     };
     input.click();
   }, [onPickImage]);
-
-  const aiExpand = useCallback(async () => {
-    if (aiBusy) return;
-    const draft = editor.getText().trim();
-    if (draft.length < 5) {
-      alert('請先寫幾個字當作 AI 擴寫的草稿。');
-      return;
-    }
-    const instruction = window.prompt(
-      'AI 擴寫指示(可留空):',
-      '請擴充這段詳解,補上機制、臨床判讀、相關治療指引重點。',
-    );
-    if (instruction === null) return;
-    setAiBusy(true);
-    try {
-      const { text } = await api.post<{ text: string }>('/api/ai/expand', {
-        context: draft,
-        instruction: instruction.trim() || undefined,
-      });
-      if (!text) return;
-      const paragraphs = text
-        .split(/\n{2,}/)
-        .map((p) => p.trim())
-        .filter(Boolean);
-      const nodes = paragraphs.map((p) => ({
-        type: 'paragraph',
-        content: [{ type: 'text', text: p }],
-      }));
-      editor.chain().focus('end').insertContent(nodes).run();
-    } catch (e) {
-      alert('AI 擴寫失敗: ' + String(e));
-    } finally {
-      setAiBusy(false);
-    }
-  }, [aiBusy, editor]);
 
   return (
     <div className="editor-toolbar">
@@ -222,16 +184,6 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
       <IconBtn label="插入圖片" onClick={fileInput}>
         <ImageIcon size={15} />
       </IconBtn>
-      <button
-        type="button"
-        onClick={aiExpand}
-        disabled={aiBusy}
-        title="AI 擴寫(以目前內容為草稿)"
-        className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-sm text-accent hover:bg-accent/10 disabled:opacity-40 transition"
-      >
-        <Sparkles size={14} />
-        <span>{aiBusy ? '思考中…' : 'AI 擴寫'}</span>
-      </button>
       <span className="flex-1" />
       <IconBtn
         label="復原"
