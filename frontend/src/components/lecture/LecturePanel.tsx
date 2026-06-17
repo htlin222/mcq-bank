@@ -4,9 +4,13 @@
 //
 // Notes/annotations are per-user, so every row here is editable/deletable.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Trash2, X as XIcon } from "lucide-react";
+import { ExternalLink, Trash2, X as XIcon } from "lucide-react";
 import { RichEditor } from "../RichEditor";
 import { NotesSkeleton } from "../Skeleton";
+import {
+	buildOpenEvidenceUrlForNote,
+	tiptapDocToText,
+} from "../../lib/openevidence";
 import type { LectureNote, LectureAnnotation } from "../../lib/lectureApi";
 
 type Tab = "notes" | "annotations";
@@ -221,24 +225,45 @@ function PageNoteEditor({
 		};
 	}, []);
 
+	// Hand the current note text to OpenEvidence, prefixed with the teaching
+	// prompt. Uses the live draft so unsaved edits are included.
+	const noteText = tiptapDocToText(draft);
+	const openInOpenEvidence = useCallback(() => {
+		const text = tiptapDocToText(draft);
+		if (!text.trim()) return;
+		window.open(buildOpenEvidenceUrlForNote(text), "_blank", "noopener");
+	}, [draft]);
+
 	if (notesLoading && !loaded) {
 		return <NotesSkeleton />;
 	}
 
 	return (
 		<div>
-			<div className="mb-2 flex items-center justify-between">
-				<span className="inline-flex items-center gap-1 rounded bg-ink-100 px-1.5 py-0.5 text-[11px] text-ink-600 dark:bg-ink-700 dark:text-ink-300">
+			<div className="mb-2 flex items-center justify-between gap-2">
+				<span className="inline-flex shrink-0 items-center gap-1 rounded bg-ink-100 px-1.5 py-0.5 text-[11px] text-ink-600 dark:bg-ink-700 dark:text-ink-300">
 					📄 p.{pdfPage} 筆記
 				</span>
-				<span
-					className={
-						"text-[11px] text-ink-400 transition-opacity duration-500 dark:text-ink-500 " +
-						(status === "idle" ? "opacity-0" : "opacity-100")
-					}
-				>
-					{status === "saving" ? "儲存中…" : status === "saved" ? "已儲存" : ""}
-				</span>
+				<div className="flex min-w-0 items-center gap-2">
+					<span
+						className={
+							"text-[11px] text-ink-400 transition-opacity duration-500 dark:text-ink-500 " +
+							(status === "idle" ? "opacity-0" : "opacity-100")
+						}
+					>
+						{status === "saving" ? "儲存中…" : status === "saved" ? "已儲存" : ""}
+					</span>
+					<button
+						type="button"
+						onClick={openInOpenEvidence}
+						disabled={!noteText.trim()}
+						title="用 OpenEvidence 解析本頁筆記"
+						className="inline-flex shrink-0 items-center gap-1 rounded border border-ink-200 px-2 py-1 text-[11px] text-ink-600 transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 dark:border-ink-700 dark:text-ink-300 dark:hover:border-accent"
+					>
+						<ExternalLink size={12} />
+						OpenEvidence
+					</button>
+				</div>
 			</div>
 			<div onBlur={onBlur}>
 				<RichEditor

@@ -31,3 +31,58 @@ export function buildOpenEvidenceUrlFromText(text: string): string {
 	url.searchParams.set("configName", "prod");
 	return url.toString();
 }
+
+// Instruction prepended to a lecture note before handing it to OpenEvidence, so
+// the reply is framed as an exam-oriented teaching breakdown rather than a raw
+// echo of the note.
+export const NOTE_OE_PROMPT =
+	"請閱讀以下筆記內容，解析一下背景、理由、應用、實務面的考量、專科考試的出題熱區整理，多使用條列重點及表格";
+
+// Build an OpenEvidence query from a lecture-page note: the teaching prompt at
+// the head, then the note text. The prompt is always preserved; only the note
+// body is truncated to stay within the URL budget.
+export function buildOpenEvidenceUrlForNote(noteText: string): string {
+	const body = noteText.trim().slice(0, 4000);
+	const query = `${NOTE_OE_PROMPT}\n\n${body}`;
+	const url = new URL("https://www.openevidence.com/ask");
+	url.searchParams.set("query", query);
+	url.searchParams.set("configName", "prod");
+	return url.toString();
+}
+
+// Flatten a TipTap/ProseMirror doc to plain text: text nodes joined, block-level
+// nodes separated by blank lines, mention nodes rendered as their label/id.
+export function tiptapDocToText(doc: any): string {
+	const blocks: string[] = [];
+	function inline(node: any): string {
+		if (!node) return "";
+		if (node.type === "text") return node.text ?? "";
+		if (node.type === "mention") {
+			const a = node.attrs ?? {};
+			const label = a.label ?? a.id ?? a.qid ?? "";
+			return label ? `@${label}` : "";
+		}
+		if (Array.isArray(node.content)) return node.content.map(inline).join("");
+		return "";
+	}
+	function walk(node: any) {
+		if (!node) return;
+		const t = node.type;
+		if (t === "paragraph" || t === "heading") {
+			blocks.push(node.content ? node.content.map(inline).join("") : "");
+			return;
+		}
+		if (t === "listItem" || t === "blockquote") {
+			const text = (node.content ?? []).map(inline).join("");
+			if (text.trim()) blocks.push(text);
+			else (node.content ?? []).forEach(walk);
+			return;
+		}
+		if (Array.isArray(node.content)) node.content.forEach(walk);
+	}
+	walk(doc);
+	return blocks
+		.map((b) => b.trim())
+		.filter(Boolean)
+		.join("\n\n");
+}
