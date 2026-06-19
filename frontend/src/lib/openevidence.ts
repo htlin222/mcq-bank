@@ -40,10 +40,15 @@ export const NOTE_OE_PROMPT =
 
 // Build an OpenEvidence query from a lecture-page note: the teaching prompt at
 // the head, then the note text. The prompt is always preserved; only the note
-// body is truncated to stay within the URL budget.
-export function buildOpenEvidenceUrlForNote(noteText: string): string {
+// body is truncated to stay within the URL budget. Pass a custom `prompt` to
+// override the default teaching instruction (e.g. from the edit-prompt popup).
+export function buildOpenEvidenceUrlForNote(
+	noteText: string,
+	prompt: string = NOTE_OE_PROMPT,
+): string {
 	const body = noteText.trim().slice(0, 4000);
-	const query = `${NOTE_OE_PROMPT}\n\n${body}`;
+	const head = prompt.trim() || NOTE_OE_PROMPT;
+	const query = `${head}\n\n${body}`;
 	const url = new URL("https://www.openevidence.com/ask");
 	url.searchParams.set("query", query);
 	url.searchParams.set("configName", "prod");

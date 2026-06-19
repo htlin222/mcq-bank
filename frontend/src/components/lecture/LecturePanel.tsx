@@ -4,11 +4,13 @@
 //
 // Notes/annotations are per-user, so every row here is editable/deletable.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ExternalLink, Trash2, X as XIcon } from "lucide-react";
+import { createPortal } from "react-dom";
+import { ExternalLink, SquarePen, Trash2, X as XIcon } from "lucide-react";
 import { RichEditor } from "../RichEditor";
 import { NotesSkeleton } from "../Skeleton";
 import {
 	buildOpenEvidenceUrlForNote,
+	NOTE_OE_PROMPT,
 	tiptapDocToText,
 } from "../../lib/openevidence";
 import type { LectureNote, LectureAnnotation } from "../../lib/lectureApi";
@@ -228,11 +230,22 @@ function PageNoteEditor({
 	// Hand the current note text to OpenEvidence, prefixed with the teaching
 	// prompt. Uses the live draft so unsaved edits are included.
 	const noteText = tiptapDocToText(draft);
+	const [promptOpen, setPromptOpen] = useState(false);
+	const sendToOpenEvidence = useCallback(
+		(prompt: string) => {
+			const text = tiptapDocToText(draft);
+			if (!text.trim()) return;
+			window.open(
+				buildOpenEvidenceUrlForNote(text, prompt),
+				"_blank",
+				"noopener",
+			);
+		},
+		[draft],
+	);
 	const openInOpenEvidence = useCallback(() => {
-		const text = tiptapDocToText(draft);
-		if (!text.trim()) return;
-		window.open(buildOpenEvidenceUrlForNote(text), "_blank", "noopener");
-	}, [draft]);
+		sendToOpenEvidence(NOTE_OE_PROMPT);
+	}, [sendToOpenEvidence]);
 
 	if (notesLoading && !loaded) {
 		return <NotesSkeleton />;
@@ -253,18 +266,39 @@ function PageNoteEditor({
 					>
 						{status === "saving" ? "儲存中…" : status === "saved" ? "已儲存" : ""}
 					</span>
-					<button
-						type="button"
-						onClick={openInOpenEvidence}
-						disabled={!noteText.trim()}
-						title="用 OpenEvidence 解析本頁筆記"
-						className="inline-flex shrink-0 items-center gap-1 rounded border border-ink-200 px-2 py-1 text-[11px] text-ink-600 transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 dark:border-ink-700 dark:text-ink-300 dark:hover:border-accent"
-					>
-						<ExternalLink size={12} />
-						OpenEvidence
-					</button>
+					<div className="inline-flex shrink-0 items-center rounded border border-ink-200 dark:border-ink-700">
+						<button
+							type="button"
+							onClick={openInOpenEvidence}
+							disabled={!noteText.trim()}
+							title="用 OpenEvidence 解析本頁筆記"
+							className="inline-flex items-center gap-1 rounded-l px-2 py-1 text-[11px] text-ink-600 transition hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 dark:text-ink-300"
+						>
+							<ExternalLink size={12} />
+							OpenEvidence
+						</button>
+						<button
+							type="button"
+							onClick={() => setPromptOpen(true)}
+							disabled={!noteText.trim()}
+							title="調整 prompt 後再送出"
+							aria-label="調整 prompt 後再送出"
+							className="inline-flex items-center border-l border-ink-200 px-1.5 py-1 text-ink-500 transition hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 dark:border-ink-700 dark:text-ink-400"
+						>
+							<SquarePen size={12} />
+						</button>
+					</div>
 				</div>
 			</div>
+			{promptOpen && (
+				<PromptDialog
+					onClose={() => setPromptOpen(false)}
+					onSend={(prompt) => {
+						sendToOpenEvidence(prompt);
+						setPromptOpen(false);
+					}}
+				/>
+			)}
 			<div onBlur={onBlur}>
 				<RichEditor
 					content={draft}
@@ -274,6 +308,93 @@ function PageNoteEditor({
 				/>
 			</div>
 		</div>
+	);
+}
+
+// Edit-prompt popup for the OpenEvidence hand-off. Pre-fills the default
+// teaching prompt; the note body is appended by the caller on send.
+function PromptDialog(props: {
+	onClose(): void;
+	onSend(prompt: string): void;
+}) {
+	const [prompt, setPrompt] = useState(NOTE_OE_PROMPT);
+	const taRef = useRef<HTMLTextAreaElement>(null);
+
+	useEffect(() => {
+		taRef.current?.focus();
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") props.onClose();
+		};
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	return createPortal(
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4 backdrop-blur-sm"
+			onMouseDown={(e) => {
+				if (e.target === e.currentTarget) props.onClose();
+			}}
+		>
+			<div className="flex w-full max-w-lg flex-col overflow-hidden rounded-lg border border-ink-200 bg-white shadow-paper dark:border-ink-700 dark:bg-ink-800">
+				<header className="flex shrink-0 items-center justify-between border-b border-ink-100 px-5 py-3 dark:border-ink-700">
+					<h2 className="inline-flex items-center gap-2 font-serif text-lg text-ink-900 dark:text-ink-100">
+						<SquarePen size={18} className="text-accent" />
+						調整 OpenEvidence prompt
+					</h2>
+					<button
+						onClick={props.onClose}
+						className="text-ink-400 hover:text-ink-600 dark:text-ink-500 dark:hover:text-ink-300"
+						aria-label="關閉"
+					>
+						<XIcon size={18} />
+					</button>
+				</header>
+				<div className="space-y-3 p-5">
+					<p className="text-xs text-ink-500 dark:text-ink-400">
+						送出時會把這段 prompt 放在最前面,後面接本頁筆記內容,於新分頁開啟
+						OpenEvidence。
+					</p>
+					<textarea
+						ref={taRef}
+						value={prompt}
+						onChange={(e) => setPrompt(e.target.value)}
+						rows={5}
+						className="w-full resize-y rounded border border-ink-200 px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-accent focus:outline-none dark:border-ink-600 dark:bg-ink-900 dark:text-ink-100 dark:placeholder:text-ink-500"
+						placeholder="輸入要交給 OpenEvidence 的指示…"
+					/>
+					<div className="flex items-center justify-between gap-2">
+						<button
+							type="button"
+							onClick={() => setPrompt(NOTE_OE_PROMPT)}
+							className="text-xs text-ink-500 hover:text-accent dark:text-ink-400"
+						>
+							還原預設
+						</button>
+						<div className="flex items-center gap-2">
+							<button
+								type="button"
+								onClick={props.onClose}
+								className="px-3 py-1.5 text-sm text-ink-600 hover:text-ink-900 dark:text-ink-300 dark:hover:text-ink-100"
+							>
+								取消
+							</button>
+							<button
+								type="button"
+								onClick={() => props.onSend(prompt)}
+								disabled={!prompt.trim()}
+								className="inline-flex items-center gap-1 rounded bg-accent px-3 py-1.5 text-sm text-white transition hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-40"
+							>
+								<ExternalLink size={14} />
+								送出
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>,
+		document.body,
 	);
 }
 
