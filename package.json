@@ -13,6 +13,7 @@
 		"db:create": "wrangler d1 create $(node scripts/lib/cfg.mjs project.d1_db)",
 		"db:migrate:local": "wrangler d1 migrations apply $(node scripts/lib/cfg.mjs project.d1_db) --local",
 		"db:migrate:remote": "wrangler d1 migrations apply $(node scripts/lib/cfg.mjs project.d1_db) --remote",
+		"db:pull": "./scripts/db-pull.sh",
 		"db:seed:local": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --local --file=migrations/0004_hema_sample.sql",
 		"db:seed:remote": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --remote --file=migrations/0004_hema_sample.sql",
 		"r2:create": "wrangler r2 bucket create $(node scripts/lib/cfg.mjs project.r2_bucket)",

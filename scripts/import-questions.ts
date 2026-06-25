@@ -291,7 +291,15 @@ VALUES ('${id}', ${year}, ${number}, '${escape(r.stem)}', '${optJson}', '${r.ans
 ON CONFLICT(id) DO UPDATE SET
   stem = excluded.stem,
   options_json = excluded.options_json,
-  answer = excluded.answer,
+  -- Never clobber an answer the community has already revised. If this
+  -- question has any answer_history rows, a challenge/admin edit has flipped
+  -- it; keep the live value and let the CSV update only stem/options/meta.
+  -- (See answer_challenges promotion path in worker/lib/challenges.ts.)
+  answer = CASE
+    WHEN (SELECT 1 FROM answer_history WHERE question_id = '${id}' LIMIT 1) IS NULL
+      THEN excluded.answer
+      ELSE questions.answer
+  END,
   "group" = excluded."group",
   difficulty = excluded.difficulty,
   source = excluded.source;`;
