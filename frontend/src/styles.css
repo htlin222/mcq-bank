@@ -50,12 +50,22 @@
 
 .tiptap p { @apply leading-7; }
 
+/* Lists — padding-left (not margin) so the marker sits inside and each nested
+   level compounds the indent, making the hierarchy obvious. Marker shape also
+   changes per depth so a sub-list reads as a sub-list. */
 .tiptap ul, .tiptap ol {
-  @apply ml-6 my-3;
+  @apply my-3 pl-6;
+  list-style-position: outside;
 }
-.tiptap ul { list-style: disc; }
-.tiptap ol { list-style: decimal; }
+.tiptap ul { list-style-type: disc; }
+.tiptap ul ul { list-style-type: circle; }
+.tiptap ul ul ul { list-style-type: square; }
+.tiptap ol { list-style-type: decimal; }
+.tiptap ol ol { list-style-type: lower-alpha; }
+.tiptap ol ol ol { list-style-type: lower-roman; }
 .tiptap li { @apply my-1; }
+/* Nested lists hug their parent item rather than opening a big gap. */
+.tiptap li > ul, .tiptap li > ol { @apply my-1; }
 
 .tiptap blockquote {
   @apply border-l-4 border-ink-300 dark:border-ink-600 pl-4 italic text-ink-600 dark:text-ink-300 my-4;
@@ -146,7 +156,7 @@
 .tiptap-compact .tiptap h1 { @apply text-lg mt-4; }
 .tiptap-compact .tiptap h2 { @apply text-base mt-3; }
 .tiptap-compact .tiptap h3 { @apply text-[15px] mt-3; }
-.tiptap-compact .tiptap ul, .tiptap-compact .tiptap ol { @apply ml-5 my-2; }
+.tiptap-compact .tiptap ul, .tiptap-compact .tiptap ol { @apply ml-0 pl-5 my-2; }
 .tiptap-compact .tiptap li { @apply my-0.5; }
 .tiptap-compact .tiptap blockquote { @apply my-3; }
 
