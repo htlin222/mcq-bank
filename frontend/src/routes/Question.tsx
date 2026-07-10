@@ -23,7 +23,7 @@ import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
 
-// Resizable two-pane split (≥lg). `splitPct` is the left pane's share of the
+// Resizable two-pane split (≥md). `splitPct` is the left pane's share of the
 // row width; the rest goes to the right pane. Persisted as a UI layout pref.
 const SPLIT_MIN = 28;
 const SPLIT_MAX = 72;
@@ -34,8 +34,8 @@ function clampSplit(p: number) {
 	return Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, p));
 }
 
-// Desktop (≥lg) view mode: side-by-side columns vs. a single full-width tab
-// strip (題目/詳解/個人筆記/討論串/相似題目). Below lg the page is always a
+// Desktop (≥md) view mode: side-by-side columns vs. a single full-width tab
+// strip (題目/詳解/個人筆記/討論串/相似題目). Below md the page is always a
 // single stacked column, so this — and the header toggle + `t` shortcut —
 // only affect large screens.
 type LayoutMode = "columns" | "tabs";
@@ -70,7 +70,7 @@ export function Question() {
 				: null;
 		return raw === "tabs" ? "tabs" : "columns";
 	});
-	// Which pane is visible in tabs mode (≥lg only).
+	// Which pane is visible in tabs mode (≥md only).
 	const [mainTab, setMainTab] = useState<MainTab>("question");
 	const tabsMode = layout === "tabs";
 
@@ -83,7 +83,7 @@ export function Question() {
 	}, [layout]);
 
 	// The top strip in tabs mode replaces the inner 詳解共筆/個人筆記/討論串
-	// strip at ≥lg (it stays for the stacked <lg layout). Keep the inner `tab`
+	// strip at ≥md (it stays for the stacked <lg layout). Keep the inner `tab`
 	// state following the top-level selection so the shared content blocks and
 	// their action buttons (編輯 etc.) render the right panel.
 	useEffect(() => {
@@ -113,7 +113,7 @@ export function Question() {
 					el.isContentEditable)
 			)
 				return;
-			if (!window.matchMedia("(min-width: 1024px)").matches) return;
+			if (!window.matchMedia("(min-width: 768px)").matches) return;
 			setLayout((l) => (l === "columns" ? "tabs" : "columns"));
 		}
 		window.addEventListener("keydown", onKeyDown);
@@ -239,7 +239,7 @@ export function Question() {
 	// aren't stuck on an invisible tab with no content.
 	useEffect(() => {
 		if (tab !== "discussion") return;
-		const mq = window.matchMedia("(min-width: 1024px)");
+		const mq = window.matchMedia("(min-width: 768px)");
 		const sync = () => {
 			if (!mq.matches) setTab("explanation");
 		};
@@ -398,7 +398,7 @@ export function Question() {
 		);
 
 	return (
-		<div className="max-w-3xl md:max-w-4xl lg:max-w-none mx-auto px-4 sm:px-6 lg:px-4 py-6 sm:py-8 pb-32 lg:pb-0">
+		<div className="max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 md:px-4 py-6 sm:py-8 pb-32 md:pb-0">
 			<header className="flex items-center justify-between mb-6 text-sm gap-3">
 				<div className="flex items-center gap-3 flex-wrap">
 					{fromSearch && (
@@ -423,7 +423,7 @@ export function Question() {
 					<div
 						role="group"
 						aria-label="切換檢視模式(快捷鍵 t)"
-						className="hidden lg:flex items-center rounded border border-ink-200 dark:border-ink-700 overflow-hidden"
+						className="hidden md:flex items-center rounded border border-ink-200 dark:border-ink-700 overflow-hidden"
 					>
 						<button
 							onClick={() => setLayout("tabs")}
@@ -475,16 +475,16 @@ export function Question() {
 				</div>
 			</header>
 
-			{/* ≥lg has two view modes (header toggle / `t` shortcut):
+			{/* ≥md has two view modes (header toggle / `t` shortcut):
 			    - columns: question left, everything else right — a flex row pinned
 			      to the remaining viewport height; each pane is its own scroll
 			      container, so the two sides scroll fully independently and the
 			      page itself doesn't scroll. The middle handle drags the split.
 			    - tabs: one full-width pane at a time behind a 題目/詳解區 tab
 			      strip, with normal page scrolling and a comfortable reading width.
-			    Below lg both modes collapse to the same single stacked column. */}
+			    Below md both modes collapse to the same single stacked column. */}
 			{tabsMode && (
-				<div className="hidden lg:flex flex-wrap border-b border-ink-200 dark:border-ink-700 mb-6 max-w-4xl mx-auto">
+				<div className="hidden md:flex flex-wrap border-b border-ink-200 dark:border-ink-700 mb-6 max-w-4xl mx-auto">
 					<TabButton
 						active={mainTab === "question"}
 						onClick={() => setMainTab("question")}
@@ -530,15 +530,15 @@ export function Question() {
 			)}
 			<div
 				ref={splitRowRef}
-				className={tabsMode ? "" : "lg:flex lg:h-[calc(100vh-9.5rem)]"}
+				className={tabsMode ? "" : "md:flex md:h-[calc(100vh-9.5rem)]"}
 			>
 			{/* Left: question stem / options / answer */}
 			<div
 				className={
 					tabsMode
-						? "lg:max-w-4xl lg:mx-auto lg:pb-12" +
-							(mainTab === "question" ? "" : " lg:hidden")
-						: "lg:h-full lg:min-w-0 lg:shrink-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8"
+						? "md:max-w-4xl md:mx-auto md:pb-12" +
+							(mainTab === "question" ? "" : " md:hidden")
+						: "md:h-full md:min-w-0 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8"
 				}
 				style={tabsMode ? undefined : { flexBasis: `${splitPct}%` }}
 			>
@@ -559,7 +559,7 @@ export function Question() {
 				role="separator"
 				aria-orientation="vertical"
 				aria-label="調整左右欄寬度（雙擊還原）"
-				className="group hidden shrink-0 cursor-col-resize select-none items-stretch justify-center lg:flex lg:w-6"
+				className="group hidden shrink-0 cursor-col-resize select-none items-stretch justify-center md:flex md:w-6"
 			>
 				<div className="w-1 rounded-full bg-ink-200 transition-colors group-hover:bg-accent dark:bg-ink-700" />
 			</div>
@@ -568,28 +568,28 @@ export function Question() {
 			{/* Right: 詳解共筆 / 個人筆記 tabs → 相似題目 → 被引用 → 討論 */}
 			<div
 				className={
-					"tiptap-compact mt-8 lg:mt-0 " +
+					"tiptap-compact mt-8 md:mt-0 " +
 					(tabsMode
-						? "lg:max-w-4xl lg:mx-auto lg:pb-12" +
-							(mainTab === "question" ? " lg:hidden" : "")
-						: "lg:h-full lg:min-w-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8")
+						? "md:max-w-4xl md:mx-auto md:pb-12" +
+							(mainTab === "question" ? " md:hidden" : "")
+						: "md:h-full md:min-w-0 md:flex-1 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8")
 				}
 			>
 
-			{/* 詳解 / 個人筆記 tabs. In tabs mode at ≥lg the top strip drives the
-			    selection instead (the inner strip below is lg:hidden and this whole
+			{/* 詳解 / 個人筆記 tabs. In tabs mode at ≥md the top strip drives the
+			    selection instead (the inner strip below is md:hidden and this whole
 			    section yields to the 相似題目 tab). */}
 			<section
 				className={
 					"mt-0" +
-					(tabsMode && mainTab === "similar" ? " lg:hidden" : "")
+					(tabsMode && mainTab === "similar" ? " md:hidden" : "")
 				}
 			>
 				<div className="flex items-center justify-between mb-3 gap-3">
 					<div
 						className={
 							"flex flex-wrap border-b border-ink-200 dark:border-ink-700" +
-							(tabsMode ? " lg:hidden" : "")
+							(tabsMode ? " md:hidden" : "")
 						}
 					>
 						<TabButton
@@ -606,11 +606,11 @@ export function Question() {
 						</TabButton>
 						{/* Discussion tab — only appears in two-pane (lg+) view; on
 						    mobile the 討論 section still lives at the bottom of the
-						    right column (see `lg:hidden` on that section below). */}
+						    right column (see `md:hidden` on that section below). */}
 						<TabButton
 							active={tab === "discussion"}
 							onClick={() => setTab("discussion")}
-							className="hidden lg:inline-flex"
+							className="hidden md:inline-flex"
 						>
 							討論串
 							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
@@ -836,7 +836,7 @@ export function Question() {
 				    below lg while this tab is active, so we never land in a state
 				    where the tab is set to "discussion" but invisible. */}
 				{tab === "discussion" && (
-					<div className="hidden lg:block mt-2">
+					<div className="hidden md:block mt-2">
 						{me ? (
 							<CommentThread
 								questionId={data.id}
@@ -854,15 +854,15 @@ export function Question() {
 
 			{/* 相似題目 — tag-overlap with BM25 fallback. Hidden when empty, except
 			    on the tabs-mode 相似題目 tab, which shows an empty state instead.
-			    Below lg / in columns mode it keeps its place in the flow; in tabs
-			    mode at ≥lg it only appears under the 相似題目 top tab. */}
+			    Below md / in columns mode it keeps its place in the flow; in tabs
+			    mode at ≥md it only appears under the 相似題目 top tab. */}
 			<section
 				className={
 					"mt-8 " +
 					(similar.length > 0 ? "block" : "hidden") +
 					((tabsMode ? mainTab === "similar" : similar.length > 0)
-						? " lg:block"
-						: " lg:hidden")
+						? " md:block"
+						: " md:hidden")
 				}
 			>
 				<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100 mb-3">相似題目</h2>
@@ -908,12 +908,12 @@ export function Question() {
 				</section>
 
 			{/* Back-references — appears only when other questions/comments cite
-			    this one. In tabs mode at ≥lg it lives under the 相似題目 tab. */}
+			    this one. In tabs mode at ≥md it lives under the 相似題目 tab. */}
 			{data.back_refs.length > 0 && (
 				<section
 					className={
 						"mt-10" +
-						(tabsMode && mainTab !== "similar" ? " lg:hidden" : "")
+						(tabsMode && mainTab !== "similar" ? " md:hidden" : "")
 					}
 				>
 					<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100 mb-3 inline-flex items-center gap-2">
@@ -953,9 +953,9 @@ export function Question() {
 
 			{/* Comments — mobile only. At lg+ this content is shown inside the
 			    詳解共筆 / 個人筆記 / 討論串 tab strip above (the 討論串 tab is
-			    `hidden lg:inline-flex`), so we hide this bottom section there to
+			    `hidden md:inline-flex`), so we hide this bottom section there to
 			    avoid rendering CommentThread twice and double-fetching. */}
-			<section className="mt-12 lg:hidden">
+			<section className="mt-12 md:hidden">
 				<h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-3">討論</h2>
 				{me ? (
 					<CommentThread
@@ -982,7 +982,7 @@ function TabButton({
 	active: boolean;
 	onClick: () => void;
 	children: React.ReactNode;
-	// Caller-supplied responsive classes (e.g. "hidden lg:inline-flex") for
+	// Caller-supplied responsive classes (e.g. "hidden md:inline-flex") for
 	// tabs that should only appear at certain breakpoints. Appended to the
 	// base styling rather than replacing it.
 	className?: string;
