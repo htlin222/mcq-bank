@@ -373,6 +373,86 @@ export function Question() {
 		}
 	}
 
+	// Review-mode page shortcuts. Answer selection / submit / copy / bookmark
+	// live in QuestionCard; here: ← 上一題, → 下一題, ↑ 回年度列表, h/l cycle the
+	// tab strip (5 tabs in tabs mode; the right-column tabs otherwise), n jumps
+	// to 個人筆記 and opens its editor. A ref keeps the handler fresh without
+	// re-binding; skipped while typing or editing.
+	const pageShortcutRef = useRef<(e: KeyboardEvent) => void>(() => {});
+	pageShortcutRef.current = (e: KeyboardEvent) => {
+		if (e.metaKey || e.ctrlKey || e.altKey) return;
+		const el = e.target as HTMLElement | null;
+		if (
+			el &&
+			(el.tagName === "INPUT" ||
+				el.tagName === "TEXTAREA" ||
+				el.tagName === "SELECT" ||
+				el.isContentEditable)
+		)
+			return;
+		if (!data || editing || noteEditing) return;
+		const md = window.matchMedia("(min-width: 768px)").matches;
+
+		if (e.key === "ArrowLeft") {
+			if (neighbors.prev) {
+				e.preventDefault();
+				navigate(`/q/${neighbors.prev}`, { state: location.state });
+			}
+			return;
+		}
+		if (e.key === "ArrowRight") {
+			if (neighbors.next) {
+				e.preventDefault();
+				navigate(`/q/${neighbors.next}`, { state: location.state });
+			}
+			return;
+		}
+		if (e.key === "ArrowUp") {
+			e.preventDefault();
+			navigate(`/year/${data.year}`);
+			return;
+		}
+
+		const k = e.key.toLowerCase();
+		if (k === "h" || k === "l") {
+			e.preventDefault();
+			const dir = k === "l" ? 1 : -1;
+			if (md && tabsMode) {
+				const order: MainTab[] = [
+					"question",
+					"explanation",
+					"note",
+					"discussion",
+					"similar",
+				];
+				setMainTab(
+					(cur) =>
+						order[(order.indexOf(cur) + dir + order.length) % order.length],
+				);
+			} else {
+				const order: Tab[] = md
+					? ["explanation", "note", "discussion"]
+					: ["explanation", "note"];
+				const i = order.indexOf(tab);
+				const base = i < 0 ? 0 : i;
+				setTab(order[(base + dir + order.length) % order.length]);
+			}
+			return;
+		}
+		if (k === "n") {
+			e.preventDefault();
+			setTab("note");
+			setMainTab("note");
+			if (!noteEditing) startNoteEdit();
+			return;
+		}
+	};
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => pageShortcutRef.current(e);
+		window.addEventListener("keydown", onKeyDown);
+		return () => window.removeEventListener("keydown", onKeyDown);
+	}, []);
+
 	// While we have data, keep rendering even during a refetch — this is the
 	// common case after saving 詳解, where blanking the page would feel jarring.
 	if (!data) {

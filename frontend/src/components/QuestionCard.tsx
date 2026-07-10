@@ -174,29 +174,62 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     .filter((o) => !!o.text);
   const canEditAnswer = question.can_edit_answer === true;
 
-  // Keyboard shortcut: A–E picks an option, unless the user is typing in an
-  // input / textarea / contenteditable (TipTap) or holding a modifier.
-  useEffect(() => {
-    if (revealed) return;
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const t = e.target as HTMLElement | null;
-      if (
-        t &&
-        (t.tagName === 'INPUT' ||
-          t.tagName === 'TEXTAREA' ||
-          t.tagName === 'SELECT' ||
-          t.isContentEditable)
-      )
-        return;
-      const L = e.key.toUpperCase() as (typeof LETTERS)[number];
-      if (!(LETTERS as readonly string[]).includes(L)) return;
-      if (!question.options[L]) return;
-      setChosen(L);
+  // Keyboard shortcuts for review mode. A ref holds the latest handler so the
+  // single window listener always sees fresh state without re-binding.
+  //   A–E  toggle an option (while unanswered; mutually exclusive)
+  //   Enter 提交答案   Space 直接看答案 (while unanswered)
+  //   y    複製題目    b 收藏 (once answered — b is option B while answering)
+  // Skipped when typing in an input / textarea / contenteditable or holding a
+  // modifier. Prev/next, tab nav and note editing live in Question.tsx.
+  const shortcutRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  shortcutRef.current = (e: KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target as HTMLElement | null;
+    if (
+      t &&
+      (t.tagName === 'INPUT' ||
+        t.tagName === 'TEXTAREA' ||
+        t.tagName === 'SELECT' ||
+        t.isContentEditable)
+    )
+      return;
+
+    if (e.key.toLowerCase() === 'y') {
+      e.preventDefault();
+      copyAsMarkdown();
+      return;
     }
+
+    if (!revealed) {
+      const L = e.key.toUpperCase() as (typeof LETTERS)[number];
+      if ((LETTERS as readonly string[]).includes(L) && question.options[L]) {
+        setChosen((cur) => (cur === L ? null : L)); // toggle, single-select
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submit();
+        return;
+      }
+      if (e.key === ' ') {
+        e.preventDefault(); // Space would otherwise scroll the page
+        setRevealed(true);
+        return;
+      }
+      return;
+    }
+
+    // Answered: A–E are inactive, so b is free to toggle the bookmark.
+    if (e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      toggleBookmark();
+    }
+  };
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => shortcutRef.current(e);
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [revealed, question]);
+  }, []);
 
   return (
     <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper p-5 sm:p-7">
