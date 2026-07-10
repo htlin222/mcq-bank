@@ -19,6 +19,7 @@ import { useMe } from "../hooks/useMe";
 import { QuestionCard } from "../components/QuestionCard";
 import { RichEditor } from "../components/RichEditor";
 import { ReadOnlyContent } from "../components/ReadOnlyContent";
+import { NoteContent } from "../components/NoteContent";
 import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
@@ -884,7 +885,7 @@ export function Question() {
 						</div>
 					) : noteJson ? (
 						<article className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
-							<ReadOnlyContent content={noteJson} />
+							<NoteContent content={noteJson} />
 							<footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
 								僅你可見
 								{data.my_note?.updated_at && (

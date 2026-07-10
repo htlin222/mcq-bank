@@ -102,6 +102,10 @@
   @apply my-0;
 }
 
+.tiptap hr {
+  @apply my-6 border-0 border-t border-ink-200 dark:border-ink-700;
+}
+
 .tiptap img {
   @apply rounded-lg my-4 max-w-full h-auto shadow-sm border border-ink-200 dark:border-ink-700;
 }
