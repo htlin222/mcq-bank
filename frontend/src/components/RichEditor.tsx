@@ -1,5 +1,5 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
-import { useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Bold,
   Italic,
@@ -44,6 +44,8 @@ export function RichEditor({
   // insert parsed markdown, but `editor` isn't assigned yet at config time.
   // Read it through a ref that we keep pointed at the latest instance.
   const editorRef = useRef<Editor | null>(null);
+  // Show a progress bar while a paste's external images upload to R2.
+  const [uploading, setUploading] = useState(false);
   const editor = useEditor({
     extensions: buildExtensions({ placeholder }),
     content: content || { type: 'doc', content: [] },
@@ -69,7 +71,7 @@ export function RichEditor({
         }
         return false;
       },
-      handlePaste: (view, event) => {
+      handlePaste: (_view, event) => {
         const files = event.clipboardData?.files;
         if (files?.length) {
           const img = [...files].find((f) => f.type.startsWith('image/'));
@@ -92,10 +94,18 @@ export function RichEditor({
         }
 
         // HTML paste (e.g. OpenEvidence) may carry hotlinked external images
-        // that won't load from our origin. Let the default paste + transform
-        // run, then sideload any external <img> into R2 on the next tick.
-        if (/<img[^>]+src=["']https?:\/\//i.test(html)) {
-          setTimeout(() => sideloadExternalImages(view), 0);
+        // that won't load from our origin. Upload them to R2 FIRST (concurrently,
+        // showing a progress bar), then insert the corrected HTML — so there's no
+        // broken-image window and no risk of saving before the swap completes.
+        if (editorRef.current && /<img[^>]+src=["']https?:\/\//i.test(html)) {
+          event.preventDefault();
+          setUploading(true);
+          sideloadImagesInHtml(html)
+            .then((fixed) =>
+              editorRef.current?.commands.insertContent(transformPastedHTML(fixed)),
+            )
+            .finally(() => setUploading(false));
+          return true;
         }
         return false;
       },
@@ -132,6 +142,11 @@ export function RichEditor({
           actions={toolbarActions}
         />
       )}
+      {uploading && (
+        <div className="h-0.5 bg-accent/15 overflow-hidden" role="progressbar" aria-label="上傳圖片中">
+          <div className="h-full w-1/3 bg-accent animate-progress-bar" />
+        </div>
+      )}
       <div className="p-4">
         <EditorContent editor={editor} />
       </div>
@@ -150,34 +165,30 @@ function isExternalImg(src: string): boolean {
   }
 }
 
-// After an HTML paste, fetch every hotlinked image through the Worker (which
-// stores it in R2) and rewrite the node src to the returned /img/ URL. Runs
-// sequentially so one failure doesn't abort the rest; a failed image just
-// keeps its broken external src.
-async function sideloadExternalImages(view: import('@tiptap/pm/view').EditorView) {
-  const srcs = new Set<string>();
-  view.state.doc.descendants((node) => {
-    if (node.type.name === 'image' && isExternalImg(node.attrs.src as string)) {
-      srcs.add(node.attrs.src as string);
-    }
-  });
-  for (const src of srcs) {
-    try {
-      const { url } = await api.post<{ url: string }>('/api/upload/url', { url: src });
-      // Re-scan from the live state each time — positions shift as we dispatch.
-      const tr = view.state.tr;
-      let changed = false;
-      view.state.doc.descendants((node, pos) => {
-        if (node.type.name === 'image' && node.attrs.src === src) {
-          tr.setNodeMarkup(pos, undefined, { ...node.attrs, src: url });
-          changed = true;
-        }
-      });
-      if (changed) view.dispatch(tr);
-    } catch {
-      /* leave the broken external image; user can delete or re-add it */
-    }
-  }
+// Before inserting pasted HTML, fetch every hotlinked image through the Worker
+// (which stores it in R2) and rewrite its src to the returned /img/ URL. Runs
+// concurrently; a failed image keeps its external src rather than aborting the
+// rest. Returns the corrected HTML so the inserted content is already
+// same-origin — no broken-image window and nothing to race a save against.
+async function sideloadImagesInHtml(html: string): Promise<string> {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = html;
+  const imgs = Array.from(tpl.content.querySelectorAll('img')).filter((im) =>
+    isExternalImg(im.getAttribute('src') || ''),
+  );
+  await Promise.all(
+    imgs.map(async (im) => {
+      const src = im.getAttribute('src');
+      if (!src) return;
+      try {
+        const { url } = await api.post<{ url: string }>('/api/upload/url', { url: src });
+        im.setAttribute('src', url);
+      } catch {
+        /* leave the external src; the user can delete or re-add it */
+      }
+    }),
+  );
+  return tpl.innerHTML;
 }
 
 function Toolbar({

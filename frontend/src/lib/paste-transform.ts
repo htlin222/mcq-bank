@@ -59,5 +59,46 @@ export function transformPastedHTML(html: string): string {
   }
   flushPara();
 
+  groupListParagraphs(out);
+
   return out.innerHTML || html;
+}
+
+// OpenEvidence writes bullet/number lists as `- item<br><br>- item` — after
+// the split above they become separate <p>- item</p> paragraphs with a literal
+// marker. Fold consecutive marker paragraphs back into a real <ul>/<ol>.
+const LIST_MARKER = /^\s*([-*+]|\d+[.)])\s+/;
+
+function markerKind(p: Element): 'ul' | 'ol' | null {
+  if (p.tagName !== 'P') return null;
+  const m = LIST_MARKER.exec(p.textContent ?? '');
+  if (!m) return null;
+  return /\d/.test(m[1]) ? 'ol' : 'ul';
+}
+
+function groupListParagraphs(out: HTMLElement) {
+  let i = 0;
+  const kids = Array.from(out.children);
+  while (i < kids.length) {
+    const kind = markerKind(kids[i]);
+    if (!kind) {
+      i++;
+      continue;
+    }
+    // Collect the run of same-kind marker paragraphs.
+    let j = i;
+    while (j < kids.length && markerKind(kids[j]) === kind) j++;
+    const list = document.createElement(kind);
+    for (let k = i; k < j; k++) {
+      const p = kids[k];
+      const li = document.createElement('li');
+      // Strip the leading marker from the paragraph's HTML (it precedes any
+      // inline tag), keep the rest — <strong>/<a> etc. survive.
+      li.innerHTML = p.innerHTML.replace(LIST_MARKER, '');
+      list.appendChild(li);
+    }
+    out.replaceChild(list, kids[i]);
+    for (let k = i + 1; k < j; k++) out.removeChild(kids[k]);
+    i = j;
+  }
 }
