@@ -403,7 +403,7 @@ export function Question() {
 			</div>
 
 			{/* Right: 詳解共筆 / 個人筆記 tabs → 相似題目 → 被引用 → 討論 */}
-			<div className="mt-8 lg:mt-0 lg:h-full lg:min-w-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8">
+			<div className="tiptap-compact mt-8 lg:mt-0 lg:h-full lg:min-w-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8">
 
 			{/* 詳解 / 個人筆記 tabs */}
 			<section className="mt-0">

@@ -96,6 +96,18 @@
   @apply outline outline-2 outline-accent;
 }
 
+/* Compact variant — question-page right pane (詳解共筆 / 個人筆記 / 討論).
+   Denser type than the global .tiptap so long explanations fit the split view. */
+.tiptap-compact .tiptap { @apply text-[15px]; }
+.tiptap-compact .tiptap > * + * { @apply mt-2; }
+.tiptap-compact .tiptap p { @apply leading-6; }
+.tiptap-compact .tiptap h1 { @apply text-lg mt-4; }
+.tiptap-compact .tiptap h2 { @apply text-base mt-3; }
+.tiptap-compact .tiptap h3 { @apply text-[15px] mt-3; }
+.tiptap-compact .tiptap ul, .tiptap-compact .tiptap ol { @apply ml-5 my-2; }
+.tiptap-compact .tiptap li { @apply my-0.5; }
+.tiptap-compact .tiptap blockquote { @apply my-3; }
+
 /* === Mention dropdown === */
 .mention-list {
   @apply bg-white dark:bg-ink-800 shadow-lg rounded-lg border border-ink-200 dark:border-ink-700 overflow-hidden;
