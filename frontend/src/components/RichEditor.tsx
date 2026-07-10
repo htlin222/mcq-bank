@@ -12,6 +12,7 @@ import {
   Quote,
   Code2,
   Image as ImageIcon,
+  StickyNoteX,
   Undo2,
   Redo2,
 } from 'lucide-react';
@@ -184,6 +185,9 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
       <IconBtn label="插入圖片" onClick={fileInput}>
         <ImageIcon size={15} />
       </IconBtn>
+      <IconBtn label="清除引用標記" onClick={() => clearCitationMarks(editor)}>
+        <StickyNoteX size={15} />
+      </IconBtn>
       <span className="flex-1" />
       <IconBtn
         label="復原"
@@ -201,6 +205,31 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
       </IconBtn>
     </div>
   );
+}
+
+// Strip journal citation marks pasted alongside text — [1], [12], [1-2],
+// [1,3], [1–3] and immediate runs like [1][2] — from every text node in one
+// undoable transaction. Digits-only inside the brackets, so prose like
+// "[註]" or option labels are untouched.
+const CITATION_RE = /\[\d+(?:\s*[-–,]\s*\d+)*\]/g;
+
+function clearCitationMarks(editor: Editor) {
+  const { state } = editor;
+  const ranges: { from: number; to: number }[] = [];
+  state.doc.descendants((node, pos) => {
+    if (!node.isText || !node.text) return;
+    CITATION_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = CITATION_RE.exec(node.text))) {
+      ranges.push({ from: pos + m.index, to: pos + m.index + m[0].length });
+    }
+  });
+  if (ranges.length === 0) return;
+  const tr = state.tr;
+  // Delete back-to-front so earlier ranges keep their positions.
+  for (const r of ranges.reverse()) tr.delete(r.from, r.to);
+  editor.view.dispatch(tr);
+  editor.commands.focus();
 }
 
 function IconBtn({
