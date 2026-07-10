@@ -74,7 +74,7 @@ export function Home() {
 
       {/* Countdown to exam — date and label come from /config.toml [exam]. */}
       <section className="mb-8">
-        <div className="bg-gradient-to-r from-accent/10 to-amber-50 border border-accent/30 rounded-lg px-5 py-3 sm:px-6 flex items-baseline gap-x-3 gap-y-1 flex-wrap">
+        <div className="bg-accent/5 dark:bg-accent/15 border border-accent/30 dark:border-accent/40 rounded-lg px-5 py-3 sm:px-6 flex items-baseline gap-x-3 gap-y-1 flex-wrap">
           <CalendarDays className="text-accent shrink-0 self-center" size={22} strokeWidth={1.5} />
           <span className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400">
             {config.exam.countdown_label}
@@ -86,7 +86,7 @@ export function Home() {
           ) : (
             <>
               <span className="font-serif flex items-baseline gap-2">
-                <span className={`text-3xl sm:text-4xl ${daysLeft <= 30 ? 'text-rose-700' : daysLeft <= 60 ? 'text-amber-700' : 'text-accent'}`}>
+                <span className={`text-3xl sm:text-4xl ${daysLeft <= 30 ? 'text-rose-700 dark:text-rose-400' : daysLeft <= 60 ? 'text-amber-700 dark:text-amber-400' : 'text-accent dark:text-accent-light'}`}>
                   {daysLeft}
                 </span>
                 <span className="text-ink-600 dark:text-ink-300 text-base">天</span>
