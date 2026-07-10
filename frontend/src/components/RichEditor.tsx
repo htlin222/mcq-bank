@@ -1,5 +1,5 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
-import { useCallback, useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import {
   Bold,
   Italic,
@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
 import { transformPastedHTML } from '../lib/paste-transform';
+import { looksLikeMarkdown, markdownToHtml } from '../lib/markdown-paste';
 import { api } from '../lib/api';
 
 type Props = {
@@ -30,11 +31,16 @@ type Props = {
 };
 
 export function RichEditor({ content, onChange, placeholder, editable = true, autofocus = false }: Props) {
+  // handlePaste (defined in the useEditor config below) needs the editor to
+  // insert parsed markdown, but `editor` isn't assigned yet at config time.
+  // Read it through a ref that we keep pointed at the latest instance.
+  const editorRef = useRef<Editor | null>(null);
   const editor = useEditor({
     extensions: buildExtensions({ placeholder }),
     content: content || { type: 'doc', content: [] },
     editable,
     autofocus: autofocus ? 'end' : false,
+    onCreate: ({ editor }) => { editorRef.current = editor; },
     onUpdate: ({ editor }) => onChange?.(editor.getJSON()),
     editorProps: {
       attributes: { class: 'tiptap' },
@@ -64,10 +70,21 @@ export function RichEditor({ content, onChange, placeholder, editable = true, au
             return true;
           }
         }
+        const html = event.clipboardData?.getData('text/html') || '';
+        const text = event.clipboardData?.getData('text/plain') || '';
+
+        // Plain-text markdown (no rich HTML) → parse to real structure so
+        // `- item`, `## heading`, nested lists etc. come through formatted
+        // instead of as literal text.
+        if (editorRef.current && !html.trim() && text && looksLikeMarkdown(text)) {
+          event.preventDefault();
+          editorRef.current.commands.insertContent(markdownToHtml(text));
+          return true;
+        }
+
         // HTML paste (e.g. OpenEvidence) may carry hotlinked external images
         // that won't load from our origin. Let the default paste + transform
         // run, then sideload any external <img> into R2 on the next tick.
-        const html = event.clipboardData?.getData('text/html') || '';
         if (/<img[^>]+src=["']https?:\/\//i.test(html)) {
           setTimeout(() => sideloadExternalImages(view), 0);
         }
