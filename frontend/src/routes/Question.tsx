@@ -34,12 +34,13 @@ function clampSplit(p: number) {
 	return Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, p));
 }
 
-// Desktop (≥lg) view mode: side-by-side columns vs. full-width 題目/詳解區
-// tabs. Below lg the page is always a single stacked column, so this — and
-// the header toggle + `t` shortcut — only affect large screens.
+// Desktop (≥lg) view mode: side-by-side columns vs. a single full-width tab
+// strip (題目/詳解/個人筆記/討論串/相似題目). Below lg the page is always a
+// single stacked column, so this — and the header toggle + `t` shortcut —
+// only affect large screens.
 type LayoutMode = "columns" | "tabs";
 const LAYOUT_KEY = "review-layout-mode";
-type MainTab = "question" | "explanation";
+type MainTab = "question" | "explanation" | "note" | "discussion" | "similar";
 
 type Tab = "explanation" | "note" | "discussion";
 
@@ -80,6 +81,21 @@ export function Question() {
 			/* ignore quota/availability errors */
 		}
 	}, [layout]);
+
+	// The top strip in tabs mode replaces the inner 詳解共筆/個人筆記/討論串
+	// strip at ≥lg (it stays for the stacked <lg layout). Keep the inner `tab`
+	// state following the top-level selection so the shared content blocks and
+	// their action buttons (編輯 etc.) render the right panel.
+	useEffect(() => {
+		if (!tabsMode) return;
+		if (
+			mainTab === "explanation" ||
+			mainTab === "note" ||
+			mainTab === "discussion"
+		) {
+			setTab(mainTab);
+		}
+	}, [tabsMode, mainTab]);
 
 	// `t` toggles columns ⇄ tabs. Same guards as QuestionCard's A–E shortcut:
 	// skip when typing in an input / textarea / contenteditable (TipTap) or
@@ -468,7 +484,7 @@ export function Question() {
 			      strip, with normal page scrolling and a comfortable reading width.
 			    Below lg both modes collapse to the same single stacked column. */}
 			{tabsMode && (
-				<div className="hidden lg:flex border-b border-ink-200 dark:border-ink-700 mb-6 max-w-4xl mx-auto">
+				<div className="hidden lg:flex flex-wrap border-b border-ink-200 dark:border-ink-700 mb-6 max-w-4xl mx-auto">
 					<TabButton
 						active={mainTab === "question"}
 						onClick={() => setMainTab("question")}
@@ -479,7 +495,36 @@ export function Question() {
 						active={mainTab === "explanation"}
 						onClick={() => setMainTab("explanation")}
 					>
-						詳解區
+						詳解
+					</TabButton>
+					<TabButton
+						active={mainTab === "note"}
+						onClick={() => setMainTab("note")}
+					>
+						個人筆記
+						{data.my_note && (
+							<span className="ml-1.5 text-[10px] text-ink-400 dark:text-ink-500">
+								●
+							</span>
+						)}
+					</TabButton>
+					<TabButton
+						active={mainTab === "discussion"}
+						onClick={() => setMainTab("discussion")}
+					>
+						討論串
+						<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
+							({commentCount})
+						</span>
+					</TabButton>
+					<TabButton
+						active={mainTab === "similar"}
+						onClick={() => setMainTab("similar")}
+					>
+						相似題目
+						<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
+							({similar.length})
+						</span>
 					</TabButton>
 				</div>
 			)}
@@ -526,15 +571,27 @@ export function Question() {
 					"tiptap-compact mt-8 lg:mt-0 " +
 					(tabsMode
 						? "lg:max-w-4xl lg:mx-auto lg:pb-12" +
-							(mainTab === "explanation" ? "" : " lg:hidden")
+							(mainTab === "question" ? " lg:hidden" : "")
 						: "lg:h-full lg:min-w-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8")
 				}
 			>
 
-			{/* 詳解 / 個人筆記 tabs */}
-			<section className="mt-0">
+			{/* 詳解 / 個人筆記 tabs. In tabs mode at ≥lg the top strip drives the
+			    selection instead (the inner strip below is lg:hidden and this whole
+			    section yields to the 相似題目 tab). */}
+			<section
+				className={
+					"mt-0" +
+					(tabsMode && mainTab === "similar" ? " lg:hidden" : "")
+				}
+			>
 				<div className="flex items-center justify-between mb-3 gap-3">
-					<div className="flex flex-wrap border-b border-ink-200 dark:border-ink-700">
+					<div
+						className={
+							"flex flex-wrap border-b border-ink-200 dark:border-ink-700" +
+							(tabsMode ? " lg:hidden" : "")
+						}
+					>
 						<TabButton
 							active={tab === "explanation"}
 							onClick={() => setTab("explanation")}
@@ -562,7 +619,7 @@ export function Question() {
 						</TabButton>
 					</div>
 					{tab === "explanation" && !editing && (
-						<div className="flex items-center gap-3 flex-wrap justify-end">
+						<div className="ml-auto flex items-center gap-3 flex-wrap justify-end">
 							<a
 								href={buildOpenEvidenceUrl(data)}
 								target="_blank"
@@ -593,7 +650,7 @@ export function Question() {
 					{tab === "note" && !noteEditing && (
 						<button
 							onClick={startNoteEdit}
-							className="text-sm text-accent hover:text-accent-dark inline-flex items-center gap-1"
+							className="ml-auto text-sm text-accent hover:text-accent-dark inline-flex items-center gap-1"
 						>
 							<Pencil size={14} /> 編輯
 						</button>
@@ -795,11 +852,26 @@ export function Question() {
 				)}
 			</section>
 
-			{/* 相似題目 — tag-overlap with BM25 fallback, hidden when empty */}
-			{similar.length > 0 && (
-				<section className="mt-8">
-					<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100 mb-3">相似題目</h2>
-					<ul className="space-y-1.5">
+			{/* 相似題目 — tag-overlap with BM25 fallback. Hidden when empty, except
+			    on the tabs-mode 相似題目 tab, which shows an empty state instead.
+			    Below lg / in columns mode it keeps its place in the flow; in tabs
+			    mode at ≥lg it only appears under the 相似題目 top tab. */}
+			<section
+				className={
+					"mt-8 " +
+					(similar.length > 0 ? "block" : "hidden") +
+					((tabsMode ? mainTab === "similar" : similar.length > 0)
+						? " lg:block"
+						: " lg:hidden")
+				}
+			>
+				<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100 mb-3">相似題目</h2>
+				{similar.length === 0 && (
+					<p className="text-sm text-ink-400 dark:text-ink-500">
+						尚無相似題目。
+					</p>
+				)}
+				<ul className="space-y-1.5">
 						{similar.map((s) => (
 							<li
 								key={s.id}
@@ -834,11 +906,16 @@ export function Question() {
 						))}
 					</ul>
 				</section>
-			)}
 
-			{/* Back-references — appears only when other questions/comments cite this one */}
+			{/* Back-references — appears only when other questions/comments cite
+			    this one. In tabs mode at ≥lg it lives under the 相似題目 tab. */}
 			{data.back_refs.length > 0 && (
-				<section className="mt-10">
+				<section
+					className={
+						"mt-10" +
+						(tabsMode && mainTab !== "similar" ? " lg:hidden" : "")
+					}
+				>
 					<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100 mb-3 inline-flex items-center gap-2">
 						<LinkIcon size={16} className="text-ink-400 dark:text-ink-500" /> 被引用 (
 						{data.back_refs.length})
