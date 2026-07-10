@@ -200,7 +200,7 @@ function NavItem({
 				`px-3 py-1.5 rounded transition ${
 					isActive
 						? "text-accent font-medium"
-						: "text-ink-600 hover:text-ink-900 hover:bg-ink-100"
+						: "text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-700"
 				}`
 			}
 		>
@@ -226,7 +226,7 @@ function BottomItem({
 			end={end}
 			className={({ isActive }) =>
 				`flex flex-col items-center justify-center py-2 text-[11px] gap-0.5 ${
-					isActive ? "text-accent" : "text-ink-500"
+					isActive ? "text-accent" : "text-ink-500 dark:text-ink-400"
 				}`
 			}
 		>

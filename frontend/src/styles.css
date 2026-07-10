@@ -96,6 +96,10 @@
   @apply outline outline-2 outline-accent;
 }
 
+/* cal-heatmap month labels — SVG text, so Tailwind text-* doesn't reach it */
+.cal-heatmap-host text { fill: #8a7d65; } /* ink-400 */
+.dark .cal-heatmap-host text { fill: #b8ac96; } /* ink-300 */
+
 /* Compact variant — question-page right pane (詳解共筆 / 個人筆記 / 討論).
    Denser type than the global .tiptap so long explanations fit the split view. */
 .tiptap-compact .tiptap { @apply text-[15px]; }
