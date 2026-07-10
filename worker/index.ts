@@ -25,6 +25,10 @@ import { feedbackRoutes } from './routes/feedback';
 import { challengesRoutes, questionChallengeRoutes } from './routes/challenges';
 import { mcqRoutes } from './routes/mcq';
 import { lectureRoutes } from './routes/lectures';
+import { chatRoutes } from './routes/chat';
+
+// Durable Object class must be exported from the Worker entrypoint.
+export { ChatRoom } from './chat-room';
 
 const app = new Hono<AppContext>();
 
@@ -87,6 +91,7 @@ app.route('/api/folders', foldersRoutes);
 app.route('/api/bookmarks', bookmarksRoutes);
 app.route('/api/feedback', feedbackRoutes);
 app.route('/api/lectures', lectureRoutes);
+app.route('/api/chat', chatRoutes);
 
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 

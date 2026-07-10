@@ -22,8 +22,12 @@ import { NotificationBell } from "./components/NotificationBell";
 import { FeedbackButton } from "./components/FeedbackButton";
 import { OnlineUsers } from "./components/OnlineUsers";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { ChatProvider } from "./chat/ChatProvider";
+import { ChatToaster } from "./chat/ChatToaster";
+import { ChatBell } from "./chat/ChatBell";
 import { Home } from "./routes/Home";
 import { Landing } from "./routes/Landing";
+import { Chat } from "./routes/Chat";
 import { ReviewIndex } from "./routes/ReviewIndex";
 import { AnkiDeck } from "./routes/AnkiDeck";
 import { YearList } from "./routes/YearList";
@@ -83,7 +87,9 @@ export default function App() {
 	}
 
 	return (
+		<ChatProvider>
 		<div className="min-h-screen bg-ink-50 dark:bg-ink-900 text-ink-800 dark:text-ink-200 flex flex-col">
+			<ChatToaster />
 			{/* Top bar */}
 			<header className="sticky top-0 z-20 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
@@ -106,10 +112,12 @@ export default function App() {
 						<NavItem to="/wrong">錯題</NavItem>
 						<NavItem to="/lectures">講義</NavItem>
 						<NavItem to="/challenges">答案挑戰</NavItem>
+						<NavItem to="/chat">聊天</NavItem>
 					</nav>
 
 					<div className="ml-auto flex items-center gap-2">
 						<OnlineUsers />
+						<ChatBell />
 						<ThemeToggle />
 						<FeedbackButton />
 						<NotificationBell />
@@ -149,6 +157,7 @@ export default function App() {
 					<Route path="/bookmarks" element={<Bookmarks />} />
 					<Route path="/wrong" element={<WrongQuestions />} />
 					<Route path="/challenges" element={<Challenges />} />
+					<Route path="/chat" element={<Chat />} />
 					<Route
 						path="/lectures"
 						element={
@@ -180,6 +189,7 @@ export default function App() {
 				<BottomItem to="/bookmarks" Icon={Bookmark} label="收藏" />
 			</nav>
 		</div>
+		</ChatProvider>
 	);
 }
 

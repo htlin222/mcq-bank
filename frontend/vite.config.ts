@@ -112,6 +112,9 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8787',
         changeOrigin: true,
+        // 聊天大廳 WebSocket (/api/chat/ws) rides the same proxy entry;
+        // http-proxy applies `headers` to upgrade requests too.
+        ws: true,
         // Local dev only — the Worker accepts this when
         // CF_ACCESS_TEAM_DOMAIN === 'localhost' (see .dev.vars).
         headers: { 'X-Dev-Email': bootConfig.dev.dev_email },

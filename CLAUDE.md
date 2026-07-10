@@ -220,6 +220,23 @@ The `explanations` table has `editing_by` and `editing_until` columns. The flow:
 
 `@username` mentions are extracted server-side from the TipTap JSON (walk the doc, find `mention` nodes), written to `mentions` table, and trigger rows in `notifications`. No real-time push — users see badges on next page load. Adequate for this use case.
 
+### 聊天大廳: one Durable Object room over WebSocket Hibernation
+
+`worker/chat-room.ts` is a SQLite-backed Durable Object (`CHAT` binding,
+`idFromName("lobby")`) — **free plan compatible** since DOs with
+`new_sqlite_classes` don't need Workers Paid. Messages are plain text
+(not TipTap) stored in the DO's own SQLite, trimmed to the last 500;
+D1 is only touched to validate mention emails and to write
+`notifications` rows (kind=`chat_mention`) for mentioned users who are
+not currently connected. Reactions (fixed emoji palette, mirrored in
+`frontend/src/chat/ChatProvider.tsx`), reply snapshots, `@all`, and
+`@114-010` question links ride the same WS protocol — see
+`docs/plans/2026-07-10-chat-lobby-design.md`.
+
+Frontend: `ChatProvider` holds one app-wide WS connection (toasts work
+on every page); toast preference lives in `users.chat_notify`
+(`all`/`mention`/`off`), editable from the chat page header.
+
 ### Images: R2 via Worker proxy (not public bucket)
 
 Uploads: `POST /api/upload` (multipart) → Worker validates size/MIME → R2 put with UUID key → returns `/img/<key>` URL.
@@ -361,7 +378,7 @@ When extending the UI, preserve this voice. It's a serious study tool — looks 
 
 ## Cost Awareness
 
-This is designed to fit in **free tier indefinitely** for 20 users. If a feature would push past free tier (e.g., real-time共編 needs Durable Objects = Workers Paid), call it out explicitly. Don't silently add paid services.
+This is designed to fit in **free tier indefinitely** for 20 users. If a feature would push past free tier, call it out explicitly. Don't silently add paid services. Note: SQLite-backed Durable Objects (`new_sqlite_classes`) ARE available on the free plan (the chat lobby uses one) — only KV-backed DO storage requires Workers Paid.
 
 ## Owner Notes
 

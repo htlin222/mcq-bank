@@ -7,6 +7,7 @@ export type Me = {
   avatar_key: string | null;
   bio: string | null;
   mcq_key_version: number;
+  chat_notify: 'all' | 'mention' | 'off';
   created_at: number;
 };
 
@@ -43,7 +44,9 @@ export function useMe() {
     };
   }, []);
 
-  async function update(patch: Partial<Pick<Me, 'display_name' | 'bio' | 'avatar_key'>>) {
+  async function update(
+    patch: Partial<Pick<Me, 'display_name' | 'bio' | 'avatar_key' | 'chat_notify'>>,
+  ) {
     const updated = await api.patch<Me>('/api/me', patch);
     cached = updated;
     listeners.forEach((fn) => fn(updated));

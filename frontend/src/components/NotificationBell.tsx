@@ -10,6 +10,7 @@ type Notification = {
     | 'mention'
     | 'reply'
     | 'edit'
+    | 'chat_mention'
     | 'challenge_filed'
     | 'challenge_promoted'
     | 'challenge_rejected'
@@ -39,6 +40,8 @@ function notificationLabel(n: Notification): string {
       return '回覆了你的留言';
     case 'edit':
       return '更新了詳解';
+    case 'chat_mention':
+      return '在聊天大廳提到了你';
     case 'challenge_filed':
       return '對本題答案發起挑戰';
     case 'challenge_promoted':
@@ -138,7 +141,13 @@ export function NotificationBell() {
               items.map((n) => (
                 <Link
                   key={n.id}
-                  to={n.question_id ? `/q/${n.question_id}` : '/'}
+                  to={
+                    n.kind === 'chat_mention'
+                      ? '/chat'
+                      : n.question_id
+                        ? `/q/${n.question_id}`
+                        : '/'
+                  }
                   onClick={() => setOpen(false)}
                   className="block px-4 py-3 border-b border-ink-50 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-700 last:border-0"
                 >

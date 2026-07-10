@@ -1,10 +1,18 @@
-import type { D1Database, R2Bucket, Ai, KVNamespace } from '@cloudflare/workers-types';
+import type {
+  D1Database,
+  R2Bucket,
+  Ai,
+  KVNamespace,
+  DurableObjectNamespace,
+} from '@cloudflare/workers-types';
 
 export type Env = {
   DB: D1Database;
   R2: R2Bucket;
   AI: Ai;
   CACHE?: KVNamespace;
+  // 聊天大廳 Durable Object (worker/chat-room.ts, single "lobby" room)
+  CHAT: DurableObjectNamespace;
   CF_ACCESS_TEAM_DOMAIN: string;
   CF_ACCESS_AUD: string;
   ADMIN_EMAILS?: string;
@@ -58,6 +66,7 @@ export type User = {
   avatar_key: string | null;
   bio: string | null;
   mcq_key_version: number;  // rotation salt for the /mcq skill key (default 1)
+  chat_notify: 'all' | 'mention' | 'off';  // 聊天大廳 toast preference
   created_at: number;
   updated_at: number;
 };

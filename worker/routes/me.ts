@@ -18,7 +18,11 @@ meRoutes.get('/', async (c) => {
 
 meRoutes.patch('/', async (c) => {
   const email = c.var.email;
-  const body = await c.req.json<{ display_name?: string; bio?: string }>();
+  const body = await c.req.json<{
+    display_name?: string;
+    bio?: string;
+    chat_notify?: string;
+  }>();
   const now = Date.now();
 
   if (body.display_name !== undefined) {
@@ -28,15 +32,29 @@ meRoutes.patch('/', async (c) => {
     }
   }
 
+  if (
+    body.chat_notify !== undefined &&
+    !['all', 'mention', 'off'].includes(body.chat_notify)
+  ) {
+    return c.json({ error: 'chat_notify must be all|mention|off' }, 400);
+  }
+
   await c.env.DB
     .prepare(
       `UPDATE users
        SET display_name = COALESCE(?, display_name),
            bio = COALESCE(?, bio),
+           chat_notify = COALESCE(?, chat_notify),
            updated_at = ?
        WHERE email = ?`
     )
-    .bind(body.display_name ?? null, body.bio ?? null, now, email)
+    .bind(
+      body.display_name ?? null,
+      body.bio ?? null,
+      body.chat_notify ?? null,
+      now,
+      email,
+    )
     .run();
 
   const user = await c.env.DB
