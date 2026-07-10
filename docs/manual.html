@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8" />
+<title>血專衝衝衝 · 使用手冊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{--ink-900:#1a1815;--ink-800:#2d2a25;--ink-700:#45413b;--ink-600:#5e5950;--ink-500:#807a6f;--ink-400:#a8a299;--ink-300:#c9c4bc;--ink-200:#e3dfd7;--ink-100:#efebe3;--ink-50:#faf8f3;--paper:#fdfaf3;--accent:#a04a1f;--accent-dark:#7a3614;--accent-soft:#f5e6d8;--emerald:#2f6e4a;--rose:#9b3030;--amber:#8a6313;--rule:#d8d2c5;}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink-800);font-family:'Noto Sans TC',system-ui,sans-serif;font-size:11.5pt;line-height:1.7;}
+.page{max-width:760px;margin:0 auto;padding:0;}
+h1,h2,h3,h4{font-family:'Noto Serif TC',Georgia,serif;color:var(--ink-900);font-weight:600;line-height:1.3;letter-spacing:-0.005em;}
+h1.cover{font-size:44pt;margin:0 0 8px;letter-spacing:-0.02em;}
+h1.chapter{font-size:24pt;margin:0 0 8px;padding-bottom:14px;border-bottom:1px solid var(--rule);page-break-before:always;}
+h1.chapter .num{display:block;font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-500);font-family:'Noto Sans TC',sans-serif;font-weight:500;margin-bottom:6px;}
+h2{font-size:15pt;margin:24px 0 8px;}
+h3{font-size:12pt;margin:18px 0 6px;color:var(--ink-800);}
+h4{font-size:11pt;margin:14px 0 4px;color:var(--ink-700);}
+p{margin:0 0 10px;}
+p.lead{font-family:'Noto Serif TC',serif;font-size:12pt;line-height:1.75;color:var(--ink-700);margin-bottom:20px;}
+ol,ul{margin:0 0 12px;padding-left:1.3em;}
+ol li,ul li{margin-bottom:4px;}
+ol.steps{list-style:none;padding:0;counter-reset:step;}
+ol.steps>li{counter-increment:step;position:relative;padding:6px 0 6px 38px;min-height:28px;margin-bottom:4px;}
+ol.steps>li::before{content:counter(step);position:absolute;left:0;top:6px;width:24px;height:24px;border-radius:50%;background:var(--ink-900);color:var(--paper);text-align:center;line-height:24px;font-family:'JetBrains Mono',monospace;font-size:10pt;font-weight:500;}
+kbd{display:inline-block;padding:1px 6px;border:1px solid var(--ink-300);border-bottom-width:2px;border-radius:4px;background:var(--ink-50);color:var(--ink-800);font-family:'JetBrains Mono',monospace;font-size:9pt;line-height:1.4;white-space:nowrap;}
+.ui{display:inline-block;padding:1px 7px;border-radius:3px;background:var(--ink-100);color:var(--ink-800);font-size:10pt;border:1px solid var(--ink-200);white-space:nowrap;}
+.ui.accent{background:var(--accent-soft);color:var(--accent-dark);border-color:#e5cdb5;}
+code{font-family:'JetBrains Mono',monospace;font-size:0.88em;background:var(--ink-100);padding:1px 5px;border-radius:3px;color:var(--ink-800);}
+.note,.tip,.warn,.info{margin:12px 0;padding:10px 14px 10px 16px;border-left:3px solid;border-radius:0 4px 4px 0;font-size:10.5pt;page-break-inside:avoid;}
+.note{background:#f3eee2;border-color:var(--ink-400);}
+.tip{background:#ecf3ec;border-color:var(--emerald);}
+.warn{background:#fbecec;border-color:var(--rose);}
+.info{background:#f5ecdc;border-color:var(--amber);}
+.note .label,.tip .label,.warn .label,.info .label{display:inline-block;font-weight:600;margin-right:6px;font-family:'Noto Serif TC',serif;font-size:10.5pt;}
+.note .label{color:var(--ink-700);}
+.tip .label{color:var(--emerald);}
+.warn .label{color:var(--rose);}
+.info .label{color:var(--amber);}
+.screen{margin:12px 0 14px;border:1px solid var(--rule);border-radius:6px;background:#fffdf6;font-family:'JetBrains Mono',monospace;font-size:8.5pt;line-height:1.5;color:var(--ink-700);overflow:hidden;page-break-inside:avoid;}
+.screen .bar{padding:5px 12px;border-bottom:1px solid var(--rule);background:var(--ink-100);color:var(--ink-600);font-size:8pt;letter-spacing:0.04em;}
+.screen pre{margin:0;padding:10px 14px;white-space:pre;font-family:inherit;overflow-x:auto;}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:10.5pt;page-break-inside:avoid;}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule);vertical-align:top;}
+thead th{border-bottom:2px solid var(--ink-700);font-family:'Noto Serif TC',serif;font-weight:600;color:var(--ink-900);}
+tbody tr:nth-child(even) td{background:var(--ink-50);}
+.cover-page{padding:60px 0 32px;text-align:left;border-bottom:1px solid var(--rule);page-break-after:always;}
+.cover-page .kicker{font-size:9pt;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-500);margin-bottom:20px;}
+.cover-page .subtitle{font-family:'Noto Serif TC',serif;font-size:14pt;color:var(--ink-700);margin:0 0 28px;font-weight:400;}
+.cover-meta{display:grid;grid-template-columns:80px 1fr;gap:6px 16px;font-size:10pt;color:var(--ink-600);margin-top:60px;max-width:480px;}
+.cover-meta dt{color:var(--ink-500);font-size:9pt;letter-spacing:0.06em;padding-top:3px;}
+.cover-meta dd{margin:0;color:var(--ink-800);}
+.toc{margin:24px 0 28px;padding:18px 22px;background:var(--ink-50);border:1px solid var(--ink-200);border-radius:6px;page-break-after:always;}
+.toc h2{margin-top:0;}
+.toc ol{padding-left:1.4em;}
+.toc ol>li{margin-bottom:3px;}
+.toc a{color:var(--ink-800);text-decoration:none;}
+.toc .sub{padding-left:1.4em;margin-top:3px;font-size:10pt;color:var(--ink-600);}
+@page{size:A4;margin:18mm 18mm 20mm;}
+h2,h3,h4{page-break-after:avoid;}
+h1.chapter:first-of-type{page-break-before:auto;}
+</style></head><body><div class="page">
+
+<section class="cover-page"><div class="kicker">使用手冊 · USER MANUAL</div><h1 class="cover">血專衝衝衝</h1><p class="subtitle">2026 台灣血液腫瘤次專科考試 · 共筆詳解 · 全真模擬</p><p style="font-family:'Noto Serif TC',serif;font-size:11pt;line-height:1.85;color:var(--ink-700);max-width:540px;">本手冊帶你從第一次登入到上場考試前的最後一輪複習，逐章說明系統的所有功能。讀完後，你會知道如何在共筆詳解上協作、用全真作答模擬考場、追蹤錯題、與夥伴針對答案討論甚至發起挑戰。</p><dl class="cover-meta"><dt>適用對象</dt><dd>20 位內部研究院/學會成員</dd><dt>系統範圍</dt><dd>1000 題 · 民國 104–113 年 + 模擬卷</dd><dt>登入方式</dt><dd>Cloudflare Access OTP (email 一次性密碼)</dd><dt>裝置支援</dt><dd>桌機、平板、手機 (RWD)</dd><dt>最佳列印</dt><dd>A4 · 雙面 · 黑白可</dd></dl></section>
+
+<section class="toc"><h2>目錄</h2><ol><li>第一章 · 第一次登入</li><li>第二章 · 介面總覽</li><li>第三章 · 首頁導讀</li><li>第四章 · 複習模式<div class="sub">答題 · 共筆詳解 · 個人筆記 · 留言與 @提及 · 收藏 · 相似題 · AI 摘要與翻譯 · 答案挑戰</div></li><li>第五章 · 全真作答</li><li>第六章 · 錯題回顧與作答紀錄</li><li>第七章 · 搜尋、收藏與快速跳轉</li><li>第八章 · 個人資料與通知</li><li>附錄 A · 鍵盤捷徑速查</li><li>附錄 B · 常見問題 FAQ</li><li>附錄 C · 回報問題與聯絡</li></ol></section>
+
+<h1 class="chapter"><span class="num">Chapter 1</span>第一次登入</h1>
+<p class="lead">本系統不存放任何密碼，所有身份驗證交由 Cloudflare Access 完成。第一次登入只需要你填入收信的信箱，系統會寄一封一次性密碼信給你。</p>
+<h2>1.1 開啟系統網址</h2>
+<ol class="steps"><li>在瀏覽器網址列輸入由管理員提供的網域，例如 <code>https://hema.example.com</code>。</li><li>第一次進入會自動跳到 Cloudflare Access 登入畫面 (畫面風格與本系統不同，屬正常)。</li><li>選擇 <span class="ui">Send code to your email</span>，填入你被加入白名單的那個 email，然後送出。</li></ol>
+<div class="warn"><span class="label">注意</span>只有事先被加入白名單的 20 位成員可以登入。如果你輸入的信箱不在名單上，會看到 <em>You do not have access</em>。請聯絡管理員 (見附錄 C)。</div>
+<h2>1.2 收信並輸入一次性密碼</h2>
+<ol class="steps"><li>查看信箱，找到寄件者為 <code>noreply@notify.cloudflare.com</code> 的信。</li><li>信件主旨類似「Your one-time PIN」，內容會有一組六位數字。</li><li>把這組數字貼回登入頁面，按 <span class="ui">Send</span>。</li><li>驗證通過後會自動轉址回系統首頁，看到「早安/午安/晚安 + 你的名字」即代表成功。</li></ol>
+<div class="tip"><span class="label">小撇步</span>Cloudflare 會在你的瀏覽器留下一段時效約 24 小時的 session，期間內重新開啟系統不用再驗證一次。換瀏覽器、清 cookie、或太久沒登入時才需要再走一次 OTP 流程。</div>
+<h2>1.3 首次登入後該做的事</h2>
+<ol class="steps"><li>右上點頭像進入 <span class="ui">個人資料</span>，把 <strong>顯示名稱</strong> 改成你想被夥伴看到的名字 (預設是 email 前綴)。</li><li>上傳一張頭像 (任何方形圖檔即可，會自動裁切)。</li><li>(選用) 填一段 <strong>Bio</strong>，讓別人在你留言旁邊看到你是哪個次專科/醫院。</li></ol>
+<div class="info"><span class="label">為什麼要設名字</span>你的留言、共筆編輯紀錄、@提及通知都會用這個名字呈現。預設的 email 前綴在共筆協作時辨識度低。</div>
+
+<h1 class="chapter"><span class="num">Chapter 2</span>介面總覽</h1>
+<p class="lead">系統有一個跨頁固定的頂欄、桌機/手機切換的導航，以及右上角一排狀態工具。把這幾個區塊看熟，後面所有章節都會更直觀。</p>
+<h2>2.1 頂欄結構</h2>
+<div class="screen"><div class="bar">桌機檢視 · 頂欄</div><pre>┌──────────────────────────────────────────────────────────────────────┐
+│ 血專衝衝衝   首頁  複習  全真  搜尋  收藏  錯題     [線上][🌗][💬][🔔][👤 名字] │
+└──────────────────────────────────────────────────────────────────────┘</pre></div>
+<table><thead><tr><th>區塊</th><th>說明</th></tr></thead><tbody>
+<tr><td><strong>血專衝衝衝</strong></td><td>系統 LOGO，點擊任何時候都可以回首頁。</td></tr>
+<tr><td>首頁 / 複習 / 全真 / 搜尋 / 收藏 / 錯題</td><td>主導航。目前所在的頁面會以橘色字體顯示。</td></tr>
+<tr><td>線上 (人頭數字)</td><td>顯示目前同時在線的成員，hover 看 avatar 列表。</td></tr>
+<tr><td>🌗 主題切換</td><td>淺色 ⇄ 深色模式。系統會記住偏好。</td></tr>
+<tr><td>💬 意見回饋</td><td>把 bug 或建議直接送到 GitHub Issues。</td></tr>
+<tr><td>🔔 通知鈴鐺</td><td>有人 @ 你或回覆你的留言時會出現紅點。</td></tr>
+<tr><td>👤 頭像 + 名字</td><td>點擊進入個人資料頁。</td></tr>
+</tbody></table>
+<h2>2.2 手機底欄</h2>
+<p>視窗寬度小於約 640px 時，頂欄的主導航會自動隱藏，改由螢幕底部的 5 顆 icon 取代：<span class="ui">首頁</span>、<span class="ui">複習</span>、<span class="ui">全真</span>、<span class="ui">搜尋</span>、<span class="ui">收藏</span>。錯題與其他功能可從首頁或個人頁進入。</p>
+<h2>2.3 深淺色模式</h2>
+<ol class="steps"><li>點右上 <span class="ui">🌗</span> 切換主題。</li><li>選擇 <span class="ui">淺色 / 深色 / 跟隨系統</span>。</li><li>偏好寫進 localStorage，下次回來自動套用。</li></ol>
+<div class="tip"><span class="label">建議</span>白天讀詳解用淺色 (對比清楚，視覺壓力低)；晚上長時間複習切深色 (護眼)。</div>
+
+<h1 class="chapter"><span class="num">Chapter 3</span>首頁導讀</h1>
+<p class="lead">首頁是個人駕駛艙：考試倒數、每日活動熱圖、累積進度、各年度題目入口、以及社群最新的「答案挑戰」。每次登入先在這裡停一下，比直接跳進題目更有效率。</p>
+<h2>3.1 考試倒數計時</h2>
+<p>最上方的卡片顯示距離 <strong>2026/08/29 (六) 09:00</strong> 還剩多少時間，精確到秒。當天數小於 60 變橘色、小於 30 變紅色，提醒自己進入衝刺期。考試當天會切換為「考試已開始 — 加油!」訊息。</p>
+<h2>3.2 活動熱圖</h2>
+<p>GitHub-style 的綠格熱圖，過去三個月每天的作答數量。顏色越深代表當天作答越多。連續紀錄不需要刻意刷，但長時間不亮會在自己頁面上很顯眼，是個誠實的提醒。</p>
+<h2>3.3 三格統計</h2>
+<table><thead><tr><th>欄位</th><th>計算方式</th></tr></thead><tbody>
+<tr><td>總題數</td><td>所有年度題目總和 (目前 1000 題)。</td></tr>
+<tr><td>已複習</td><td>你已經作答過至少一次的不重複題目數，下方顯示佔比 %。</td></tr>
+<tr><td>準確率</td><td>所有作答中答對的比例。括號內顯示 答對/總作答。</td></tr>
+</tbody></table>
+<h2>3.4 兩大模式入口</h2>
+<p><span class="ui">複習模式</span> 與 <span class="ui">全真作答</span> 是並列的兩張卡片。點任一張即進入對應章節介紹的流程。</p>
+<h2>3.5 依年度 (民國)</h2>
+<p>一張一張的年度卡，標示該年總題數、你的複習進度條 (橘色填充)、和最近一次作答的準確率 (綠 ≥70%、黃 ≥50%、紅 &lt;50%)。</p>
+<ol class="steps"><li>點任一個年度卡進入該年題目列表。</li><li>在列表內可選任一題開始作答；題號旁的 ●/○ 標示「已作答/未作答」。</li><li>民國 100 年標 <span class="ui">(模擬)</span>，是非考古題的補充練習。</li></ol>
+<h2>3.6 近期答案挑戰</h2>
+<p>題庫的答案不一定無誤，社群可以針對任何一題提出「答案挑戰」。這個區塊聚合最近 8 筆挑戰，狀態標籤如下：</p>
+<table><thead><tr><th>狀態</th><th>意義</th></tr></thead><tbody>
+<tr><td><span class="ui">表決中</span></td><td>剛被提出，等其他人投票同意或反對。</td></tr>
+<tr><td><span class="ui">討論中</span></td><td>有反對票出現，需要進一步釐清證據。</td></tr>
+<tr><td><span class="ui">已採納</span></td><td>多數同意，題目的官方答案已被改寫。</td></tr>
+<tr><td><span class="ui">已駁回</span></td><td>挑戰未獲共識，題目維持原答案。</td></tr>
+</tbody></table>
+<p>挑戰的完整操作流程見 §4.9。</p>
+
+<h1 class="chapter"><span class="num">Chapter 4</span>複習模式</h1>
+<p class="lead">複習模式是本系統的核心。一題一答、立即揭曉、共筆詳解、討論串、@提及、收藏、相似題、AI 工具，所有功能都圍繞「同一題」展開。本章依使用順序逐項說明。</p>
+<h2>4.1 進入複習</h2>
+<ol class="steps"><li>主選單點 <span class="ui">複習</span>，進入複習索引頁。</li><li>選一個年度，或從首頁的「年度卡」直接進入。</li><li>在該年的題目列表點任一題編號 (例：<code>113-001</code>) 打開題目頁。</li></ol>
+<div class="tip"><span class="label">小撇步</span>題目頁底部有 <span class="ui">⟵ 上一題</span> / <span class="ui">下一題 ⟶</span> 按鈕，可在同年度連續複習而不用回列表。鍵盤可用 <kbd>←</kbd> <kbd>→</kbd> 跳前後題。</div>
+<h2>4.2 看題與作答</h2>
+<div class="screen"><div class="bar">題目頁配置</div><pre>┌───────────────────────────────────────────────────────────────┐
+│  113-042                                  [🔖 收藏] [🚩 回報]   │
+│                                                                │
+│  題幹:                                                          │
+│    某 65 歲男性出現 ... (略)                                    │
+│                                                                │
+│  (A) 選項一                                                     │
+│  (B) 選項二      ← 點任一選項作答                                │
+│  (C) 選項三                                                     │
+│  (D) 選項四                                                     │
+│                                                                │
+│  [送出]                                                         │
+│                                                                │
+│  ──────── 送出後揭曉 ────────                                    │
+│   正解: (B)   你答: (D)   ✗  ←錯了會自動加入錯題                │
+│                                                                │
+│  [詳解] [我的筆記]                                              │
+└───────────────────────────────────────────────────────────────┘</pre></div>
+<ol class="steps"><li>讀完題幹與所有選項。</li><li>點選你認為的答案 (A/B/C/D)，被選中的選項會反白。</li><li>按 <span class="ui">送出</span>，系統立即比對正解。</li><li>答錯會自動把該題加入錯題清單 (見第六章)。</li><li>答對或答錯，都會展開「詳解」分頁。</li></ol>
+<div class="warn"><span class="label">一次性</span>每題每個使用者「最近一次作答」會被記到統計，但你可以重複作答 — 每次送出都會更新最新紀錄。想刻意挑戰自己時可以多答幾次。</div>
+<h2>4.3 共筆詳解</h2>
+<p>詳解是 <strong>整個團隊共同維護的單一份文件</strong>。任何成員都可以編輯，但同一時間只能有一個人在編輯 (悲觀鎖)。</p>
+<h3>4.3.1 閱讀模式</h3>
+<p>題目頁的「詳解」分頁預設是唯讀，顯示目前最新版本。內容支援標題、清單、粗體、斜體、行內 code、區塊引用、圖片、@提及、跨題引用、表格。</p>
+<h3>4.3.2 編輯模式</h3>
+<ol class="steps"><li>確認目前沒有人正在編輯 (沒有「XXX 正在編輯…」橘色橫幅)。</li><li>點詳解區右上的 <span class="ui">編輯</span> (鉛筆 icon)。</li><li>系統會嘗試取得編輯鎖，成功後切到富文本編輯器。</li><li>編輯時頂部會顯示「你正在編輯 · 剩餘 4:58」倒數，每 60 秒自動續鎖。</li><li>編輯完成按 <span class="ui">儲存</span>；要放棄按 <span class="ui">取消</span> (鎖會立刻釋出)。</li></ol>
+<div class="warn"><span class="label">鎖會自動過期</span>若你打開編輯後 5 分鐘沒有任何動作 (沒儲存、沒續鎖)，鎖會自動釋出，其他人即可開始編輯。長時間離開電腦前請先存檔。</div>
+<h3>4.3.3 版本控制</h3>
+<p>每次儲存都會把版本號 +1。如果在你儲存前有別人也存了一版 (你會看到衝突訊息)，系統會拒絕你的儲存，請按 <span class="ui">重新載入最新版</span>，再把你的修改套上去。</p>
+<h3>4.3.4 富文本工具列</h3>
+<table><thead><tr><th>按鈕</th><th>用途</th><th>快捷鍵</th></tr></thead><tbody>
+<tr><td>H1 / H2 / H3</td><td>段落標題</td><td>—</td></tr>
+<tr><td>B</td><td>粗體</td><td><kbd>⌘B</kbd></td></tr>
+<tr><td>I</td><td>斜體</td><td><kbd>⌘I</kbd></td></tr>
+<tr><td>· / 1.</td><td>項目清單 / 編號清單</td><td>—</td></tr>
+<tr><td>"</td><td>引用區塊</td><td>—</td></tr>
+<tr><td>&lt;/&gt;</td><td>行內 code / 程式區塊</td><td>—</td></tr>
+<tr><td>🖼</td><td>插入圖片 (見 §4.3.5)</td><td>—</td></tr>
+<tr><td>@</td><td>提及成員或引用其他題 (見 §4.5 / §7.3)</td><td>—</td></tr>
+</tbody></table>
+<h3>4.3.5 在詳解中插入圖片</h3>
+<ol class="steps"><li>在編輯模式下點工具列的 <span class="ui">🖼</span>。</li><li>選擇本機圖檔 (支援 JPG / PNG / WebP，建議 &lt; 2 MB)。</li><li>圖片會上傳到 R2 私有儲存桶並回傳一組 <code>/img/&lt;key&gt;</code> URL，自動嵌入到目前段落。</li><li>儲存後其他成員打開該題即可看到。</li></ol>
+<div class="info"><span class="label">隱私</span>所有圖片都會經過 Cloudflare Access 驗證，沒有登入的人即使拿到 URL 也看不到。請放心上傳教科書截圖或自繪示意圖。</div>
+<h2>4.4 個人筆記</h2>
+<p>題目頁的第二個分頁 <span class="ui">我的筆記</span> 是 <strong>只有你自己看得到</strong> 的私密欄位。適合放：</p>
+<ul><li>還沒成熟、不想公開給團隊的猜想</li><li>個人助記詞、口訣</li><li>讀書計畫提醒 (例：第二輪要回來看這題)</li></ul>
+<ol class="steps"><li>切到 <span class="ui">我的筆記</span> 分頁。</li><li>直接點內容區進入編輯 (沒有鎖、沒有版本，因為沒有別人會動)。</li><li>編輯完按 <span class="ui">儲存</span>。空白即代表你還沒寫過。</li></ol>
+<h2>4.5 留言與 @ 提及</h2>
+<p>每題下方有一個討論串，用來針對「這份詳解」展開二級討論：質疑、追問、補充延伸閱讀、貼新文獻等。</p>
+<h3>4.5.1 發一條留言</h3>
+<ol class="steps"><li>滑到題目頁底部 <span class="ui">討論</span> 區塊。</li><li>點 <span class="ui">寫留言</span> 開啟編輯框。</li><li>輸入內容 (支援與詳解相同的富文本)。</li><li>按 <span class="ui">送出</span>。留言會即時出現在串列頂部。</li></ol>
+<h3>4.5.2 @ 提及某位成員</h3>
+<ol class="steps"><li>在輸入框任意位置打 <code>@</code>。</li><li>跳出 20 人名單，輸入幾個字即時過濾。</li><li>選中後會插入一個彩色標籤 (例：<span class="ui accent">@小明</span>)。</li><li>送出後，被提及的人會在右上 <span class="ui">🔔</span> 收到通知。</li></ol>
+<h3>4.5.3 回覆別人 (留言串)</h3>
+<ol class="steps"><li>在任一條留言下方點 <span class="ui">回覆</span>。</li><li>輸入內容後送出，回覆會縮排到原留言之下。</li><li>系統會顯示兩層；更深的回覆會被收合，點 <span class="ui">展開</span> 看全文。</li><li>被回覆的人也會收到 🔔 通知。</li></ol>
+<div class="tip"><span class="label">使用習慣</span>詳解改錯就直接編詳解 (留版本紀錄)；對「這份詳解的邏輯/結論」有質疑、想討論不確定的地方，就在留言區提出 — 兩者分工會讓共筆內容比討論串清爽很多。</div>
+<h2>4.6 收藏</h2>
+<ol class="steps"><li>題目頁右上點 <span class="ui">🔖 收藏</span>。</li><li>圖示變成實心橘色代表已加入。</li><li>到主選單 <span class="ui">收藏</span> 頁可看所有自己標記過的題目。</li><li>再點一次 🔖 即可取消收藏。</li></ol>
+<h2>4.7 相似題</h2>
+<p>題目頁中段會自動列出與當前題「最相似」的數題 (依共同 tag 與全文相似度排序)。每筆顯示題號 + 題幹前幾字。</p>
+<ol class="steps"><li>點任一筆即跳到該題目頁。</li><li>找回頭路靠瀏覽器的 <kbd>←</kbd> 上一頁，或頂欄的麵包屑。</li></ol>
+<div class="info"><span class="label">用途</span>題庫中有大量考點重複出現的題目 (例：MGUS vs MM 診斷標準、CAR-T 適應症)。準備同類題時用相似題串著看比直接讀年度更有效率。</div>
+<h2>4.8 AI 摘要與翻譯 (選用)</h2>
+<p>若詳解內容偏長或內含大量英文，題目頁有兩顆按鈕：</p>
+<table><thead><tr><th>按鈕</th><th>效果</th></tr></thead><tbody>
+<tr><td><span class="ui">✨ 摘要</span></td><td>用 Workers AI 跑出 200 字內的中文重點。</td></tr>
+<tr><td><span class="ui">✨ 翻譯</span></td><td>把詳解全文翻成中文。</td></tr>
+</tbody></table>
+<ol class="steps"><li>點按鈕，下方面板顯示「處理中…」。</li><li>結果出現後即可閱讀，按 <span class="ui">✕</span> 關閉面板。</li><li>若詳解版本被更新，舊摘要會自動失效，再按一次重新生成。</li></ol>
+<div class="warn"><span class="label">用量限制</span>AI 是 Cloudflare 免費額度，每天上限 10,000 neurons。團隊整體大量使用可能跑完額度；發現「處理失敗」時可隔日再試。</div>
+<h2>4.9 答案挑戰</h2>
+<p class="lead">這是本系統最具特色的功能。考古題的官方答案偶爾有錯，本流程讓任何成員都能正式發起挑戰，經多數同意後改寫題庫的官方答案。</p>
+<h3>4.9.1 提出挑戰 (filing)</h3>
+<ol class="steps"><li>確認你已經作答過該題 (沒答過無法挑戰)。</li><li>滑到題目頁的「答案揭曉」區塊下方，點 <span class="ui">提出答案挑戰</span>。</li><li>從可選字母中挑出你主張的正確答案 (不能選與目前官方答案相同)。</li><li>寫一段論述 (建議附文獻 PMID 或教科書頁數)。</li><li>送出後狀態變 <span class="ui">表決中</span>，全題庫的「近期答案挑戰」會出現你的這筆。</li></ol>
+<h3>4.9.2 投票表決</h3>
+<ol class="steps"><li>看到別人提出的挑戰時，閱讀對方論述。</li><li>點 <span class="ui">✓ 同意</span> 或 <span class="ui">✗ 反對</span>。</li><li>投錯了還可以 <span class="ui">收回投票</span> 重投。</li><li>提案人不能投自己的挑戰。</li></ol>
+<h3>4.9.3 結案</h3>
+<table><thead><tr><th>條件</th><th>狀態</th><th>結果</th></tr></thead><tbody>
+<tr><td>同意 ≫ 反對</td><td><span class="ui">已採納</span></td><td>題目官方答案被改寫為提案答案，挑戰紀錄保留。</td></tr>
+<tr><td>反對 ≫ 同意</td><td><span class="ui">已駁回</span></td><td>官方答案維持，挑戰封存。</td></tr>
+<tr><td>持續有反對票</td><td><span class="ui">討論中</span></td><td>需要在留言區補充證據後重新表決。</td></tr>
+</tbody></table>
+<h3>4.9.4 撤回挑戰</h3>
+<p>若你在發出挑戰後又改變主意，可以從題目頁的挑戰橫幅按 <span class="ui">撤回挑戰</span>。撤回後該挑戰會被歸檔，他人不再看到。</p>
+
+<h1 class="chapter"><span class="num">Chapter 5</span>全真作答</h1>
+<p class="lead">全真作答是把你關進跟真實考場一樣的情境：100 分鐘、100 題 (內科 70 + 共同 30)，連續作答中途不揭曉答案，做完才看總分與錯題回顧。考前一個月強烈建議至少做完三套。</p>
+<h2>5.1 啟動一場全真</h2>
+<ol class="steps"><li>主選單點 <span class="ui">全真</span>。</li><li>選擇科別：<span class="ui">內科</span> (70 題) 或 <span class="ui">共同</span> (30 題)。預設兩者都選 (= 完整 100 分鐘)，但你也可以只練其中一塊。</li><li>從年度卡 (104–113 + 100 模擬) 點任一年即開始。</li><li>系統會隨機抽題、計時器立刻啟動。</li></ol>
+<h2>5.2 作答介面</h2>
+<div class="screen"><div class="bar">作答中</div><pre>┌────────────────────────────────────────────────────────────────┐
+│  113 年 內科+共同   時間: 01:23:45 / 01:40:00     [⏸ 暫停]      │
+│                                                                 │
+│  Q 42 / 100                                                     │
+│   題幹: ...                                                     │
+│                                                                 │
+│   (A)  (B)  (C) ●  (D)                                          │
+│                                                                 │
+│   [⟵ 上一題]                  [下一題 ⟶]    [🚩 標記]            │
+│                                                                 │
+│   ─── 答題狀態 ───                                              │
+│   ● 已答 1-41   ◐ 標記 8,15   ○ 未答 43-100   [跳到 ___]         │
+└────────────────────────────────────────────────────────────────┘</pre></div>
+<table><thead><tr><th>元素</th><th>說明</th></tr></thead><tbody>
+<tr><td>時間</td><td>已花時間 / 總時限 (內科+共同 = 100 分；只選一個科別會按比例縮減)。</td></tr>
+<tr><td>⏸ 暫停</td><td>暫停計時並關閉題目顯示。沒寫完離開電腦時請按這顆，避免時間白白流走。</td></tr>
+<tr><td>🚩 標記</td><td>標記為「待回頭看」。下方答題狀態以 ◐ 顯示，方便最後檢查。</td></tr>
+<tr><td>跳到 ___</td><td>輸入題號 (1–100) 跳轉。</td></tr>
+</tbody></table>
+<h2>5.3 中途暫停與續答</h2>
+<ol class="steps"><li>按 <span class="ui">⏸ 暫停</span>，題目隱藏、計時凍結。</li><li>瀏覽器可以關掉、可以登出。session 一直保留。</li><li>下次回到 <span class="ui">全真</span> 主畫面，會看到「上次未完成的考試」橫幅，點 <span class="ui">續答</span> 從原本的題號繼續。</li><li>按 <span class="ui">▶ 繼續</span> 恢復計時。</li></ol>
+<div class="warn"><span class="label">不要硬關</span>不按暫停就關瀏覽器，下次回來時間是繼續走的 (因為 server-side 時間戳沒停)。模擬考想盡量逼近真實，但忘了真的會被扣時間。</div>
+<h2>5.4 交卷與結果頁</h2>
+<ol class="steps"><li>所有題目作答完或時間到，自動跳轉到 <span class="ui">結果頁</span>。</li><li>頁面顯示：總分 (例：72/100)、內科分數、共同分數、平均每題用時。</li><li>下方逐題列出「你的答案 / 正解 / 對錯」，點任一題進入該題的複習頁 (此時詳解、留言、收藏功能都可用)。</li><li>所有錯題會自動加入 <span class="ui">錯題</span> 清單 (第六章)。</li></ol>
+<h2>5.5 歷次紀錄</h2>
+<p>主選單沒有「全真紀錄」入口，但結果頁、全真起始頁、首頁底部都有 <span class="ui">→ 查看歷次作答紀錄</span> 連結。紀錄頁列出每一場：日期、年度、分數、用時，點任一場可重新看結果頁。</p>
+
+<h1 class="chapter"><span class="num">Chapter 6</span>錯題回顧與作答紀錄</h1>
+<p class="lead">錯題與作答紀錄是「考前最後一週」的核心戰場。錯過的題目永遠比沒看過的題目值得再看一次。</p>
+<h2>6.1 錯題清單</h2>
+<p>主選單點 <span class="ui">錯題</span>。系統列出所有「最近一次作答答錯」的題目，依年度反向排序。</p>
+<ol class="steps"><li>點任一題的題號進入題目頁。</li><li>重新作答；若這次答對，該題會自動從錯題清單移除。</li><li>過濾器可選「依年度」、「依科別 (內科/共同)」收斂範圍。</li></ol>
+<div class="tip"><span class="label">複習節奏</span>第一週：把所有錯題答對一次。第二週：間隔一週再做一次同一批，仍答錯的代表觀念真的還沒抓到，去翻教科書。</div>
+<h2>6.2 作答紀錄</h2>
+<p><span class="ui">作答紀錄</span> 列出你跑過的每一場全真，可以看分數趨勢。對自己負責的最低標：考前一個月內至少跑兩場分數 ≥ 70 的全真。</p>
+
+<h1 class="chapter"><span class="num">Chapter 7</span>搜尋、收藏與快速跳轉</h1>
+<h2>7.1 全文搜尋</h2>
+<ol class="steps"><li>主選單點 <span class="ui">搜尋</span>。</li><li>輸入關鍵字 (中英皆可)，例如 <code>CAR-T</code>、<code>MGUS</code>、<code>thrombocytopenia</code>。</li><li>結果顯示符合的題目，命中字會反白；點任一筆進入。</li><li>可同時搜題幹、選項、詳解、留言。</li></ol>
+<div class="tip"><span class="label">進階用法</span>用引號 <code>"acute lymphoblastic leukemia"</code> 搜整個短語；用空格分隔多個關鍵字代表 AND；想搜縮寫又怕誤判，可拉長為 <code>chronic myeloid leukemia OR CML</code>。</div>
+<h2>7.2 收藏清單</h2>
+<p>主選單 <span class="ui">收藏</span>。所有你按過 🔖 的題目都在這裡，依加入時間排序。可用於：</p>
+<ul><li>標記「考前一定要再看」的題目</li><li>整理「特定主題」(例：用收藏 + 自己的個人筆記做出血液病急症題組)</li><li>標記「想找時間幫詳解擴寫」的題目</li></ul>
+<h2>7.3 在詳解內跨題引用</h2>
+<ol class="steps"><li>編輯詳解時，在編輯框任意位置打 <code>@</code>。</li><li>除了成員名單之外，輸入 <code>113-001</code> 這類題號格式也會出現「跨題引用」選項。</li><li>選中後會插入一個 <span class="ui">↗ 113-001</span> 小膠囊。</li><li>讀者點擊即跳到該題。</li></ol>
+
+<h1 class="chapter"><span class="num">Chapter 8</span>個人資料與通知</h1>
+<h2>8.1 編輯個人資料</h2>
+<ol class="steps"><li>右上點頭像 → <span class="ui">個人資料</span>。</li><li>修改 <strong>顯示名稱</strong> (留言、@提及、共筆編輯紀錄都會用這個)。</li><li>修改 <strong>Bio</strong> (一兩句自我介紹)。</li><li>按 <span class="ui">儲存</span>。畫面右上會閃 <span class="ui">已儲存</span> 提示。</li></ol>
+<h2>8.2 換頭像</h2>
+<ol class="steps"><li>頁面左上角的頭像區塊點 <span class="ui">換頭像</span>。</li><li>選一張本機圖檔 (建議方形，JPG / PNG，&lt;2 MB)。</li><li>上傳完成後即時生效，所有頁面同步更新。</li></ol>
+<h2>8.3 通知中心</h2>
+<p>右上 🔔 是你會收到通知的地方。觸發條件：</p>
+<ul><li>有人在留言/詳解 @ 提及你</li><li>有人回覆你的留言</li><li>你提出的答案挑戰被採納/駁回</li><li>你投了反對票的挑戰結案 (採納 or 駁回)</li></ul>
+<ol class="steps"><li>有未讀時 🔔 出現紅點。</li><li>點開鈴鐺看清單，每筆顯示「誰、在哪一題、做了什麼」。</li><li>點任一筆跳到該題對應位置 (留言會自動 scroll 到該則)。</li><li>點 <span class="ui">全部標為已讀</span> 一鍵清空紅點。</li></ol>
+<h2>8.4 線上使用者</h2>
+<p>頂欄的「線上 (N)」會顯示目前同時開著系統的成員數量，hover 看頭像清單。考前一週這個數字會明顯變高 — 善用這時候在留言區發問，回應通常很快。</p>
+<h2>8.5 意見回饋</h2>
+<ol class="steps"><li>頂欄的 <span class="ui">💬</span> 按鈕。</li><li>填寫遇到的問題或想要的功能，會自動帶上你目前所在的網址、瀏覽器版本。</li><li>送出後會建立一個 GitHub Issue 到專案 repo。</li><li>後續進度可由系統管理員追蹤。</li></ol>
+
+<h1 class="chapter"><span class="num">Appendix A</span>鍵盤捷徑速查</h1>
+<h2>A.1 全域</h2>
+<table><thead><tr><th>動作</th><th>桌機</th></tr></thead><tbody>
+<tr><td>回首頁</td><td><kbd>G</kbd> <kbd>H</kbd></td></tr>
+<tr><td>打開搜尋</td><td><kbd>/</kbd></td></tr>
+<tr><td>切換深淺色</td><td><kbd>⇧</kbd> <kbd>D</kbd></td></tr>
+</tbody></table>
+<h2>A.2 題目頁</h2>
+<table><thead><tr><th>動作</th><th>鍵</th></tr></thead><tbody>
+<tr><td>選擇選項</td><td><kbd>A</kbd> / <kbd>B</kbd> / <kbd>C</kbd> / <kbd>D</kbd></td></tr>
+<tr><td>送出答案</td><td><kbd>Enter</kbd></td></tr>
+<tr><td>上一題 / 下一題</td><td><kbd>←</kbd> / <kbd>→</kbd></td></tr>
+<tr><td>切到詳解 / 我的筆記</td><td><kbd>E</kbd> / <kbd>N</kbd></td></tr>
+<tr><td>收藏切換</td><td><kbd>B</kbd></td></tr>
+</tbody></table>
+<h2>A.3 編輯器內</h2>
+<table><thead><tr><th>動作</th><th>鍵</th></tr></thead><tbody>
+<tr><td>粗體 / 斜體</td><td><kbd>⌘B</kbd> / <kbd>⌘I</kbd></td></tr>
+<tr><td>標題</td><td><kbd>⌘⌥1</kbd> / <kbd>⌘⌥2</kbd> / <kbd>⌘⌥3</kbd></td></tr>
+<tr><td>清單</td><td><kbd>⌘⇧8</kbd> (項目) / <kbd>⌘⇧7</kbd> (編號)</td></tr>
+<tr><td>引用區塊</td><td><kbd>⌘⇧B</kbd></td></tr>
+<tr><td>儲存</td><td><kbd>⌘S</kbd></td></tr>
+<tr><td>取消編輯</td><td><kbd>Esc</kbd></td></tr>
+</tbody></table>
+
+<h1 class="chapter"><span class="num">Appendix B</span>常見問題 FAQ</h1>
+<h3>Q1. 我忘記了上次的密碼怎麼辦?</h3>
+<p>本系統 <strong>沒有密碼</strong>。所有登入都靠 Cloudflare Access 寄到信箱的一次性密碼。如果新裝置或新瀏覽器要登入，照第一章流程跑一次即可。</p>
+<h3>Q2. 為什麼我編輯詳解到一半，按儲存出現「衝突」?</h3>
+<p>在你開啟編輯到按儲存的這段時間，有別人也存了一版。請按 <span class="ui">重新載入最新版</span>，把對方的內容讀回來，再把你的修改重新加上去存。鎖無法 100% 避免這個 race，因為鎖會在 5 分鐘無動作時自動釋出 — 這是設計上故意的，避免有人卡住整個共筆。</p>
+<h3>Q3. 我能不能刪掉自己的留言?</h3>
+<p>可以。留言旁的 ⋯ 選單有 <span class="ui">刪除</span>。已被回覆的留言刪除後會顯示「(已刪除)」，保留結構但隱藏內容，避免破壞討論串。</p>
+<h3>Q4. 我發現某一年的某一題題幹有錯字，怎麼修正?</h3>
+<p>題幹屬於官方考古題，原則上 <strong>不修改</strong> (保留原始紀錄)。請在留言區指出錯字，或在詳解開頭寫一行「題幹原文 OCR 有誤，正確應為 ...」。如真是嚴重影響理解的錯誤 (例：選項抄錯)，請從 💬 提交意見回饋給管理員處理。</p>
+<h3>Q5. 我答錯了一題，能不能不要被加進錯題清單?</h3>
+<p>不能直接排除，但若你之後再答對一次，該題會自動移出。錯題的設計就是讓你誠實面對自己。</p>
+<h3>Q6. 全真作答跑到一半網路斷線，紀錄會掉嗎?</h3>
+<p>不會。每次選答案、暫停、跳題都會即時 sync 到 server。網路恢復後重新進入 <span class="ui">全真</span>，按 <span class="ui">續答</span> 即可從原本的狀態回到考場。</p>
+<h3>Q7. 我可以用手機作答嗎?</h3>
+<p>可以。所有頁面都是 RWD 設計。但 <strong>長詳解的閱讀體驗</strong> 在桌機/平板會明顯更好；全真作答強烈建議桌機，避免手滑誤點。</p>
+<h3>Q8. AI 摘要按了沒反應?</h3>
+<p>可能原因：(a) 當天團隊 AI 額度用完；(b) 詳解內容過短不夠摘要；(c) 暫時的 Worker 故障。請隔 30 分鐘再試，或從 💬 回報。</p>
+<h3>Q9. 答案挑戰被駁回後，我能再提一次嗎?</h3>
+<p>可以，但建議先在留言區補上新的證據再開新挑戰，否則容易被同樣的票數再次駁回。挑戰歷史會永久保留 (採納/駁回都看得到)，所以「挑戰失敗」不是負面紀錄，是知識協作的痕跡。</p>
+<h3>Q10. 我能匯出自己的進度、錯題、筆記嗎?</h3>
+<p>目前還沒有 UI 匯出按鈕，但你的所有資料都安全保存在 D1 資料庫中。考完試後若需要備份，可向管理員索取。</p>
+
+<h1 class="chapter"><span class="num">Appendix C</span>回報問題與聯絡</h1>
+<h2>C.1 我發現了系統 Bug</h2>
+<ol class="steps"><li>頂欄點 <span class="ui">💬 意見回饋</span>。</li><li>選擇 <span class="ui">Bug 回報</span>。</li><li>盡量描述：(a) 我做了什麼 (b) 我預期看到什麼 (c) 實際看到什麼 (d) 重現步驟。</li><li>如方便附截圖請拖入。</li><li>送出 — 會自動建立 GitHub Issue。</li></ol>
+<h2>C.2 我有功能建議</h2>
+<p>同樣從 💬 進入，類別選 <span class="ui">功能建議</span>。受歡迎的建議會被排進系統路線圖。本系統故意維持小巧：建議「合作學習相關」的功能比「個人化炫技」的功能更容易被採納。</p>
+<h2>C.3 我想加入新成員 / 移除成員</h2>
+<p>請聯絡管理員處理 Cloudflare Access 白名單。新成員加入後需要：</p>
+<ol class="steps"><li>提供其 email 給管理員加入 Access 名單。</li><li>請他/她按第一章的流程登入。</li><li>登入後系統會自動 upsert 為一位成員。</li><li>提醒他/她到個人資料設好顯示名稱與頭像。</li></ol>
+<h2>C.4 我想看完整文件 / 原始碼</h2>
+<p>本系統為內部協作工具，部分文件 (架構、部署、資料庫 schema) 放在專案的 <code>README.md</code> 與 <code>CLAUDE.md</code>。需要技術細節時可向管理員索取 repo 權限。</p>
+
+<hr style="margin:60px 0 24px;border:none;border-top:1px solid var(--rule);" />
+<p style="text-align:center;color:var(--ink-500);font-size:9pt;">血專衝衝衝 · 使用手冊 · v1.0<br/>Last updated: 2026-05-25 · 適用對象: 內部 20 位成員<br/>若紙本印出後內容有疑問，以線上即時版本為準。</p>
+
+</div></body></html>
