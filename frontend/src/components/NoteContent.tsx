@@ -1,19 +1,22 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { ReadOnlyContent } from './ReadOnlyContent';
 
-// Read-only renderer for 個人筆記. Two view-only affordances the plain
-// ReadOnlyContent doesn't give:
-//   • a paragraph that is just `---` / `***` / `___` renders as a real <hr>
-//   • each <h2> becomes a collapsible accordion (folded by default), holding
-//     the blocks under it until the next <h2>
-// The blocks inside each section are still rendered by ReadOnlyContent, so
-// images, tables, links, highlights etc. all keep working.
+// Read-only renderer for 個人筆記 with two view-only affordances:
+//   • a paragraph that is just ---/***/___ renders as a real <hr>
+//   • every heading (h1/h2/h3) becomes a collapsible accordion, folded by
+//     default and NESTED by level: an h1 section holds the h2 sections under
+//     it, each h2 holds its h3 sections, and so on.
+// Section bodies render through ReadOnlyContent, so tables, images, links and
+// highlights all keep working. Content before the first heading stays visible.
 
 type Node = { type?: string; attrs?: any; content?: Node[]; text?: string };
-type Section = { heading: Node | null; blocks: Node[] };
+type Section = { kind: 'section'; heading: Node; level: number; children: Item[] };
+type Block = { kind: 'block'; node: Node };
+type Item = Section | Block;
 
 const HR_RE = /^\s*(-{3,}|\*{3,}|_{3,})\s*$/;
+const HEADING_LEVELS = new Set([1, 2, 3]);
 
 // A paragraph whose only content is a horizontal-rule marker → an <hr> node.
 function toHrIfMarker(node: Node): Node {
@@ -32,50 +35,72 @@ function headingText(node: Node): string {
     .trim();
 }
 
-// Split the doc into an optional lead-in section (heading null, always shown)
-// followed by one section per <h2>.
-function splitByH2(content: Node[]): Section[] {
-  const sections: Section[] = [];
-  let cur: Section = { heading: null, blocks: [] };
+// Fold the flat block list into a heading-nested tree. A heading closes any
+// open sections at its level or deeper, then opens a new one; plain blocks
+// attach to the current deepest section.
+function buildTree(content: Node[]): Item[] {
+  const root: Section = { kind: 'section', heading: {}, level: 0, children: [] };
+  const stack: Section[] = [root];
   for (const raw of content) {
-    const node = toHrIfMarker(raw);
-    if (node.type === 'heading' && node.attrs?.level === 2) {
-      if (cur.heading || cur.blocks.length) sections.push(cur);
-      cur = { heading: node, blocks: [] };
+    if (raw.type === 'heading' && HEADING_LEVELS.has(raw.attrs?.level)) {
+      const level = raw.attrs.level as number;
+      while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
+      const sec: Section = { kind: 'section', heading: raw, level, children: [] };
+      stack[stack.length - 1].children.push(sec);
+      stack.push(sec);
     } else {
-      cur.blocks.push(node);
+      stack[stack.length - 1].children.push({ kind: 'block', node: toHrIfMarker(raw) });
     }
   }
-  if (cur.heading || cur.blocks.length) sections.push(cur);
-  return sections;
+  return root.children;
 }
 
 export function NoteContent({ content }: { content: any }) {
-  const blocks: Node[] = content?.content ?? [];
-  const sections = splitByH2(blocks);
-
+  const items = buildTree(content?.content ?? []);
   return (
     <div className="tiptap-note">
-      {sections.map((sec, i) =>
-        sec.heading ? (
-          <NoteAccordion
-            key={i}
-            title={headingText(sec.heading)}
-            blocks={sec.blocks}
-          />
-        ) : (
-          sec.blocks.length > 0 && (
-            <ReadOnlyContent key={i} content={{ type: 'doc', content: sec.blocks }} />
-          )
-        ),
-      )}
+      <ItemList items={items} />
     </div>
   );
 }
 
-function NoteAccordion({ title, blocks }: { title: string; blocks: Node[] }) {
+// Render items in order: consecutive blocks batch into one ReadOnlyContent (so
+// lists/paragraphs render correctly); sections render as nested accordions.
+function ItemList({ items }: { items: Item[] }) {
+  const out: ReactNode[] = [];
+  let buf: Node[] = [];
+  let key = 0;
+  const flush = () => {
+    if (buf.length) {
+      out.push(
+        <ReadOnlyContent key={`b${key++}`} content={{ type: 'doc', content: buf }} />,
+      );
+      buf = [];
+    }
+  };
+  for (const it of items) {
+    if (it.kind === 'block') {
+      buf.push(it.node);
+    } else {
+      flush();
+      out.push(<NoteAccordion key={`s${key++}`} section={it} />);
+    }
+  }
+  flush();
+  return <>{out}</>;
+}
+
+// Heading size shrinks with depth so nesting reads as a hierarchy.
+const TITLE_CLS: Record<number, string> = {
+  1: 'text-xl',
+  2: 'text-lg',
+  3: 'text-base',
+};
+
+function NoteAccordion({ section }: { section: Section }) {
   const [open, setOpen] = useState(false);
-  const hasBody = blocks.length > 0;
+  const title = headingText(section.heading);
+  const hasChildren = section.children.length > 0;
 
   return (
     <div className="border-b border-ink-200 dark:border-ink-700 last:border-b-0">
@@ -83,7 +108,7 @@ function NoteAccordion({ title, blocks }: { title: string; blocks: Node[] }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="w-full flex items-center gap-2 py-3 text-left group"
+        className="w-full flex items-center gap-2 py-2.5 text-left group"
       >
         <ChevronRight
           size={16}
@@ -92,13 +117,18 @@ function NoteAccordion({ title, blocks }: { title: string; blocks: Node[] }) {
             (open ? 'rotate-90' : '')
           }
         />
-        <span className="font-serif text-lg text-ink-900 dark:text-ink-100 group-hover:text-accent transition-colors">
+        <span
+          className={
+            'font-serif text-ink-900 dark:text-ink-100 group-hover:text-accent transition-colors ' +
+            (TITLE_CLS[section.level] ?? 'text-base')
+          }
+        >
           {title || '（無標題）'}
         </span>
       </button>
-      {open && hasBody && (
-        <div className="pb-3 pl-6">
-          <ReadOnlyContent content={{ type: 'doc', content: blocks }} />
+      {open && hasChildren && (
+        <div className="pb-2 pl-6">
+          <ItemList items={section.children} />
         </div>
       )}
     </div>
