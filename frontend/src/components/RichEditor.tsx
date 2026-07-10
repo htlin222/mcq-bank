@@ -54,7 +54,7 @@ export function RichEditor({ content, onChange, placeholder, editable = true, au
         }
         return false;
       },
-      handlePaste: (_view, event) => {
+      handlePaste: (view, event) => {
         const files = event.clipboardData?.files;
         if (files?.length) {
           const img = [...files].find((f) => f.type.startsWith('image/'));
@@ -63,6 +63,13 @@ export function RichEditor({ content, onChange, placeholder, editable = true, au
             uploadAndInsert(img);
             return true;
           }
+        }
+        // HTML paste (e.g. OpenEvidence) may carry hotlinked external images
+        // that won't load from our origin. Let the default paste + transform
+        // run, then sideload any external <img> into R2 on the next tick.
+        const html = event.clipboardData?.getData('text/html') || '';
+        if (/<img[^>]+src=["']https?:\/\//i.test(html)) {
+          setTimeout(() => sideloadExternalImages(view), 0);
         }
         return false;
       },
@@ -98,6 +105,47 @@ export function RichEditor({ content, onChange, placeholder, editable = true, au
       </div>
     </div>
   );
+}
+
+// An image src that our /img/ proxy doesn't serve — an absolute URL on
+// another origin (hotlinked). Same-origin and relative /img/ srcs are ours.
+function isExternalImg(src: string): boolean {
+  if (!/^https?:\/\//i.test(src)) return false;
+  try {
+    return new URL(src).origin !== window.location.origin;
+  } catch {
+    return false;
+  }
+}
+
+// After an HTML paste, fetch every hotlinked image through the Worker (which
+// stores it in R2) and rewrite the node src to the returned /img/ URL. Runs
+// sequentially so one failure doesn't abort the rest; a failed image just
+// keeps its broken external src.
+async function sideloadExternalImages(view: import('@tiptap/pm/view').EditorView) {
+  const srcs = new Set<string>();
+  view.state.doc.descendants((node) => {
+    if (node.type.name === 'image' && isExternalImg(node.attrs.src as string)) {
+      srcs.add(node.attrs.src as string);
+    }
+  });
+  for (const src of srcs) {
+    try {
+      const { url } = await api.post<{ url: string }>('/api/upload/url', { url: src });
+      // Re-scan from the live state each time — positions shift as we dispatch.
+      const tr = view.state.tr;
+      let changed = false;
+      view.state.doc.descendants((node, pos) => {
+        if (node.type.name === 'image' && node.attrs.src === src) {
+          tr.setNodeMarkup(pos, undefined, { ...node.attrs, src: url });
+          changed = true;
+        }
+      });
+      if (changed) view.dispatch(tr);
+    } catch {
+      /* leave the broken external image; user can delete or re-add it */
+    }
+  }
 }
 
 function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: File) => void }) {
