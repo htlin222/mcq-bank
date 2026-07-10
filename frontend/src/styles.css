@@ -126,8 +126,11 @@
   @apply bg-emerald-100 dark:bg-emerald-900/50 underline decoration-emerald-700 dark:decoration-emerald-300;
 }
 
-/* Selected node indicator */
-.tiptap .ProseMirror-selectednode {
+/* Selected-node indicator — editing affordance only. A read-only editor can
+   auto-select a trailing leaf (e.g. an <hr> at the end of a note section),
+   which would otherwise paint an accent outline that reads as a bold divider.
+   Scope it to the focused (editable) editor so read-only views stay clean. */
+.tiptap.ProseMirror-focused .ProseMirror-selectednode {
   @apply outline outline-2 outline-accent;
 }
 
