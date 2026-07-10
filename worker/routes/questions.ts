@@ -12,6 +12,7 @@ export const questionsRoutes = new Hono<AppContext>();
 // List / filter questions
 // ------------------------------------------------------------
 questionsRoutes.get("/", async (c) => {
+	const email = c.var.email;
 	const year = c.req.query("year");
 	const group = c.req.query("group"); // one of the labels from config.toml [groups].list
 	const tags = c.req.query("tags"); // comma-separated, AND-semantics
@@ -19,23 +20,26 @@ questionsRoutes.get("/", async (c) => {
 	const limit = Math.min(parseInt(c.req.query("limit") || "50"), 200);
 	const offset = parseInt(c.req.query("offset") || "0");
 
+	// Bind params are positional — keep these arrays in the same order the
+	// placeholders appear in the SQL (tag join → progress join → where).
 	const where: string[] = [];
-	const params: any[] = [];
+	const whereParams: any[] = [];
 
 	if (year) {
 		where.push("q.year = ?");
-		params.push(parseInt(year));
+		whereParams.push(parseInt(year));
 	}
 	if (group) {
 		where.push('q."group" = ?');
-		params.push(group);
+		whereParams.push(group);
 	}
 	if (q) {
 		where.push("q.stem LIKE ?");
-		params.push(`%${q}%`);
+		whereParams.push(`%${q}%`);
 	}
 
 	let joinSql = "";
+	const joinParams: any[] = [];
 	if (tags) {
 		const tagList = tags
 			.split(",")
@@ -52,18 +56,21 @@ questionsRoutes.get("/", async (c) => {
           HAVING COUNT(DISTINCT tag) = ?
         ) tf ON tf.question_id = q.id
       `;
-			params.push(...tagList, tagList.length);
+			joinParams.push(...tagList, tagList.length);
 		}
 	}
 
 	const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
-	const sql = `SELECT q.id, q.year, q.number, q.stem, q."group", q.difficulty
+	const sql = `SELECT q.id, q.year, q.number, q.stem, q."group", q.difficulty,
+                      rp.times_seen, rp.last_correct
                FROM questions q
                ${joinSql}
+               LEFT JOIN review_progress rp
+                 ON rp.question_id = q.id AND rp.user_email = ?
                ${whereSql}
                ORDER BY q.year DESC, q.number ASC
                LIMIT ? OFFSET ?`;
-	params.push(limit, offset);
+	const params = [...joinParams, email, ...whereParams, limit, offset];
 
 	const { results } = await c.env.DB.prepare(sql)
 		.bind(...params)

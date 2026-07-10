@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { BookOpen, Clock } from 'lucide-react';
+import { BookOpen, Check, Clock, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { GROUPS, groupBadgeClass } from '../lib/groups';
@@ -12,6 +12,8 @@ type QListItem = {
   stem: string;
   group: string | null;
   difficulty: number | null;
+  times_seen: number | null; // from review_progress; null = never answered
+  last_correct: number | null; // 1/0 for the latest attempt
 };
 type AnkiDeckStats = {
   year: number;
@@ -127,32 +129,64 @@ export function YearList() {
       />
 
       <ol className="space-y-2">
-        {visible.map((q) => (
-          <li key={q.id}>
-            <Link
-              to={`/q/${q.id}`}
-              className="flex gap-3 items-start bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
-            >
-              <span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0 w-10 text-right">
-                {q.number}.
-              </span>
-              <BookmarkBadge questionId={q.id} className="mt-1" />
-              <span className="text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed">
-                {q.stem}
-              </span>
-              {q.group && (
+        {visible.map((q) => {
+          const answered = (q.times_seen ?? 0) > 0;
+          const correct = answered && q.last_correct === 1;
+          return (
+            <li key={q.id}>
+              <Link
+                to={`/q/${q.id}`}
+                className={
+                  'flex gap-3 items-start border rounded p-3 hover:border-accent hover:shadow-paper transition ' +
+                  (!answered
+                    ? 'bg-white dark:bg-ink-800 border-ink-200 dark:border-ink-700'
+                    : correct
+                      ? 'bg-emerald-50/60 dark:bg-emerald-900/15 border-emerald-200 dark:border-emerald-800/60'
+                      : 'bg-rose-50/60 dark:bg-rose-900/15 border-rose-200 dark:border-rose-800/60')
+                }
+              >
+                <span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0 w-10 text-right">
+                  {q.number}.
+                </span>
+                {answered &&
+                  (correct ? (
+                    <Check
+                      size={16}
+                      className="mt-1 shrink-0 text-emerald-600 dark:text-emerald-400"
+                      aria-label="上次答對"
+                    />
+                  ) : (
+                    <X
+                      size={16}
+                      className="mt-1 shrink-0 text-rose-600 dark:text-rose-400"
+                      aria-label="上次答錯"
+                    />
+                  ))}
+                <BookmarkBadge questionId={q.id} className="mt-1" />
                 <span
                   className={
-                    'ml-auto text-[11px] px-2 py-0.5 rounded shrink-0 self-center ' +
-                    groupBadgeClass(q.group)
+                    'line-clamp-2 leading-relaxed ' +
+                    (answered
+                      ? 'text-ink-600 dark:text-ink-400'
+                      : 'text-ink-800 dark:text-ink-200')
                   }
                 >
-                  {q.group}
+                  {q.stem}
                 </span>
-              )}
-            </Link>
-          </li>
-        ))}
+                {q.group && (
+                  <span
+                    className={
+                      'ml-auto text-[11px] px-2 py-0.5 rounded shrink-0 self-center ' +
+                      groupBadgeClass(q.group)
+                    }
+                  >
+                    {q.group}
+                  </span>
+                )}
+              </Link>
+            </li>
+          );
+        })}
       </ol>
     </div>
   );
