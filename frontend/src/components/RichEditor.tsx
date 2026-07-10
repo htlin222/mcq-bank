@@ -209,9 +209,10 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
 
 // Strip journal citation marks pasted alongside text — [1], [12], [1-2],
 // [1,3], [1–3] and immediate runs like [1][2] — from every text node in one
-// undoable transaction. Digits-only inside the brackets, so prose like
-// "[註]" or option labels are untouched.
-const CITATION_RE = /\[\d+(?:\s*[-–,]\s*\d+)*\]/g;
+// undoable transaction, along with any whitespace directly before them.
+// Digits-only inside the brackets, so prose like "[註]" or option labels
+// are untouched.
+const CITATION_RE = /[ \t ]*\[\d+(?:\s*[-–,]\s*\d+)*\]/g;
 
 function clearCitationMarks(editor: Editor) {
   const { state } = editor;
