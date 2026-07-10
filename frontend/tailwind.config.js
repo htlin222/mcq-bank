@@ -24,7 +24,10 @@ export default {
         },
       },
       fontFamily: {
-        serif: ['"Source Serif Pro"', '"Noto Serif TC"', 'Georgia', 'serif'],
+        // Owner opted for an all-sans UI (2026-07): `serif` deliberately
+        // aliases the sans stack so every existing `font-serif` heading
+        // renders sans without touching component code.
+        serif: ['"Inter"', '"Noto Sans TC"', 'system-ui', 'sans-serif'],
         sans: ['"Inter"', '"Noto Sans TC"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },

@@ -360,7 +360,9 @@ Free tier is 10K neurons/day. Heavy use:
 
 The UI aesthetic is **scholarly/editorial**, not generic SaaS. Specifically:
 
-- Serif headings (Source Serif or similar) paired with clean sans body
+- All-sans typography (Inter + Noto Sans TC) — the owner dropped the earlier
+  serif headings in 2026-07; `font-serif` in Tailwind is aliased to the sans
+  stack, so don't reintroduce real serif fonts
 - Restrained color palette: ink/cream/single accent
 - Comfortable reading width, generous line-height for long 詳解 content
 - Mobile-first but desktop-respecting (long-form reading benefits from wide screens)
