@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import {
+	AppWindow,
 	ChevronLeft,
 	ChevronRight,
+	Columns2,
 	Pencil,
 	LinkIcon,
 	Search as SearchIcon,
@@ -32,6 +34,13 @@ function clampSplit(p: number) {
 	return Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, p));
 }
 
+// Desktop (≥lg) view mode: side-by-side columns vs. full-width 題目/詳解區
+// tabs. Below lg the page is always a single stacked column, so this — and
+// the header toggle + `t` shortcut — only affect large screens.
+type LayoutMode = "columns" | "tabs";
+const LAYOUT_KEY = "review-layout-mode";
+type MainTab = "question" | "explanation";
+
 type Tab = "explanation" | "note" | "discussion";
 
 type SimilarItem = {
@@ -51,6 +60,49 @@ export function Question() {
 	const { state: lockState, acquire, release } = useLock(id || "");
 
 	const [tab, setTab] = useState<Tab>("explanation");
+
+	// Desktop layout mode (columns vs. tabs). Persisted as a UI layout pref.
+	const [layout, setLayout] = useState<LayoutMode>(() => {
+		const raw =
+			typeof localStorage !== "undefined"
+				? localStorage.getItem(LAYOUT_KEY)
+				: null;
+		return raw === "tabs" ? "tabs" : "columns";
+	});
+	// Which pane is visible in tabs mode (≥lg only).
+	const [mainTab, setMainTab] = useState<MainTab>("question");
+	const tabsMode = layout === "tabs";
+
+	useEffect(() => {
+		try {
+			localStorage.setItem(LAYOUT_KEY, layout);
+		} catch {
+			/* ignore quota/availability errors */
+		}
+	}, [layout]);
+
+	// `t` toggles columns ⇄ tabs. Same guards as QuestionCard's A–E shortcut:
+	// skip when typing in an input / textarea / contenteditable (TipTap) or
+	// holding a modifier. lg-only, matching the toggle button's visibility.
+	useEffect(() => {
+		function onKeyDown(e: KeyboardEvent) {
+			if (e.metaKey || e.ctrlKey || e.altKey) return;
+			if (e.key !== "t" && e.key !== "T") return;
+			const el = e.target as HTMLElement | null;
+			if (
+				el &&
+				(el.tagName === "INPUT" ||
+					el.tagName === "TEXTAREA" ||
+					el.tagName === "SELECT" ||
+					el.isContentEditable)
+			)
+				return;
+			if (!window.matchMedia("(min-width: 1024px)").matches) return;
+			setLayout((l) => (l === "columns" ? "tabs" : "columns"));
+		}
+		window.addEventListener("keydown", onKeyDown);
+		return () => window.removeEventListener("keydown", onKeyDown);
+	}, []);
 
 	// Desktop two-pane split ratio (left pane %). Persisted as a UI layout pref.
 	const splitRowRef = useRef<HTMLDivElement>(null);
@@ -150,6 +202,12 @@ export function Question() {
 	// useState alone wouldn't reset.
 	useEffect(() => {
 		setRevealedExp(false);
+	}, [data?.id]);
+
+	// In tabs mode, land on 題目 for every new question — arriving on 詳解區
+	// after prev/next would spoil the answer before the user attempts it.
+	useEffect(() => {
+		setMainTab("question");
 	}, [data?.id]);
 
 	// Seed/refresh the comment-count badge from the question payload. Kept in
@@ -343,7 +401,41 @@ export function Question() {
 						<ChevronLeft size={16} /> 民國 {data.year} 年
 					</Link>
 				</div>
-				<div className="flex gap-3">
+				<div className="flex items-center gap-3">
+					{/* Columns ⇄ tabs view toggle — desktop only (below lg the page
+					    is always one stacked column). Keyboard shortcut: t */}
+					<div
+						role="group"
+						aria-label="切換檢視模式(快捷鍵 t)"
+						className="hidden lg:flex items-center rounded border border-ink-200 dark:border-ink-700 overflow-hidden"
+					>
+						<button
+							onClick={() => setLayout("tabs")}
+							aria-pressed={tabsMode}
+							title="分頁檢視:題目/詳解區 (t)"
+							className={
+								"px-2 py-1.5 transition " +
+								(tabsMode
+									? "bg-ink-100 dark:bg-ink-700 text-ink-900 dark:text-ink-100"
+									: "text-ink-400 dark:text-ink-500 hover:text-ink-700 dark:hover:text-ink-300")
+							}
+						>
+							<AppWindow size={15} />
+						</button>
+						<button
+							onClick={() => setLayout("columns")}
+							aria-pressed={!tabsMode}
+							title="雙欄檢視 (t)"
+							className={
+								"px-2 py-1.5 transition border-l border-ink-200 dark:border-ink-700 " +
+								(!tabsMode
+									? "bg-ink-100 dark:bg-ink-700 text-ink-900 dark:text-ink-100"
+									: "text-ink-400 dark:text-ink-500 hover:text-ink-700 dark:hover:text-ink-300")
+							}
+						>
+							<Columns2 size={15} />
+						</button>
+					</div>
 					{neighbors.prev && (
 						<button
 							onClick={() =>
@@ -367,19 +459,43 @@ export function Question() {
 				</div>
 			</header>
 
-			{/* Two-column on wide screens (≥lg): question left, everything else right.
-			    Collapses to a single stacked column below lg. On lg+ this is a flex
-			    row pinned to the remaining viewport height; each pane is its own
-			    scroll container, so the two sides scroll fully independently — the
-			    page itself no longer scrolls. The middle handle drags the split. */}
+			{/* ≥lg has two view modes (header toggle / `t` shortcut):
+			    - columns: question left, everything else right — a flex row pinned
+			      to the remaining viewport height; each pane is its own scroll
+			      container, so the two sides scroll fully independently and the
+			      page itself doesn't scroll. The middle handle drags the split.
+			    - tabs: one full-width pane at a time behind a 題目/詳解區 tab
+			      strip, with normal page scrolling and a comfortable reading width.
+			    Below lg both modes collapse to the same single stacked column. */}
+			{tabsMode && (
+				<div className="hidden lg:flex border-b border-ink-200 dark:border-ink-700 mb-6 max-w-4xl mx-auto">
+					<TabButton
+						active={mainTab === "question"}
+						onClick={() => setMainTab("question")}
+					>
+						題目
+					</TabButton>
+					<TabButton
+						active={mainTab === "explanation"}
+						onClick={() => setMainTab("explanation")}
+					>
+						詳解區
+					</TabButton>
+				</div>
+			)}
 			<div
 				ref={splitRowRef}
-				className="lg:flex lg:h-[calc(100vh-9.5rem)]"
+				className={tabsMode ? "" : "lg:flex lg:h-[calc(100vh-9.5rem)]"}
 			>
 			{/* Left: question stem / options / answer */}
 			<div
-				className="lg:h-full lg:min-w-0 lg:shrink-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8"
-				style={{ flexBasis: `${splitPct}%` }}
+				className={
+					tabsMode
+						? "lg:max-w-4xl lg:mx-auto lg:pb-12" +
+							(mainTab === "question" ? "" : " lg:hidden")
+						: "lg:h-full lg:min-w-0 lg:shrink-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8"
+				}
+				style={tabsMode ? undefined : { flexBasis: `${splitPct}%` }}
 			>
 			<QuestionCard
 				key={data.id}
@@ -389,8 +505,9 @@ export function Question() {
 			/>
 			</div>
 
-			{/* Drag handle (desktop only). Drag to repan the split; double-click to
-			    reset to the default ratio. */}
+			{/* Drag handle (columns mode, desktop only). Drag to repan the split;
+			    double-click to reset to the default ratio. */}
+			{!tabsMode && (
 			<div
 				onPointerDown={onSplitResizeStart}
 				onDoubleClick={onSplitResetSplit}
@@ -401,9 +518,18 @@ export function Question() {
 			>
 				<div className="w-1 rounded-full bg-ink-200 transition-colors group-hover:bg-accent dark:bg-ink-700" />
 			</div>
+			)}
 
 			{/* Right: 詳解共筆 / 個人筆記 tabs → 相似題目 → 被引用 → 討論 */}
-			<div className="tiptap-compact mt-8 lg:mt-0 lg:h-full lg:min-w-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8">
+			<div
+				className={
+					"tiptap-compact mt-8 lg:mt-0 " +
+					(tabsMode
+						? "lg:max-w-4xl lg:mx-auto lg:pb-12" +
+							(mainTab === "explanation" ? "" : " lg:hidden")
+						: "lg:h-full lg:min-w-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-8")
+				}
+			>
 
 			{/* 詳解 / 個人筆記 tabs */}
 			<section className="mt-0">
