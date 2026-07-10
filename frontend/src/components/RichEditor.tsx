@@ -28,9 +28,18 @@ type Props = {
   placeholder?: string;
   editable?: boolean;
   autofocus?: boolean;
+  // Rendered at the right end of the toolbar (e.g. 取消 / 儲存 actions).
+  toolbarActions?: ReactNode;
 };
 
-export function RichEditor({ content, onChange, placeholder, editable = true, autofocus = false }: Props) {
+export function RichEditor({
+  content,
+  onChange,
+  placeholder,
+  editable = true,
+  autofocus = false,
+  toolbarActions,
+}: Props) {
   // handlePaste (defined in the useEditor config below) needs the editor to
   // insert parsed markdown, but `editor` isn't assigned yet at config time.
   // Read it through a ref that we keep pointed at the latest instance.
@@ -116,7 +125,13 @@ export function RichEditor({ content, onChange, placeholder, editable = true, au
 
   return (
     <div className="border border-ink-200 dark:border-ink-700 rounded-lg bg-white dark:bg-ink-800 overflow-hidden">
-      {editable && <Toolbar editor={editor} onPickImage={uploadAndInsert} />}
+      {editable && (
+        <Toolbar
+          editor={editor}
+          onPickImage={uploadAndInsert}
+          actions={toolbarActions}
+        />
+      )}
       <div className="p-4">
         <EditorContent editor={editor} />
       </div>
@@ -165,7 +180,15 @@ async function sideloadExternalImages(view: import('@tiptap/pm/view').EditorView
   }
 }
 
-function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: File) => void }) {
+function Toolbar({
+  editor,
+  onPickImage,
+  actions,
+}: {
+  editor: Editor;
+  onPickImage: (f: File) => void;
+  actions?: ReactNode;
+}) {
   const fileInput = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -280,6 +303,12 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
       >
         <Redo2 size={15} />
       </IconBtn>
+      {actions && (
+        <>
+          <Divider />
+          <div className="flex items-center gap-2">{actions}</div>
+        </>
+      )}
     </div>
   );
 }

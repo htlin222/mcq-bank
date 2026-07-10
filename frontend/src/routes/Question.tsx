@@ -700,41 +700,15 @@ export function Question() {
 						</TabButton>
 					</div>
 					{tab === "explanation" && !editing && (
-						<div className="ml-auto flex items-center gap-3 flex-wrap justify-end">
-							<a
-								href={buildOpenEvidenceUrl(data)}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-sm text-ink-500 dark:text-ink-400 hover:text-accent inline-flex items-center gap-1"
-								title="把題幹+選項丟到 OpenEvidence(不送正解,可當盲解參考)"
-							>
-								<ExternalLink size={14} /> OpenEvidence
-							</a>
-							<button
-								onClick={startEdit}
-								disabled={
-									lockState.status === "acquiring" ||
-									lockState.status === "locked-by-other"
-								}
-								className="text-sm text-accent hover:text-accent-dark disabled:opacity-40 inline-flex items-center gap-1"
-							>
-								{lockState.status === "locked-by-other" ? (
-									<>{lockState.lockedBy} 正在編輯…</>
-								) : (
-									<>
-										<Pencil size={14} /> 編輯
-									</>
-								)}
-							</button>
-						</div>
-					)}
-					{tab === "note" && !noteEditing && (
-						<button
-							onClick={startNoteEdit}
-							className="ml-auto text-sm text-accent hover:text-accent-dark inline-flex items-center gap-1"
+						<a
+							href={buildOpenEvidenceUrl(data)}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="ml-auto text-sm text-ink-500 dark:text-ink-400 hover:text-accent inline-flex items-center gap-1"
+							title="把題幹+選項丟到 OpenEvidence(不送正解,可當盲解參考)"
 						>
-							<Pencil size={14} /> 編輯
-						</button>
+							<ExternalLink size={14} /> OpenEvidence
+						</a>
 					)}
 				</div>
 
@@ -755,32 +729,39 @@ export function Question() {
 								onChange={setDraft}
 								placeholder="輸入詳解。可貼上圖片、@提及他人,輸入 @114 引用題目。"
 								autofocus
+								toolbarActions={
+									<EditorActions
+										onCancel={cancelEdit}
+										onSave={save}
+										saving={saving}
+									/>
+								}
 							/>
 							{saveError && (
 								<div className="mt-3 p-2 rounded bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-sm">
 									{saveError}
 								</div>
 							)}
-							<div className="mt-4 flex gap-3 justify-end">
-								<button
-									onClick={cancelEdit}
-									disabled={saving}
-									className="px-4 py-2 text-sm text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100"
-								>
-									取消
-								</button>
-								<button
-									onClick={save}
-									disabled={saving}
-									className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium disabled:opacity-40"
-								>
-									{saving ? "儲存中…" : "儲存"}
-								</button>
-							</div>
 						</div>
 					) : hasExplanation ? (
 						<>
-							<article className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
+							<article className="relative bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
+								<button
+									onClick={startEdit}
+									disabled={
+										lockState.status === "acquiring" ||
+										lockState.status === "locked-by-other"
+									}
+									className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded bg-white/85 dark:bg-ink-800/85 backdrop-blur px-2 py-1 text-sm text-accent hover:text-accent-dark disabled:opacity-40"
+								>
+									{lockState.status === "locked-by-other" ? (
+										<>{lockState.lockedBy} 正在編輯…</>
+									) : (
+										<>
+											<Pencil size={14} /> 編輯
+										</>
+									)}
+								</button>
 								<div
 									className={
 										"relative " + (revealedExp ? "" : "min-h-[6rem]")
@@ -860,31 +841,28 @@ export function Question() {
 								onChange={setNoteDraft}
 								placeholder="寫下你的私人筆記。可貼圖、@114 引用其他題目。"
 								autofocus
+								toolbarActions={
+									<EditorActions
+										onCancel={cancelNoteEdit}
+										onSave={saveNote}
+										saving={noteSaving}
+									/>
+								}
 							/>
 							{noteError && (
 								<div className="mt-3 p-2 rounded bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-sm">
 									{noteError}
 								</div>
 							)}
-							<div className="mt-4 flex gap-3 justify-end">
-								<button
-									onClick={cancelNoteEdit}
-									disabled={noteSaving}
-									className="px-4 py-2 text-sm text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100"
-								>
-									取消
-								</button>
-								<button
-									onClick={saveNote}
-									disabled={noteSaving}
-									className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium disabled:opacity-40"
-								>
-									{noteSaving ? "儲存中…" : "儲存"}
-								</button>
-							</div>
 						</div>
 					) : noteJson ? (
-						<article className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
+						<article className="relative bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
+							<button
+								onClick={startNoteEdit}
+								className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded bg-white/85 dark:bg-ink-800/85 backdrop-blur px-2 py-1 text-sm text-accent hover:text-accent-dark"
+							>
+								<Pencil size={14} /> 編輯
+							</button>
 							<NoteContent content={noteJson} />
 							<footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
 								僅你可見
@@ -1051,6 +1029,38 @@ export function Question() {
 			</div>{/* /right column */}
 			</div>{/* /two-column grid */}
 		</div>
+	);
+}
+
+// Compact 取消 / 儲存 pair sized to sit at the right end of the editor toolbar.
+function EditorActions({
+	onCancel,
+	onSave,
+	saving,
+}: {
+	onCancel: () => void;
+	onSave: () => void;
+	saving: boolean;
+}) {
+	return (
+		<>
+			<button
+				type="button"
+				onClick={onCancel}
+				disabled={saving}
+				className="px-2.5 py-1 text-xs rounded text-ink-500 dark:text-ink-400 hover:text-ink-800 dark:hover:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-700 disabled:opacity-40"
+			>
+				取消
+			</button>
+			<button
+				type="button"
+				onClick={onSave}
+				disabled={saving}
+				className="px-3 py-1 text-xs rounded bg-accent hover:bg-accent-dark text-white font-medium disabled:opacity-40"
+			>
+				{saving ? "儲存中…" : "儲存"}
+			</button>
+		</>
 	);
 }
 
