@@ -18,6 +18,7 @@ import {
   Redo2,
 } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
+import { transformPastedHTML } from '../lib/paste-transform';
 import { api } from '../lib/api';
 
 type Props = {
@@ -37,6 +38,9 @@ export function RichEditor({ content, onChange, placeholder, editable = true, au
     onUpdate: ({ editor }) => onChange?.(editor.getJSON()),
     editorProps: {
       attributes: { class: 'tiptap' },
+      // Rebuild OpenEvidence's flat <br>-separated HTML into real paragraphs
+      // (and keep the table image) before ProseMirror parses the paste.
+      transformPastedHTML,
       handleDrop: (_view, event, _slice, moved) => {
         if (moved) return false;
         const files = event.dataTransfer?.files;
