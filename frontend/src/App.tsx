@@ -134,7 +134,7 @@ export default function App() {
 									name={me.display_name}
 									size={28}
 								/>
-								<span className="hidden sm:inline text-sm text-ink-700 dark:text-ink-200">
+								<span className="hidden lg:inline whitespace-nowrap text-sm text-ink-700 dark:text-ink-200">
 									{me.display_name}
 								</span>
 							</Link>
