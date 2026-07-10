@@ -71,6 +71,11 @@
 
 .tiptap pre code { @apply bg-transparent p-0; }
 
+/* Highlight mark (@tiptap/extension-highlight) — yellow marker pen. */
+.tiptap mark {
+  @apply bg-yellow-200 dark:bg-yellow-400/30 text-inherit rounded-sm px-0.5;
+}
+
 .tiptap img {
   @apply rounded-lg my-4 max-w-full h-auto shadow-sm border border-ink-200 dark:border-ink-700;
 }

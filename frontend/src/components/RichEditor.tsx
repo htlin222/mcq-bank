@@ -11,6 +11,7 @@ import {
   ListOrdered,
   Quote,
   Code2,
+  Highlighter,
   Image as ImageIcon,
   StickyNoteX,
   Undo2,
@@ -122,6 +123,13 @@ function Toolbar({ editor, onPickImage }: { editor: Editor; onPickImage: (f: Fil
         active={editor.isActive('italic')}
       >
         <Italic size={15} />
+      </IconBtn>
+      <IconBtn
+        label="螢光標記"
+        onClick={() => editor.chain().focus().toggleHighlight().run()}
+        active={editor.isActive('highlight')}
+      >
+        <Highlighter size={15} />
       </IconBtn>
       <IconBtn
         label="刪除線"

@@ -1,4 +1,5 @@
 import StarterKit from '@tiptap/starter-kit';
+import Highlight from '@tiptap/extension-highlight';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -11,6 +12,8 @@ export function buildExtensions(opts: { placeholder?: string; readOnly?: boolean
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
     }),
+    // Renders as <mark> — yellow marker styling lives in styles.css.
+    Highlight,
     Image.configure({ inline: false, allowBase64: false }),
     Link.configure({
       openOnClick: opts.readOnly === true,
