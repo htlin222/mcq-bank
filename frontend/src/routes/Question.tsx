@@ -324,7 +324,7 @@ export function Question() {
 		);
 
 	return (
-		<div className="max-w-3xl md:max-w-4xl lg:max-w-6xl xl:max-w-[88rem] 2xl:max-w-[104rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-32 lg:pb-0">
+		<div className="max-w-3xl md:max-w-4xl lg:max-w-none mx-auto px-4 sm:px-6 lg:px-4 py-6 sm:py-8 pb-32 lg:pb-0">
 			<header className="flex items-center justify-between mb-6 text-sm gap-3">
 				<div className="flex items-center gap-3 flex-wrap">
 					{fromSearch && (
