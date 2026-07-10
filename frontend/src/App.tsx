@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import {
 	Routes,
 	Route,
@@ -14,6 +14,7 @@ import {
 	PenLine,
 	Bookmark,
 	Search as SearchIcon,
+	ChevronDown,
 } from "lucide-react";
 import { config } from "./config";
 import { useMe } from "./hooks/useMe";
@@ -100,18 +101,20 @@ export default function App() {
 						{config.brand.short_name}
 					</Link>
 
-					{/* Desktop nav */}
-					<nav className="hidden sm:flex gap-1 ml-6 text-sm">
+					{/* Desktop nav — tail items fold into a 更多 dropdown as the
+					    viewport narrows, so labels never wrap into two lines. */}
+					<nav className="hidden sm:flex items-center gap-1 ml-6 text-sm">
 						<NavItem to="/" end>
 							首頁
 						</NavItem>
 						<NavItem to="/review">複習</NavItem>
 						<NavItem to="/exam">全真</NavItem>
 						<NavItem to="/search">搜尋</NavItem>
-						<NavItem to="/bookmarks">收藏</NavItem>
-						<NavItem to="/wrong">錯題</NavItem>
-						<NavItem to="/lectures">講義</NavItem>
-						<NavItem to="/challenges">答案挑戰</NavItem>
+						<NavItem to="/bookmarks" className="hidden md:block">收藏</NavItem>
+						<NavItem to="/wrong" className="hidden md:block">錯題</NavItem>
+						<NavItem to="/lectures" className="hidden lg:block">講義</NavItem>
+						<NavItem to="/challenges" className="hidden lg:block">答案挑戰</NavItem>
+						<NavMore />
 					</nav>
 
 					<div className="ml-auto flex items-center gap-2">
@@ -195,10 +198,12 @@ export default function App() {
 function NavItem({
 	to,
 	end,
+	className = "",
 	children,
 }: {
 	to: string;
 	end?: boolean;
+	className?: string;
 	children: React.ReactNode;
 }) {
 	return (
@@ -206,7 +211,7 @@ function NavItem({
 			to={to}
 			end={end}
 			className={({ isActive }) =>
-				`px-3 py-1.5 rounded transition ${
+				`px-3 py-1.5 rounded whitespace-nowrap transition ${className} ${
 					isActive
 						? "text-accent font-medium"
 						: "text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-700"
@@ -215,6 +220,52 @@ function NavItem({
 		>
 			{children}
 		</NavLink>
+	);
+}
+
+// Overflow menu for nav items hidden at narrow widths. Menu entries that are
+// already visible inline carry the inverse `md:hidden` so nothing shows twice.
+function NavMore() {
+	const [open, setOpen] = useState(false);
+	const ref = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (!open) return;
+		function onDoc(e: MouseEvent) {
+			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+		}
+		document.addEventListener("mousedown", onDoc);
+		return () => document.removeEventListener("mousedown", onDoc);
+	}, [open]);
+
+	const itemCls = ({ isActive }: { isActive: boolean }) =>
+		`block px-3 py-1.5 whitespace-nowrap ${
+			isActive
+				? "text-accent font-medium"
+				: "text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-700"
+		}`;
+
+	return (
+		<div ref={ref} className="relative lg:hidden">
+			<button
+				onClick={() => setOpen((v) => !v)}
+				className="px-2.5 py-1.5 rounded flex items-center gap-0.5 whitespace-nowrap text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-700 transition"
+			>
+				更多
+				<ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+			</button>
+			{open && (
+				<div
+					onClick={() => setOpen(false)}
+					className="absolute left-0 top-full mt-1 w-32 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-lg py-1 z-30"
+				>
+					<NavLink to="/bookmarks" className={(s) => `md:hidden ${itemCls(s)}`}>收藏</NavLink>
+					<NavLink to="/wrong" className={(s) => `md:hidden ${itemCls(s)}`}>錯題</NavLink>
+					<NavLink to="/lectures" className={itemCls}>講義</NavLink>
+					<NavLink to="/challenges" className={itemCls}>答案挑戰</NavLink>
+				</div>
+			)}
+		</div>
 	);
 }
 
