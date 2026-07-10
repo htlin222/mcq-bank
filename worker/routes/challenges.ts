@@ -103,10 +103,10 @@ challengesRoutes.post('/:cid/recompute', async (c) => {
   return c.json({ ok: true, status: result.status, resolution: result.resolution ?? null });
 });
 
-// Recent challenges feed for the Home widget. Defaults to active ones;
+// Recent challenges feed for the 答案挑戰 page. Defaults to active ones;
 // pass ?include=resolved to include promoted/rejected/archived too.
 challengesRoutes.get('/recent', async (c) => {
-  const limit = Math.min(parseInt(c.req.query('limit') || '5'), 20);
+  const limit = Math.min(parseInt(c.req.query('limit') || '5'), 100);
   const include = c.req.query('include') === 'resolved';
   const statuses = include
     ? (['open', 'contested', 'promoted', 'rejected'] as const)
