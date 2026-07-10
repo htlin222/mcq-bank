@@ -76,6 +76,32 @@
   @apply bg-yellow-200 dark:bg-yellow-400/30 text-inherit rounded-sm px-0.5;
 }
 
+/* Tables (@tiptap/extension-table). Base table fills the reading column and
+   wraps cells. In read-only view ReadOnlyContent wraps each table in
+   `.table-scroll`; there the table keeps a min width so one too wide for the
+   column scrolls left/right (via the wrapper) instead of overflowing. */
+.tiptap table {
+  @apply border-collapse w-full text-sm;
+}
+.tiptap .table-scroll {
+  @apply my-4 overflow-x-auto;
+}
+.tiptap .table-scroll table {
+  @apply my-0;
+  min-width: 36rem;
+}
+.tiptap th,
+.tiptap td {
+  @apply border border-ink-300 dark:border-ink-600 px-3 py-1.5 align-top text-left;
+}
+.tiptap th {
+  @apply bg-ink-100 dark:bg-ink-700 font-semibold;
+}
+.tiptap td > p,
+.tiptap th > p {
+  @apply my-0;
+}
+
 .tiptap img {
   @apply rounded-lg my-4 max-w-full h-auto shadow-sm border border-ink-200 dark:border-ink-700;
 }

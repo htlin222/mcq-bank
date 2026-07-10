@@ -1,5 +1,9 @@
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -14,6 +18,14 @@ export function buildExtensions(opts: { placeholder?: string; readOnly?: boolean
     }),
     // Renders as <mark> — yellow marker styling lives in styles.css.
     Highlight,
+    // Table support — needed to parse pasted HTML tables (e.g. OpenEvidence
+    // summary tables) and to render them in read-only mode. The extension
+    // doesn't wrap tables in read-only render, so ReadOnlyContent wraps each
+    // in a .table-scroll div for horizontal scroll (see styles.css).
+    Table.configure({ resizable: false }),
+    TableRow,
+    TableHeader,
+    TableCell,
     Image.configure({ inline: false, allowBase64: false }),
     Link.configure({
       openOnClick: opts.readOnly === true,
