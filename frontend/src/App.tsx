@@ -112,7 +112,6 @@ export default function App() {
 						<NavItem to="/wrong">錯題</NavItem>
 						<NavItem to="/lectures">講義</NavItem>
 						<NavItem to="/challenges">答案挑戰</NavItem>
-						<NavItem to="/chat">聊天</NavItem>
 					</nav>
 
 					<div className="ml-auto flex items-center gap-2">
