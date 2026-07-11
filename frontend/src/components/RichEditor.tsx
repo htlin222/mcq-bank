@@ -21,6 +21,7 @@ import { buildExtensions } from '../lib/tiptap-extensions';
 import { transformPastedHTML } from '../lib/paste-transform';
 import { looksLikeMarkdown, markdownToHtml } from '../lib/markdown-paste';
 import { api } from '../lib/api';
+import { OeImportDialog } from './OeImportDialog';
 
 type Props = {
   content: any;
@@ -46,6 +47,8 @@ export function RichEditor({
   const editorRef = useRef<Editor | null>(null);
   // Show a progress bar while a paste's external images upload to R2.
   const [uploading, setUploading] = useState(false);
+  // OpenEvidence link-import dialog.
+  const [oeOpen, setOeOpen] = useState(false);
   const editor = useEditor({
     extensions: buildExtensions({ placeholder }),
     content: content || { type: 'doc', content: [] },
@@ -99,12 +102,7 @@ export function RichEditor({
         // broken-image window and no risk of saving before the swap completes.
         if (editorRef.current && /<img[^>]+src=["']https?:\/\//i.test(html)) {
           event.preventDefault();
-          setUploading(true);
-          sideloadImagesInHtml(html)
-            .then((fixed) =>
-              editorRef.current?.commands.insertContent(transformPastedHTML(fixed)),
-            )
-            .finally(() => setUploading(false));
+          insertExternalHtml(editorRef.current, html, setUploading);
           return true;
         }
         return false;
@@ -121,6 +119,12 @@ export function RichEditor({
       alert('上傳失敗: ' + String(e));
     }
   }, [editor]);
+
+  // Insert HTML from an OpenEvidence link import (same pipeline as a paste).
+  const insertOeHtml = useCallback(
+    (html: string) => insertExternalHtml(editorRef.current, html, setUploading),
+    [],
+  );
 
   // Sync external content changes (e.g. after lock release / version pull)
   useEffect(() => {
@@ -139,8 +143,12 @@ export function RichEditor({
         <Toolbar
           editor={editor}
           onPickImage={uploadAndInsert}
+          onImportOe={() => setOeOpen(true)}
           actions={toolbarActions}
         />
+      )}
+      {oeOpen && (
+        <OeImportDialog onClose={() => setOeOpen(false)} onInsert={insertOeHtml} />
       )}
       {uploading && (
         <div className="h-0.5 bg-accent/15 overflow-hidden" role="progressbar" aria-label="上傳圖片中">
@@ -152,6 +160,23 @@ export function RichEditor({
       </div>
     </div>
   );
+}
+
+// Insert externally-sourced HTML (a paste or an OpenEvidence link import):
+// sideload its hotlinked images to R2 first (progress bar on), then rebuild
+// OE's flat markup and insert. Shared so both entry points behave identically.
+function insertExternalHtml(
+  editor: Editor | null,
+  html: string,
+  setUploading: (b: boolean) => void,
+): Promise<void> {
+  if (!editor) return Promise.resolve();
+  setUploading(true);
+  return sideloadImagesInHtml(html)
+    .then((fixed) => {
+      editor.commands.insertContent(transformPastedHTML(fixed));
+    })
+    .finally(() => setUploading(false));
 }
 
 // An image src that our /img/ proxy doesn't serve — an absolute URL on
@@ -194,10 +219,12 @@ async function sideloadImagesInHtml(html: string): Promise<string> {
 function Toolbar({
   editor,
   onPickImage,
+  onImportOe,
   actions,
 }: {
   editor: Editor;
   onPickImage: (f: File) => void;
+  onImportOe: () => void;
   actions?: ReactNode;
 }) {
   const fileInput = useCallback(() => {
@@ -295,6 +322,11 @@ function Toolbar({
       <Divider />
       <IconBtn label="插入圖片" onClick={fileInput}>
         <ImageIcon size={15} />
+      </IconBtn>
+      <IconBtn label="匯入 OpenEvidence 連結" onClick={onImportOe}>
+        <span className="inline-flex items-center justify-center w-[15px] h-[15px] rounded-full border-[1.5px] border-current text-[10px] font-bold leading-none">
+          O
+        </span>
       </IconBtn>
       <IconBtn label="清除引用標記" onClick={() => clearCitationMarks(editor)}>
         <StickyNoteX size={15} />

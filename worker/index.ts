@@ -26,6 +26,7 @@ import { challengesRoutes, questionChallengeRoutes } from './routes/challenges';
 import { mcqRoutes } from './routes/mcq';
 import { lectureRoutes } from './routes/lectures';
 import { chatRoutes } from './routes/chat';
+import { oeRoutes } from './routes/oe';
 
 // Durable Object class must be exported from the Worker entrypoint.
 export { ChatRoom } from './chat-room';
@@ -92,6 +93,7 @@ app.route('/api/bookmarks', bookmarksRoutes);
 app.route('/api/feedback', feedbackRoutes);
 app.route('/api/lectures', lectureRoutes);
 app.route('/api/chat', chatRoutes);
+app.route('/api/oe', oeRoutes);
 
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 
