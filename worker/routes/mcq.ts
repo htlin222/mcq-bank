@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../types';
 import { apiKeyMiddleware } from '../lib/apikey';
+import { sanitizeNoteDoc, externalImages } from '../lib/note-doc';
+import { sideloadImageToR2 } from '../lib/sideload';
 
 export const mcqRoutes = new Hono<AppContext>();
 
@@ -85,13 +87,22 @@ mcqRoutes.get('/:id', async (c) => {
 // append (existing rich content from the web editor is preserved verbatim,
 // new blocks go after a horizontal rule); `mode: "replace"` swaps the whole
 // doc and echoes the previous content back so it survives in the terminal.
+//
+// Content comes as ONE of:
+//   • `markdown` — plain markdown, converted with markdownToTiptap below
+//   • `doc`      — a TipTap document the skill built from HTML (--html /
+//                  --oe-url). Sanitized to the web editor's node set
+//                  (lib/note-doc.ts); external images are sideloaded to R2
+//                  so notes don't depend on expiring hotlinks.
 const NOTE_MAX_CHARS = 32_000;
+const NOTE_DOC_MAX_JSON = 400_000; // sanity cap for the raw doc payload
+const MAX_SIDELOAD_IMAGES = 12;
 
 mcqRoutes.put('/:id/note', async (c) => {
   const id = c.req.param('id');
   const email = c.get('email');
 
-  let body: { markdown?: unknown; mode?: unknown };
+  let body: { markdown?: unknown; doc?: unknown; mode?: unknown };
   try {
     body = await c.req.json();
   } catch {
@@ -99,9 +110,37 @@ mcqRoutes.put('/:id/note', async (c) => {
   }
   const markdown = typeof body.markdown === 'string' ? body.markdown.trim() : '';
   const mode = body.mode === 'replace' ? 'replace' : 'append';
-  if (!markdown) return c.json({ error: 'markdown must be a non-empty string' }, 400);
+  if (!markdown && !body.doc)
+    return c.json({ error: 'markdown or doc required' }, 400);
   if (markdown.length > NOTE_MAX_CHARS)
     return c.json({ error: `markdown too long (max ${NOTE_MAX_CHARS} chars)` }, 400);
+
+  const warnings: string[] = [];
+  let newBlocks: PMNode[];
+  if (body.doc) {
+    if (JSON.stringify(body.doc).length > NOTE_DOC_MAX_JSON)
+      return c.json({ error: `doc too large (max ${NOTE_DOC_MAX_JSON} JSON chars)` }, 400);
+    const sanitized = sanitizeNoteDoc(body.doc);
+    if (!sanitized.ok) return c.json({ error: sanitized.error }, 400);
+    if (sanitized.dropped.length)
+      warnings.push(`dropped unsupported nodes: ${sanitized.dropped.join(', ')}`);
+
+    // Persist hotlinked figures into R2 — mutates the image nodes in place.
+    const pending = externalImages(sanitized.images);
+    if (pending.length > MAX_SIDELOAD_IMAGES)
+      warnings.push(
+        `only first ${MAX_SIDELOAD_IMAGES} of ${pending.length} external images sideloaded`
+      );
+    for (const img of pending.slice(0, MAX_SIDELOAD_IMAGES)) {
+      const src = String(img.attrs!.src);
+      const result = await sideloadImageToR2(c.env, src, email);
+      if (result.ok) img.attrs!.src = result.url;
+      else warnings.push(`image kept as hotlink (${result.error}): ${src.slice(0, 120)}`);
+    }
+    newBlocks = sanitized.doc.content ?? [];
+  } else {
+    newBlocks = markdownToTiptap(markdown).content ?? [];
+  }
 
   const exists = await c.env.DB.prepare('SELECT id FROM questions WHERE id = ?')
     .bind(id)
@@ -113,8 +152,6 @@ mcqRoutes.put('/:id/note', async (c) => {
   )
     .bind(email, id)
     .first<{ content_json: string }>();
-
-  const newBlocks = markdownToTiptap(markdown).content ?? [];
   let doc: PMNode;
   if (mode === 'append' && prev) {
     const prevDoc = JSON.parse(prev.content_json) as PMNode;
@@ -144,6 +181,7 @@ mcqRoutes.put('/:id/note', async (c) => {
     note_markdown: tiptapToMarkdown(doc),
     previous_markdown:
       mode === 'replace' && prev ? tiptapToMarkdown(JSON.parse(prev.content_json)) : null,
+    ...(warnings.length ? { warnings } : {}),
   });
 });
 

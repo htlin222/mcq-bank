@@ -18,7 +18,7 @@ const SKILL = join(ROOT, '.claude', 'skills', 'mcq');
 const OUT = join(ROOT, 'worker', 'generated', 'mcq-bundle.ts');
 
 // Paths are relative to the skill root → they become the zip entry names.
-const FILES = ['SKILL.md', 'scripts/get_mcq.py'];
+const FILES = ['SKILL.md', 'scripts/get_mcq.py', 'scripts/oe_import.py'];
 
 const bundle = {};
 for (const rel of FILES) {

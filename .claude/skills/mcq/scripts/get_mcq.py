@@ -71,6 +71,9 @@ def main() -> None:
     args = sys.argv[1:]
     with_answer = False
     note_text = None
+    html_text = None
+    oe_url = None
+    turn = None
     replace = False
     positional = []
     i = 0
@@ -83,6 +86,21 @@ def main() -> None:
             if i >= len(args):
                 sys.exit("--note 需要內容,或用 --note - 從 stdin 讀多行")
             note_text = sys.stdin.read() if args[i] == "-" else args[i]
+        elif a == "--html":
+            i += 1
+            if i >= len(args):
+                sys.exit("--html 需要 HTML 內容,或用 --html - 從 stdin 讀")
+            html_text = sys.stdin.read() if args[i] == "-" else args[i]
+        elif a in ("--oe-url", "--openevidence-url", "--openevidenceURL", "--oe"):
+            i += 1
+            if i >= len(args):
+                sys.exit(f"{a} 需要 OpenEvidence 公開對話網址")
+            oe_url = args[i]
+        elif a == "--turn":
+            i += 1
+            if i >= len(args) or not args[i].isdigit():
+                sys.exit("--turn 需要 1 起算的輪次數字(搭配 --oe-url)")
+            turn = int(args[i])
         elif a == "--replace":
             replace = True
         else:
@@ -90,11 +108,17 @@ def main() -> None:
         i += 1
     if not positional:
         sys.exit(
-            "用法:get_mcq.py <題號> [--answer] [--note <內容|-> [--replace]],"
+            "用法:get_mcq.py <題號> [--answer]"
+            " [--note <內容|->|--html <HTML|->|--oe-url <URL> [--turn N]] [--replace],"
             "例如 get_mcq.py 114-001"
         )
-    if replace and note_text is None:
-        sys.exit("--replace 只能搭配 --note 使用")
+    content_flags = [f for f, v in (("--note", note_text), ("--html", html_text), ("--oe-url", oe_url)) if v is not None]
+    if len(content_flags) > 1:
+        sys.exit(f"{' 與 '.join(content_flags)} 不能同時使用")
+    if replace and not content_flags:
+        sys.exit("--replace 只能搭配 --note / --html / --oe-url 使用")
+    if turn is not None and oe_url is None:
+        sys.exit("--turn 只能搭配 --oe-url 使用")
     cfg = load_env()
     base = cfg.get("MCQ_API_BASE", "").rstrip("/")
     key = cfg.get("MCQ_API_KEY", "")
@@ -123,12 +147,36 @@ def main() -> None:
         "User-Agent": "mcq-skill/0.1 (+claude-code)",
     }
 
-    if note_text is not None:
-        if not note_text.strip():
-            sys.exit("筆記內容是空的,未送出")
-        payload = json.dumps(
-            {"markdown": note_text, "mode": "replace" if replace else "append"}
-        ).encode("utf-8")
+    if content_flags:
+        mode = "replace" if replace else "append"
+        if note_text is not None:
+            if not note_text.strip():
+                sys.exit("筆記內容是空的,未送出")
+            payload_obj = {"markdown": note_text, "mode": mode}
+        else:
+            # --html / --oe-url both convert to a TipTap doc locally
+            # (scripts/oe_import.py); the Worker sanitizes the node set and
+            # sideloads external images into R2.
+            import oe_import
+
+            if html_text is not None:
+                if not html_text.strip():
+                    sys.exit("HTML 內容是空的,未送出")
+                doc = oe_import.html_to_doc(html_text)
+                if not doc["content"]:
+                    sys.exit("HTML 解析後沒有可用內容,未送出")
+            else:
+                page_html, final_url = oe_import.fetch_oe_html(oe_url)
+                convo = oe_import.parse_oe_conversation(page_html)
+                if not convo["turns"]:
+                    sys.exit(
+                        "解析不到任何對話內容 — 確認該連結是公開(Make public)的"
+                        " /ask/<id> 對話"
+                    )
+                print(f"🔎 已解析 OpenEvidence 對話「{convo['title']}」,共 {len(convo['turns'])} 輪")
+                doc = oe_import.oe_conversation_to_doc(convo, final_url, turn)
+            payload_obj = {"doc": doc, "mode": mode}
+        payload = json.dumps(payload_obj).encode("utf-8")
         req = urllib.request.Request(
             f"{base}/api/mcq/{qid}/note",
             data=payload,
@@ -136,7 +184,8 @@ def main() -> None:
             headers={**headers, "Content-Type": "application/json"},
         )
         try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            # Image sideloading happens inside this request — allow more time.
+            with urllib.request.urlopen(req, timeout=60) as resp:
                 d = json.load(resp)
         except urllib.error.HTTPError as e:
             sys.exit(f"API {e.code}: {e.read().decode('utf-8', 'replace')}")
@@ -144,6 +193,8 @@ def main() -> None:
             sys.exit(f"連線失敗:{e.reason} — 檢查 MCQ_API_BASE 是否正確")
         verb = {"create": "已建立", "append": "已附加到", "replace": "已覆寫"}[d["mode"]]
         print(f"📝 {verb} {qid} 的個人筆記")
+        for w in d.get("warnings") or []:
+            print(f"⚠️  {w}")
         if d.get("previous_markdown"):
             print("\n--- 被覆寫的舊內容(留存於此,如需可救回)---")
             print(d["previous_markdown"])
