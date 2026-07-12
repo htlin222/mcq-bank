@@ -68,7 +68,11 @@ export function parseOeConversation(html: string): OeConversation {
     // than importing the page shell as junk.
     if (!doc.querySelector('[data-answer-end]')) return { title, turns: [] };
     const body = doc.body?.cloneNode(true) as HTMLElement | undefined;
-    if (body) stripChrome(body);
+    if (body) {
+      stripChrome(body);
+      const refs = body.querySelector(REFS_SELECTOR);
+      linkifyCitations(body, refs ? referenceUrls(refs) : []);
+    }
     const answerHtml = body?.innerHTML?.trim() || '';
     return {
       title,
@@ -112,9 +116,11 @@ function extractAnswerHtml(article: Element): string {
 
   // Grab the citation list before stripping, then splice it back after the
   // body cut — so trailing feedback/follow-up chrome (which sits after it) is
-  // excluded.
+  // excluded. The reference URLs (in list order) also let us turn the inline
+  // citation chips into real links.
   const refs = clone.querySelector(REFS_SELECTOR);
   const refsHtml = refs ? extractReferences(refs) : '';
+  const refUrls = refs ? referenceUrls(refs) : [];
 
   const sentinel = clone.querySelector('[data-answer-end]');
   let body: HTMLElement;
@@ -132,8 +138,42 @@ function extractAnswerHtml(article: Element): string {
   }
   stripChrome(body);
   body.querySelectorAll(REFS_SELECTOR).forEach((n) => n.remove());
+  linkifyCitations(body, refUrls);
 
   return `${body.innerHTML}${refsHtml}`.trim();
+}
+
+// Inline citations render as `<span class="markdown-article-citation-chip">`
+// showing "JournalName[1]" (the bracketed index in an aria-hidden span). Turn
+// each into a real link pointing at the matching entry in the reference list,
+// keeping the visible text so it reads as a proper citation instead of dead
+// "JournalName[1]" noise. A chip that cites several sources ("[1][4]", "[1-2]")
+// links to the first — one anchor can only carry one href — and a chip whose
+// number has no matching reference degrades to plain text.
+const CITATION_CHIP_SELECTOR = '[class*="markdown-article-citation-chip"]';
+
+function linkifyCitations(root: HTMLElement, refUrls: string[]): void {
+  root.querySelectorAll(CITATION_CHIP_SELECTOR).forEach((chip) => {
+    const text = normalize(chip.textContent || '');
+    const doc = chip.ownerDocument;
+    const m = text.match(/\[(\d+)/);
+    const url = m ? refUrls[parseInt(m[1], 10) - 1] || '' : '';
+    if (url && text) {
+      const a = doc.createElement('a');
+      a.setAttribute('href', url);
+      a.textContent = text;
+      chip.replaceWith(a);
+    } else {
+      chip.replaceWith(doc.createTextNode(text));
+    }
+  });
+}
+
+// Reference URLs in list order, so citation index N maps to refUrls[N - 1].
+function referenceUrls(refs: Element): string[] {
+  return Array.from(refs.querySelectorAll(REF_ITEM_SELECTOR)).map(
+    (item) => item.querySelector('a[href]')?.getAttribute('href') || '',
+  );
 }
 
 // Rebuild the citation block as a clean `<h3>References</h3>` + an ordered list.
