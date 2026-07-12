@@ -136,11 +136,21 @@ function extractAnswerHtml(article: Element): string {
   return `${body.innerHTML}${refsHtml}`.trim();
 }
 
-// Rebuild the citation block as a clean `<h3>References</h3>` + entries.
+// Rebuild the citation block as a clean `<h3>References</h3>` + an ordered list.
+//
 // OpenEvidence renders references as a MUI Accordion whose "References" label
-// lives *inside the summary <button>* — so a blind chrome-strip would leave an
-// empty heading. We capture the label first, drop the accordion heading, then
-// strip the remaining chrome (per-citation toggles, feedback, favicons).
+// lives *inside the summary <button>*, and each citation as a flat pair:
+//
+//   <span>1.</span><div class="ArticleReferences_reference__…"> …title/subtitle… </div>
+//
+// Dumped verbatim, TipTap turns the standalone "1." span into its own line
+// above the title — so the numbering reads as a stray line break, not a list.
+// Instead we emit a real `<ol>`: each citation becomes one `<li>` (linked
+// title + publication/authors as plain text), and the numeric markers are
+// dropped since the list renders them. Any non-citation text that precedes the
+// first reference (a leading note) is kept as a plain paragraph.
+const REF_ITEM_SELECTOR = '[class*="ArticleReferences_reference__"]';
+
 function extractReferences(refs: Element): string {
   const clone = refs.cloneNode(true) as HTMLElement;
   const headingEl = clone.querySelector('h1, h2, h3, h4, h5, h6');
@@ -148,10 +158,62 @@ function extractReferences(refs: Element): string {
     normalize(headingEl?.textContent || '').replace(/\s*\d+\s*$/, '') ||
     'References';
   headingEl?.remove();
+
+  const items = Array.from(clone.querySelectorAll(REF_ITEM_SELECTOR));
+  if (items.length) {
+    const lis = items.map(refListItem).filter(Boolean).join('');
+    if (lis) {
+      const lead = leadBeforeFirstItem(clone, items[0]);
+      return `<h3>${escapeHtml(label)}</h3>${lead}<ol>${lis}</ol>`;
+    }
+  }
+
+  // Fallback: anchors moved in a redesign — dump the stripped block as-is
+  // rather than losing the citations entirely.
   stripChrome(clone);
   const inner = clone.innerHTML.trim();
   if (!inner) return '';
   return `<h3>${escapeHtml(label)}</h3>${inner}`;
+}
+
+// One citation → one `<li>`: the linked title, then journal/year/authors as
+// plain text. The child spans are concatenated with spaces so an inline tag
+// ("Recent"/"Guideline") doesn't glue onto the last author.
+function refListItem(item: Element): string {
+  const anchor = item.querySelector('a[href]');
+  const href = anchor?.getAttribute('href') || '';
+  const titleText = normalize(
+    (anchor || item.querySelector('[class*="reference-title"]'))?.textContent ||
+      '',
+  );
+  const subtitleEl = item.querySelector('[class*="reference-subtitle"]');
+  const subtitle = subtitleEl
+    ? Array.from(subtitleEl.children)
+        .map((c) => normalize(c.textContent || ''))
+        .filter(Boolean)
+        .join(' ')
+    : '';
+  if (!titleText && !subtitle) return '';
+  const titleHtml = href
+    ? `<a href="${escapeAttr(href)}">${escapeHtml(titleText)}</a>`
+    : escapeHtml(titleText);
+  const rest = subtitle ? ` ${escapeHtml(subtitle)}` : '';
+  return `<li>${titleHtml}${rest}</li>`;
+}
+
+// Non-citation text sitting before the first reference (a leading note) — render
+// it as plain text, not swept into the list.
+function leadBeforeFirstItem(clone: HTMLElement, firstItem: Element): string {
+  const firstWrapper =
+    firstItem.closest('[class*="ArticleReferences_references__"]') || firstItem;
+  const range = clone.ownerDocument.createRange();
+  range.selectNodeContents(clone);
+  range.setEndBefore(firstWrapper);
+  const holder = clone.ownerDocument.createElement('div');
+  holder.appendChild(range.cloneContents());
+  stripChrome(holder);
+  const text = normalize(holder.textContent || '');
+  return text ? `<p>${escapeHtml(text)}</p>` : '';
 }
 
 function escapeHtml(s: string): string {
@@ -159,6 +221,10 @@ function escapeHtml(s: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+function escapeAttr(s: string): string {
+  return escapeHtml(s).replace(/"/g, '&quot;');
 }
 
 function stripChrome(root: HTMLElement) {
