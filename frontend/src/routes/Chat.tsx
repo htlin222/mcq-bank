@@ -4,6 +4,7 @@ import { MessageItem } from '../chat/MessageItem';
 import { Composer, type ReplyDraft } from '../chat/Composer';
 import { dayLabel } from '../chat/chatText';
 import { useMe } from '../hooks/useMe';
+import { useSessionDraft } from '../hooks/useSessionDraft';
 import { useUsers } from '../hooks/useUsers';
 
 export function Chat() {
@@ -21,7 +22,8 @@ export function Chat() {
     clearUnread,
   } = useChat();
 
-  const [reply, setReply] = useState<ReplyDraft | null>(null);
+  // Reply target rides along with the chat draft across route switches.
+  const [reply, setReply] = useSessionDraft<ReplyDraft | null>('chat-reply', null);
   const [paletteFor, setPaletteFor] = useState<number | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);

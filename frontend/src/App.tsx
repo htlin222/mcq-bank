@@ -5,6 +5,7 @@ import {
 	Link,
 	NavLink,
 	useNavigate,
+	useLocation,
 	Navigate,
 } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
@@ -17,6 +18,7 @@ import {
 	ChevronDown,
 } from "lucide-react";
 import { config } from "./config";
+import { saveLastPath } from "./lib/lastPath";
 import { useMe } from "./hooks/useMe";
 import { Avatar } from "./components/Avatar";
 import { NotificationBell } from "./components/NotificationBell";
@@ -90,6 +92,7 @@ export default function App() {
 	return (
 		<ChatProvider>
 		<div className="min-h-screen bg-ink-50 dark:bg-ink-900 text-ink-800 dark:text-ink-200 flex flex-col">
+			<LastPathTracker />
 			<ChatToaster />
 			{/* Top bar */}
 			<header className="sticky top-0 z-20 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
@@ -294,6 +297,18 @@ function BottomItem({
 			<span>{label}</span>
 		</NavLink>
 	);
+}
+
+// Persist the current route so Home can offer 「繼續上次」 after the tab (or
+// browser) is closed and reopened on the same device. Skips the home page
+// itself — resuming to "home" is meaningless.
+function LastPathTracker() {
+	const location = useLocation();
+	useEffect(() => {
+		if (location.pathname === "/" || location.pathname === "/login") return;
+		saveLastPath(location.pathname + location.search);
+	}, [location]);
+	return null;
 }
 
 function NotFound() {

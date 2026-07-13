@@ -12,6 +12,7 @@ import {
 	ExternalLink,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
+import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
 import { buildOpenEvidenceUrl } from "../lib/openevidence";
 import { useQuestion } from "../hooks/useQuestion";
 import { useLock } from "../hooks/useLock";
@@ -297,18 +298,39 @@ export function Question() {
 			});
 	}, [data?.id]);
 
+	// Half-finished edits survive route switches (sessionStorage). The 詳解
+	// key is scoped to the version being edited, so a draft goes stale (and is
+	// ignored) as soon as someone else saves a newer version.
+	const expDraftKey = data
+		? `exp:${data.id}:v${data.explanation?.version ?? 0}`
+		: "";
+	const noteDraftKey = data ? `note:${data.id}` : "";
+
+	// Surface a "you have an unsaved draft" hint when returning to the page,
+	// otherwise the restore-on-編輯 behaviour is invisible.
+	const hasExpDraft = useMemo(
+		() => !editing && !!expDraftKey && loadDraft(expDraftKey) !== null,
+		[expDraftKey, editing],
+	);
+	const hasNoteDraft = useMemo(
+		() => !noteEditing && !!noteDraftKey && loadDraft(noteDraftKey) !== null,
+		[noteDraftKey, noteEditing],
+	);
+
 	async function startEdit() {
 		if (!data) return;
 		const ok = await acquire();
 		if (!ok) return;
 		setDraft(
-			explanationJson || { type: "doc", content: [{ type: "paragraph" }] },
+			loadDraft(expDraftKey) ??
+				explanationJson ?? { type: "doc", content: [{ type: "paragraph" }] },
 		);
 		setEditing(true);
 		setSaveError(null);
 	}
 
 	async function cancelEdit() {
+		clearDraft(expDraftKey);
 		setEditing(false);
 		setDraft(null);
 		setSaveError(null);
@@ -324,6 +346,7 @@ export function Question() {
 				content_json: draft,
 				expected_version: data.explanation?.version ?? 0,
 			});
+			clearDraft(expDraftKey);
 			setEditing(false);
 			setDraft(null);
 			await release();
@@ -345,12 +368,16 @@ export function Question() {
 
 	function startNoteEdit() {
 		if (!data) return;
-		setNoteDraft(noteJson || { type: "doc", content: [{ type: "paragraph" }] });
+		setNoteDraft(
+			loadDraft(noteDraftKey) ??
+				noteJson ?? { type: "doc", content: [{ type: "paragraph" }] },
+		);
 		setNoteEditing(true);
 		setNoteError(null);
 	}
 
 	function cancelNoteEdit() {
+		clearDraft(noteDraftKey);
 		setNoteEditing(false);
 		setNoteDraft(null);
 		setNoteError(null);
@@ -364,6 +391,7 @@ export function Question() {
 			await api.put(`/api/questions/${data.id}/note`, {
 				content_json: noteDraft,
 			});
+			clearDraft(noteDraftKey);
 			setNoteEditing(false);
 			setNoteDraft(null);
 			await reload();
@@ -724,6 +752,11 @@ export function Question() {
 					)}
 				</div>
 
+				{tab === "explanation" && hasExpDraft && (
+					<p className="mb-2 text-xs text-amber-700 dark:text-amber-400">
+						↺ 有未送出的詳解草稿——點「編輯」繼續
+					</p>
+				)}
 				{tab === "explanation" &&
 					(editing ? (
 						<div className="bg-white dark:bg-ink-800 border-2 border-accent/40 rounded-lg p-4 sm:p-5 shadow-paper">
@@ -738,7 +771,10 @@ export function Question() {
 							</div>
 							<RichEditor
 								content={draft}
-								onChange={setDraft}
+								onChange={(j) => {
+									setDraft(j);
+									saveDraft(expDraftKey, j);
+								}}
 								placeholder="輸入詳解。可貼上圖片、@提及他人,輸入 @114 引用題目。"
 								autofocus
 								toolbarActions={
@@ -842,6 +878,11 @@ export function Question() {
 						</>
 					))}
 
+				{tab === "note" && hasNoteDraft && (
+					<p className="mb-2 text-xs text-amber-700 dark:text-amber-400">
+						↺ 有未送出的筆記草稿——點「編輯」繼續
+					</p>
+				)}
 				{tab === "note" &&
 					(noteEditing ? (
 						<div className="bg-white dark:bg-ink-800 border-2 border-accent/40 rounded-lg p-4 sm:p-5 shadow-paper">
@@ -850,7 +891,10 @@ export function Question() {
 							</div>
 							<RichEditor
 								content={noteDraft}
-								onChange={setNoteDraft}
+								onChange={(j) => {
+									setNoteDraft(j);
+									saveDraft(noteDraftKey, j);
+								}}
 								placeholder="寫下你的私人筆記。可貼圖、@114 引用其他題目。"
 								autofocus
 								toolbarActions={

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, History, AlertTriangle, CalendarDays, Scale } from 'lucide-react';
+import { Bookmark, History, AlertTriangle, CalendarDays, Scale, ArrowRight, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { config } from '../config';
+import { loadLastPath, describePath } from '../lib/lastPath';
 import { useMe } from '../hooks/useMe';
 import { ActivityHeatmap } from '../components/ActivityHeatmap';
 import { GROUPS, TOTAL_EXAM_COUNT } from '../lib/groups';
@@ -41,6 +42,11 @@ export function Home() {
   const [years, setYears] = useState<YearMeta[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [countdown, setCountdown] = useState<Countdown>(() => countdownTo(EXAM_DATE));
+  // 「繼續上次」— read once on mount; dismissable for this visit.
+  const [resume, setResume] = useState(() => {
+    const last = loadLastPath();
+    return last && Date.now() - last.at < 14 * 86_400_000 ? last : null;
+  });
 
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
@@ -71,6 +77,28 @@ export function Home() {
           {config.brand.home_subtitle}
         </p>
       </header>
+
+      {/* Resume where you left off — last visited page, same device. */}
+      {resume && (
+        <section className="mb-4">
+          <div className="flex items-center gap-2 text-sm bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg px-4 py-2.5 shadow-paper">
+            <span className="text-ink-500 dark:text-ink-400 shrink-0">上次停留</span>
+            <Link
+              to={resume.path}
+              className="inline-flex items-center gap-1 text-accent hover:text-accent-dark font-medium truncate"
+            >
+              {describePath(resume.path)} <ArrowRight size={14} className="shrink-0" />
+            </Link>
+            <button
+              aria-label="關閉"
+              onClick={() => setResume(null)}
+              className="ml-auto shrink-0 text-ink-400 hover:text-ink-600 dark:hover:text-ink-200"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Countdown to exam — date and label come from /config.toml [exam]. */}
       <section className="mb-8">

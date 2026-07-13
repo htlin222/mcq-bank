@@ -1,6 +1,7 @@
-import { Fragment, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { CornerUpLeft, Send, X } from 'lucide-react';
 import { segmentChatText } from './chatText';
+import { useSessionDraft } from '../hooks/useSessionDraft';
 import type { UserLite } from '../hooks/useUsers';
 
 export type ReplyDraft = { id: number; name: string; snippet: string };
@@ -15,11 +16,22 @@ type Props = {
 };
 
 export function Composer({ users, myEmail, connected, reply, onCancelReply, onSend }: Props) {
-  const [text, setText] = useState('');
+  // Draft survives route switches / reloads within the tab (sessionStorage).
+  const [text, setText] = useSessionDraft('chat-draft', '');
   const [mentionToken, setMentionToken] = useState<string | null>(null);
   const [mentionIndex, setMentionIndex] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
+
+  // A restored draft renders into a rows=1 textarea — autosize it once.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (el && el.value) {
+      el.style.height = 'auto';
+      el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const names = useMemo(() => users.map((u) => u.display_name), [users]);
 

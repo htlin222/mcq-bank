@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { api } from '../lib/api';
+import { loadDraft, saveDraft, clearDraft } from '../lib/drafts';
 import { Avatar } from './Avatar';
 import { RichEditor } from './RichEditor';
 import { ReadOnlyContent } from './ReadOnlyContent';
@@ -97,7 +98,13 @@ function NewCommentBox({ questionId, parentId, onPosted, onCancel }: {
   onPosted: () => void;
   onCancel?: () => void;
 }) {
-  const [content, setContent] = useState<any>({ type: 'doc', content: [] });
+  // Unsent comment survives route switches — draft lives in sessionStorage.
+  const draftKey = parentId
+    ? `comment:${questionId}:${parentId}`
+    : `comment:${questionId}`;
+  const [content, setContent] = useState<any>(
+    () => loadDraft(draftKey) ?? { type: 'doc', content: [] },
+  );
   const [busy, setBusy] = useState(false);
   const [resetKey, setResetKey] = useState(0);
 
@@ -111,6 +118,7 @@ function NewCommentBox({ questionId, parentId, onPosted, onCancel }: {
         content_json: content,
         parent_id: parentId,
       });
+      clearDraft(draftKey);
       setContent({ type: 'doc', content: [] });
       setResetKey((k) => k + 1);
       onPosted();
@@ -123,12 +131,21 @@ function NewCommentBox({ questionId, parentId, onPosted, onCancel }: {
       <RichEditor
         key={resetKey}
         content={content}
-        onChange={setContent}
+        onChange={(j) => {
+          setContent(j);
+          saveDraft(draftKey, j);
+        }}
         placeholder={parentId ? '回覆…  (@提及成員)' : '寫下你的想法,@提及其他成員…'}
       />
       <div className="flex justify-end gap-2">
         {onCancel && (
-          <button onClick={onCancel} className="px-3 py-1.5 text-sm text-ink-600 dark:text-ink-300 hover:text-ink-800 dark:hover:text-ink-100">
+          <button
+            onClick={() => {
+              clearDraft(draftKey);
+              onCancel();
+            }}
+            className="px-3 py-1.5 text-sm text-ink-600 dark:text-ink-300 hover:text-ink-800 dark:hover:text-ink-100"
+          >
             取消
           </button>
         )}
@@ -153,7 +170,11 @@ function CommentItem({ comment, questionId, currentEmail, onChange, depth }: {
 }) {
   const [replying, setReplying] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [editContent, setEditContent] = useState<any>(JSON.parse(comment.content_json));
+  // A half-finished edit survives route switches via sessionStorage.
+  const editDraftKey = `comment-edit:${comment.id}`;
+  const [editContent, setEditContent] = useState<any>(
+    () => loadDraft(editDraftKey) ?? JSON.parse(comment.content_json),
+  );
   const isOwn = comment.author_email === currentEmail;
   const maxDepth = 3;
 
@@ -161,6 +182,7 @@ function CommentItem({ comment, questionId, currentEmail, onChange, depth }: {
     await api.patch(`/api/questions/${questionId}/comments/${comment.id}`, {
       content_json: editContent,
     });
+    clearDraft(editDraftKey);
     setEditing(false);
     onChange();
   };
@@ -190,10 +212,25 @@ function CommentItem({ comment, questionId, currentEmail, onChange, depth }: {
 
           {editing ? (
             <div className="space-y-2">
-              <RichEditor content={editContent} onChange={setEditContent} />
+              <RichEditor
+                content={editContent}
+                onChange={(j) => {
+                  setEditContent(j);
+                  saveDraft(editDraftKey, j);
+                }}
+              />
               <div className="flex gap-2">
                 <button onClick={saveEdit} className="px-3 py-1 text-sm bg-accent text-white rounded">儲存</button>
-                <button onClick={() => setEditing(false)} className="px-3 py-1 text-sm text-ink-600 dark:text-ink-300">取消</button>
+                <button
+                  onClick={() => {
+                    clearDraft(editDraftKey);
+                    setEditContent(JSON.parse(comment.content_json));
+                    setEditing(false);
+                  }}
+                  className="px-3 py-1 text-sm text-ink-600 dark:text-ink-300"
+                >
+                  取消
+                </button>
               </div>
             </div>
           ) : (
