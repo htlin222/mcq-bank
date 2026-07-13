@@ -13,6 +13,9 @@ export type Env = {
   CACHE?: KVNamespace;
   // 聊天大廳 Durable Object (worker/chat-room.ts, single "lobby" room)
   CHAT: DurableObjectNamespace;
+  // Per-user cross-device state (worker/user-state.ts, single "main"
+  // instance) — RPC-typed so route code gets checked method calls.
+  USER_STATE: DurableObjectNamespace<import('./user-state').UserState>;
   CF_ACCESS_TEAM_DOMAIN: string;
   CF_ACCESS_AUD: string;
   ADMIN_EMAILS?: string;

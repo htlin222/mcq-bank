@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Pause, Play, ChevronLeft, ChevronRight, AlertTriangle, Flag } from 'lucide-react';
 import { api } from '../lib/api';
 import { GROUPS, groupCounts } from '../lib/groups';
+import { loadSectionPath, clearSectionPath, type LastPath } from '../lib/lastPath';
+import { ResumeChip } from '../components/ResumeChip';
 
 type YearMeta = { year: number; count: number };
 
@@ -38,10 +40,20 @@ function ExamStart() {
   const [groups, setGroups] = useState<Set<Group>>(
     () => new Set(GROUPS.map((g) => g.label)),
   );
+  // Unfinished exam session, synced across devices; cleared on submit
+  // (the tracker in App.tsx drops it when the result page is reached).
+  const [resume, setResume] = useState<LastPath | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
+    let cancelled = false;
+    loadSectionPath('exam').then((v) => {
+      if (!cancelled) setResume(v);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const totalCount = GROUPS.reduce(
@@ -81,6 +93,20 @@ function ExamStart() {
       <p className="text-ink-500 dark:text-ink-400 text-sm mb-6">
         {totalCount > 0 ? `${totalCount} 分鐘模擬考` : '選擇科別'} · 可中途暫停離開、稍後續答 · 完賽看分數與錯題回顧
       </p>
+
+      {resume && (
+        <div className="mb-6">
+          <ResumeChip
+            prefix="你上次停在"
+            label="進行中的模擬考"
+            to={resume.path}
+            onDismiss={() => {
+              clearSectionPath('exam');
+              setResume(null);
+            }}
+          />
+        </div>
+      )}
 
       {/* 科別選擇 */}
       <div className="mb-8 flex flex-wrap gap-2 items-center">

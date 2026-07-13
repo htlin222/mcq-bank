@@ -18,7 +18,11 @@ import {
 	ChevronDown,
 } from "lucide-react";
 import { config } from "./config";
-import { saveLastPath } from "./lib/lastPath";
+import {
+	saveLastPath,
+	saveSectionPath,
+	clearSectionPath,
+} from "./lib/lastPath";
 import { useMe } from "./hooks/useMe";
 import { Avatar } from "./components/Avatar";
 import { NotificationBell } from "./components/NotificationBell";
@@ -305,8 +309,15 @@ function BottomItem({
 function LastPathTracker() {
 	const location = useLocation();
 	useEffect(() => {
-		if (location.pathname === "/" || location.pathname === "/login") return;
-		saveLastPath(location.pathname + location.search);
+		const { pathname, search } = location;
+		if (pathname === "/" || pathname === "/login") return;
+		const path = pathname + search;
+		saveLastPath(path);
+		// Section memories drive the 「你上次停在…」 chips on 複習 / 全真.
+		if (/^\/(q|year)\//.test(pathname)) saveSectionPath("review", path);
+		if (/^\/exam\/[^/]+$/.test(pathname)) saveSectionPath("exam", path);
+		// Reaching the result page means the exam is over — nothing to resume.
+		if (/^\/exam\/[^/]+\/result$/.test(pathname)) clearSectionPath("exam");
 	}, [location]);
 	return null;
 }

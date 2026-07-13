@@ -42,6 +42,26 @@ bucket_name = "my-qa-bank-uploads"
 [ai]
 binding = "AI"
 
+# 聊天大廳 — single-room chat over the WebSocket Hibernation API.
+# SQLite-backed DO (new_sqlite_classes) so it runs on the free plan.
+[[durable_objects.bindings]]
+name = "CHAT"
+class_name = "ChatRoom"
+
+# Per-user cross-device state (上次停留位置 for 複習/全真) — single "main"
+# instance, SQLite-backed so it stays on the free plan.
+[[durable_objects.bindings]]
+name = "USER_STATE"
+class_name = "UserState"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ChatRoom"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["UserState"]
+
 # Optional KV for caching (uncomment after `wrangler kv namespace create CACHE`)
 # [[kv_namespaces]]
 # binding = "CACHE"

@@ -1,28 +1,82 @@
-// Remember the last page the user was on — localStorage, so it survives
-// closing the tab / browser on the same device. (Cross-device resume would
-// need server-side state, which we deliberately don't keep for this.)
+// Remember the last page the user was on.
+//
+// Two tiers:
+// - Global 「上次停留」 (Home chip): localStorage — per-device is fine there.
+// - Section 複習 / 全真 positions: server-side via /api/state (UserState
+//   Durable Object), so they follow the user across computers.
+
+import { api } from './api';
 
 const KEY = 'last-path';
+// Entries older than this are ignored — a two-week-old "resume" is noise.
+export const RESUME_MAX_AGE_MS = 14 * 86_400_000;
 
 export type LastPath = { path: string; at: number };
+// Section-scoped memories: 複習 remembers the last question/year page,
+// 全真 remembers the in-progress exam session.
+export type Section = 'review' | 'exam';
 
-export function saveLastPath(path: string) {
+function write(key: string, path: string) {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ path, at: Date.now() }));
+    localStorage.setItem(key, JSON.stringify({ path, at: Date.now() }));
   } catch {
     /* ignore */
   }
 }
 
-export function loadLastPath(): LastPath | null {
+function read(key: string): LastPath | null {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return null;
     const v = JSON.parse(raw) as LastPath;
-    return typeof v?.path === 'string' && typeof v?.at === 'number' ? v : null;
+    if (typeof v?.path !== 'string' || typeof v?.at !== 'number') return null;
+    return Date.now() - v.at < RESUME_MAX_AGE_MS ? v : null;
   } catch {
     return null;
   }
+}
+
+export function saveLastPath(path: string) {
+  write(KEY, path);
+}
+
+export function loadLastPath(): LastPath | null {
+  return read(KEY);
+}
+
+// Section writes are debounced (rapid prev/next question hops collapse into
+// one request) and fire-and-forget — losing one is harmless.
+const sectionTimers = new Map<Section, number>();
+
+export function saveSectionPath(section: Section, path: string) {
+  const prev = sectionTimers.get(section);
+  if (prev !== undefined) window.clearTimeout(prev);
+  sectionTimers.set(
+    section,
+    window.setTimeout(() => {
+      sectionTimers.delete(section);
+      api.put(`/api/state/${section}`, { path }).catch(() => {});
+    }, 1000),
+  );
+}
+
+export async function loadSectionPath(section: Section): Promise<LastPath | null> {
+  try {
+    const positions = await api.get<Record<Section, LastPath | null>>('/api/state');
+    const v = positions[section];
+    return v && Date.now() - v.at < RESUME_MAX_AGE_MS ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearSectionPath(section: Section) {
+  const prev = sectionTimers.get(section);
+  if (prev !== undefined) {
+    window.clearTimeout(prev);
+    sectionTimers.delete(section);
+  }
+  api.del(`/api/state/${section}`).catch(() => {});
 }
 
 // Human label for the resume chip on Home.

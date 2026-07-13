@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import {
+  describePath,
+  loadSectionPath,
+  clearSectionPath,
+  type LastPath,
+} from '../lib/lastPath';
+import { ResumeChip } from '../components/ResumeChip';
 
 type YearMeta = { year: number; count: number };
 type QListItem = {
@@ -20,11 +27,20 @@ type Stats = {
 export function ReviewIndex() {
   const [years, setYears] = useState<YearMeta[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  // 「你上次停在…」 — last question/year page visited, synced across devices.
+  const [resume, setResume] = useState<LastPath | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
     api.get<Stats>('/api/review/stats').then(setStats).catch(() => setStats(null));
+    let cancelled = false;
+    loadSectionPath('review').then((v) => {
+      if (!cancelled) setResume(v);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // year → { seen, correct } lookup, so we can show per-year progress
@@ -51,6 +67,20 @@ export function ReviewIndex() {
       <p className="text-ink-500 dark:text-ink-400 text-sm mb-8">
         一題一答 · 可協作編輯詳解 · 留言討論
       </p>
+
+      {resume && (
+        <div className="mb-6">
+          <ResumeChip
+            prefix="你上次停在"
+            label={describePath(resume.path)}
+            to={resume.path}
+            onDismiss={() => {
+              clearSectionPath('review');
+              setResume(null);
+            }}
+          />
+        </div>
+      )}
 
       <button
         onClick={startRandom}
