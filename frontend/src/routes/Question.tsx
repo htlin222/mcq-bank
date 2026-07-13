@@ -43,7 +43,7 @@ type LayoutMode = "columns" | "tabs";
 const LAYOUT_KEY = "review-layout-mode";
 type MainTab = "question" | "explanation" | "note" | "discussion" | "similar";
 
-type Tab = "explanation" | "note" | "discussion";
+type Tab = "explanation" | "note" | "discussion" | "similar";
 
 type SimilarItem = {
 	id: string;
@@ -235,11 +235,11 @@ export function Question() {
 		}
 	}, [data?.id, data?.comment_count]);
 
-	// If the user is on the discussion tab and the viewport shrinks below lg
-	// (where the tab is hidden), snap them back to the explanation tab so they
-	// aren't stuck on an invisible tab with no content.
+	// If the user is on a columns-only inner tab (討論串 / 相似題目, both hidden
+	// below md) and the viewport shrinks below md, snap them back to the
+	// explanation tab so they aren't stuck on an invisible tab with no content.
 	useEffect(() => {
-		if (tab !== "discussion") return;
+		if (tab !== "discussion" && tab !== "similar") return;
 		const mq = window.matchMedia("(min-width: 768px)");
 		const sync = () => {
 			if (!mq.matches) setTab("explanation");
@@ -432,7 +432,7 @@ export function Question() {
 				);
 			} else {
 				const order: Tab[] = md
-					? ["explanation", "note", "discussion"]
+					? ["explanation", "note", "discussion", "similar"]
 					: ["explanation", "note"];
 				const i = order.indexOf(tab);
 				const base = i < 0 ? 0 : i;
@@ -698,6 +698,18 @@ export function Question() {
 								({commentCount})
 							</span>
 						</TabButton>
+						{/* 相似題目 as an inner tab — columns mode at ≥md only
+						    (like 討論串); below md and in tabs mode it lives elsewhere. */}
+						<TabButton
+							active={tab === "similar"}
+							onClick={() => setTab("similar")}
+							className="hidden md:inline-flex"
+						>
+							相似題目
+							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
+								({similar.length})
+							</span>
+						</TabButton>
 					</div>
 					{tab === "explanation" && !editing && (
 						<a
@@ -919,7 +931,7 @@ export function Question() {
 				className={
 					"mt-8 " +
 					(similar.length > 0 ? "block" : "hidden") +
-					((tabsMode ? mainTab === "similar" : similar.length > 0)
+					((tabsMode ? mainTab === "similar" : tab === "similar")
 						? " md:block"
 						: " md:hidden")
 				}
@@ -972,7 +984,7 @@ export function Question() {
 				<section
 					className={
 						"mt-10" +
-						(tabsMode && mainTab !== "similar" ? " md:hidden" : "")
+						((tabsMode ? mainTab !== "similar" : tab !== "similar") ? " md:hidden" : "")
 					}
 				>
 					<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100 mb-3 inline-flex items-center gap-2">
