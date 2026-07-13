@@ -19,7 +19,11 @@ import {
 } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
 import { transformPastedHTML } from '../lib/paste-transform';
-import { looksLikeMarkdown, markdownToHtml } from '../lib/markdown-paste';
+import {
+  looksLikeMarkdown,
+  looksLikeAuthoredMarkdown,
+  markdownToHtml,
+} from '../lib/markdown-paste';
 import { api } from '../lib/api';
 import { OeImportDialog } from './OeImportDialog';
 
@@ -87,12 +91,29 @@ export function RichEditor({
         const html = event.clipboardData?.getData('text/html') || '';
         const text = event.clipboardData?.getData('text/plain') || '';
 
-        // Plain-text markdown (no rich HTML) → parse to real structure so
-        // `- item`, `## heading`, nested lists etc. come through formatted
-        // instead of as literal text.
-        if (editorRef.current && !html.trim() && text && looksLikeMarkdown(text)) {
+        // Prefer parsing the plain-text markdown when it's genuinely markdown —
+        // always when there's no rich HTML, and also when the text was authored
+        // as markdown (headings/bold/tables) even if a rich flavour tags along.
+        // OpenEvidence's "Copy" is the motivating case: its text/plain is clean
+        // markdown, but its text/html is a flat <br>-stream that collapses whole
+        // sections (nested lists, sub-bullets) into a single mangled list. The
+        // markdown round-trips into real, correctly-nested structure. Ordinary
+        // rich pastes (Google Docs, Word) lack these markers, so their HTML wins.
+        if (
+          editorRef.current &&
+          text &&
+          looksLikeMarkdown(text) &&
+          (!html.trim() || looksLikeAuthoredMarkdown(text))
+        ) {
           event.preventDefault();
-          editorRef.current.commands.insertContent(markdownToHtml(text));
+          const mdHtml = markdownToHtml(text);
+          // Markdown may reference hotlinked images (![](https://…)) — sideload
+          // them to R2 first, same as an HTML paste, so they don't break.
+          if (/<img[^>]+src=["']https?:\/\//i.test(mdHtml)) {
+            insertExternalHtml(editorRef.current, mdHtml, setUploading);
+          } else {
+            editorRef.current.commands.insertContent(mdHtml);
+          }
           return true;
         }
 

@@ -22,6 +22,26 @@ export function looksLikeMarkdown(text: string): boolean {
   return BLOCK_MD.some((re) => re.test(text));
 }
 
+// Stronger signal: the clipboard text was *authored* as markdown (heading,
+// bold, table, blockquote, fenced code) rather than merely containing a stray
+// "- " bullet. Used to decide whether to prefer the plain-text markdown over an
+// accompanying rich-HTML flavour — e.g. OpenEvidence's "Copy" puts clean
+// markdown in text/plain but a flat <br>-stream in text/html, and the markdown
+// round-trips into real (incl. nested) lists far more reliably. Ordinary rich
+// pastes (Google Docs, Word) don't carry these markers in their text/plain, so
+// their HTML is still preferred.
+const AUTHORED_MD = [
+  /^[ \t]*#{1,6}[ \t]+\S/m, // heading
+  /\*\*[^*\n]+\*\*/, // bold
+  /^[ \t]*>[ \t]+\S/m, // blockquote
+  /^[ \t]*(```|~~~)/m, // fenced code
+  /^[ \t]*\|.+\|[ \t]*$/m, // table row
+];
+
+export function looksLikeAuthoredMarkdown(text: string): boolean {
+  return AUTHORED_MD.some((re) => re.test(text));
+}
+
 export function markdownToHtml(text: string): string {
   return marked.parse(text, { async: false }) as string;
 }
