@@ -11,6 +11,12 @@ function apply(mode: Mode) {
     (mode === 'system' &&
       window.matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.classList.toggle('dark', wantsDark);
+  // Tint the iOS status-bar / notch area to match the header
+  // (bg-white / dark:bg-ink-800). Static <meta> can't track the manual
+  // class-based theme toggle, so keep it in sync here.
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', wantsDark ? '#1a160f' : '#ffffff');
 }
 
 function read(): Mode {
