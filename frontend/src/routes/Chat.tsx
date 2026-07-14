@@ -78,7 +78,7 @@ export function Chat() {
   const pref = me?.chat_notify ?? 'mention';
 
   return (
-    <div className="mx-auto max-w-3xl w-full px-0 sm:px-6 flex flex-col h-[calc(100dvh-3.5rem-3.75rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)]">
+    <div className="mx-auto max-w-3xl w-full px-0 sm:px-6 flex flex-col h-[calc(100dvh-3.5rem-var(--bottom-nav-h))]">
       {/* Page header: title, presence, notify preference */}
       <div className="flex items-center gap-3 px-4 sm:px-0 py-3 border-b border-ink-200 dark:border-ink-700">
         <h1 className="font-serif text-lg text-ink-900 dark:text-ink-100">聊天大廳</h1>

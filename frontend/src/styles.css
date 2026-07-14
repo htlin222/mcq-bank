@@ -202,3 +202,15 @@
 .safe-bottom {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
+
+/* Height reserved for the fixed mobile bottom nav (item h-14 + .safe-bottom).
+   0 at sm+ where the nav is hidden. <main> pads by this so content never
+   hides behind the nav; Chat subtracts it from its full-height layout. */
+:root {
+  --bottom-nav-h: 0px;
+}
+@media (max-width: 639px) {
+  :root {
+    --bottom-nav-h: calc(3.5rem + max(1rem, env(safe-area-inset-bottom)));
+  }
+}

@@ -151,7 +151,7 @@ export default function App() {
 			</header>
 
 			{/* Main */}
-			<main className="flex-1">
+			<main className="flex-1 pb-[var(--bottom-nav-h)]">
 				<Routes>
 					<Route path="/" element={<Home />} />
 					<Route path="/review" element={<ReviewIndex />} />
@@ -292,7 +292,7 @@ function BottomItem({
 			to={to}
 			end={end}
 			className={({ isActive }) =>
-				`flex flex-col items-center justify-center py-2 text-[11px] gap-0.5 ${
+				`flex flex-col items-center justify-center h-14 text-[11px] gap-0.5 ${
 					isActive ? "text-accent" : "text-ink-500 dark:text-ink-400"
 				}`
 			}
