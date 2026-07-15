@@ -369,7 +369,10 @@ function ViewerInner({
 			},
 			scrollToPage(page: number) {
 				if (!scroll || !docId) return;
-				scroll.forDocument(docId).scrollToPage({ pageNumber: page + 1 });
+				// instant: slides should cut, not glide, when flipping pages.
+				scroll
+					.forDocument(docId)
+					.scrollToPage({ pageNumber: page + 1, behavior: "instant" });
 			},
 			zoomIn() {
 				if (!zoom || !docId) return;
@@ -439,7 +442,9 @@ function ViewerInner({
 					documentId={activeDocumentId}
 					activePage={activePage}
 					onJump={(p) =>
-						scroll?.forDocument(activeDocumentId).scrollToPage({ pageNumber: p + 1 })
+						scroll
+							?.forDocument(activeDocumentId)
+							.scrollToPage({ pageNumber: p + 1, behavior: "instant" })
 					}
 				/>
 			)}
