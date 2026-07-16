@@ -15,6 +15,10 @@ import type { Env } from './types';
 export type Position = { path: string; at: number };
 export type Positions = { review: Position | null; exam: Position | null };
 
+// Per-year 「你上次停在…」 — the last question opened within a single year,
+// remembered separately for each year so switching years doesn't clobber it.
+export type YearPosition = { questionId: string; at: number };
+
 export type Section = 'review' | 'exam';
 
 export function isSection(v: unknown): v is Section {
@@ -31,6 +35,15 @@ export class UserState extends DurableObject<Env> {
         path    TEXT NOT NULL,
         at      INTEGER NOT NULL,
         PRIMARY KEY (email, section)
+      );
+    `);
+    this.ctx.storage.sql.exec(`
+      CREATE TABLE IF NOT EXISTS year_positions (
+        email       TEXT NOT NULL,
+        year        INTEGER NOT NULL,
+        question_id TEXT NOT NULL,
+        at          INTEGER NOT NULL,
+        PRIMARY KEY (email, year)
       );
     `);
   }
@@ -65,6 +78,36 @@ export class UserState extends DurableObject<Env> {
       'DELETE FROM positions WHERE email = ? AND section = ?',
       email,
       section,
+    );
+  }
+
+  getYearPosition(email: string, year: number): YearPosition | null {
+    const row = this.ctx.storage.sql
+      .exec<{ question_id: string; at: number }>(
+        'SELECT question_id, at FROM year_positions WHERE email = ? AND year = ?',
+        email,
+        year,
+      )
+      .toArray()[0];
+    return row ? { questionId: row.question_id, at: row.at } : null;
+  }
+
+  setYearPosition(email: string, year: number, questionId: string): void {
+    this.ctx.storage.sql.exec(
+      `INSERT INTO year_positions (email, year, question_id, at) VALUES (?, ?, ?, ?)
+       ON CONFLICT(email, year) DO UPDATE SET question_id = excluded.question_id, at = excluded.at`,
+      email,
+      year,
+      questionId,
+      Date.now(),
+    );
+  }
+
+  clearYearPosition(email: string, year: number): void {
+    this.ctx.storage.sql.exec(
+      'DELETE FROM year_positions WHERE email = ? AND year = ?',
+      email,
+      year,
     );
   }
 }

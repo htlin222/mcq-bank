@@ -79,6 +79,42 @@ export function clearSectionPath(section: Section) {
   api.del(`/api/state/${section}`).catch(() => {});
 }
 
+// Per-year resume: the last question opened within a single year. Unlike the
+// section/global memories above, these never expire — a year's progress is a
+// long-lived bookmark, not "what were you just doing".
+export type YearPosition = { questionId: string; at: number };
+
+const yearTimers = new Map<number, number>();
+
+export function saveYearPosition(year: number, questionId: string) {
+  const prev = yearTimers.get(year);
+  if (prev !== undefined) window.clearTimeout(prev);
+  yearTimers.set(
+    year,
+    window.setTimeout(() => {
+      yearTimers.delete(year);
+      api.put(`/api/state/years/${year}`, { questionId }).catch(() => {});
+    }, 1000),
+  );
+}
+
+export async function loadYearPosition(year: number): Promise<YearPosition | null> {
+  try {
+    return await api.get<YearPosition | null>(`/api/state/years/${year}`);
+  } catch {
+    return null;
+  }
+}
+
+export function clearYearPosition(year: number) {
+  const prev = yearTimers.get(year);
+  if (prev !== undefined) {
+    window.clearTimeout(prev);
+    yearTimers.delete(year);
+  }
+  api.del(`/api/state/years/${year}`).catch(() => {});
+}
+
 // Human label for the resume chip on Home.
 export function describePath(path: string): string {
   const base = path.split('?')[0];

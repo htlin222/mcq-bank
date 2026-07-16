@@ -17,6 +17,40 @@ stateRoutes.get('/', async (c) => {
   return c.json(await stub(c).getPositions(c.var.email));
 });
 
+// Per-year resume: the last question opened within one year. Registered
+// before the /:section handlers so the two-segment path wins the match.
+const YEAR_QID = /^(\d{3})-\d{3}$/;
+
+stateRoutes.get('/years/:year', async (c) => {
+  const year = Number(c.req.param('year'));
+  if (!Number.isInteger(year)) return c.json({ error: 'bad year' }, 400);
+  return c.json(await stub(c).getYearPosition(c.var.email, year));
+});
+
+stateRoutes.put('/years/:year', async (c) => {
+  const year = Number(c.req.param('year'));
+  if (!Number.isInteger(year)) return c.json({ error: 'bad year' }, 400);
+  const { questionId } = await c.req.json<{ questionId?: string }>();
+  // The stored id must be a real "YYY-NNN" whose year prefix matches the path,
+  // so a tampered value can never point the resume link at another year.
+  if (
+    typeof questionId !== 'string' ||
+    !YEAR_QID.test(questionId) ||
+    questionId.slice(0, 3) !== String(year)
+  ) {
+    return c.json({ error: 'questionId must match the year' }, 400);
+  }
+  await stub(c).setYearPosition(c.var.email, year, questionId);
+  return c.json({ ok: true });
+});
+
+stateRoutes.delete('/years/:year', async (c) => {
+  const year = Number(c.req.param('year'));
+  if (!Number.isInteger(year)) return c.json({ error: 'bad year' }, 400);
+  await stub(c).clearYearPosition(c.var.email, year);
+  return c.json({ ok: true });
+});
+
 stateRoutes.put('/:section', async (c) => {
   const section = c.req.param('section');
   if (!isSection(section)) return c.json({ error: 'unknown section' }, 400);

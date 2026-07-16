@@ -4,6 +4,12 @@ import { BookOpen, Check, Clock, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { GROUPS, groupBadgeClass } from '../lib/groups';
+import { ResumeChip } from '../components/ResumeChip';
+import {
+  loadYearPosition,
+  clearYearPosition,
+  type YearPosition,
+} from '../lib/lastPath';
 
 type QListItem = {
   id: string;
@@ -33,9 +39,12 @@ export function YearList() {
   const [ankiDeck, setAnkiDeck] = useState<AnkiDeckStats | null>(null);
   const [filter, setFilter] = useState('');
   const [groupFilter, setGroupFilter] = useState<string>('all');
+  // 「你上次停在…」 for this specific year, synced across devices, never expires.
+  const [resume, setResume] = useState<YearPosition | null>(null);
 
   useEffect(() => {
     if (!year) return;
+    setResume(null);
     api
       .get<QListItem[]>(`/api/questions?year=${year}&limit=200`)
       .then(setItems);
@@ -43,6 +52,13 @@ export function YearList() {
       .get<AnkiDeckStats[]>('/api/review/anki/decks')
       .then((decks) => setAnkiDeck(decks.find((d) => String(d.year) === year) ?? null))
       .catch(() => setAnkiDeck(null));
+    let cancelled = false;
+    loadYearPosition(Number(year)).then((v) => {
+      if (!cancelled) setResume(v);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [year]);
 
   // NOTE: this hook must stay ABOVE the early return below. A hook called
@@ -73,6 +89,10 @@ export function YearList() {
 
   const countsSummary = GROUPS.map((g) => `${g.label} ${counts[g.label]}`).join(' · ');
 
+  // Label the resume chip with the question's number, looked up from the loaded
+  // list — the id/number mapping isn't always positional, so never derive it.
+  const resumeItem = resume ? items.find((q) => q.id === resume.questionId) : null;
+
   return (
     <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -99,6 +119,20 @@ export function YearList() {
           )}
         </Link>
       </header>
+
+      {resumeItem && (
+        <div className="mb-4">
+          <ResumeChip
+            prefix="你上次停在"
+            label={`第 ${resumeItem.number} 題`}
+            to={`/q/${resumeItem.id}`}
+            onDismiss={() => {
+              clearYearPosition(Number(year));
+              setResume(null);
+            }}
+          />
+        </div>
+      )}
 
       <div className="flex gap-2 mb-4">
         {['all', ...GROUPS.map((g) => g.label)].map((g) => (

@@ -22,6 +22,7 @@ import {
 	saveLastPath,
 	saveSectionPath,
 	clearSectionPath,
+	saveYearPosition,
 } from "./lib/lastPath";
 import { useMe } from "./hooks/useMe";
 import { Avatar } from "./components/Avatar";
@@ -315,6 +316,10 @@ function LastPathTracker() {
 		saveLastPath(path);
 		// Section memories drive the 「你上次停在…」 chips on 複習 / 全真.
 		if (/^\/(q|year)\//.test(pathname)) saveSectionPath("review", path);
+		// Per-year memory: opening a question also records it as that year's
+		// last-seen question, so /year/:year can offer 「你上次停在…」.
+		const qm = /^\/q\/((\d{3})-\d{3})$/.exec(pathname);
+		if (qm) saveYearPosition(Number(qm[2]), qm[1]);
 		if (/^\/exam\/[^/]+$/.test(pathname)) saveSectionPath("exam", path);
 		// Reaching the result page means the exam is over — nothing to resume.
 		if (/^\/exam\/[^/]+\/result$/.test(pathname)) clearSectionPath("exam");
