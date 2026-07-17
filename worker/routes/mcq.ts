@@ -3,12 +3,53 @@ import type { AppContext } from '../types';
 import { apiKeyMiddleware } from '../lib/apikey';
 import { sanitizeNoteDoc, externalImages } from '../lib/note-doc';
 import { sideloadImageToR2 } from '../lib/sideload';
+import { ftsQuery } from './search';
 
 export const mcqRoutes = new Hono<AppContext>();
 
 // Own API-key auth — this router is registered before the Access middleware
 // in index.ts, so it never inherits Access gating.
 mcqRoutes.use('*', apiKeyMiddleware);
+
+// GET /api/mcq/search?q=CML — keyword lookup for the /mcq skill, so a user can
+// find a question by topic instead of remembering its 年-題號. Registered
+// BEFORE `/:id` (which would otherwise swallow "search" as an id). Returns only
+// id / 年-題號 / group / snippet — never the answer, so the skill's answer-reveal
+// flow stays intact. Same FTS behaviour as /api/search: ASCII tokens become
+// prefix matches AND'd together, so short abbreviations (CML, CMV, AML) hit far
+// more reliably than spelled-out disease names.
+mcqRoutes.get('/search', async (c) => {
+  const q = (c.req.query('q') || '').trim();
+  const year = c.req.query('year');
+  const limit = Math.min(parseInt(c.req.query('limit') || '20'), 50);
+  if (!q) return c.json({ items: [], q });
+
+  const params: any[] = [ftsQuery(q)];
+  let yearSql = '';
+  if (year) {
+    yearSql = 'AND q.year = ?';
+    params.push(parseInt(year));
+  }
+  params.push(limit);
+
+  try {
+    const { results } = await c.env.DB.prepare(
+      `SELECT q.id, q.year, q.number, q."group",
+              snippet(questions_fts, 1, '<<', '>>', '…', 16) AS snippet
+         FROM questions q
+         JOIN questions_fts f ON f.rowid = q.rowid
+        WHERE questions_fts MATCH ? ${yearSql}
+        ORDER BY bm25(questions_fts) ASC, q.year DESC, q.number ASC
+        LIMIT ?`,
+    )
+      .bind(...params)
+      .all();
+    return c.json({ items: results, q });
+  } catch (e) {
+    console.warn('mcq search failed:', String(e));
+    return c.json({ error: 'search failed', q }, 400);
+  }
+});
 
 // GET /api/mcq/:id — read-only single question with parsed options, answer,
 // and the collaborative explanation rendered to markdown. `id` is the primary

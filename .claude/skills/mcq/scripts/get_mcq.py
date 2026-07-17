@@ -36,6 +36,55 @@ def normalize(qid: str) -> str:
     return f"{int(parts[0])}-{int(parts[1]):03d}"
 
 
+def looks_like_qid(s: str) -> bool:
+    """A 年-題號 like 114-001 / 114-1 / '114 1' — else it's a search keyword."""
+    parts = s.replace(" ", "-").split("-")
+    return len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit()
+
+
+def clean_snippet(snip: str) -> str:
+    """FTS snippet → one readable line: << >> markers become 【 】, newlines gone."""
+    snip = snip.replace("<<", "【").replace(">>", "】")
+    return " ".join(snip.split())
+
+
+def do_search(base: str, headers: dict, query: str, year: str | None, limit: int) -> None:
+    import urllib.parse
+
+    params = {"q": query, "limit": str(limit)}
+    if year:
+        params["year"] = year
+    url = f"{base}/api/mcq/search?{urllib.parse.urlencode(params)}"
+    req = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.load(resp)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", "replace")
+        hints = {
+            401: "金鑰錯誤/已重新產生 → 回 /profile 重新下載 .skill",
+            403: "email 不在白名單 → 向管理者確認 MCQ_USER_EMAIL 已加入",
+            400: "FTS 語法問題 → 換個關鍵字(建議用 CML、CMV 這類縮寫)",
+        }
+        sys.exit(f"API {e.code}: {body}\n提示:{hints.get(e.code, '')}")
+    except urllib.error.URLError as e:
+        sys.exit(f"連線失敗:{e.reason} — 檢查 MCQ_API_BASE 是否正確")
+
+    items = data.get("items", [])
+    if not items:
+        print(f"🔎「{query}」查無符合題目。試試更短的縮寫關鍵字(例:CML、CMV、DIC)。")
+        return
+    print(f"🔎「{query}」找到 {len(items)} 題(依相關度):")
+    for it in items:
+        snip = clean_snippet(it.get("snippet") or "")
+        grp = it.get("group") or "?"
+        line = f"- {it['id']}  [{grp}]"
+        if snip:
+            line += f"  {snip}"
+        print(line)
+    print("\n給我其中一個題號(例:上面任一個 年-題號)就能作答或看詳解。")
+
+
 def render(d: dict, with_answer: bool = False) -> str:
     out = [f"# {d['id']}（{d.get('group') or '?'}・難度 {d.get('difficulty') or '?'}）", ""]
     out.append(d["stem"])
@@ -75,6 +124,9 @@ def main() -> None:
     oe_url = None
     turn = None
     replace = False
+    search_query = None
+    year_filter = None
+    limit = 20
     positional = []
     i = 0
     while i < len(args):
@@ -103,14 +155,30 @@ def main() -> None:
             turn = int(args[i])
         elif a == "--replace":
             replace = True
+        elif a in ("--search", "-s"):
+            i += 1
+            if i >= len(args):
+                sys.exit("--search 需要關鍵字,例如 --search CML")
+            search_query = args[i]
+        elif a == "--year":
+            i += 1
+            if i >= len(args) or not args[i].isdigit():
+                sys.exit("--year 需要年份數字,例如 --year 113")
+            year_filter = args[i]
+        elif a == "--limit":
+            i += 1
+            if i >= len(args) or not args[i].isdigit():
+                sys.exit("--limit 需要數字")
+            limit = int(args[i])
         else:
             positional.append(a)
         i += 1
-    if not positional:
+    if not positional and search_query is None:
         sys.exit(
             "用法:get_mcq.py <題號> [--answer]"
-            " [--note <內容|->|--html <HTML|->|--oe-url <URL> [--turn N]] [--replace],"
-            "例如 get_mcq.py 114-001"
+            " [--note <內容|->|--html <HTML|->|--oe-url <URL> [--turn N]] [--replace]"
+            " | get_mcq.py --search <關鍵字> [--year YYY] [--limit N],"
+            "例如 get_mcq.py 114-001 或 get_mcq.py --search CML"
         )
     content_flags = [f for f, v in (("--note", note_text), ("--html", html_text), ("--oe-url", oe_url)) if v is not None]
     if len(content_flags) > 1:
@@ -138,7 +206,6 @@ def main() -> None:
             " (可 cp .env.example .env)"
         )
 
-    qid = normalize(positional[0])
     headers = {
         "Authorization": f"Bearer {key}",
         "X-User-Email": email,
@@ -146,6 +213,18 @@ def main() -> None:
         # send an explicit UA so the request isn't bounced at the edge.
         "User-Agent": "mcq-skill/0.1 (+claude-code)",
     }
+
+    # Search mode: explicit --search, or a positional that isn't a 年-題號
+    # (so `get_mcq.py CML` just works). Read-only — no note flags allowed.
+    if search_query is None and positional and not looks_like_qid(positional[0]):
+        search_query = " ".join(positional)
+    if search_query is not None:
+        if content_flags:
+            sys.exit("搜尋模式不能搭配 --note / --html / --oe-url")
+        do_search(base, headers, search_query, year_filter, limit)
+        return
+
+    qid = normalize(positional[0])
 
     if content_flags:
         mode = "replace" if replace else "append"
