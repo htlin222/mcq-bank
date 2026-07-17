@@ -239,6 +239,58 @@ function McqKeyCard({ me }: { me: Me }) {
         </p>
       </div>
 
+      <div className="mt-5 border-t border-ink-100 dark:border-ink-700 pt-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-ink-400 dark:text-ink-500 mb-3">
+          指令用法
+        </p>
+        <dl className="space-y-3 text-sm text-ink-600 dark:text-ink-300 leading-relaxed">
+          <div className="sm:flex sm:gap-3">
+            <dt className="shrink-0 sm:w-56 mb-0.5 sm:mb-0">
+              <code className="font-mono text-[0.85em] bg-ink-50 dark:bg-ink-900 border border-ink-200 dark:border-ink-700 rounded px-1.5 py-0.5">
+                /mcq 114-001
+              </code>
+            </dt>
+            <dd>出題作答:先顯示題幹與選項,你回答字母後才揭曉。這是預設的「隨堂測驗」模式。</dd>
+          </div>
+          <div className="sm:flex sm:gap-3">
+            <dt className="shrink-0 sm:w-56 mb-0.5 sm:mb-0">
+              <code className="font-mono text-[0.85em] bg-ink-50 dark:bg-ink-900 border border-ink-200 dark:border-ink-700 rounded px-1.5 py-0.5">
+                /mcq 114-001 answer
+              </code>
+            </dt>
+            <dd>直接看答案:一次給出正解、共筆詳解,以及你自己在網站寫過的個人筆記。</dd>
+          </div>
+          <div className="sm:flex sm:gap-3">
+            <dt className="shrink-0 sm:w-56 mb-0.5 sm:mb-0">
+              <code className="font-mono text-[0.85em] bg-ink-50 dark:bg-ink-900 border border-ink-200 dark:border-ink-700 rounded px-1.5 py-0.5">
+                /mcq search: CML
+              </code>
+            </dt>
+            <dd>
+              關鍵字搜尋題目,列出符合的年-題號讓你挑。
+              <span className="text-ink-500 dark:text-ink-400">
+                {' '}建議用縮寫(CML、CMV、AML、DIC…),別打全名 — 搜尋是逐詞比對,全名反而不易命中。
+              </span>
+            </dd>
+          </div>
+          <div className="sm:flex sm:gap-3">
+            <dt className="shrink-0 sm:w-56 mb-0.5 sm:mb-0">
+              <code className="font-mono text-[0.85em] bg-ink-50 dark:bg-ink-900 border border-ink-200 dark:border-ink-700 rounded px-1.5 py-0.5">
+                /mcq note 114-001: 內容
+              </code>
+            </dt>
+            <dd>把「內容」附加到這題的個人筆記(接在既有筆記後面,只有你看得到)。</dd>
+          </div>
+        </dl>
+        <p className="text-xs text-ink-400 dark:text-ink-500 mt-3">
+          題號 <code className="font-mono text-[0.85em]">114-1</code> 也接受;
+          <code className="font-mono text-[0.85em] mx-1">answer</code> 可換成
+          <code className="font-mono text-[0.85em] mx-1">答案</code>/<code className="font-mono text-[0.85em] mx-1">看答案</code>。
+          進階(限定年份搜尋、覆寫筆記、匯入圖文詳解)請看 skill 內的
+          <code className="font-mono text-[0.85em] mx-1">SKILL.md</code>。
+        </p>
+      </div>
+
       {keyInfo && (
         <div className="mt-4 flex items-center gap-2">
           <code className="flex-1 min-w-0 truncate font-mono text-xs bg-ink-50 dark:bg-ink-900 border border-ink-200 dark:border-ink-700 rounded px-3 py-2 text-ink-700 dark:text-ink-200">
