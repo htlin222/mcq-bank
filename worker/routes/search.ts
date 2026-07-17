@@ -5,21 +5,29 @@ export const searchRoutes = new Hono<AppContext>();
 
 /**
  * GET /api/search
- *   ?q=     full-text query (FTS5 syntax allowed — quotes for phrases,
- *           AND/OR/NOT operators; bare terms are AND'd by FTS5 defaults)
- *   ?year=  filter by 民國 year
- *   ?group= filter by one of the labels from config.toml [groups].list
- *   ?tags=  comma-separated tags, AND-semantics
- *   ?limit= default 30, max 100
- *   ?offset= default 0
+ *   ?q=       full-text query (FTS5 syntax allowed — quotes for phrases,
+ *             AND/OR/NOT operators; bare terms are AND'd by FTS5 defaults)
+ *   ?year=    filter by 民國 year
+ *   ?group=   filter by one of the labels from config.toml [groups].list
+ *   ?tags=    comma-separated tags, AND-semantics
+ *   ?sort=    relevance (default) | year
+ *   ?answered= all (default) | yes | no  — per-user answered state
+ *   ?limit=   default 30, max 100
+ *   ?offset=  default 0
  *
- * Returns items with snippet/highlight and bm25 rank.
+ * Returns items with snippet/highlight, bm25 rank, and the caller's
+ * per-question review state (times_seen / last_correct). A non-empty `q`
+ * is also recorded into the caller's search_history (upsert, deduped).
  */
 searchRoutes.get('/', async (c) => {
+  const email = c.var.email;
   const q = (c.req.query('q') || '').trim();
   const year = c.req.query('year');
   const group = c.req.query('group');
   const tags = c.req.query('tags');
+  const sort = c.req.query('sort') === 'year' ? 'year' : 'relevance';
+  const answeredRaw = c.req.query('answered');
+  const answered = answeredRaw === 'yes' || answeredRaw === 'no' ? answeredRaw : 'all';
   const limit = Math.min(parseInt(c.req.query('limit') || '30'), 100);
   const offset = parseInt(c.req.query('offset') || '0');
 
@@ -27,25 +35,18 @@ searchRoutes.get('/', async (c) => {
     return c.json({ items: [], total: 0, q });
   }
 
-  const where: string[] = [];
+  // Params are pushed in the EXACT textual order the `?` placeholders appear
+  // in the final SQL below (JOIN → WHERE → LIMIT), so positional binding stays
+  // correct even when several filters combine.
   const params: any[] = [];
-  let joinFts = '';
 
-  if (q) {
-    // Escape FTS quotes; build a permissive prefix query for partial matches.
-    const safe = ftsQuery(q);
-    joinFts = 'JOIN questions_fts f ON f.rowid = q.rowid';
-    where.push('questions_fts MATCH ?');
-    params.push(safe);
-  }
-  if (year) {
-    where.push('q.year = ?');
-    params.push(parseInt(year));
-  }
-  if (group) {
-    where.push('q."group" = ?');
-    params.push(group);
-  }
+  const joinFts = q ? 'JOIN questions_fts f ON f.rowid = q.rowid' : '';
+
+  // Per-user answered state via LEFT JOIN — placeholder for user_email sits in
+  // the JOIN clause, so its param comes before any WHERE/tag params.
+  const progressJoin =
+    'LEFT JOIN review_progress rp ON rp.question_id = q.id AND rp.user_email = ?';
+  params.push(email);
 
   let tagJoin = '';
   if (tags) {
@@ -63,19 +64,44 @@ searchRoutes.get('/', async (c) => {
     }
   }
 
+  const where: string[] = [];
+  if (q) {
+    // Escape FTS quotes; build a permissive prefix query for partial matches.
+    where.push('questions_fts MATCH ?');
+    params.push(ftsQuery(q));
+  }
+  if (year) {
+    where.push('q.year = ?');
+    params.push(parseInt(year));
+  }
+  if (group) {
+    where.push('q."group" = ?');
+    params.push(group);
+  }
+  if (answered === 'yes') {
+    where.push('(rp.times_seen IS NOT NULL AND rp.times_seen > 0)');
+  } else if (answered === 'no') {
+    where.push('(rp.times_seen IS NULL OR rp.times_seen = 0)');
+  }
+
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-  const orderSql = q
-    ? 'ORDER BY bm25(questions_fts) ASC, q.year DESC, q.number ASC'
-    : 'ORDER BY q.year DESC, q.number ASC';
+  // bm25 relevance is only meaningful when an FTS query ran; without `q`, or
+  // when the user explicitly picks 年份排序, fall back to year/number order.
+  const orderSql =
+    sort === 'relevance' && q
+      ? 'ORDER BY bm25(questions_fts) ASC, q.year DESC, q.number ASC'
+      : 'ORDER BY q.year DESC, q.number ASC';
 
   const snippetSelect = q
     ? `, snippet(questions_fts, 1, '<<', '>>', '…', 16) AS snippet`
     : `, '' AS snippet`;
 
   const sql = `
-    SELECT q.id, q.year, q.number, q.stem, q."group" ${snippetSelect}
+    SELECT q.id, q.year, q.number, q.stem, q."group",
+           rp.times_seen, rp.last_correct ${snippetSelect}
     FROM questions q
     ${joinFts}
+    ${progressJoin}
     ${tagJoin}
     ${whereSql}
     ${orderSql}
@@ -85,6 +111,19 @@ searchRoutes.get('/', async (c) => {
 
   try {
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
+    // Record the query for the recent-searches dropdown. Fire-and-forget: a
+    // history write must never fail or delay the search response itself.
+    if (q) {
+      const write = c.env.DB.prepare(
+        `INSERT INTO search_history (user_email, query, created_at)
+         VALUES (?, ?, ?)
+         ON CONFLICT(user_email, query) DO UPDATE SET created_at = excluded.created_at`,
+      )
+        .bind(email, q, Date.now())
+        .run()
+        .catch((e) => console.warn('search_history write failed:', String(e)));
+      c.executionCtx.waitUntil(write);
+    }
     return c.json({ items: results, q });
   } catch (e) {
     // Usually FTS5 syntax the user typed; log the specifics, keep the
@@ -92,6 +131,45 @@ searchRoutes.get('/', async (c) => {
     console.warn('search failed:', String(e));
     return c.json({ error: 'search failed', q }, 400);
   }
+});
+
+/**
+ * GET /api/search/history?limit=10
+ * Recent distinct queries for the caller, newest first.
+ */
+searchRoutes.get('/history', async (c) => {
+  const email = c.var.email;
+  const limit = Math.min(parseInt(c.req.query('limit') || '10'), 50);
+  const { results } = await c.env.DB.prepare(
+    `SELECT query, created_at FROM search_history
+     WHERE user_email = ?
+     ORDER BY created_at DESC
+     LIMIT ?`,
+  )
+    .bind(email, limit)
+    .all();
+  return c.json({ items: results });
+});
+
+/**
+ * DELETE /api/search/history          → clear all of the caller's history
+ * DELETE /api/search/history?query=x  → remove a single remembered query
+ */
+searchRoutes.delete('/history', async (c) => {
+  const email = c.var.email;
+  const query = c.req.query('query');
+  if (query) {
+    await c.env.DB.prepare(
+      'DELETE FROM search_history WHERE user_email = ? AND query = ?',
+    )
+      .bind(email, query)
+      .run();
+  } else {
+    await c.env.DB.prepare('DELETE FROM search_history WHERE user_email = ?')
+      .bind(email)
+      .run();
+  }
+  return c.json({ ok: true });
 });
 
 /**

@@ -142,35 +142,79 @@ export function NotesSkeleton() {
  * header chrome + question card + tab area are all in the right spot. Avoids
  * the "blank centered 載入中…" jolt when navigating between questions.
  */
+// The desktop view mode is a persisted UI pref (Question.tsx's LAYOUT_KEY). The
+// skeleton reads the same key so the first-load placeholder matches whichever
+// layout is about to render — a two-column split vs. a single tabbed pane —
+// instead of always drawing columns and then popping into tabs.
+const LAYOUT_KEY = "review-layout-mode";
+
+function readLayout(): "columns" | "tabs" {
+	try {
+		return localStorage.getItem(LAYOUT_KEY) === "tabs" ? "tabs" : "columns";
+	} catch {
+		return "columns";
+	}
+}
+
+/** Header row: back link on the left, prev/next on the right. Shared by both. */
+function SkeletonHeader() {
+	return (
+		<header className="mb-6 flex items-center justify-between gap-3 text-sm">
+			<Skeleton className="h-4 w-24" />
+			<div className="flex gap-3">
+				<Skeleton className="h-4 w-12" />
+				<Skeleton className="h-4 w-12" />
+			</div>
+		</header>
+	);
+}
+
+/** Question-card body: id/badge row, stem lines, four option blocks. */
+function QuestionCardSkeleton() {
+	return (
+		<div className="rounded-lg border border-ink-200 bg-white p-5 shadow-paper dark:border-ink-700 dark:bg-ink-800 sm:p-7">
+			<div className="mb-3 flex items-center gap-2">
+				<Skeleton className="h-4 w-16" />
+				<Skeleton className="h-4 w-12" />
+			</div>
+			<Skeleton className="mb-2 h-4 w-full" />
+			<Skeleton className="mb-2 h-4 w-full" />
+			<Skeleton className="mb-5 h-4 w-3/4" />
+			<div className="space-y-2">
+				<Skeleton className="h-10 w-full" />
+				<Skeleton className="h-10 w-full" />
+				<Skeleton className="h-10 w-full" />
+				<Skeleton className="h-10 w-full" />
+			</div>
+		</div>
+	);
+}
+
 export function QuestionDetailSkeleton() {
+	// Single full-width pane behind a 5-tab strip (題目/詳解/筆記/討論/相似題).
+	if (readLayout() === "tabs") {
+		return (
+			<div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8 md:max-w-4xl lg:max-w-5xl lg:px-8">
+				<SkeletonHeader />
+				<div className="mb-4 flex items-center gap-4 border-b border-ink-200 dark:border-ink-700 pb-px">
+					<Skeleton className="h-7 w-16" />
+					<Skeleton className="h-7 w-20" />
+					<Skeleton className="h-7 w-16" />
+					<Skeleton className="hidden h-7 w-16 md:block" />
+					<Skeleton className="hidden h-7 w-16 md:block" />
+				</div>
+				<QuestionCardSkeleton />
+			</div>
+		);
+	}
+
+	// Two-column split: question card left, tabs + content right.
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8 md:max-w-4xl lg:max-w-6xl lg:px-8 xl:max-w-[88rem] 2xl:max-w-[104rem]">
-			{/* Header chrome — back link + prev/next */}
-			<header className="mb-6 flex items-center justify-between gap-3 text-sm">
-				<Skeleton className="h-4 w-24" />
-				<div className="flex gap-3">
-					<Skeleton className="h-4 w-12" />
-					<Skeleton className="h-4 w-12" />
-				</div>
-			</header>
-
+			<SkeletonHeader />
 			<div className="lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start lg:gap-8">
 				{/* Left: question card */}
-				<div className="rounded-lg border border-ink-200 bg-white p-5 shadow-paper dark:border-ink-700 dark:bg-ink-800 sm:p-7">
-					<div className="mb-3 flex items-center gap-2">
-						<Skeleton className="h-4 w-16" />
-						<Skeleton className="h-4 w-12" />
-					</div>
-					<Skeleton className="mb-2 h-4 w-full" />
-					<Skeleton className="mb-2 h-4 w-full" />
-					<Skeleton className="mb-5 h-4 w-3/4" />
-					<div className="space-y-2">
-						<Skeleton className="h-10 w-full" />
-						<Skeleton className="h-10 w-full" />
-						<Skeleton className="h-10 w-full" />
-						<Skeleton className="h-10 w-full" />
-					</div>
-				</div>
+				<QuestionCardSkeleton />
 
 				{/* Right: tabs + content area */}
 				<div className="mt-8 lg:mt-0">

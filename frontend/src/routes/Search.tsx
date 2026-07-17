@@ -1,21 +1,28 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search as SearchIcon, X as XIcon, FolderPlus } from 'lucide-react';
+import {
+  Search as SearchIcon,
+  X as XIcon,
+  FolderPlus,
+  Check,
+  Clock,
+} from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
 import { GROUPS, groupBadgeClass } from '../lib/groups';
+import {
+  type Hit,
+  setSearchCache,
+  getSearchCache,
+  setSearchScroll,
+} from '../lib/searchCache';
 
-type Hit = {
-  id: string;
-  year: number;
-  number: number;
-  stem: string;
-  group: string | null;
-  snippet: string;
-};
 type Year = { year: number; count: number };
 type Tag = { tag: string; count: number };
+type HistoryItem = { query: string; created_at: number };
+type Sort = 'relevance' | 'year';
+type Answered = 'all' | 'yes' | 'no';
 
 export function Search() {
   const [sp, setSp] = useSearchParams();
@@ -23,6 +30,10 @@ export function Search() {
   const [q, setQ] = useState(initialQ);
   const [year, setYear] = useState<string>(sp.get('year') || '');
   const [group, setGroup] = useState<string>(sp.get('group') || '');
+  const [sort, setSort] = useState<Sort>(sp.get('sort') === 'year' ? 'year' : 'relevance');
+  const [answered, setAnswered] = useState<Answered>(
+    sp.get('answered') === 'yes' ? 'yes' : sp.get('answered') === 'no' ? 'no' : 'all',
+  );
   const [tagSet, setTagSet] = useState<Set<string>>(
     new Set((sp.get('tags') || '').split(',').filter(Boolean)),
   );
@@ -36,33 +47,124 @@ export function Search() {
   const [saving, setSaving] = useState(false);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
 
+  // Recent-searches dropdown
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+
+  // The cache key is the exact query string result links stash as `fromSearch`
+  // (`?<params>`), so the question page can look this result set up by it.
+  const cacheKey = `?${sp.toString()}`;
+
   useEffect(() => {
     api.get<Year[]>('/api/questions/_meta/years').then(setYears);
     api.get<Tag[]>('/api/questions/_meta/tags').then(setAllTags);
   }, []);
 
-  const doSearch = useCallback(async () => {
-    setSearching(true);
-    try {
+  // Build the query params for the current filter state, optionally overriding
+  // the keyword (used when replaying a picked history entry).
+  const buildParams = useCallback(
+    (queryOverride?: string) => {
+      const kw = (queryOverride ?? q).trim();
       const params = new URLSearchParams();
-      if (q.trim()) params.set('q', q.trim());
+      if (kw) params.set('q', kw);
       if (year) params.set('year', year);
       if (group) params.set('group', group);
+      if (sort === 'year') params.set('sort', 'year');
+      if (answered !== 'all') params.set('answered', answered);
       if (tagSet.size > 0) params.set('tags', [...tagSet].join(','));
-      setSp(params, { replace: true });
-      const r = await api.get<{ items: Hit[] }>(`/api/search?${params}`);
-      setHits(r.items);
-    } finally {
-      setSearching(false);
-    }
-  }, [q, year, group, tagSet, setSp]);
+      return params;
+    },
+    [q, year, group, sort, answered, tagSet],
+  );
 
-  // Initial search if URL had params
+  const runSearch = useCallback(
+    async (params: URLSearchParams) => {
+      setSearching(true);
+      setShowHistory(false);
+      try {
+        setSp(params, { replace: true });
+        const r = await api.get<{ items: Hit[] }>(`/api/search?${params}`);
+        setHits(r.items);
+        setSearchCache(`?${params}`, r.items);
+      } finally {
+        setSearching(false);
+      }
+    },
+    [setSp],
+  );
+
+  const doSearch = useCallback(() => runSearch(buildParams()), [runSearch, buildParams]);
+
+  // On mount: restore the cached result set (instant, no flicker) when the
+  // query matches; otherwise run the search if the URL carried params.
   useEffect(() => {
+    const cached = getSearchCache();
+    if (cached && cached.key === cacheKey) {
+      setHits(cached.hits);
+      return;
+    }
     if (initialQ || sp.get('year') || sp.get('group') || sp.get('tags')) {
       doSearch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Restore scroll after cached hits paint so returning lands where the user
+  // left off.
+  useLayoutEffect(() => {
+    const cached = getSearchCache();
+    if (cached && cached.key === cacheKey && hits && cached.scrollY > 0) {
+      window.scrollTo(0, cached.scrollY);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hits]);
+
+  // Keep the cached scroll offset fresh while the user scrolls the results.
+  useEffect(() => {
+    function onScroll() {
+      setSearchScroll(cacheKey, window.scrollY);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [cacheKey]);
+
+  // Close the history dropdown on outside click.
+  useEffect(() => {
+    if (!showHistory) return;
+    function onDown(e: MouseEvent) {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+        setShowHistory(false);
+      }
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [showHistory]);
+
+  async function openHistory() {
+    try {
+      const r = await api.get<{ items: HistoryItem[] }>('/api/search/history?limit=10');
+      setHistory(r.items);
+      if (r.items.length > 0) setShowHistory(true);
+    } catch {
+      /* history is a nicety — never block searching on it */
+    }
+  }
+
+  function pickHistory(query: string) {
+    setQ(query);
+    runSearch(buildParams(query));
+  }
+
+  async function removeHistory(e: React.MouseEvent, query: string) {
+    e.stopPropagation();
+    setHistory((prev) => prev.filter((h) => h.query !== query));
+    try {
+      await api.del(`/api/search/history?query=${encodeURIComponent(query)}`);
+    } catch {
+      /* optimistic removal is fine for a personal dropdown */
+    }
+  }
 
   function toggleTag(t: string) {
     setTagSet((prev) => {
@@ -108,13 +210,44 @@ export function Search() {
         onSubmit={(e) => { e.preventDefault(); doSearch(); }}
         className="flex gap-2 mb-4"
       >
-        <input
-          autoFocus
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="關鍵字 (例:AML、Factor VIII、誘導化療)"
-          className="flex-1 px-4 py-2.5 border border-ink-200 dark:border-ink-700 rounded text-base focus:outline-none focus:border-accent bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-100"
-        />
+        <div ref={searchBoxRef} className="relative flex-1">
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onFocus={() => { if (!q.trim()) openHistory(); }}
+            placeholder="關鍵字 (例:AML、Factor VIII、誘導化療)"
+            className="w-full px-4 py-2.5 border border-ink-200 dark:border-ink-700 rounded text-base focus:outline-none focus:border-accent bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-100"
+          />
+          {showHistory && history.length > 0 && (
+            <ul className="absolute z-20 mt-1 w-full max-h-72 overflow-auto rounded border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-paper">
+              <li className="px-3 py-1.5 text-[11px] uppercase tracking-wide text-ink-400 dark:text-ink-500 flex items-center gap-1.5">
+                <Clock size={12} /> 最近搜尋
+              </li>
+              {history.map((h) => (
+                <li key={h.query}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => pickHistory(h.query)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') pickHistory(h.query); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-ink-800 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700/60 cursor-pointer"
+                  >
+                    <SearchIcon size={13} className="text-ink-400 dark:text-ink-500 shrink-0" />
+                    <span className="truncate flex-1">{h.query}</span>
+                    <span
+                      onClick={(e) => removeHistory(e, h.query)}
+                      className="text-ink-400 hover:text-rose-600 dark:hover:text-rose-400 shrink-0"
+                      aria-label={`移除「${h.query}」`}
+                    >
+                      <XIcon size={13} />
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <button
           type="submit"
           disabled={searching}
@@ -145,6 +278,25 @@ export function Search() {
           {GROUPS.map((g) => (
             <option key={g.label} value={g.label}>{g.label}</option>
           ))}
+        </select>
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as Sort)}
+          className="px-3 py-1.5 border border-ink-200 dark:border-ink-700 rounded bg-white dark:bg-ink-800 text-ink-800 dark:text-ink-200"
+          aria-label="排序方式"
+        >
+          <option value="relevance">相關度排序</option>
+          <option value="year">年份排序</option>
+        </select>
+        <select
+          value={answered}
+          onChange={(e) => setAnswered(e.target.value as Answered)}
+          className="px-3 py-1.5 border border-ink-200 dark:border-ink-700 rounded bg-white dark:bg-ink-800 text-ink-800 dark:text-ink-200"
+          aria-label="作答狀態"
+        >
+          <option value="all">全部作答狀態</option>
+          <option value="yes">已作答</option>
+          <option value="no">未作答</option>
         </select>
         {tagSet.size > 0 && (
           <button
@@ -232,31 +384,46 @@ export function Search() {
             </div>
           </div>
           <ul className="space-y-2">
-            {hits.map((h) => (
-              <li key={h.id}>
-                <Link
-                  to={`/q/${h.id}`}
-                  state={{ fromSearch: `?${sp.toString()}` }}
-                  className="block bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
-                >
-                  <div className="flex items-center gap-2 text-xs mb-1.5">
-                    <span className="font-mono text-ink-500 dark:text-ink-400">
-                      {h.year}-{String(h.number).padStart(3, '0')}
-                    </span>
-                    <BookmarkBadge questionId={h.id} />
-                    {h.group && (
-                      <span className={
-                        'px-1.5 py-0.5 rounded text-[10px] ' +
-                        groupBadgeClass(h.group)
-                      }>{h.group}</span>
-                    )}
-                  </div>
-                  <div className="text-ink-800 dark:text-ink-200 text-sm leading-relaxed">
-                    {h.snippet ? <Snippet text={h.snippet} /> : <span className="line-clamp-2">{h.stem}</span>}
-                  </div>
-                </Link>
-              </li>
-            ))}
+            {hits.map((h) => {
+              const seen = (h.times_seen ?? 0) > 0;
+              const correct = seen && h.last_correct === 1;
+              return (
+                <li key={h.id}>
+                  <Link
+                    to={`/q/${h.id}`}
+                    state={{ fromSearch: cacheKey }}
+                    className="block bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
+                  >
+                    <div className="flex items-center gap-2 text-xs mb-1.5">
+                      <span className="font-mono text-ink-500 dark:text-ink-400">
+                        {h.year}-{String(h.number).padStart(3, '0')}
+                      </span>
+                      <BookmarkBadge questionId={h.id} />
+                      {h.group && (
+                        <span className={
+                          'px-1.5 py-0.5 rounded text-[10px] ' +
+                          groupBadgeClass(h.group)
+                        }>{h.group}</span>
+                      )}
+                      {seen && (
+                        correct ? (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-700 dark:text-emerald-300">
+                            <Check size={12} /> 答對
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] text-rose-600 dark:text-rose-400">
+                            <XIcon size={12} /> 答錯
+                          </span>
+                        )
+                      )}
+                    </div>
+                    <div className="text-ink-800 dark:text-ink-200 text-sm leading-relaxed">
+                      {h.snippet ? <Snippet text={h.snippet} /> : <span className="line-clamp-2">{h.stem}</span>}
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </>
       )}

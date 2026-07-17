@@ -21,6 +21,34 @@ type QListItem = {
   times_seen: number | null; // from review_progress; null = never answered
   last_correct: number | null; // 1/0 for the latest attempt
 };
+type AnswerFilter = 'all' | 'answered' | 'unanswered' | 'correct' | 'wrong';
+
+const ANSWER_FILTERS: { key: AnswerFilter; label: string }[] = [
+  { key: 'all', label: '全部' },
+  { key: 'answered', label: '已作答' },
+  { key: 'unanswered', label: '未作答' },
+  { key: 'correct', label: '答對' },
+  { key: 'wrong', label: '答錯' },
+];
+
+// Derive answered/correct the same way the list rows do, then test one filter.
+function matchesAnswer(q: QListItem, f: AnswerFilter): boolean {
+  const answered = (q.times_seen ?? 0) > 0;
+  const correct = answered && q.last_correct === 1;
+  switch (f) {
+    case 'answered':
+      return answered;
+    case 'unanswered':
+      return !answered;
+    case 'correct':
+      return correct;
+    case 'wrong':
+      return answered && !correct;
+    default:
+      return true;
+  }
+}
+
 type AnkiDeckStats = {
   year: number;
   count: number;
@@ -39,6 +67,7 @@ export function YearList() {
   const [ankiDeck, setAnkiDeck] = useState<AnkiDeckStats | null>(null);
   const [filter, setFilter] = useState('');
   const [groupFilter, setGroupFilter] = useState<string>('all');
+  const [answerFilter, setAnswerFilter] = useState<AnswerFilter>('all');
   // 「你上次停在…」 for this specific year, synced across devices, never expires.
   const [resume, setResume] = useState<YearPosition | null>(null);
 
@@ -73,12 +102,26 @@ export function YearList() {
     return out;
   }, [items]);
 
+  // Answer-filter counts, scoped to the currently-selected group so the badges
+  // match what each button would actually show.
+  const answerCounts: Record<AnswerFilter, number> = useMemo(() => {
+    const base = { all: 0, answered: 0, unanswered: 0, correct: 0, wrong: 0 };
+    if (!items) return base;
+    const scoped =
+      groupFilter === 'all' ? items : items.filter((q) => q.group === groupFilter);
+    for (const { key } of ANSWER_FILTERS) {
+      base[key] = scoped.filter((q) => matchesAnswer(q, key)).length;
+    }
+    return base;
+  }, [items, groupFilter]);
+
   if (items === null) {
     return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
   }
 
   const visible = items.filter((q) => {
     if (groupFilter !== 'all' && q.group !== groupFilter) return false;
+    if (!matchesAnswer(q, answerFilter)) return false;
     if (!filter) return true;
     return (
       String(q.number).includes(filter) ||
@@ -149,6 +192,28 @@ export function YearList() {
             {g === 'all' ? '全部' : g}
             {g !== 'all' && (
               <span className="ml-1 text-[10px] opacity-70">({counts[g]})</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Answer-state filter — 已作答 / 未作答 / 答對 / 答錯, combined with the
+          group filter above and scoped counts. */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {ANSWER_FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setAnswerFilter(f.key)}
+            className={
+              'px-3 py-1 rounded text-sm border transition ' +
+              (answerFilter === f.key
+                ? 'bg-accent text-white border-accent'
+                : 'bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 border-ink-200 dark:border-ink-700 hover:border-ink-400 dark:hover:border-ink-500')
+            }
+          >
+            {f.label}
+            {f.key !== 'all' && (
+              <span className="ml-1 text-[10px] opacity-70">({answerCounts[f.key]})</span>
             )}
           </button>
         ))}

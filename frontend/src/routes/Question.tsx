@@ -5,6 +5,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Columns2,
+	CornerLeftUp,
 	Pencil,
 	LinkIcon,
 	Search as SearchIcon,
@@ -24,6 +25,7 @@ import { NoteContent } from "../components/NoteContent";
 import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
+import { searchNeighbors } from "../lib/searchCache";
 
 // Resizable two-pane split (≥md). `splitPct` is the left pane's share of the
 // row width; the rest goes to the right pane. Persisted as a UI layout pref.
@@ -298,6 +300,16 @@ export function Question() {
 			});
 	}, [data?.id]);
 
+	// When arriving from 搜尋 and the result set is still cached, prev/next walk
+	// the *search result* order (across years) rather than same-year neighbours.
+	// Cache miss (stale / reloaded) → null → we fall back to `neighbors` and the
+	// plain 上一題/下一題 labels. Read during render — it's a cheap pure lookup.
+	const searchNav =
+		data && fromSearch ? searchNeighbors(fromSearch, data.id) : null;
+	const inSearchNav = searchNav !== null;
+	const navPrev = searchNav ? (searchNav.prev ?? undefined) : neighbors.prev;
+	const navNext = searchNav ? (searchNav.next ?? undefined) : neighbors.next;
+
 	// Half-finished edits survive route switches (sessionStorage). The 詳解
 	// key is scoped to the version being edited, so a draft goes stale (and is
 	// ignored) as soon as someone else saves a newer version.
@@ -423,16 +435,16 @@ export function Question() {
 		const md = window.matchMedia("(min-width: 768px)").matches;
 
 		if (e.key === "ArrowLeft") {
-			if (neighbors.prev) {
+			if (navPrev) {
 				e.preventDefault();
-				navigate(`/q/${neighbors.prev}`, { state: location.state });
+				navigate(`/q/${navPrev}`, { state: location.state });
 			}
 			return;
 		}
 		if (e.key === "ArrowRight") {
-			if (neighbors.next) {
+			if (navNext) {
 				e.preventDefault();
-				navigate(`/q/${neighbors.next}`, { state: location.state });
+				navigate(`/q/${navNext}`, { state: location.state });
 			}
 			return;
 		}
@@ -523,7 +535,12 @@ export function Question() {
 						to={`/year/${data.year}`}
 						className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 					>
-						<ChevronLeft size={16} /> 民國 {data.year} 年
+						{inSearchNav ? (
+							<CornerLeftUp size={16} />
+						) : (
+							<ChevronLeft size={16} />
+						)}{" "}
+						民國 {data.year} 年
 					</Link>
 				</div>
 				<div className="flex items-center gap-3">
@@ -561,24 +578,25 @@ export function Question() {
 							<Columns2 size={15} />
 						</button>
 					</div>
-					{neighbors.prev && (
+					{navPrev && (
 						<button
 							onClick={() =>
-								navigate(`/q/${neighbors.prev}`, { state: location.state })
+								navigate(`/q/${navPrev}`, { state: location.state })
 							}
 							className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 						>
-							<ChevronLeft size={16} /> 上一題
+							<ChevronLeft size={16} /> {inSearchNav ? "上一個結果" : "上一題"}
 						</button>
 					)}
-					{neighbors.next && (
+					{navNext && (
 						<button
 							onClick={() =>
-								navigate(`/q/${neighbors.next}`, { state: location.state })
+								navigate(`/q/${navNext}`, { state: location.state })
 							}
 							className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 						>
-							下一題 <ChevronRight size={16} />
+							{inSearchNav ? "下一個結果" : "下一題"}{" "}
+							<ChevronRight size={16} />
 						</button>
 					)}
 				</div>
