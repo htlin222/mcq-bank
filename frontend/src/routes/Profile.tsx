@@ -178,7 +178,7 @@ function McqKeyCard({ me }: { me: Me }) {
     <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
       <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">MCQ 小測驗金鑰</h2>
       <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-1">
-        下載你的專屬 <code className="font-mono text-[0.85em]">.skill</code>,裝進 Claude Code 後即可用
+        下載你的專屬 <code className="font-mono text-[0.85em]">.skill</code>,上傳到 Claude 或 ChatGPT 後即可用
         <code className="font-mono text-[0.85em] mx-1">/mcq 114-001</code>
         隨堂測驗。金鑰已寫進 <code className="font-mono text-[0.85em]">.env</code>,屬於你個人,請勿外流。
       </p>
@@ -219,7 +219,7 @@ function McqKeyCard({ me }: { me: Me }) {
         <ol className="list-decimal list-inside space-y-1.5 text-sm text-ink-600 dark:text-ink-300 leading-relaxed">
           <li>點上方「⬇ 下載我的 .skill」,存下 <code className="font-mono text-[0.85em]">mcq.skill</code>。</li>
           <li>
-            開啟{' '}
+            開啟技能上傳頁 — Claude:{' '}
             <a
               href="https://claude.ai/customize/skills"
               target="_blank"
@@ -228,10 +228,19 @@ function McqKeyCard({ me }: { me: Me }) {
             >
               claude.ai/customize/skills
             </a>
+            ;ChatGPT:{' '}
+            <a
+              href="https://chatgpt.com/skills"
+              target="_blank"
+              rel="noreferrer"
+              className="text-accent hover:text-accent-dark underline underline-offset-2 break-all"
+            >
+              chatgpt.com/skills
+            </a>
             。
           </li>
           <li>點「Upload skill」,選剛下載的 <code className="font-mono text-[0.85em]">mcq.skill</code>。</li>
-          <li>回到 Claude 對話,輸入 <code className="font-mono text-[0.85em]">/mcq 114-001</code> 開始測驗。</li>
+          <li>回到 Claude 或 ChatGPT 對話,輸入 <code className="font-mono text-[0.85em]">/mcq 114-001</code> 開始測驗。</li>
         </ol>
         <p className="text-xs text-ink-400 dark:text-ink-500 mt-2.5">
           也可解壓 <code className="font-mono text-[0.85em]">.skill</code> 放進 Claude Code 的
