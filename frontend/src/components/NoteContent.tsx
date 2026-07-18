@@ -1,6 +1,14 @@
-import { useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { ReadOnlyContent } from './ReadOnlyContent';
+import { AnnotatableContent, hashContent } from './AnnotatableContent';
+
+// When annotation is on, section bodies render through AnnotatableContent
+// (select→螢光標記, click→清除, cloze). Each batch keys its localStorage by a
+// hash of its own content, namespaced per note by `keyPrefix`, so highlights
+// survive re-renders and stay put even as accordions open/close.
+type AnnoCtx = { keyPrefix: string; cloze: boolean } | null;
+const AnnotationCtx = createContext<AnnoCtx>(null);
 
 // Read-only renderer for 個人筆記 with two view-only affordances:
 //   • a paragraph that is just ---/***/___ renders as a real <hr>
@@ -55,12 +63,40 @@ function buildTree(content: Node[]): Item[] {
   return root.children;
 }
 
-export function NoteContent({ content }: { content: any }) {
+export function NoteContent({
+  content,
+  annotateKeyPrefix,
+  cloze = false,
+}: {
+  content: any;
+  /** When set, section bodies become annotatable, keyed under this prefix. */
+  annotateKeyPrefix?: string;
+  cloze?: boolean;
+}) {
   const items = buildTree(content?.content ?? []);
+  const ctx: AnnoCtx = annotateKeyPrefix
+    ? { keyPrefix: annotateKeyPrefix, cloze }
+    : null;
   return (
-    <div className="tiptap-note">
-      <ItemList items={items} />
-    </div>
+    <AnnotationCtx.Provider value={ctx}>
+      <div className="tiptap-note">
+        <ItemList items={items} />
+      </div>
+    </AnnotationCtx.Provider>
+  );
+}
+
+// One batch of consecutive blocks — annotatable when a note-level context is
+// present, otherwise plain read-only (used by every other NoteContent caller).
+function SectionBody({ doc }: { doc: any }) {
+  const anno = useContext(AnnotationCtx);
+  if (!anno) return <ReadOnlyContent content={doc} />;
+  return (
+    <AnnotatableContent
+      content={doc}
+      storeKey={`${anno.keyPrefix}:${hashContent(doc)}`}
+      cloze={anno.cloze}
+    />
   );
 }
 
@@ -73,7 +109,7 @@ function ItemList({ items }: { items: Item[] }) {
   const flush = () => {
     if (buf.length) {
       out.push(
-        <ReadOnlyContent key={`b${key++}`} content={{ type: 'doc', content: buf }} />,
+        <SectionBody key={`b${key++}`} doc={{ type: 'doc', content: buf }} />,
       );
       buf = [];
     }

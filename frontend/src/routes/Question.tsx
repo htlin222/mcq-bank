@@ -11,6 +11,7 @@ import {
 	Search as SearchIcon,
 	Eye,
 	ExternalLink,
+	Videotape,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
 import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
@@ -20,7 +21,7 @@ import { useLock } from "../hooks/useLock";
 import { useMe } from "../hooks/useMe";
 import { QuestionCard } from "../components/QuestionCard";
 import { RichEditor } from "../components/RichEditor";
-import { ReadOnlyContent } from "../components/ReadOnlyContent";
+import { AnnotatableContent } from "../components/AnnotatableContent";
 import { NoteContent } from "../components/NoteContent";
 import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
@@ -187,6 +188,14 @@ export function Question() {
 	// the answer before attempting. CSS-only blur on the already-rendered
 	// ReadOnlyContent, so no extra render pass and no content duplication.
 	const [revealedExp, setRevealedExp] = useState(false);
+	// 防據透 self-test: cover the reader's own 螢光標記 like cloze blanks. Per
+	// section (詳解 / 個人筆記), session-only, reset when switching questions.
+	const [expCloze, setExpCloze] = useState(false);
+	const [noteCloze, setNoteCloze] = useState(false);
+	useEffect(() => {
+		setExpCloze(false);
+		setNoteCloze(false);
+	}, [data?.id]);
 	// Live comment count for the 討論串 tab badge. Seeded from the question
 	// API's comment_count (so the badge is correct on first paint without
 	// mounting CommentThread), then kept fresh by CommentThread's onCountChange
@@ -828,6 +837,22 @@ export function Question() {
 										</>
 									)}
 								</button>
+								{revealedExp && (
+									<button
+										type="button"
+										onClick={() => setExpCloze((v) => !v)}
+										title="防據透:遮住你標記的重點來自我測驗(點各別揭曉)"
+										aria-pressed={expCloze}
+										className={
+											"absolute top-3 right-20 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition " +
+											(expCloze
+												? "bg-accent text-white"
+												: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
+										}
+									>
+										<Videotape size={14} /> 防據透
+									</button>
+								)}
 								<div
 									className={
 										"relative " + (revealedExp ? "" : "min-h-[6rem]")
@@ -842,7 +867,11 @@ export function Question() {
 										}
 										aria-hidden={!revealedExp}
 									>
-										<ReadOnlyContent content={explanationJson} />
+										<AnnotatableContent
+											content={explanationJson}
+											storeKey={`anno:exp:${data.id}`}
+											cloze={expCloze}
+										/>
 									</div>
 									{!revealedExp && (
 										<button
@@ -937,7 +966,25 @@ export function Question() {
 							>
 								<Pencil size={14} /> 編輯
 							</button>
-							<NoteContent content={noteJson} />
+							<button
+								type="button"
+								onClick={() => setNoteCloze((v) => !v)}
+								title="防據透:遮住你標記的重點來自我測驗(點各別揭曉)"
+								aria-pressed={noteCloze}
+								className={
+									"absolute top-3 right-20 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition " +
+									(noteCloze
+										? "bg-accent text-white"
+										: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
+								}
+							>
+								<Videotape size={14} /> 防據透
+							</button>
+							<NoteContent
+								content={noteJson}
+								annotateKeyPrefix={`anno:note:${data.id}`}
+								cloze={noteCloze}
+							/>
 							<footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
 								僅你可見
 								{data.my_note?.updated_at && (

@@ -92,6 +92,21 @@
   @apply bg-yellow-200 dark:bg-yellow-400/30 text-inherit rounded-sm px-0.5;
 }
 
+/* 防據透 cloze self-test (AnnotatableContent): while active, every highlight is
+   covered like a fill-in-the-blank — text hidden under a solid block — and a
+   click reveals just that one (`.cloze-revealed`). */
+.cloze-active .tiptap mark {
+  @apply bg-yellow-300 dark:bg-yellow-500/60 rounded-sm px-0.5 cursor-pointer select-none;
+  color: transparent;
+}
+.cloze-active .tiptap mark::selection {
+  color: transparent;
+}
+.cloze-active .tiptap mark.cloze-revealed {
+  @apply bg-yellow-200 dark:bg-yellow-400/30;
+  color: inherit;
+}
+
 /* Tables (@tiptap/extension-table). Base table fills the reading column and
    wraps cells. In read-only view ReadOnlyContent wraps each table in
    `.table-scroll`; there the table keeps a min width so one too wide for the
