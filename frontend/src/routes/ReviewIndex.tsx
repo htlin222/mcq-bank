@@ -91,7 +91,15 @@ export function ReviewIndex() {
       </button>
 
       <section className="mb-8">
-        <h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-4">信心校準</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-serif text-xl text-ink-800 dark:text-ink-100">信心校準</h2>
+          <Link
+            to="/weakness-map"
+            className="text-sm text-accent hover:text-accent-dark"
+          >
+            弱點概念地圖 →
+          </Link>
+        </div>
         <ConfidenceCalibration />
       </section>
 

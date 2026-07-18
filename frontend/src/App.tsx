@@ -42,6 +42,7 @@ import { AnkiDeck } from "./routes/AnkiDeck";
 import { YearList } from "./routes/YearList";
 import { Question } from "./routes/Question";
 import { Drill } from "./routes/Drill";
+import { WeaknessMap } from "./routes/WeaknessMap";
 import { Exam } from "./routes/Exam";
 import { ExamResult } from "./routes/ExamResult";
 import { ExamHistory } from "./routes/ExamHistory";
@@ -163,6 +164,7 @@ export default function App() {
 					<Route path="/year/:year" element={<YearList />} />
 					<Route path="/q/:id" element={<Question />} />
 					<Route path="/drill/:anchor" element={<Drill />} />
+					<Route path="/weakness-map" element={<WeaknessMap />} />
 					<Route path="/exam" element={<Exam />} />
 					<Route path="/exam/:sid" element={<Exam />} />
 					<Route path="/exam/:sid/result" element={<ExamResult />} />
