@@ -188,7 +188,7 @@ export function Question() {
 	// the answer before attempting. CSS-only blur on the already-rendered
 	// ReadOnlyContent, so no extra render pass and no content duplication.
 	const [revealedExp, setRevealedExp] = useState(false);
-	// 防據透 self-test: cover the reader's own 螢光標記 like cloze blanks. Per
+	// 防劇透 self-test: cover the reader's own 螢光標記 like cloze blanks. Per
 	// section (詳解 / 個人筆記), session-only, reset when switching questions.
 	const [expCloze, setExpCloze] = useState(false);
 	const [noteCloze, setNoteCloze] = useState(false);
@@ -841,7 +841,7 @@ export function Question() {
 									<button
 										type="button"
 										onClick={() => setExpCloze((v) => !v)}
-										title="防據透:遮住你標記的重點來自我測驗(點各別揭曉)"
+										title="防劇透:遮住你標記的重點來自我測驗(點各別揭曉)"
 										aria-pressed={expCloze}
 										className={
 											"absolute top-3 right-20 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition " +
@@ -850,7 +850,7 @@ export function Question() {
 												: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
 										}
 									>
-										<Videotape size={14} /> 防據透
+										<Videotape size={14} /> 防劇透
 									</button>
 								)}
 								<div
@@ -969,7 +969,7 @@ export function Question() {
 							<button
 								type="button"
 								onClick={() => setNoteCloze((v) => !v)}
-								title="防據透:遮住你標記的重點來自我測驗(點各別揭曉)"
+								title="防劇透:遮住你標記的重點來自我測驗(點各別揭曉)"
 								aria-pressed={noteCloze}
 								className={
 									"absolute top-3 right-20 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition " +
@@ -978,7 +978,7 @@ export function Question() {
 										: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
 								}
 							>
-								<Videotape size={14} /> 防據透
+								<Videotape size={14} /> 防劇透
 							</button>
 							<NoteContent
 								content={noteJson}

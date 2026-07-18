@@ -92,7 +92,7 @@
   @apply bg-yellow-200 dark:bg-yellow-400/30 text-inherit rounded-sm px-0.5;
 }
 
-/* 防據透 cloze self-test (AnnotatableContent): while active, every highlight is
+/* 防劇透 cloze self-test (AnnotatableContent): while active, every highlight is
    covered like a fill-in-the-blank — text hidden under a solid block — and a
    click reveals just that one (`.cloze-revealed`). */
 .cloze-active .tiptap mark {
