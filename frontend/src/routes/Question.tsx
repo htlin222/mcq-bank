@@ -1045,7 +1045,16 @@ export function Question() {
 						: " md:hidden")
 				}
 			>
-				<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100 mb-3">相似題目</h2>
+				<div className="flex items-center justify-between mb-3">
+					<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100">相似題目</h2>
+					<Link
+						to={`/drill/${data.id}`}
+						className="inline-flex items-center gap-1.5 rounded-full bg-accent hover:bg-accent-dark text-white text-sm px-4 py-1.5 transition"
+						title="把語意相近、跨年份的題目混在一起練 (interleaving)"
+					>
+						🔀 開始交錯練習
+					</Link>
+				</div>
 				{similar.length === 0 && (
 					<p className="text-sm text-ink-400 dark:text-ink-500">
 						尚無相似題目。
