@@ -15,6 +15,7 @@ import {
 	type FsrsCardRow,
 } from "../lib/fsrs";
 import { calibration } from "../lib/calibration";
+import { clusterByThreshold, type VecItem } from "../lib/cluster";
 
 export const reviewRoutes = new Hono<AppContext>();
 
@@ -202,6 +203,87 @@ reviewRoutes.get("/calibration", async (c) => {
 
 	return c.json({ buckets: calibration(events), high_conf_wrong: highConfWrong });
 });
+
+// Weakness concept map — cluster the user's wrong questions by semantic
+// similarity (via the same VEC index as 相似題) into themes, each labelled by
+// its most common tag and linkable to an interleaved drill. Diagnostic, not a
+// learning method (retrieval practice > concept mapping — Karpicke & Blunt).
+// Degrades to an empty map when the index isn't populated.
+reviewRoutes.get("/weakness-map", async (c) => {
+	const email = c.var.email;
+
+	const { results: wrong } = await c.env.DB.prepare(
+		`SELECT question_id FROM review_progress
+     WHERE user_email = ?
+       AND times_seen > 0
+       AND (last_correct = 0 OR times_correct * 2 < times_seen)
+     ORDER BY last_seen_at DESC
+     LIMIT 60`,
+	)
+		.bind(email)
+		.all<{ question_id: string }>();
+	const ids = wrong.map((r) => r.question_id);
+	if (ids.length < 2) return c.json({ clusters: [], wrong_count: ids.length });
+
+	// Fetch vectors for those questions. Best-effort — no index → empty map.
+	let items: VecItem[] = [];
+	try {
+		const vecs = await c.env.VEC.getByIds(ids);
+		items = (vecs ?? [])
+			.filter((v) => Array.isArray(v.values))
+			.map((v) => ({ id: v.id, vector: v.values as number[] }));
+	} catch {
+		items = [];
+	}
+	if (items.length < 2) return c.json({ clusters: [], wrong_count: ids.length });
+
+	const raw = clusterByThreshold(items, { threshold: 0.55 });
+
+	// Label each cluster with its most common tag; attach a drill anchor +
+	// year/number for display. One query covers tags for all members.
+	const memberIds = raw.flatMap((cl) => cl.members);
+	const ph = memberIds.map(() => "?").join(",");
+	const { results: tagRows } = await c.env.DB.prepare(
+		`SELECT question_id, tag FROM question_tags WHERE question_id IN (${ph})`,
+	)
+		.bind(...memberIds)
+		.all<{ question_id: string; tag: string }>();
+	const tagsByQ = new Map<string, string[]>();
+	for (const r of tagRows) {
+		const arr = tagsByQ.get(r.question_id);
+		if (arr) arr.push(r.tag);
+		else tagsByQ.set(r.question_id, [r.tag]);
+	}
+
+	const clusters = raw
+		.filter((cl) => cl.members.length >= 2)
+		.map((cl) => ({
+			label: topTag(cl.members, tagsByQ) ?? "未分類",
+			size: cl.members.length,
+			anchor: cl.members[0],
+			question_ids: cl.members,
+		}));
+
+	return c.json({ clusters, wrong_count: ids.length });
+});
+
+function topTag(members: string[], tagsByQ: Map<string, string[]>): string | null {
+	const count = new Map<string, number>();
+	for (const id of members) {
+		for (const tag of tagsByQ.get(id) ?? []) {
+			count.set(tag, (count.get(tag) ?? 0) + 1);
+		}
+	}
+	let best: string | null = null;
+	let bestN = 0;
+	for (const [tag, n] of count) {
+		if (n > bestN) {
+			bestN = n;
+			best = tag;
+		}
+	}
+	return best;
+}
 
 // Clear this user's review_progress for one question — used by the
 // "清除本題作答紀錄" action in the reveal row. Idempotent.
