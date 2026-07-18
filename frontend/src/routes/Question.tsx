@@ -56,7 +56,7 @@ type SimilarItem = {
 	stem: string;
 	group: string | null;
 	shared_tags: number;
-	source: "tag" | "fts";
+	source: "vec" | "tag" | "fts";
 };
 
 export function Question() {
@@ -1072,15 +1072,25 @@ export function Question() {
 								<span
 									className={
 										"text-[11px] px-2 py-0.5 rounded shrink-0 self-center " +
-										(s.source === "tag"
-											? "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
-											: "bg-ink-100 text-ink-600 dark:bg-ink-700 dark:text-ink-300")
+										(s.source === "vec"
+											? "bg-accent/10 text-accent dark:bg-accent/20 dark:text-accent-light"
+											: s.source === "tag"
+												? "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+												: "bg-ink-100 text-ink-600 dark:bg-ink-700 dark:text-ink-300")
 									}
-									title={s.source === "tag" ? "共用標籤數" : "文字相似 (BM25)"}
+									title={
+										s.source === "vec"
+											? "語意相似 (向量)"
+											: s.source === "tag"
+												? "共用標籤數"
+												: "文字相似 (BM25)"
+									}
 								>
-									{s.source === "tag"
-										? `共 ${s.shared_tags} 個 tag`
-										: "文字相似"}
+									{s.source === "vec"
+										? "語意相似"
+										: s.source === "tag"
+											? `共 ${s.shared_tags} 個 tag`
+											: "文字相似"}
 								</span>
 							</li>
 						))}

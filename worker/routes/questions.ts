@@ -5,6 +5,11 @@ import { optionsToRecord } from "../lib/db";
 import { ftsQuery } from "./search";
 import { getActiveChallenges } from "../lib/challenges";
 import { isAdminEmail } from "../lib/admin";
+import { mergeSimilar } from "../lib/similar";
+
+// Embedding model for semantic 相似題 (mirrors the canonical copy in
+// routes/ai.ts — both must reference the same 768-dim BGE model).
+const EMBED_MODEL = "@cf/baai/bge-base-en-v1.5";
 
 export const questionsRoutes = new Hono<AppContext>();
 
@@ -293,7 +298,7 @@ type SimilarRow = {
 	stem: string;
 	group: string | null;
 	shared_tags: number;
-	source: "tag" | "fts";
+	source: "vec" | "tag" | "fts";
 };
 
 questionsRoutes.get("/:id/similar", async (c) => {
@@ -307,7 +312,22 @@ questionsRoutes.get("/:id/similar", async (c) => {
 		.first<{ id: string; group: "內科" | "共同" | null; stem: string }>();
 	if (!self) return c.json([]);
 
-	// Step 1: tag overlap — same tag = related. Prefer same group, then
+	// Source 1: Vectorize semantic neighbors — the "同機轉、不同 vignette"
+	// matches that tag/BM25 miss. Best-effort: if embedding fails or the
+	// index isn't populated yet, degrade to tag+FTS rather than 500.
+	let vec: { id: string; score: number }[] = [];
+	try {
+		const emb = await c.env.AI.run(EMBED_MODEL, { text: [self.stem] });
+		const vector = (emb as { data: number[][] }).data[0];
+		const res = await c.env.VEC.query(vector, { topK: limit + 5 });
+		vec = (res.matches ?? [])
+			.filter((m) => m.id !== id)
+			.map((m) => ({ id: m.id, score: m.score }));
+	} catch {
+		vec = [];
+	}
+
+	// Source 2: tag overlap — same tag = related. Prefer same group, then
 	// more recent year. Self is excluded.
 	const { results: byTag } = await c.env.DB.prepare(
 		`SELECT q.id, q.year, q.number, q.stem, q."group",
@@ -326,20 +346,18 @@ questionsRoutes.get("/:id/similar", async (c) => {
 		.bind(id, id, self.group ?? "", limit)
 		.all<SimilarRow>();
 
-	if (byTag.length >= limit) return c.json(byTag);
-
-	// Step 2: BM25 fallback — fill from FTS5 matches on the source stem.
-	// Cap the input so the FTS5 query stays small; reuse the same query
-	// shaping the /api/search endpoint uses.
-	const fillN = limit - byTag.length;
-	const seenIds = [id, ...byTag.map((r) => r.id)];
-	const ftsExpr = ftsQuery(self.stem.slice(0, 60));
-	if (!ftsExpr) return c.json(byTag);
-
-	const placeholders = seenIds.map(() => "?").join(",");
-	try {
-		const { results: byFts } = await c.env.DB.prepare(
-			`SELECT q.id, q.year, q.number, q.stem, q."group",
+	// Source 3: BM25 FTS fill — only when vec+tag can't reach the limit.
+	// Reuse the same query shaping the /api/search endpoint uses.
+	let byFts: SimilarRow[] = [];
+	const prelim = new Set<string>([id, ...vec.map((v) => v.id), ...byTag.map((r) => r.id)]);
+	if (prelim.size - 1 < limit) {
+		const ftsExpr = ftsQuery(self.stem.slice(0, 60));
+		if (ftsExpr) {
+			const seenIds = [...prelim];
+			const placeholders = seenIds.map(() => "?").join(",");
+			try {
+				const { results } = await c.env.DB.prepare(
+					`SELECT q.id, q.year, q.number, q.stem, q."group",
               0 AS shared_tags, 'fts' AS source
        FROM questions q
        JOIN questions_fts f ON f.rowid = q.rowid
@@ -347,14 +365,50 @@ questionsRoutes.get("/:id/similar", async (c) => {
          AND q.id NOT IN (${placeholders})
        ORDER BY bm25(questions_fts) ASC
        LIMIT ?`,
-		)
-			.bind(ftsExpr, ...seenIds, fillN)
-			.all<SimilarRow>();
-		return c.json([...byTag, ...byFts]);
-	} catch {
-		// Malformed FTS query (rare with our shaper) — return what we have.
-		return c.json(byTag);
+				)
+					.bind(ftsExpr, ...seenIds, limit)
+					.all<SimilarRow>();
+				byFts = results;
+			} catch {
+				// Malformed FTS query (rare with our shaper) — skip this source.
+				byFts = [];
+			}
+		}
 	}
+
+	// Rank + de-dupe across the three sources (vec first, by score).
+	const merged = mergeSimilar({
+		self: id,
+		vec,
+		tag: byTag.map((r) => ({ id: r.id })),
+		fts: byFts.map((r) => ({ id: r.id })),
+		limit,
+	});
+	if (merged.length === 0) return c.json([]);
+
+	// Hydrate display fields. tag/fts rows are already loaded; vec-only ids
+	// need one lookup. Output preserves the merged ranking + source.
+	const rowById = new Map<string, SimilarRow>();
+	for (const r of byTag) rowById.set(r.id, r);
+	for (const r of byFts) if (!rowById.has(r.id)) rowById.set(r.id, r);
+	const missing = merged.map((m) => m.id).filter((mid) => !rowById.has(mid));
+	if (missing.length) {
+		const ph = missing.map(() => "?").join(",");
+		const { results } = await c.env.DB.prepare(
+			`SELECT id, year, number, stem, "group", 0 AS shared_tags, 'tag' AS source
+       FROM questions WHERE id IN (${ph})`,
+		)
+			.bind(...missing)
+			.all<SimilarRow>();
+		for (const r of results) rowById.set(r.id, r);
+	}
+
+	const out: SimilarRow[] = [];
+	for (const m of merged) {
+		const row = rowById.get(m.id);
+		if (row) out.push({ ...row, source: m.source });
+	}
+	return c.json(out);
 });
 
 // ------------------------------------------------------------
