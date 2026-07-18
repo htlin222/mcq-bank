@@ -14,6 +14,7 @@ import {
 	serializeCard,
 	type FsrsCardRow,
 } from "../lib/fsrs";
+import { calibration } from "../lib/calibration";
 
 export const reviewRoutes = new Hono<AppContext>();
 
@@ -133,7 +134,11 @@ function answerProgressOp(args: {
 // Record an answer in review mode (also increments times_seen)
 reviewRoutes.post("/answer", async (c) => {
 	const email = c.var.email;
-	const body = await c.req.json<{ question_id: string; chosen: string }>();
+	const body = await c.req.json<{
+		question_id: string;
+		chosen: string;
+		confidence?: number;
+	}>();
 	const now = Date.now();
 
 	// Check correctness
@@ -153,7 +158,49 @@ reviewRoutes.post("/answer", async (c) => {
 		db: c.env.DB,
 	}).run();
 
+	// Pre-answer confidence (JOL) is optional — log it only when 1/2/3 so the
+	// mock-exam flow (which never sends it) is unaffected.
+	if (body.confidence === 1 || body.confidence === 2 || body.confidence === 3) {
+		await c.env.DB.prepare(
+			`INSERT INTO confidence_events (user_email, question_id, confidence, is_correct, at)
+       VALUES (?, ?, ?, ?, ?)`,
+		)
+			.bind(email, body.question_id, body.confidence, isCorrect, now)
+			.run();
+	}
+
 	return c.json({ correct: !!isCorrect, correct_answer: q.answer });
+});
+
+// Confidence calibration for the current user — per-bucket accuracy plus the
+// most recent "高信心卻答錯" attempts (hypercorrection candidates).
+reviewRoutes.get("/calibration", async (c) => {
+	const email = c.var.email;
+
+	const { results: events } = await c.env.DB.prepare(
+		"SELECT confidence, is_correct FROM confidence_events WHERE user_email = ?",
+	)
+		.bind(email)
+		.all<{ confidence: number; is_correct: number }>();
+
+	const { results: highConfWrong } = await c.env.DB.prepare(
+		`SELECT ce.question_id, q.year, q.number, q.stem, ce.at
+     FROM confidence_events ce
+     JOIN questions q ON q.id = ce.question_id
+     WHERE ce.user_email = ? AND ce.confidence = 3 AND ce.is_correct = 0
+     ORDER BY ce.at DESC
+     LIMIT 20`,
+	)
+		.bind(email)
+		.all<{
+			question_id: string;
+			year: number;
+			number: number;
+			stem: string;
+			at: number;
+		}>();
+
+	return c.json({ buckets: calibration(events), high_conf_wrong: highConfWrong });
 });
 
 // Clear this user's review_progress for one question — used by the
