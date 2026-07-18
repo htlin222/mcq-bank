@@ -14,7 +14,8 @@ export const drillRoutes = new Hono<AppContext>();
 // vector metadata. Degrades to an empty set if the index isn't populated.
 drillRoutes.get("/interleave", async (c) => {
 	const anchor = c.req.query("anchor");
-	const n = Math.min(parseInt(c.req.query("n") || "5"), 15);
+	const nRaw = parseInt(c.req.query("n") || "5");
+	const n = Math.min(Math.max(1, Number.isFinite(nRaw) ? nRaw : 5), 15);
 	if (!anchor) return c.json({ error: "anchor required" }, 400);
 
 	const self = await c.env.DB.prepare("SELECT id, stem FROM questions WHERE id = ?")

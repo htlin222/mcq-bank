@@ -36,6 +36,25 @@ test("向量結果不足時用 fts 補滿", () => {
 	assert.equal(out[0].source, "fts");
 });
 
+test("vec 內重複 id 只保留一次 (score 排序後去重)", () => {
+	const out = mergeSimilar({
+		self: "self",
+		vec: [
+			{ id: "dup", score: 0.7 },
+			{ id: "dup", score: 0.9 },
+			{ id: "other", score: 0.5 },
+		],
+		tag: [],
+		fts: [],
+		limit: 5,
+	});
+	assert.deepEqual(
+		out.map((r) => r.id),
+		["dup", "other"],
+	);
+	assert.equal(out[0].source, "vec");
+});
+
 test("不超過 limit,且未排序的 vec 依 score 由高到低", () => {
 	const out = mergeSimilar({
 		self: "self",

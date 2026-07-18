@@ -28,6 +28,17 @@ test("排除 anchor、去重、長度受限於可用數", () => {
 	);
 });
 
+test("同一年份時逐一取用、不無限迴圈、上限為可用數", () => {
+	const hits = [
+		{ id: "a", year: 113 },
+		{ id: "b", year: 113 },
+		{ id: "c", year: 113 },
+	];
+	const out = pickInterleaved(hits, { anchor: "x", n: 5, seed: 3 });
+	assert.equal(out.length, 3);
+	assert.deepEqual(new Set(out.map((h) => h.id)), new Set(["a", "b", "c"]));
+});
+
 test("決定性:同 seed 同輸出", () => {
 	const hits = [
 		{ id: "1", year: 110 },

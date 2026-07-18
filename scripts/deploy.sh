@@ -78,10 +78,14 @@ fi
 # 3.5 Vectorize index (semantic 相似題 / weakness clustering)
 echo ""
 echo "▶ Step 3.5: Vectorize index ($VEC_INDEX)"
-if wrangler vectorize create "$VEC_INDEX" --dimensions=768 --metric=cosine 2>&1 | grep -q "already exists\|Successfully created\|created"; then
+# Capture first so pipefail + wrangler's non-zero "already exists" exit don't
+# trip the else branch on an idempotent re-run.
+VEC_OUT=$(wrangler vectorize create "$VEC_INDEX" --dimensions=768 --metric=cosine 2>&1 || true)
+if echo "$VEC_OUT" | grep -qi "already exists\|created"; then
   echo "  ✅ $VEC_INDEX ready (backfill vectors with: pnpm vectors:backfill)"
 else
   echo "  ⚠️  Vectorize step may have failed (token needs Vectorize Edit); check manually."
+  echo "$VEC_OUT"
 fi
 
 # 4. Sync roster (CF Access whitelist + D1 users seed)
