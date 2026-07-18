@@ -48,6 +48,37 @@ export function AnnotatableContent({ content, storeKey, cloze = false }: Props) 
   const [popup, setPopup] = useState<Popup>(null);
   const baseHash = hashContent(base);
 
+  // Cloze reveal state: indices (in DOM order) of the marks the reader has
+  // un-hidden. Kept in React state (+ sessionStorage, per doc) rather than as a
+  // bare DOM class, so a reveal survives re-renders and can be toggled back
+  // hidden — a DOM class alone got wiped on repaint, so reveals only stuck once.
+  const clozeKey = storeKey + ':cloze';
+  const [revealed, setRevealed] = useState<Set<number>>(() => {
+    try {
+      const raw = sessionStorage.getItem(clozeKey);
+      if (raw) return new Set(JSON.parse(raw) as number[]);
+    } catch {
+      /* ignore */
+    }
+    return new Set();
+  });
+  const toggleRevealed = useCallback(
+    (idx: number) => {
+      setRevealed((prev) => {
+        const next = new Set(prev);
+        if (next.has(idx)) next.delete(idx);
+        else next.add(idx);
+        try {
+          sessionStorage.setItem(clozeKey, JSON.stringify([...next]));
+        } catch {
+          /* best-effort */
+        }
+        return next;
+      });
+    },
+    [clozeKey],
+  );
+
   // Persist the current (annotated) doc; keyed by a hash of the base content so
   // a changed source discards stale marks.
   const persist = useCallback(() => {
@@ -81,6 +112,17 @@ export function AnnotatableContent({ content, storeKey, cloze = false }: Props) 
     requestAnimationFrame(() => wrapTables(root));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, editor, storeKey]);
+
+  // Paint the reveal state onto the current marks (index = DOM order). Runs
+  // after content loads and on every reveal/cloze toggle, so a repaint can't
+  // strand a stale class. When cloze is off, no mark is revealed-styled.
+  useEffect(() => {
+    if (!editor) return;
+    const marks = (editor.view.dom as HTMLElement).querySelectorAll('mark');
+    marks.forEach((m, i) =>
+      m.classList.toggle('cloze-revealed', cloze && revealed.has(i)),
+    );
+  }, [editor, cloze, revealed, content]);
 
   // Selection → "add highlight" popup. Runs on pointer release inside the view.
   useEffect(() => {
@@ -126,11 +168,15 @@ export function AnnotatableContent({ content, storeKey, cloze = false }: Props) 
     if (!editor) return;
     const dom = editor.view.dom as HTMLElement;
     const onClick = (e: MouseEvent) => {
-      const mark = (e.target as HTMLElement)?.closest('mark');
+      const t = e.target as Node;
+      const el = t instanceof Element ? t : t.parentElement;
+      const mark = el?.closest('mark');
       if (!mark || !dom.contains(mark)) return;
       if (cloze) {
-        mark.classList.toggle('cloze-revealed');
         e.preventDefault();
+        const marks = Array.from(dom.querySelectorAll('mark'));
+        const idx = marks.indexOf(mark);
+        if (idx >= 0) toggleRevealed(idx);
         return;
       }
       // Map the clicked <mark> element to its ProseMirror range.
@@ -154,7 +200,7 @@ export function AnnotatableContent({ content, storeKey, cloze = false }: Props) 
     };
     dom.addEventListener('click', onClick);
     return () => dom.removeEventListener('click', onClick);
-  }, [editor, cloze]);
+  }, [editor, cloze, toggleRevealed]);
 
   // Dismiss the popup on outside click / scroll / Escape.
   useEffect(() => {
