@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Folder, FolderPlus, Trash2, MoreVertical } from 'lucide-react';
+import { Folder, FolderPlus, Trash2, MoreVertical, Highlighter } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
-import { useBookmarkSet } from '../hooks/useBookmarkSet';
 import { groupBadgeClass } from '../lib/groups';
+import { loadNoteHighlights, type HlGroup } from '../lib/noteHighlights';
 
 type Folder = { id: string; name: string; sort: number; item_count: number };
 type FoldersResp = {
@@ -26,6 +26,7 @@ type Item = {
 const UNCATEGORIZED = '__uncat__';
 const ALL = '__all__';
 const NOTES = '__notes__';
+const HIGHLIGHTS = '__highlights__';
 
 export function Bookmarks() {
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -35,6 +36,10 @@ export function Bookmarks() {
   const [items, setItems] = useState<Item[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
+  // 我的畫記 — derived from this device's localStorage, not the server.
+  const hlGroups = useMemo<HlGroup[]>(() => loadNoteHighlights(), []);
+  // qid → stem/group, fetched per involved year when the tab opens.
+  const [hlStems, setHlStems] = useState<Record<string, { stem: string; group: string | null }>>({});
 
   async function loadFolders() {
     const r = await api.get<FoldersResp>('/api/folders');
@@ -52,8 +57,41 @@ export function Bookmarks() {
     setItems(r);
   }
 
+  // Stems for the highlighted questions — batched by the years involved (no
+  // per-id endpoint), joined locally. 年-題號 already comes from the qid.
+  async function loadHlStems() {
+    const years = [...new Set(hlGroups.map((g) => g.year))];
+    const missing = years.filter((y) =>
+      hlGroups.some((g) => g.year === y && !hlStems[g.qid]),
+    );
+    if (!missing.length) return;
+    const lists = await Promise.all(
+      missing.map((y) =>
+        api
+          .get<{ id: string; stem: string; group: string | null }[]>(
+            `/api/questions?year=${y}&limit=200`,
+          )
+          .catch(() => []),
+      ),
+    );
+    setHlStems((prev) => {
+      const next = { ...prev };
+      for (const list of lists)
+        for (const q of list) next[q.id] = { stem: q.stem, group: q.group };
+      return next;
+    });
+  }
+
   useEffect(() => { loadFolders(); }, []);
-  useEffect(() => { loadItems(active); }, [active]);
+  useEffect(() => {
+    // 我的畫記 is localStorage-derived — skip the bookmarks API, fetch stems.
+    if (active === HIGHLIGHTS) {
+      loadHlStems();
+      return;
+    }
+    loadItems(active);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
 
   async function createFolder() {
     if (!newName.trim()) return;
@@ -115,6 +153,13 @@ export function Bookmarks() {
             active={active === NOTES}
             onClick={() => setActive(NOTES)}
           />
+          <SideItem
+            label="我的畫記"
+            count={hlGroups.length}
+            active={active === HIGHLIGHTS}
+            onClick={() => setActive(HIGHLIGHTS)}
+            icon={<Highlighter size={14} className="shrink-0" />}
+          />
           <div className="mt-3 mb-1.5 px-2 text-[11px] uppercase tracking-wider text-ink-400 dark:text-ink-500">
             資料夾
           </div>
@@ -154,7 +199,24 @@ export function Bookmarks() {
 
         {/* Items */}
         <section>
-          {items === null ? (
+          {active === HIGHLIGHTS ? (
+            hlGroups.length === 0 ? (
+              <p className="text-ink-400 dark:text-ink-500 text-sm">
+                這台裝置還沒有個人筆記的畫記。在題目頁的「個人筆記」選取文字即可加螢光標記。
+              </p>
+            ) : (
+              <>
+                <p className="text-[11px] text-ink-400 dark:text-ink-500 mb-2">
+                  畫記存在本機瀏覽器,僅這台裝置可見。
+                </p>
+                <ul className="space-y-2">
+                  {hlGroups.map((g) => (
+                    <HighlightCard key={g.qid} group={g} stem={hlStems[g.qid]} />
+                  ))}
+                </ul>
+              </>
+            )
+          ) : items === null ? (
             <div className="text-ink-400 dark:text-ink-500 text-sm">載入中…</div>
           ) : items.length === 0 ? (
             <p className="text-ink-400 dark:text-ink-500 text-sm">
@@ -200,20 +262,79 @@ export function Bookmarks() {
   );
 }
 
+// A question with 個人筆記 highlights: 年-題號 + stem, then up to 3 highlighted
+// lines (context with the marked span in yellow), and a "還有 N 條" tail.
+function HighlightCard({
+  group,
+  stem,
+}: {
+  group: HlGroup;
+  stem?: { stem: string; group: string | null };
+}) {
+  const extra = group.total - group.lines.length;
+  return (
+    <li className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent transition">
+      <Link to={`/q/${group.qid}`} className="block">
+        <div className="flex items-start gap-3">
+          <span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0 w-16 text-right">
+            {group.year}-{String(group.number).padStart(3, '0')}
+          </span>
+          <span className="text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed flex-1">
+            {stem ? stem.stem : <span className="text-ink-400 dark:text-ink-500">載入題幹…</span>}
+          </span>
+          {stem?.group && (
+            <span className={
+              'text-[11px] px-2 py-0.5 rounded shrink-0 self-center ' +
+              groupBadgeClass(stem.group)
+            }>{stem.group}</span>
+          )}
+        </div>
+        <ul className="mt-2 pl-16 space-y-1">
+          {group.lines.map((line, i) => (
+            <li
+              key={i}
+              className="text-[13px] leading-relaxed text-ink-600 dark:text-ink-300 line-clamp-2"
+            >
+              {line.ellipsisStart && '…'}
+              {line.segments.map((s, j) =>
+                s.hl ? (
+                  <mark key={j} className="bg-yellow-200 dark:bg-yellow-400/30 text-inherit rounded-sm px-0.5">
+                    {s.text}
+                  </mark>
+                ) : (
+                  <span key={j}>{s.text}</span>
+                ),
+              )}
+              {line.ellipsisEnd && '…'}
+            </li>
+          ))}
+          {extra > 0 && (
+            <li className="text-[11px] text-ink-400 dark:text-ink-500">還有 {extra} 條畫記…</li>
+          )}
+        </ul>
+      </Link>
+    </li>
+  );
+}
+
 function SideItem({
-  label, count, active, onClick,
-}: { label: string; count: number; active: boolean; onClick: () => void }) {
+  label, count, active, onClick, icon,
+}: {
+  label: string; count: number; active: boolean; onClick: () => void;
+  icon?: ReactNode;
+}) {
   return (
     <button
       onClick={onClick}
       className={
-        'w-full text-left px-2 py-1.5 rounded text-sm flex items-center justify-between ' +
+        'w-full text-left px-2 py-1.5 rounded text-sm flex items-center gap-1.5 ' +
         (active
           ? 'bg-accent/10 text-accent font-medium'
           : 'text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800')
       }
     >
-      <span>{label}</span>
+      {icon}
+      <span className="flex-1">{label}</span>
       <span className="text-[11px] text-ink-400 dark:text-ink-500">{count}</span>
     </button>
   );
