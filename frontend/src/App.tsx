@@ -27,6 +27,7 @@ import {
 import { useMe } from "./hooks/useMe";
 import { Avatar } from "./components/Avatar";
 import { NotificationBell } from "./components/NotificationBell";
+import { ChallengeBell } from "./components/ChallengeBell";
 import { FeedbackButton } from "./components/FeedbackButton";
 import { OnlineUsers } from "./components/OnlineUsers";
 import { ThemeToggle } from "./components/ThemeToggle";
@@ -128,6 +129,7 @@ export default function App() {
 					<div className="ml-auto flex items-center gap-2">
 						<OnlineUsers />
 						<ChatBell />
+						<ChallengeBell />
 						<ThemeToggle />
 						<FeedbackButton />
 						<NotificationBell />
