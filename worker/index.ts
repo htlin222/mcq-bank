@@ -28,6 +28,7 @@ import { lectureRoutes } from './routes/lectures';
 import { chatRoutes } from './routes/chat';
 import { oeRoutes } from './routes/oe';
 import { stateRoutes } from './routes/state';
+import { drillRoutes } from './routes/drill';
 
 // Durable Object classes must be exported from the Worker entrypoint.
 export { ChatRoom } from './chat-room';
@@ -88,6 +89,7 @@ app.route('/pdf', pdfRoutes);
 app.route('/api/exam', examRoutes);
 app.route('/api/review', reviewRoutes);
 app.route('/api/ai', aiRoutes);
+app.route('/api/drill', drillRoutes);
 app.route('/api/notifications', notificationsRoutes);
 app.route('/api/search', searchRoutes);
 app.route('/api/folders', foldersRoutes);
