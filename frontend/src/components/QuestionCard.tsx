@@ -23,6 +23,9 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     question.my_progress?.last_chosen ?? null,
   );
   const [revealed, setRevealed] = useState(!!question.my_progress?.last_chosen);
+  // Pre-answer confidence (JOL). Default 普通 (2); logged on submit so the
+  // calibration panel can surface high-confidence-but-wrong attempts.
+  const [confidence, setConfidence] = useState<1 | 2 | 3>(2);
   const [bookmarked, setBookmarked] = useState(!!question.my_progress?.bookmarked);
   const [folderId, setFolderId] = useState<string | null>(
     question.my_progress?.bookmark_folder_id ?? null,
@@ -65,7 +68,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     try {
       const r = await api.post<{ correct: boolean; correct_answer: string }>(
         '/api/review/answer',
-        { question_id: question.id, chosen },
+        { question_id: question.id, chosen, confidence },
       );
       setRevealed(true);
       onAnswered?.(chosen, r.correct);
@@ -335,8 +338,33 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
         })}
       </ul>
 
+      {!revealed && chosen && (
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <span className="text-sm text-ink-500 dark:text-ink-400">作答信心:</span>
+          {([
+            [1, "猜"],
+            [2, "普通"],
+            [3, "有把握"],
+          ] as const).map(([level, label]) => (
+            <button
+              key={level}
+              type="button"
+              onClick={() => setConfidence(level)}
+              className={
+                "text-sm px-3 py-1 rounded-full border transition " +
+                (confidence === level
+                  ? "bg-accent text-white border-accent"
+                  : "border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-accent")
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {!revealed && (
-        <div className="mt-6 flex gap-3 justify-end">
+        <div className="mt-4 flex gap-3 justify-end">
           <button
             onClick={() => setRevealed(true)}
             className="text-ink-500 dark:text-ink-400 px-4 py-2 text-sm hover:text-ink-700 dark:hover:text-ink-200"

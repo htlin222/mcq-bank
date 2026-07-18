@@ -8,6 +8,7 @@ import {
   type LastPath,
 } from '../lib/lastPath';
 import { ResumeChip } from '../components/ResumeChip';
+import { ConfidenceCalibration } from '../components/ConfidenceCalibration';
 
 type YearMeta = { year: number; count: number };
 type QListItem = {
@@ -88,6 +89,11 @@ export function ReviewIndex() {
       >
         隨機抽一題開始
       </button>
+
+      <section className="mb-8">
+        <h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-4">信心校準</h2>
+        <ConfidenceCalibration />
+      </section>
 
       <h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-4">選擇年度 (民國)</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
