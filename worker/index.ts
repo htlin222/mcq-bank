@@ -62,7 +62,7 @@ app.use(
 );
 
 // Health check (no auth)
-app.get('/api/health', (c) => c.json({ ok: true, ts: Date.now() }));
+app.get('/api/health', (c) => c.json({ ok: true, service: 'hema-2026-api', ts: Date.now() }));
 
 // Read-only question API for the `/mcq` skill. Has its own API-key auth
 // (worker/lib/apikey.ts) and is registered BEFORE the Access middleware so it
