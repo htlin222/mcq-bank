@@ -12,6 +12,7 @@ import {
 	Eye,
 	ExternalLink,
 	Videotape,
+	Sparkles,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
 import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
@@ -192,10 +193,30 @@ export function Question() {
 	// section (詳解 / 個人筆記), session-only, reset when switching questions.
 	const [expCloze, setExpCloze] = useState(false);
 	const [noteCloze, setNoteCloze] = useState(false);
+	// 自動挖空: AI-extracted key terms for the 詳解, fetched on demand.
+	const [autoClozeTerms, setAutoClozeTerms] = useState<string[] | null>(null);
+	const [autoClozeLoading, setAutoClozeLoading] = useState(false);
 	useEffect(() => {
 		setExpCloze(false);
 		setNoteCloze(false);
+		setAutoClozeTerms(null);
 	}, [data?.id]);
+
+	async function loadAutoCloze(qid: string) {
+		if (autoClozeLoading) return;
+		setAutoClozeLoading(true);
+		try {
+			const r = await api.get<{ terms: string[] }>(
+				`/api/questions/${qid}/auto-cloze`,
+			);
+			setAutoClozeTerms(r.terms);
+			setExpCloze(r.terms.length > 0);
+		} catch {
+			setAutoClozeTerms([]);
+		} finally {
+			setAutoClozeLoading(false);
+		}
+	}
 	// Live comment count for the 討論串 tab badge. Seeded from the question
 	// API's comment_count (so the badge is correct on first paint without
 	// mounting CommentThread), then kept fresh by CommentThread's onCountChange
@@ -853,6 +874,23 @@ export function Question() {
 										<Videotape size={14} /> {expCloze ? "取消" : "防劇透"}
 									</button>
 								)}
+								{revealedExp && (
+									<button
+										type="button"
+										onClick={() => loadAutoCloze(data.id)}
+										disabled={autoClozeLoading}
+										title="自動挖空:AI 挑出關鍵詞後遮住,供自我測驗(點各別揭曉)"
+										className={
+											"absolute top-3 right-40 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition disabled:opacity-50 " +
+											(autoClozeTerms && autoClozeTerms.length > 0
+												? "bg-accent text-white"
+												: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
+										}
+									>
+										<Sparkles size={14} />{" "}
+										{autoClozeLoading ? "挖空中…" : "自動挖空"}
+									</button>
+								)}
 								<div
 									className={
 										"relative " + (revealedExp ? "" : "min-h-[6rem]")
@@ -871,6 +909,7 @@ export function Question() {
 											content={explanationJson}
 											storeKey={`anno:exp:${data.id}`}
 											cloze={expCloze}
+											autoTerms={autoClozeTerms ?? undefined}
 										/>
 									</div>
 									{!revealedExp && (

@@ -19,6 +19,13 @@ type Props = {
   storeKey: string;
   /** When true, cover every highlighted span like a cloze blank. */
   cloze?: boolean;
+  /**
+   * AI-extracted key terms to auto-highlight (verbatim substrings). Applied
+   * on top of the reader's own marks, NOT persisted — a reload clears them.
+   * Combined with `cloze`, this turns a 詳解 into a fill-in-the-blank test
+   * without the reader hand-marking anything.
+   */
+  autoTerms?: string[];
 };
 
 // djb2 — cheap stable fingerprint of the base doc so stale highlights (saved
@@ -36,7 +43,7 @@ type Popup =
   | { kind: 'clear'; x: number; y: number; from: number; to: number }
   | null;
 
-export function AnnotatableContent({ content, storeKey, cloze = false }: Props) {
+export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms }: Props) {
   const base = content || { type: 'doc', content: [] };
   const editor = useEditor({
     extensions: buildExtensions({ readOnly: true }),
@@ -112,6 +119,33 @@ export function AnnotatableContent({ content, storeKey, cloze = false }: Props) 
     requestAnimationFrame(() => wrapTables(root));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, editor, storeKey]);
+
+  // Auto-highlight AI-extracted terms (verbatim substrings) on top of the
+  // loaded doc. Runs after the content-load effect (definition order), so its
+  // setContent can't wipe these. Not persisted — ephemeral cloze scaffolding.
+  useEffect(() => {
+    if (!editor || !autoTerms || autoTerms.length === 0) return;
+    const terms = autoTerms.filter((t) => typeof t === 'string' && t.length >= 2);
+    if (terms.length === 0) return;
+    const ranges: { from: number; to: number }[] = [];
+    editor.state.doc.descendants((node, pos) => {
+      if (!node.isText || !node.text) return;
+      const text = node.text;
+      for (const term of terms) {
+        let idx = text.indexOf(term);
+        while (idx !== -1) {
+          ranges.push({ from: pos + idx, to: pos + idx + term.length });
+          idx = text.indexOf(term, idx + term.length);
+        }
+      }
+    });
+    if (ranges.length === 0) return;
+    let chain = editor.chain();
+    for (const r of ranges) chain = chain.setTextSelection(r).setHighlight();
+    chain.run();
+    window.getSelection()?.removeAllRanges();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, autoTerms, content]);
 
   // Paint the reveal state onto the current marks (index = DOM order). Runs
   // after content loads and on every reveal/cloze toggle, so a repaint can't
