@@ -1,10 +1,8 @@
 import { Hono } from "hono";
 import type { AppContext, Env } from "../types";
+import { TEXT_MODEL, EMBED_MODEL } from "../lib/ai-models";
 
 export const aiRoutes = new Hono<AppContext>();
-
-const TEXT_MODEL = "@cf/meta/llama-3.1-8b-instruct";
-const EMBED_MODEL = "@cf/baai/bge-base-en-v1.5";
 
 type GeneratedQaItem = {
 	question: string;
