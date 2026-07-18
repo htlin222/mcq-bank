@@ -41,6 +41,14 @@
   @apply font-serif text-ink-800 dark:text-ink-100 leading-relaxed outline-none min-h-[140px];
 }
 
+/* The 140px min-height is a click target for the EDITABLE editor only. Read-only
+   renders (contenteditable=false) size to their content — without this, a short
+   note section (e.g. a paragraph + <hr>) reserves a big empty gap before the
+   next heading/accordion. */
+.tiptap[contenteditable="false"] {
+  @apply min-h-0;
+}
+
 .tiptap > * + * {
   @apply mt-3;
 }
