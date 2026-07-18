@@ -177,7 +177,10 @@ export function YearList() {
         </div>
       )}
 
-      <div className="flex gap-2 mb-4">
+      {/* Group filter (科別) + answer-state filter (已作答/未作答/答對/答錯) on one
+          row, split into two visual groups by a divider. Both combine with each
+          other and show scoped counts. Wraps on narrow screens. */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         {['all', ...GROUPS.map((g) => g.label)].map((g) => (
           <button
             key={g}
@@ -195,11 +198,12 @@ export function YearList() {
             )}
           </button>
         ))}
-      </div>
 
-      {/* Answer-state filter — 已作答 / 未作答 / 答對 / 答錯, combined with the
-          group filter above and scoped counts. */}
-      <div className="flex flex-wrap gap-2 mb-4">
+        <span
+          aria-hidden="true"
+          className="mx-1 h-6 w-px shrink-0 self-center bg-ink-200 dark:bg-ink-700"
+        />
+
         {ANSWER_FILTERS.map((f) => (
           <button
             key={f.key}
