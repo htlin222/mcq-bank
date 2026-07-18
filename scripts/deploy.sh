@@ -19,6 +19,7 @@ SLUG="$(cfg project.slug)"
 D1_DB="$(cfg project.d1_db)"
 R2_BUCKET="$(cfg project.r2_bucket)"
 PAGES_PROJECT="$(cfg project.pages_project)"
+VEC_INDEX="$(cfg project.vectorize_index)"
 
 echo "▶ $SLUG deployment"
 echo "================================"
@@ -72,6 +73,15 @@ if wrangler r2 bucket create "$R2_BUCKET" 2>&1 | grep -q "already exists\|Create
   echo "  ✅ $R2_BUCKET ready"
 else
   echo "  ⚠️  R2 step may have failed; check manually."
+fi
+
+# 3.5 Vectorize index (semantic 相似題 / weakness clustering)
+echo ""
+echo "▶ Step 3.5: Vectorize index ($VEC_INDEX)"
+if wrangler vectorize create "$VEC_INDEX" --dimensions=768 --metric=cosine 2>&1 | grep -q "already exists\|Successfully created\|created"; then
+  echo "  ✅ $VEC_INDEX ready (backfill vectors with: pnpm vectors:backfill)"
+else
+  echo "  ⚠️  Vectorize step may have failed (token needs Vectorize Edit); check manually."
 fi
 
 # 4. Sync roster (CF Access whitelist + D1 users seed)

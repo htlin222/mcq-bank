@@ -10,6 +10,8 @@ export type Env = {
   DB: D1Database;
   R2: R2Bucket;
   AI: Ai;
+  // 語意相似題 (#2) 與弱點聚類 (#6) 共用的向量索引;query/upsert/getByIds。
+  VEC: VectorizeIndex;
   CACHE?: KVNamespace;
   // 聊天大廳 Durable Object (worker/chat-room.ts, single "lobby" room)
   CHAT: DurableObjectNamespace;

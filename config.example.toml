@@ -20,6 +20,8 @@ d1_db = "my-qa-bank-db"
 r2_bucket = "my-qa-bank-uploads"
 worker_name = "my-qa-bank-api"
 pages_project = "my-qa-bank"
+# Vectorize index for semantic 相似題 / weakness clustering (768-dim, cosine).
+vectorize_index = "my-qa-bank-vec"
 
 # GitHub repo for the in-app feedback button (user reports become issues
 # here). Format: "owner/repo". Set GH_FEEDBACK_TOKEN in .env to enable.
