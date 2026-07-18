@@ -90,6 +90,10 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
   // a changed source discards stale marks.
   const persist = useCallback(() => {
     if (!editor) return;
+    // While AI auto-terms are applied, the doc holds ephemeral highlights that
+    // must never be saved (they'd resurrect as permanent "manual" marks on
+    // reload). Skip persistence entirely for this transient self-test state.
+    if (autoTerms && autoTerms.length > 0) return;
     try {
       localStorage.setItem(
         storeKey,
@@ -98,7 +102,7 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
     } catch {
       /* quota/availability — highlights are best-effort */
     }
-  }, [editor, storeKey, baseHash]);
+  }, [editor, storeKey, baseHash, autoTerms]);
 
   // Load base content, then re-apply saved highlights if they match this text.
   useEffect(() => {

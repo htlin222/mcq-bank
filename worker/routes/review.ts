@@ -230,8 +230,12 @@ reviewRoutes.get("/weakness-map", async (c) => {
 	try {
 		const vecs = await c.env.VEC.getByIds(ids);
 		items = (vecs ?? [])
-			.filter((v) => Array.isArray(v.values))
-			.map((v) => ({ id: v.id, vector: v.values as number[] }));
+			// values may be a plain array OR a Float32/Float64Array — accept both.
+			.filter((v) => Array.isArray(v.values) || ArrayBuffer.isView(v.values))
+			.map((v) => ({
+				id: v.id,
+				vector: Array.from(v.values as ArrayLike<number>),
+			}));
 	} catch {
 		items = [];
 	}
