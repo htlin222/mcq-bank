@@ -98,6 +98,44 @@ export async function reconcileHighlight(
   return null;
 }
 
+// One-time-per-device upload of pre-sync localStorage highlights to the server,
+// so existing 畫記 aren't stranded on one device. Uses reconcileHighlight per
+// key (against the entry's own hash), which pushes to the server only when the
+// server is missing/older — never clobbering a newer copy from another device.
+// Guarded by a flag so it runs once; call only when authenticated.
+const MIGRATED_FLAG = 'anno:synced:v1';
+
+export async function migrateLocalHighlights(): Promise<void> {
+  try {
+    if (localStorage.getItem(MIGRATED_FLAG)) return;
+  } catch {
+    return;
+  }
+  const keys: string[] = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('anno:exp:') || k.startsWith('anno:note:'))) keys.push(k);
+    }
+  } catch {
+    return;
+  }
+  for (const key of keys) {
+    const local = readLocal(key);
+    if (!local) continue;
+    try {
+      await reconcileHighlight(key, local.h);
+    } catch {
+      /* one bad key shouldn't abort the sweep */
+    }
+  }
+  try {
+    localStorage.setItem(MIGRATED_FLAG, String(keys.length));
+  } catch {
+    /* ignore */
+  }
+}
+
 function safeParse(json: string): unknown {
   try {
     return JSON.parse(json);

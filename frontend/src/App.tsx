@@ -25,6 +25,7 @@ import {
 	saveYearPosition,
 } from "./lib/lastPath";
 import { useMe } from "./hooks/useMe";
+import { migrateLocalHighlights } from "./lib/highlightStore";
 import { Avatar } from "./components/Avatar";
 import { NotificationBell } from "./components/NotificationBell";
 import { ChallengeBell } from "./components/ChallengeBell";
@@ -77,6 +78,12 @@ export default function App() {
 		document.addEventListener("click", onClick);
 		return () => document.removeEventListener("click", onClick);
 	}, [navigate]);
+
+	// Once authenticated, upload any pre-sync localStorage 畫記 to the server
+	// (once per device). No-op after the first run or if already migrated.
+	useEffect(() => {
+		if (me?.email) void migrateLocalHighlights();
+	}, [me?.email]);
 
 	// Boot splash while the first /api/me call resolves — avoids flashing the
 	// Landing for a logged-in user, or Dashboard for an anonymous visitor.
