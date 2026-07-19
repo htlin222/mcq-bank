@@ -2,6 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Highlighter, X as XIcon } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
+import { readLocal, saveHighlight, reconcileHighlight } from '../lib/highlightStore';
 
 // Read-only content that the reader can personally annotate: select text to add
 // a 螢光標記 (highlight), click a mark to clear it, and — when `cloze` is on —
@@ -88,39 +89,53 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
 
   // Persist the current (annotated) doc; keyed by a hash of the base content so
   // a changed source discards stale marks.
+  // Tracks whether the user has edited highlights since this doc mounted, so a
+  // slow server reconcile can't clobber their fresh, local-newer changes.
+  const dirtyRef = useRef(false);
+
   const persist = useCallback(() => {
     if (!editor) return;
     // While AI auto-terms are applied, the doc holds ephemeral highlights that
     // must never be saved (they'd resurrect as permanent "manual" marks on
     // reload). Skip persistence entirely for this transient self-test state.
     if (autoTerms && autoTerms.length > 0) return;
-    try {
-      localStorage.setItem(
-        storeKey,
-        JSON.stringify({ h: baseHash, doc: editor.getJSON() }),
-      );
-    } catch {
-      /* quota/availability — highlights are best-effort */
-    }
+    dirtyRef.current = true;
+    // Writes localStorage immediately + syncs to the server (fire-and-forget).
+    saveHighlight(storeKey, baseHash, editor.getJSON());
   }, [editor, storeKey, baseHash, autoTerms]);
 
   // Load base content, then re-apply saved highlights if they match this text.
+  // localStorage is read synchronously for an instant, flash-free paint.
   useEffect(() => {
     if (!editor) return;
-    let doc = base;
-    try {
-      const raw = localStorage.getItem(storeKey);
-      if (raw) {
-        const saved = JSON.parse(raw);
-        if (saved && saved.h === baseHash && saved.doc) doc = saved.doc;
-      }
-    } catch {
-      /* ignore corrupt cache */
-    }
+    dirtyRef.current = false;
+    const saved = readLocal(storeKey);
+    const doc = saved && saved.h === baseHash && saved.doc ? saved.doc : base;
     editor.commands.setContent(doc, false);
     const root = editor.view.dom as HTMLElement;
     wrapTables(root);
     requestAnimationFrame(() => wrapTables(root));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, editor, storeKey]);
+
+  // Cross-device sync: reconcile with the server after the instant local paint.
+  // Only applies a doc when the server holds a NEWER copy (another device);
+  // skips if the user already highlighted here (dirty) or auto-cloze is on.
+  useEffect(() => {
+    if (!editor) return;
+    let cancelled = false;
+    reconcileHighlight(storeKey, baseHash).then((serverDoc) => {
+      if (cancelled || serverDoc == null) return;
+      if (dirtyRef.current) return;
+      if (autoTerms && autoTerms.length > 0) return;
+      editor.commands.setContent(serverDoc, false);
+      const root = editor.view.dom as HTMLElement;
+      wrapTables(root);
+      requestAnimationFrame(() => wrapTables(root));
+    });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, editor, storeKey]);
 
