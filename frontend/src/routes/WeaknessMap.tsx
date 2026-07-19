@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Shuffle } from "lucide-react";
+import { RefreshCcw } from "lucide-react";
 import { api } from "../lib/api";
 
 // 弱點概念地圖 — clusters the user's wrong questions into semantic themes and
@@ -84,7 +84,7 @@ export function WeaknessMap() {
 								to={`/drill/${cl.anchor}`}
 								className="mt-auto inline-flex items-center justify-center gap-1.5 rounded-full bg-accent hover:bg-accent-dark text-white text-sm px-4 py-2 transition"
 							>
-								<Shuffle size={14} /> 交錯練習這組
+								<RefreshCcw size={14} /> 交錯練習這組
 							</Link>
 						</div>
 					))}

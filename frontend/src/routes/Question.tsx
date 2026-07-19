@@ -13,6 +13,7 @@ import {
 	ExternalLink,
 	Videotape,
 	Sparkles,
+	RefreshCcw,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
 import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
@@ -1091,7 +1092,7 @@ export function Question() {
 						className="inline-flex items-center gap-1.5 rounded-full bg-accent hover:bg-accent-dark text-white text-sm px-4 py-1.5 transition"
 						title="把語意相近、跨年份的題目混在一起練 (interleaving)"
 					>
-						🔀 開始交錯練習
+						<RefreshCcw size={14} /> 開始交錯練習
 					</Link>
 				</div>
 				{similar.length === 0 && (
