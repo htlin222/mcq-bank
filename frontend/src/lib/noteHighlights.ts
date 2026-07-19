@@ -92,22 +92,34 @@ function windowLine(raw: RawLine): HlLine {
   return { segments, ellipsisStart: start > 0, ellipsisEnd: end < text.length };
 }
 
-/** All questions with ≥1 個人筆記 highlight on this device, newest year first. */
-export function loadNoteHighlights(): HlGroup[] {
-  const byQid = new Map<string, RawLine[]>();
+type Entry = { key: string; doc: any };
+
+// This device's localStorage highlight entries ({ h, doc, t } → doc).
+function localEntries(): Entry[] {
+  const out: Entry[] = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (!key || !key.startsWith(NOTE_PREFIX)) continue;
-    const rest = key.slice(NOTE_PREFIX.length); // "<qid>:<hash>"
-    const colon = rest.indexOf(':');
-    const qid = colon >= 0 ? rest.slice(0, colon) : rest;
-    if (!/^\d+-\d+$/.test(qid)) continue;
     let doc: any;
     try {
       doc = JSON.parse(localStorage.getItem(key) || 'null')?.doc;
     } catch {
       continue;
     }
+    if (doc) out.push({ key, doc });
+  }
+  return out;
+}
+
+// Build the display groups from a set of (key, TipTap doc) entries.
+function buildGroups(entries: Entry[]): HlGroup[] {
+  const byQid = new Map<string, RawLine[]>();
+  for (const { key, doc } of entries) {
+    if (!key.startsWith(NOTE_PREFIX)) continue;
+    const rest = key.slice(NOTE_PREFIX.length); // "<qid>:<hash>"
+    const colon = rest.indexOf(':');
+    const qid = colon >= 0 ? rest.slice(0, colon) : rest;
+    if (!/^\d+-\d+$/.test(qid)) continue;
     if (!doc) continue;
     const lines: RawLine[] = [];
     collectLines(doc, lines);
@@ -138,4 +150,32 @@ export function loadNoteHighlights(): HlGroup[] {
   }
   groups.sort((a, b) => b.year - a.year || a.number - b.number);
   return groups;
+}
+
+/** All questions with ≥1 個人筆記 highlight on THIS device (instant, sync). */
+export function loadNoteHighlights(): HlGroup[] {
+  return buildGroups(localEntries());
+}
+
+// Server rows carry the TipTap doc directly as doc_json (see highlightStore).
+type ServerRow = { store_key: string; doc_json: string };
+
+/**
+ * Cross-device 我的畫記: union of this device's localStorage highlights and the
+ * server's, keyed by store_key (server copy wins per key). Lets highlights made
+ * on other devices show up here.
+ */
+export function mergeNoteHighlights(serverRows: ServerRow[]): HlGroup[] {
+  const byKey = new Map<string, any>();
+  for (const e of localEntries()) byKey.set(e.key, e.doc);
+  for (const r of serverRows) {
+    if (!r?.store_key?.startsWith(NOTE_PREFIX)) continue;
+    try {
+      const doc = JSON.parse(r.doc_json);
+      if (doc) byKey.set(r.store_key, doc);
+    } catch {
+      /* skip corrupt row */
+    }
+  }
+  return buildGroups([...byKey].map(([key, doc]) => ({ key, doc })));
 }

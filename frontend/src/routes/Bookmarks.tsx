@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Folder, FolderPlus, Trash2, MoreVertical, Highlighter } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { groupBadgeClass } from '../lib/groups';
-import { loadNoteHighlights, type HlGroup } from '../lib/noteHighlights';
+import { loadNoteHighlights, mergeNoteHighlights, type HlGroup } from '../lib/noteHighlights';
 
 type Folder = { id: string; name: string; sort: number; item_count: number };
 type FoldersResp = {
@@ -36,8 +36,23 @@ export function Bookmarks() {
   const [items, setItems] = useState<Item[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
-  // 我的畫記 — derived from this device's localStorage, not the server.
-  const hlGroups = useMemo<HlGroup[]>(() => loadNoteHighlights(), []);
+  // 我的畫記 — instant from localStorage, then merged with the server so
+  // highlights made on other devices show up too.
+  const [hlGroups, setHlGroups] = useState<HlGroup[]>(() => loadNoteHighlights());
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<{ store_key: string; doc_json: string }[]>('/api/highlights?prefix=anno:note:')
+      .then((rows) => {
+        if (!cancelled) setHlGroups(mergeNoteHighlights(rows));
+      })
+      .catch(() => {
+        /* offline — the localStorage-only view stays */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   // qid → stem/group, fetched per involved year when the tab opens.
   const [hlStems, setHlStems] = useState<Record<string, { stem: string; group: string | null }>>({});
 
@@ -202,12 +217,12 @@ export function Bookmarks() {
           {active === HIGHLIGHTS ? (
             hlGroups.length === 0 ? (
               <p className="text-ink-400 dark:text-ink-500 text-sm">
-                這台裝置還沒有個人筆記的畫記。在題目頁的「個人筆記」選取文字即可加螢光標記。
+                還沒有個人筆記的畫記。在題目頁的「個人筆記」選取文字即可加螢光標記。
               </p>
             ) : (
               <>
                 <p className="text-[11px] text-ink-400 dark:text-ink-500 mb-2">
-                  畫記存在本機瀏覽器,僅這台裝置可見。
+                  畫記已同步,所有裝置皆可見。
                 </p>
                 <ul className="space-y-2">
                   {hlGroups.map((g) => (
