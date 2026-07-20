@@ -37,8 +37,9 @@ test("樣式來自 mcq-to-anki,且已做單檔化處理", () => {
 	assert.ok(/:root\s*\{[^}]*--ctp-base: #eff1f5/.test(out));
 	assert.ok(out.includes("@media (prefers-color-scheme: dark)"));
 	assert.ok(out.includes("--ctp-base: #1e1e2e"));
-	// .card / .nightMode 是 Anki 的 class,單檔裡不該出現
-	assert.ok(!out.includes("nightMode"));
+	// .card / .card.nightMode 是 Anki 的 class,單檔裡不該有這兩條規則
+	assert.ok(!/^\.card[\s.{]/m.test(out));
+	assert.ok(!out.includes(".card.nightMode {"));
 	// 每題不該佔滿整螢幕
 	assert.ok(!out.includes("min-height: 100vh"));
 });
