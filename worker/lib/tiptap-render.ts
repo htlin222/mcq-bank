@@ -27,6 +27,10 @@ export type RenderOpts = {
 	imageSrc?: (src: string) => string | null;
 	// Prefix for questionRef links, e.g. "https://host/q/". Omitted → plain text.
 	questionRefBase?: string;
+	// Demote headings by N levels. The export nests a doc under a "### 詳解"
+	// section heading, so an h2 inside the doc would otherwise outrank its own
+	// section and wreck the outline.
+	headingShift?: number;
 };
 
 type PMNode = {
@@ -45,10 +49,10 @@ function kids(n: PMNode): PMNode[] {
 	return Array.isArray(n.content) ? n.content.filter(isNode) : [];
 }
 
-function headingLevel(n: PMNode): number {
+function headingLevel(n: PMNode, opts: RenderOpts = {}): number {
 	const raw = Number(n.attrs?.level);
-	if (!Number.isFinite(raw)) return 3;
-	return Math.min(6, Math.max(1, Math.trunc(raw)));
+	const base = Number.isFinite(raw) ? Math.trunc(raw) : 3;
+	return Math.min(6, Math.max(1, base + (opts.headingShift ?? 0)));
 }
 
 // Same allowlist as worker/lib/note-doc.ts safeLinkHref, kept local because
@@ -122,7 +126,7 @@ function mdBlock(n: PMNode, opts: RenderOpts, depth: number): string {
 		case "paragraph":
 			return mdInline(kids(n), opts);
 		case "heading":
-			return `${"#".repeat(headingLevel(n))} ${mdInline(kids(n), opts)}`.trim();
+			return `${"#".repeat(headingLevel(n, opts))} ${mdInline(kids(n), opts)}`.trim();
 		case "bulletList":
 		case "bullet_list":
 			return mdList(n, opts, depth, false);
@@ -305,7 +309,7 @@ function htmlNode(n: PMNode, opts: RenderOpts): string {
 		case "paragraph":
 			return `<p>${htmlNodes(kids(n), opts)}</p>`;
 		case "heading": {
-			const lvl = headingLevel(n);
+			const lvl = headingLevel(n, opts);
 			return `<h${lvl}>${htmlNodes(kids(n), opts)}</h${lvl}>`;
 		}
 		case "bulletList":

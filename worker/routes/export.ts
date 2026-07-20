@@ -62,23 +62,62 @@ async function folderNameFor(
 	return row?.name ?? null;
 }
 
+// D1 rejects a statement with too many bound parameters ("too many SQL
+// variables"), so any `… IN (?, ?, …)` over an id list has to be chunked.
+// MAX_QUESTIONS is 200, comfortably above the limit. 90 leaves room for the
+// email / filter params that ride along in the same statement.
+const D1_MAX_PARAMS = 90;
+
+function chunk<T>(arr: T[], size: number): T[][] {
+	if (arr.length <= size) return [arr];
+	const out: T[][] = [];
+	for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+	return out;
+}
+
 async function resolveIds(
 	db: D1Database,
 	scope: ExportScope,
 	email: string,
 ): Promise<string[]> {
-	const { sql, params } = scopeSql(scope, email);
-	const { results } = await db
-		.prepare(sql)
-		.bind(...params)
-		.all<{ id: string }>();
+	// The `ids` scope is the only one that binds a caller-sized list.
+	const scopes: ExportScope[] =
+		scope.kind === "ids"
+			? chunk(scope.ids, D1_MAX_PARAMS).map((ids) => ({ ...scope, ids }))
+			: [scope];
+
 	const seen = new Set<string>();
 	const out: string[] = [];
-	for (const r of results ?? []) {
-		if (r?.id && !seen.has(r.id)) {
-			seen.add(r.id);
-			out.push(r.id);
+	for (const s of scopes) {
+		const { sql, params } = scopeSql(s, email);
+		const { results } = await db
+			.prepare(sql)
+			.bind(...params)
+			.all<{ id: string }>();
+		for (const r of results ?? []) {
+			if (r?.id && !seen.has(r.id)) {
+				seen.add(r.id);
+				out.push(r.id);
+			}
 		}
+	}
+	return out;
+}
+
+// Run one `… IN (?)` query per id chunk and concatenate the rows.
+async function allChunked<T>(
+	db: D1Database,
+	ids: string[],
+	build: (holes: string) => string,
+	lead: unknown[] = [],
+): Promise<T[]> {
+	const out: T[] = [];
+	for (const part of chunk(ids, D1_MAX_PARAMS - lead.length)) {
+		const { results } = await db
+			.prepare(build(part.map(() => "?").join(",")))
+			.bind(...lead, ...part)
+			.all<T>();
+		out.push(...((results ?? []) as T[]));
 	}
 	return out;
 }
@@ -101,40 +140,38 @@ async function loadItems(
 	email: string,
 	include: Include,
 ): Promise<ExportItem[]> {
-	const holes = ids.map(() => "?").join(",");
+	type DocRow = { question_id: string; content_json: string };
 
-	const [qRes, eRes, tRes, nRes, hRes] = await Promise.all([
-		db
-			.prepare(
-				`SELECT id, year, number, stem, "group", options_json, answer
+	const [qRows, eRows, tRows, nRows, hRes] = await Promise.all([
+		allChunked<QuestionRow>(
+			db,
+			ids,
+			(holes) => `SELECT id, year, number, stem, "group", options_json, answer
          FROM questions WHERE id IN (${holes})`,
-			)
-			.bind(...ids)
-			.all<QuestionRow>(),
+		),
 		include.explanation
-			? db
-					.prepare(
+			? allChunked<DocRow>(
+					db,
+					ids,
+					(holes) =>
 						`SELECT question_id, content_json FROM explanations WHERE question_id IN (${holes})`,
-					)
-					.bind(...ids)
-					.all<{ question_id: string; content_json: string }>()
-			: Promise.resolve({ results: [] as { question_id: string; content_json: string }[] }),
-		db
-			.prepare(
-				`SELECT question_id, tag FROM question_tags
+				)
+			: Promise.resolve([] as DocRow[]),
+		allChunked<{ question_id: string; tag: string }>(
+			db,
+			ids,
+			(holes) => `SELECT question_id, tag FROM question_tags
          WHERE question_id IN (${holes}) ORDER BY created_at ASC`,
-			)
-			.bind(...ids)
-			.all<{ question_id: string; tag: string }>(),
+		),
 		include.note
-			? db
-					.prepare(
-						`SELECT question_id, content_json FROM personal_notes
+			? allChunked<DocRow>(
+					db,
+					ids,
+					(holes) => `SELECT question_id, content_json FROM personal_notes
              WHERE user_email = ? AND question_id IN (${holes})`,
-					)
-					.bind(email, ...ids)
-					.all<{ question_id: string; content_json: string }>()
-			: Promise.resolve({ results: [] as { question_id: string; content_json: string }[] }),
+					[email],
+				)
+			: Promise.resolve([] as DocRow[]),
 		// Highlights are keyed by store_key, not question_id, so we take this
 		// user's rows and match qids in memory (one person's highlight set is
 		// small). The user_email filter is still done in SQL.
@@ -147,20 +184,20 @@ async function loadItems(
 	]);
 
 	const byId = new Map<string, QuestionRow>();
-	for (const q of qRes.results ?? []) byId.set(q.id, q);
+	for (const q of qRows) byId.set(q.id, q);
 
 	const explById = new Map<string, unknown>();
-	for (const e of eRes.results ?? []) explById.set(e.question_id, parseJson(e.content_json));
+	for (const e of eRows) explById.set(e.question_id, parseJson(e.content_json));
 
 	const tagsById = new Map<string, string[]>();
-	for (const t of tRes.results ?? []) {
+	for (const t of tRows) {
 		const list = tagsById.get(t.question_id) ?? [];
 		list.push(t.tag);
 		tagsById.set(t.question_id, list);
 	}
 
 	const noteById = new Map<string, unknown>();
-	for (const n of nRes.results ?? []) noteById.set(n.question_id, parseJson(n.content_json));
+	for (const n of nRows) noteById.set(n.question_id, parseJson(n.content_json));
 
 	const wanted = new Set(ids);
 	const hlById = new Map<string, string[]>();
@@ -217,18 +254,24 @@ function parseOptions(json: string): ExportOption[] {
 		.filter((o) => o.key !== "");
 }
 
-// Absolute origin for image URLs in CSV (Anki has no notion of our site root).
-// Taken from the request unless PUBLIC_HOST pins it — never hard-coded.
-function originOf(c: { req: { url: string }; env: { PUBLIC_HOST?: string } }): string {
+// Absolute origin for image / question links in the exported file (Anki and a
+// downloaded .md have no notion of our site root). Derived from the request,
+// or pinned by PUBLIC_HOST — never hard-coded. The scheme is forced to https
+// for anything but a loopback host: `wrangler dev` reports the configured
+// route host with an http: scheme, which would bake a broken URL into the
+// file.
+export function originOf(c: { req: { url: string }; env: { PUBLIC_HOST?: string } }): string {
 	if (c.env.PUBLIC_HOST) return `https://${c.env.PUBLIC_HOST}`;
-	return new URL(c.req.url).origin;
+	const url = new URL(c.req.url);
+	const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(url.hostname);
+	return local ? url.origin : `https://${url.host}`;
 }
 
 // POST /api/export/preview — { scope } → { count, ids, label, truncated, max }
 exportRoutes.post("/preview", async (c) => {
 	const body = await c.req.json<{ scope?: unknown }>().catch(() => ({}) as any);
 	const parsed = parseScope(body?.scope);
-	if (parsed.error) return c.json({ error: parsed.error }, 400);
+	if (!parsed.scope) return c.json({ error: parsed.error }, 400);
 
 	const email = c.var.email;
 	const folderName = await folderNameFor(c.env.DB, parsed.scope, email);
@@ -249,7 +292,7 @@ exportRoutes.post("/", async (c) => {
 		.catch(() => ({}) as any);
 
 	const parsed = parseScope(body?.scope);
-	if (parsed.error) return c.json({ error: parsed.error }, 400);
+	if (!parsed.scope) return c.json({ error: parsed.error }, 400);
 	const scope = parsed.scope;
 
 	const format: Format =
@@ -282,7 +325,10 @@ exportRoutes.post("/", async (c) => {
 			footnotes.push(`${missed} 張圖片因體積上限或讀取失敗未內嵌,仍以連結呈現。`);
 		}
 		imageSrc = (src) => map.get(src) ?? absolutise(src, origin);
-	} else if (format !== "md") {
+	} else {
+		// Always absolute: a relative /img/ link is useless once the file leaves
+		// the app. The bucket stays private — these still go through the worker
+		// proxy and need a Cloudflare Access session.
 		imageSrc = (src) => absolutise(src, origin);
 	}
 
@@ -292,7 +338,7 @@ exportRoutes.post("/", async (c) => {
 	let mime: string;
 	if (format === "csv") {
 		// Excel needs the BOM to read UTF-8; Anki tolerates it.
-		payload = `﻿${renderExportCsv(items, { origin, label })}`;
+		payload = `﻿${renderExportCsv(items, { origin })}`;
 		mime = "text/csv; charset=utf-8";
 	} else if (format === "html") {
 		payload = renderExportHtml(items, { label, email, now, footnotes }, renderOpts);
