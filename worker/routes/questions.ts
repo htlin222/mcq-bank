@@ -622,7 +622,7 @@ questionsRoutes.get("/_meta/tags", async (c) => {
 // When the list comes back empty the response carries a `reason` so the UI can
 // say why instead of looking broken.
 // ------------------------------------------------------------
-type ClozeReason = "no_content" | "too_short" | "ai_empty";
+type ClozeReason = "no_content" | "too_short" | "ai_empty" | "ai_error";
 const clozeEmpty = (reason: ClozeReason) =>
 	({ terms: [] as string[], cached: false, reason }) as const;
 
@@ -685,22 +685,22 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 	if (text.length < 40) return c.json(clozeEmpty("too_short"));
 
 	// Extract verbatim key terms via the text model (structured output).
-	let terms: string[] = [];
-	try {
+	//
+	// No `minItems`: a floor forces grammar-constrained decoding to keep
+	// emitting until it is satisfied, which on a long 詳解 runs for a very long
+	// time and then dies against max_tokens with the JSON array unclosed — the
+	// caller sees "AI 挑不出關鍵詞" after a minute of waiting, which is both
+	// slow and a lie. Ask for density in the prompt, enforce only the ceiling.
+	const askAi = async (window: number, maxItems: number, ask: string) => {
 		const out = await c.env.AI.run(TEXT_MODEL, {
-			max_tokens: 1800,
+			max_tokens: 2400,
 			temperature: 0.1,
 			response_format: {
 				type: "json_schema",
 				json_schema: {
 					type: "object",
 					properties: {
-						terms: {
-							type: "array",
-							minItems: 10,
-							maxItems: 40,
-							items: { type: "string" },
-						},
+						terms: { type: "array", maxItems, items: { type: "string" } },
 					},
 					required: ["terms"],
 					additionalProperties: false,
@@ -710,20 +710,41 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 				{
 					role: "system",
 					content:
-						`你是醫學考試出題助教。從${source === "note" ? "這份讀書筆記" : "詳解"}中挑出 25–40 個值得考的關鍵詞(疾病名、藥名、機轉、數值、基因、診斷標準、預後因子)。` +
-						"目標密度是**每一行/每個條目至少 1 個**,請由上而下逐段挑選、平均分布到全文,不要只集中在開頭。"  +
+						`你是醫學考試出題助教。從${source === "note" ? "這份讀書筆記" : "詳解"}中挑出 ${ask} 個值得考的關鍵詞(疾病名、藥名、機轉、數值、基因、診斷標準、預後因子)。` +
+						"目標密度是每一行/每個條目至少 1 個,請由上而下逐段挑選、平均分布到全文,不要只集中在開頭。" +
 						"必須是原文中一字不差出現的片段(供挖空自我測驗用),不要改寫、不要翻譯、不要加解釋。只輸出 JSON。",
 				},
-				{ role: "user", content: text.slice(0, 6000) },
+				{ role: "user", content: text.slice(0, window) },
 			],
 		});
 		const raw = (out as { response?: unknown }).response ?? out;
-		terms = dedupeTerms(extractTermsField(raw));
-	} catch {
-		terms = [];
+		return dedupeTerms(extractTermsField(raw));
+	};
+
+	let terms: string[] = [];
+	let aiFailed = false;
+	try {
+		terms = await askAi(6000, 40, "25–40");
+	} catch (err) {
+		// Never silently. Without this the only symptom is an empty list, and
+		// an outage is indistinguishable from a genuinely unquotable note.
+		console.error("auto-cloze primary extraction failed", id, source, err);
+		aiFailed = true;
+	}
+	if (terms.length === 0) {
+		// Degrade rather than give up: a smaller window and a smaller ask is a
+		// much easier generation, and a sparse set of blanks beats none.
+		try {
+			terms = await askAi(3000, 20, "10–20");
+			if (terms.length > 0) aiFailed = false;
+		} catch (err) {
+			console.error("auto-cloze fallback extraction failed", id, source, err);
+			aiFailed = true;
+		}
 	}
 
-	if (terms.length === 0) return c.json(clozeEmpty("ai_empty"));
+	if (terms.length === 0)
+		return c.json(clozeEmpty(aiFailed ? "ai_error" : "ai_empty"));
 
 	if (source === "explanation") {
 		await c.env.DB.prepare(

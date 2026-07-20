@@ -31,8 +31,21 @@ export function onNeedRefresh(listener: Listener): () => void {
 /**
  * Accept the waiting worker: it receives SKIP_WAITING, takes over, and the
  * page does a full reload so old and new chunks never mix.
+ *
+ * `updateSW(true)` only reloads if a worker is actually waiting. It can fail
+ * that precondition for reasons the page can't see — the waiting worker was
+ * replaced by a newer deploy, the install errored, the registration went
+ * stale — and then it resolves having done nothing at all. A button that
+ * silently does nothing is worse than a slightly redundant reload, so if the
+ * page is still here shortly after, reload it directly.
  */
-export const applyUpdate = (): void => void updateSW(true);
+export function applyUpdate(): void {
+  void updateSW(true);
+  // Unconditional, because every way this can go wants a reload: if the SW
+  // path works it reloads first and this never runs; if it no-ops, or hangs,
+  // this is the reload the user asked for. Worst case it duplicates one.
+  window.setTimeout(() => window.location.reload(), 1500);
+}
 
 const updateSW = registerSW({
   immediate: true,
