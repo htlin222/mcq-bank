@@ -18,7 +18,7 @@
 - **通知機制**:`notifications(kind, question_id, comment_id, actor_email, preview)`(`migrations/0001_initial_schema.sql:88-101`);留言 mention/reply 通知在 `worker/routes/comments.ts:71-102` 以 `DB.batch` 寫入;結案 fan-out 範例 `worker/lib/challenges.ts:597-632`;前端依 `kind` 分支於 `frontend/src/components/NotificationBell.tsx:145`。
 - **渲染位置**:`CommentThread` 在 `frontend/src/routes/Question.tsx:1091`(桌機 tab)與 `:1230`(手機底部)各掛一次 —— 改元件即兩處生效。
 - **投票 UI 樣式參考**:`frontend/src/routes/Challenges.tsx:56-70` 的 filter pill,與 `:113-116` 的「同意 N · 反對 N」計數行。
-- **migration 現況**:目錄最後一支是 `migrations/0022_highlights.sql`。任務簡報寫「0024」,但 repo 實際只到 0022,故本計畫用 **`0023`**;實作前仍 `ls migrations/ | tail -3` 重新確認,若期間有人補號就往後順延。
+- **migration 現況**:目錄最後一支是 `migrations/0022_highlights.sql`,但有多個平行分支同時在加 migration,為避免撞號,本計畫依任務簡報固定用 **`0024`**(0023 保留給別的分支)。
 
 ## 非目標
 
@@ -48,11 +48,11 @@
 
 ### Task 1.1:migration + 排序純函式(TDD)
 
-**Files:** Create `migrations/0023_helpful_votes.sql`、`worker/lib/helpful.ts`;Test `worker/lib/helpful.test.ts`
+**Files:** Create `migrations/0024_helpful_votes.sql`、`worker/lib/helpful.ts`;Test `worker/lib/helpful.test.ts`
 
 **Step 1 — migration**(先 `ls migrations/ | tail -3` 確認號碼):
 ```sql
--- Migration 0023: 「有幫助」訊號 (helpful votes)
+-- Migration 0024: 「有幫助」訊號 (helpful votes)
 -- 一人對一個 target 一票。PK 即冪等保證:重複 INSERT 走 ON CONFLICT
 -- DO NOTHING,計數不會重複;撤回 = DELETE。target_type 目前只允許
 -- 'comment'(API 層白名單)。共筆詳解刻意不投票 —— 見計畫「決策 1」。
@@ -139,7 +139,7 @@ export function rankByHelpful<T extends Rankable>(items: T[], now: number): T[] 
 
 **Step 5:** `node --test worker/lib/helpful.test.ts` → PASS。
 
-**Step 6:** `git add migrations/0023_helpful_votes.sql worker/lib/helpful.ts worker/lib/helpful.test.ts && git commit -m "feat(helpful): helpful_votes table + pure ranking helper"`
+**Step 6:** `git add migrations/0024_helpful_votes.sql worker/lib/helpful.ts worker/lib/helpful.test.ts && git commit -m "feat(helpful): helpful_votes table + pure ranking helper"`
 
 ---
 
