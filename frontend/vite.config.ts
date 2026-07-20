@@ -164,6 +164,8 @@ function pwaPlugin(): Plugin[] {
         '**/*[Ll]ecture*',
         '**/*-engine-*.js',
         '**/browser-*.js',
+        // The kill switch must always come from the network, never a cache.
+        'sw-kill.js',
       ],
       maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
     },

@@ -5,9 +5,9 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc -b && vite build",
+		"build": "tsc -b && tsc -p tsconfig.sw.json && vite build",
 		"preview": "vite preview",
-		"typecheck": "tsc -b"
+		"typecheck": "tsc -b && tsc -p tsconfig.sw.json"
 	},
 	"dependencies": {
 		"@embedpdf/core": "^2.14.3",
