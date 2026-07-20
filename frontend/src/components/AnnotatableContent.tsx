@@ -168,8 +168,12 @@ export function AnnotatableContent({
     wrapTables(root);
     requestAnimationFrame(() => wrapTables(root));
     setDocRev((r) => r + 1);
+    // Keyed on `baseHash`, NOT on `content`: NoteContent rebuilds its section
+    // doc object on every render, so an identity-keyed effect re-ran forever —
+    // setContent wiped the selection (killing the 螢光標記 popup before it
+    // could appear) and the setDocRev below re-rendered straight back into it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content, editor, storeKey]);
+  }, [baseHash, editor, storeKey]);
 
   // Cross-device sync: reconcile with the server after the instant local paint.
   // Only applies a doc when the server holds a NEWER copy (another device);
@@ -189,8 +193,10 @@ export function AnnotatableContent({
     return () => {
       cancelled = true;
     };
+    // Same reason as above — and identity-keying here also fired one
+    // reconcile request per render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content, editor, storeKey]);
+  }, [baseHash, editor, storeKey]);
 
   // ── AI cloze layer (decorations only) ──
   // One plugin per editor instance; its state is a plain {ranges, revealed}
