@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { AppContext, Env, ExamSession, Question } from '../types';
 import { uuid, optionsToRecord } from '../lib/db';
 import { clampElapsedMs, insertAttemptOp } from '../lib/attempts';
+import { median, pacingSplit } from '../lib/pacing';
 
 export const examRoutes = new Hono<AppContext>();
 
@@ -351,20 +352,74 @@ examRoutes.get('/:sid', async (c) => {
   if (!session) return c.json({ error: 'not found' }, 404);
   if (session.user_email !== email) return c.json({ error: 'forbidden' }, 403);
 
+  // SUM (not MAX) over attempts: changing an answer appends another attempt,
+  // and the total is what the question actually cost. Sessions predating
+  // migration 0023 have no attempts → NULL → the UI shows "—".
   const { results: answers } = await c.env.DB
     .prepare(
       `SELECT ea.question_id, ea.chosen, ea.is_correct, ea.answered_at,
               q.number, q.stem,
-              COALESCE(ea.correct_answer_at_finish, q.answer) AS correct_answer
+              COALESCE(ea.correct_answer_at_finish, q.answer) AS correct_answer,
+              t.elapsed_ms
        FROM exam_answers ea
        JOIN questions q ON q.id = ea.question_id
+       LEFT JOIN (
+         SELECT question_id, SUM(elapsed_ms) AS elapsed_ms
+         FROM attempts WHERE session_id = ? AND elapsed_ms IS NOT NULL
+         GROUP BY question_id
+       ) t ON t.question_id = ea.question_id
        WHERE ea.session_id = ?
        ORDER BY q.number ASC`
     )
-    .bind(sid)
+    .bind(sid, sid)
     .all();
 
   return c.json({ session, answers });
+});
+
+// Pacing report for one finished session — first-half vs second-half
+// average time, plus the slowest questions. Sessions with no timing data
+// (pre-0023) return n: 0 rather than erroring.
+examRoutes.get('/:sid/pacing', async (c) => {
+  const sid = c.req.param('sid');
+  const email = c.var.email;
+
+  const session = await c.env.DB
+    .prepare('SELECT user_email FROM exam_sessions WHERE id = ?')
+    .bind(sid)
+    .first<{ user_email: string }>();
+
+  if (!session) return c.json({ error: 'not found' }, 404);
+  if (session.user_email !== email) return c.json({ error: 'forbidden' }, 403);
+
+  // ORDER BY first-touch time = answering order, NOT question number.
+  const { results: rows } = await c.env.DB
+    .prepare(
+      `SELECT a.question_id, q.number, SUM(a.elapsed_ms) AS ms
+       FROM attempts a
+       JOIN questions q ON q.id = a.question_id
+       WHERE a.session_id = ? AND a.elapsed_ms IS NOT NULL
+       GROUP BY a.question_id
+       ORDER BY MIN(a.created_at)`
+    )
+    .bind(sid)
+    .all<{ question_id: string; number: number; ms: number }>();
+
+  const times = rows.map((r) => r.ms);
+  const split = pacingSplit(times);
+  const slowest = [...rows]
+    .sort((a, b) => b.ms - a.ms)
+    .slice(0, 5)
+    .map((r) => ({ question_id: r.question_id, number: r.number, ms: r.ms }));
+
+  return c.json({
+    n: times.length,
+    first_half_avg_ms: split ? Math.round(split.firstHalfAvg) : null,
+    second_half_avg_ms: split ? Math.round(split.secondHalfAvg) : null,
+    delta_pct: split ? split.deltaPct : null,
+    median_ms: median(times),
+    slowest,
+  });
 });
 
 // Delete one of my sessions (works for in-progress or finished).
