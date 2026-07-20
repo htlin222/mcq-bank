@@ -12,6 +12,7 @@ Two entry points, both standard-library only:
     <article>, [data-testid="ask--query-bar"], [data-answer-end], the
     references container) — keep the two in sync if OE redesigns.
 """
+
 from __future__ import annotations
 
 import re
@@ -24,8 +25,20 @@ from html.parser import HTMLParser
 # --- tiny DOM ---------------------------------------------------------------
 
 VOID_TAGS = {
-    "area", "base", "br", "col", "embed", "hr", "img", "input",
-    "link", "meta", "param", "source", "track", "wbr",
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
 }
 RAW_SKIP = {"script", "style", "template"}
 
@@ -56,7 +69,9 @@ class TreeBuilder(HTMLParser):
         if tag in RAW_SKIP:
             self._raw_skip = tag
             return
-        el = El(tag, {k: (v if v is not None else "") for k, v in attrs}, self.stack[-1])
+        el = El(
+            tag, {k: (v if v is not None else "") for k, v in attrs}, self.stack[-1]
+        )
         self.stack[-1].children.append(el)
         if tag not in VOID_TAGS:
             self.stack.append(el)
@@ -64,7 +79,9 @@ class TreeBuilder(HTMLParser):
     def handle_startendtag(self, tag, attrs):
         if self._raw_skip or tag in RAW_SKIP:
             return
-        el = El(tag, {k: (v if v is not None else "") for k, v in attrs}, self.stack[-1])
+        el = El(
+            tag, {k: (v if v is not None else "") for k, v in attrs}, self.stack[-1]
+        )
         self.stack[-1].children.append(el)
 
     def handle_endtag(self, tag):
@@ -146,10 +163,41 @@ def raw_text_of(el: El) -> str:
 # --- HTML → TipTap blocks ----------------------------------------------------
 
 BLOCK_TAGS = {
-    "address", "article", "aside", "blockquote", "details", "dd", "div", "dl",
-    "dt", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2",
-    "h3", "h4", "h5", "h6", "header", "hr", "li", "main", "nav", "ol", "p",
-    "pre", "section", "table", "tbody", "tfoot", "thead", "tr", "ul",
+    "address",
+    "article",
+    "aside",
+    "blockquote",
+    "details",
+    "dd",
+    "div",
+    "dl",
+    "dt",
+    "fieldset",
+    "figcaption",
+    "figure",
+    "footer",
+    "form",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "header",
+    "hr",
+    "li",
+    "main",
+    "nav",
+    "ol",
+    "p",
+    "pre",
+    "section",
+    "table",
+    "tbody",
+    "tfoot",
+    "thead",
+    "tr",
+    "ul",
 }
 MARK_BY_TAG = {
     "strong": {"type": "bold"},
@@ -162,13 +210,23 @@ MARK_BY_TAG = {
     "del": {"type": "strike"},
     "mark": {"type": "highlight"},
 }
-SKIP_TAGS = {"noscript", "head", "title", "iframe", "object", "video", "audio", "canvas", "svg"}
+SKIP_TAGS = {
+    "noscript",
+    "head",
+    "title",
+    "iframe",
+    "object",
+    "video",
+    "audio",
+    "canvas",
+    "svg",
+}
 
 
 def html_to_doc(html: str) -> dict:
     root = parse_html(html)
     body = next((el for el in walk(root) if el.tag == "body"), root)
-    return {"type": "doc", "content": container_blocks(body)}
+    return sanitize_imported_doc({"type": "doc", "content": container_blocks(body)})
 
 
 def container_blocks(el: El) -> list[dict]:
@@ -210,7 +268,9 @@ def make_paragraph(inline: list[dict]) -> dict | None:
     # Trim leading/trailing whitespace-only text; drop empty result.
     while inline and inline[0].get("type") == "text" and not inline[0]["text"].strip():
         inline.pop(0)
-    while inline and inline[-1].get("type") == "text" and not inline[-1]["text"].strip():
+    while (
+        inline and inline[-1].get("type") == "text" and not inline[-1]["text"].strip()
+    ):
         inline.pop()
     if inline and inline[0].get("type") == "text":
         inline[0] = {**inline[0], "text": inline[0]["text"].lstrip()}
@@ -230,7 +290,13 @@ def convert_block(el: El) -> list[dict]:
         para = make_paragraph([n for k, n in items if k == "inline"])
         blocks = []
         if para:
-            blocks.append({"type": "heading", "attrs": {"level": level}, "content": para["content"]})
+            blocks.append(
+                {
+                    "type": "heading",
+                    "attrs": {"level": level},
+                    "content": para["content"],
+                }
+            )
         blocks.extend(n for k, n in items if k == "block")
         return blocks
     if tag == "p":
@@ -245,10 +311,12 @@ def convert_block(el: El) -> list[dict]:
         return [{"type": "horizontalRule"}]
     if tag == "pre":
         text = raw_text_of(el).strip("\n")
-        return [{
-            "type": "codeBlock",
-            "content": [{"type": "text", "text": text}] if text else [],
-        }]
+        return [
+            {
+                "type": "codeBlock",
+                "content": [{"type": "text", "text": text}] if text else [],
+            }
+        ]
     if tag == "img":
         img = image_block(el)
         return [img] if img else []
@@ -261,7 +329,9 @@ def convert_block(el: El) -> list[dict]:
                     items.append({"type": "listItem", "content": inner})
         if not items:
             return []
-        return [{"type": "bulletList" if tag == "ul" else "orderedList", "content": items}]
+        return [
+            {"type": "bulletList" if tag == "ul" else "orderedList", "content": items}
+        ]
     if tag == "blockquote":
         inner = container_blocks(el)
         return [{"type": "blockquote", "content": inner}] if inner else []
@@ -271,11 +341,15 @@ def convert_block(el: El) -> list[dict]:
             cells = []
             for cell in tr.children:
                 if isinstance(cell, El) and cell.tag in ("td", "th"):
-                    inner = container_blocks(cell) or [{"type": "paragraph", "content": []}]
-                    cells.append({
-                        "type": "tableHeader" if cell.tag == "th" else "tableCell",
-                        "content": inner,
-                    })
+                    inner = container_blocks(cell) or [
+                        {"type": "paragraph", "content": []}
+                    ]
+                    cells.append(
+                        {
+                            "type": "tableHeader" if cell.tag == "th" else "tableCell",
+                            "content": inner,
+                        }
+                    )
             if cells:
                 rows.append({"type": "tableRow", "content": cells})
         return [{"type": "table", "content": rows}] if rows else []
@@ -367,7 +441,12 @@ STATUS_TEXTS = {
     "Done",
 }
 CHROME_TAGS = {"button", "svg", "textarea", "input", "form"}
-CHROME_CLASSES = {"MuiStepper-root", "MuiStep-root", "MuiStepButton-root", "MuiStepLabel-root"}
+CHROME_CLASSES = {
+    "MuiStepper-root",
+    "MuiStep-root",
+    "MuiStepButton-root",
+    "MuiStepLabel-root",
+}
 
 
 def fetch_oe_html(url: str) -> tuple[str, str]:
@@ -440,13 +519,17 @@ def strip_chrome(root: El):
         if el is root or not attached(el, root):
             continue
         if el.tag in ("button", "a") or el.attrs.get("role") == "button":
-            imgs = [d for d in walk(el) if d.tag == "img" and is_content_img(d.attrs.get("src", ""))]
+            imgs = [
+                d
+                for d in walk(el)
+                if d.tag == "img" and is_content_img(d.attrs.get("src", ""))
+            ]
             if imgs:
                 parent = el.parent
                 idx = parent.children.index(el)
                 for im in imgs:
                     im.parent = parent
-                parent.children[idx:idx + 1] = imgs
+                parent.children[idx : idx + 1] = imgs
                 el.parent = None
     # 2) Remove interactive controls and the status stepper.
     for el in list(walk(root)):
@@ -454,7 +537,11 @@ def strip_chrome(root: El):
             detach(el)
     # 3) Remove leftover status text ("Analyzed query…", "Done").
     for el in list(walk(root)):
-        if el is root or not attached(el, root) or el.tag not in ("p", "span", "div", "li"):
+        if (
+            el is root
+            or not attached(el, root)
+            or el.tag not in ("p", "span", "div", "li")
+        ):
             continue
         t = text_of(el)
         if t in STATUS_TEXTS or (t.startswith("Analyzed query") and len(t) < 80):
@@ -477,14 +564,16 @@ def cut_after(article: El, sentinel: El):
     while node is not article and node.parent is not None:
         parent = node.parent
         idx = parent.children.index(node)
-        del parent.children[idx + 1:]
+        del parent.children[idx + 1 :]
         node = parent
     detach(sentinel)
 
 
 def extract_references(refs: El) -> list[dict]:
     detach(refs)  # take it out of the article before any cutting/stripping
-    heading = next((d for d in walk(refs) if d.tag in ("h1", "h2", "h3", "h4", "h5", "h6")), None)
+    heading = next(
+        (d for d in walk(refs) if d.tag in ("h1", "h2", "h3", "h4", "h5", "h6")), None
+    )
     label = "References"
     if heading is not None:
         t = re.sub(r"\s*\d+\s*$", "", text_of(heading)).strip()
@@ -495,7 +584,13 @@ def extract_references(refs: El) -> list[dict]:
     inner = container_blocks(refs)
     if not inner:
         return []
-    return [{"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": label}]}] + inner
+    return [
+        {
+            "type": "heading",
+            "attrs": {"level": 3},
+            "content": [{"type": "text", "text": label}],
+        }
+    ] + inner
 
 
 def drop_follow_ups(root: El):
@@ -521,11 +616,18 @@ def parse_oe_conversation(html: str) -> dict:
     root = parse_html(html)
 
     title_el = next((el for el in walk(root) if el.tag == "title"), None)
-    title = re.sub(r"\s*\|\s*OpenEvidence\s*$", "", text_of(title_el) if title_el else "", flags=re.I).strip()
+    title = re.sub(
+        r"\s*\|\s*OpenEvidence\s*$",
+        "",
+        text_of(title_el) if title_el else "",
+        flags=re.I,
+    ).strip()
 
     order = {id(el): i for i, el in enumerate(walk(root))}
     articles = [el for el in walk(root) if el.tag == "article"]
-    query_bars = [el for el in walk(root) if el.attrs.get("data-testid") == "ask--query-bar"]
+    query_bars = [
+        el for el in walk(root) if el.attrs.get("data-testid") == "ask--query-bar"
+    ]
 
     if not articles:
         if not any("data-answer-end" in el.attrs for el in walk(root)):
@@ -535,7 +637,9 @@ def parse_oe_conversation(html: str) -> dict:
         blocks = container_blocks(body)
         return {
             "title": title,
-            "turns": [{"question": title or "整段內容", "blocks": blocks}] if blocks else [],
+            "turns": [{"question": title or "整段內容", "blocks": blocks}]
+            if blocks
+            else [],
         }
 
     # Questions must be resolved before any tree mutation (uses document order).
@@ -554,7 +658,9 @@ def parse_oe_conversation(html: str) -> dict:
         refs = next((d for d in walk(article) if is_refs_el(d)), None)
         refs_blocks = extract_references(refs) if refs is not None else []
 
-        sentinel = next((d for d in walk(article) if "data-answer-end" in d.attrs), None)
+        sentinel = next(
+            (d for d in walk(article) if "data-answer-end" in d.attrs), None
+        )
         if sentinel is not None:
             cut_after(article, sentinel)
         else:
@@ -574,7 +680,119 @@ def parse_oe_conversation(html: str) -> dict:
     return {"title": title, "turns": turns}
 
 
-def oe_conversation_to_doc(convo: dict, source_url: str, turn: int | None = None) -> dict:
+# --- imported-doc sanitizing -------------------------------------------------
+# Allowlist-style purification of an *imported* TipTap doc. Knows nothing about
+# OpenEvidence's DOM — only what machine residue looks like as text — so it
+# survives an OE redesign that invalidates every selector above.
+#
+# Port of frontend/src/lib/sanitize-import.ts (same three rule groups, same
+# order) — keep the two in sync. Rationale and the motivating damage (notes
+# 114-027 / 114-048) are documented there.
+#
+# SCOPE: import only. Never run this on content a user typed.
+
+# A. text-node scrubbing.
+STRAY_TAG = re.compile(
+    r"</?(?:h[1-6]|p|div|span|ul|ol|li|table|tbody|thead|tr|td|th"
+    r"|strong|em|b|i|br)\s*/?>",
+    re.I,
+)
+# Numeric citation markers, complete or truncated: [[1,1]], [[1-2], [[1.
+CITATION_MARKER = re.compile(r"\[\[\s*\d+(?:\s*[,\u2013\u2014-]\s*\d+)*\s*\]{0,2}")
+# A bare "[[" left behind when the chip half was linkified away — only when the
+# next char doesn't start a word, so a real [[wiki link]] survives.
+BARE_OPEN = re.compile(r"\[\[(?![^\W_])", re.UNICODE)
+# The closing half, at a token boundary only (same reason).
+ORPHAN_CLOSE = re.compile(r"(?:^|(?<=\s))\]\]")
+INVISIBLE = re.compile(
+    r"[\u200b-\u200d\ufeff\u00ad\u0000-\u0008\u000b\u000c\u000e-\u001f]"
+)
+RUN_OF_SPACES = re.compile(r"[ \t]{2,}")
+
+# B. whole-block chrome.
+CHROME_PATTERNS = [
+    re.compile(r"^Used under license from\b", re.I),
+    re.compile(r"^Feedback$", re.I),
+    re.compile(r"^(?:Copy|Share|Cite|Export|Print|Download)$", re.I),
+    re.compile(r"^Analyzed query", re.I),
+    re.compile(r"^Done$", re.I),
+    re.compile(r"^Searched published medical literature\b", re.I),
+    # Trailing "shall I go deeper?" invite the model appends to its own answer.
+    re.compile(
+        r"^(?:\u60a8\u662f\u5426\u60f3|\u4f60\u662f\u5426\u60f3|(?:Would you like|Do you want)\b).*[?\uff1f]$",
+        re.I,
+    ),
+]
+
+# C. empty-shell collapse.
+VOID_TYPES = {"image", "horizontalRule", "hardBreak", "mention", "questionRef"}
+CELL_TYPES = {"tableCell", "tableHeader"}
+OPAQUE_TYPES = {"codeBlock"}  # code legitimately contains </h3> and [[1,1]]
+
+
+def _scrub_text(text: str) -> str:
+    text = STRAY_TAG.sub("", text)
+    text = CITATION_MARKER.sub("", text)
+    text = BARE_OPEN.sub("", text)
+    text = ORPHAN_CLOSE.sub("", text)
+    text = INVISIBLE.sub("", text)
+    return RUN_OF_SPACES.sub(" ", text)
+
+
+def _plain_text(node: dict) -> str:
+    if node.get("type") == "text":
+        return node.get("text") or ""
+    return "".join(_plain_text(c) for c in (node.get("content") or []))
+
+
+def _is_chrome_block(node: dict) -> bool:
+    if node.get("type") not in ("paragraph", "heading"):
+        return False
+    t = re.sub(r"\s+", " ", _plain_text(node)).strip()
+    return bool(t) and any(p.search(t) for p in CHROME_PATTERNS)
+
+
+def _sanitize_node(node: dict):
+    if node.get("type") == "text":
+        original = node.get("text") or ""
+        scrubbed = _scrub_text(original)
+        # Whitespace-only *after* scrubbing means the node held nothing but
+        # residue. One that was already whitespace-only is a real separator
+        # between marks and must survive.
+        if not scrubbed.strip() and original.strip():
+            return None
+        return node if scrubbed == original else {**node, "text": scrubbed}
+
+    ntype = node.get("type")
+    if ntype in OPAQUE_TYPES or ntype in VOID_TYPES:
+        return node
+    if _is_chrome_block(node):
+        return None
+    if not isinstance(node.get("content"), list):
+        return node
+
+    content = [c for c in (_sanitize_node(c) for c in node["content"]) if c is not None]
+
+    if ntype in CELL_TYPES:
+        return {**node, "content": content or [{"type": "paragraph"}]}
+    if ntype == "tableRow":
+        # Keep the cell count intact; drop the row only if it went fully blank.
+        if all(not _plain_text(c).strip() for c in content):
+            return None
+        return {**node, "content": content}
+    if not content and ntype != "doc":
+        return None
+    return {**node, "content": content}
+
+
+def sanitize_imported_doc(doc: dict) -> dict:
+    """Purify an imported TipTap doc. Pure — the input is never mutated."""
+    return _sanitize_node(doc) or {"type": "doc", "content": []}
+
+
+def oe_conversation_to_doc(
+    convo: dict, source_url: str, turn: int | None = None
+) -> dict:
     """Assemble picked turn(s) into one TipTap doc: question heading + answer."""
     turns = convo["turns"]
     if turn is not None:
@@ -583,21 +801,25 @@ def oe_conversation_to_doc(convo: dict, source_url: str, turn: int | None = None
         turns = [turns[turn - 1]]
     blocks: list[dict] = []
     for t in turns:
-        blocks.append({
-            "type": "heading",
-            "attrs": {"level": 2},
-            "content": [{"type": "text", "text": t["question"]}],
-        })
-        blocks.extend(t["blocks"])
-    blocks.append({
-        "type": "paragraph",
-        "content": [
-            {"type": "text", "text": "來源:"},
+        blocks.append(
             {
-                "type": "text",
-                "text": "OpenEvidence 對話",
-                "marks": [{"type": "link", "attrs": {"href": source_url}}],
-            },
-        ],
-    })
-    return {"type": "doc", "content": blocks}
+                "type": "heading",
+                "attrs": {"level": 2},
+                "content": [{"type": "text", "text": t["question"]}],
+            }
+        )
+        blocks.extend(t["blocks"])
+    blocks.append(
+        {
+            "type": "paragraph",
+            "content": [
+                {"type": "text", "text": "來源:"},
+                {
+                    "type": "text",
+                    "text": "OpenEvidence 對話",
+                    "marks": [{"type": "link", "attrs": {"href": source_url}}],
+                },
+            ],
+        }
+    )
+    return sanitize_imported_doc({"type": "doc", "content": blocks})

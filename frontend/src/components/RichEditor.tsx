@@ -1,4 +1,5 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
+import { DOMParser as PMDOMParser } from '@tiptap/pm/model';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Bold,
@@ -24,6 +25,7 @@ import {
   looksLikeAuthoredMarkdown,
   markdownToHtml,
 } from '../lib/markdown-paste';
+import { sanitizeImportedDoc } from '../lib/sanitize-import';
 import { api } from '../lib/api';
 import { OeImportDialog } from './OeImportDialog';
 
@@ -112,7 +114,7 @@ export function RichEditor({
           if (/<img[^>]+src=["']https?:\/\//i.test(mdHtml)) {
             insertExternalHtml(editorRef.current, mdHtml, setUploading);
           } else {
-            editorRef.current.commands.insertContent(mdHtml);
+            insertSanitized(editorRef.current, mdHtml);
           }
           return true;
         }
@@ -195,9 +197,26 @@ function insertExternalHtml(
   setUploading(true);
   return sideloadImagesInHtml(html)
     .then((fixed) => {
-      editor.commands.insertContent(transformPastedHTML(fixed));
+      insertSanitized(editor, fixed);
     })
     .finally(() => setUploading(false));
+}
+
+// The single choke point for externally-sourced content: rebuild OE's flat
+// markup, parse it to a doc with the editor's own schema, purge machine
+// residue, then insert. Going through explicit JSON (rather than handing HTML
+// to insertContent) is what makes the sanitize step possible at all — TipTap
+// otherwise parses internally and there's nothing to intercept.
+//
+// Only imports pass through here. Content the user types is never sanitized.
+function insertSanitized(editor: Editor, html: string): void {
+  const dom = new window.DOMParser().parseFromString(
+    transformPastedHTML(html),
+    'text/html',
+  );
+  const parsed = PMDOMParser.fromSchema(editor.schema).parse(dom.body).toJSON();
+  const content = sanitizeImportedDoc(parsed).content;
+  if (content?.length) editor.commands.insertContent(content);
 }
 
 // An image src that our /img/ proxy doesn't serve — an absolute URL on
