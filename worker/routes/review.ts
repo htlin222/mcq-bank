@@ -492,6 +492,23 @@ reviewRoutes.get("/anki/decks/:year/next", async (c) => {
 	if (!Number.isFinite(year)) return c.json({ error: "invalid year" }, 400);
 
 	const now = Date.now();
+
+	// Same daily new-card cap the cross-year /due queue enforces. Without it a
+	// year deck will happily introduce all 100 unseen questions in one sitting,
+	// and FSRS then schedules the whole batch to come due together a few days
+	// later — the classic Anki new-card avalanche. Once the day's allowance is
+	// spent this deck serves review cards only; `new_remaining` tells the UI so
+	// it can say "今天的新卡上限到了" instead of looking empty.
+	const { dayStartHour, newLimit } = dueQueryOpts(c);
+	const w = dayWindow(now, { dayStartHour });
+	const intro = await c.env.DB.prepare(
+		`SELECT COUNT(*) AS n FROM fsrs_review_logs
+     WHERE user_email = ? AND reviewed_at >= ? AND reviewed_at < ? AND state = 0`,
+	)
+		.bind(email, w.dayStart, w.dayEnd)
+		.first<{ n: number }>();
+	const newRemaining = remainingNewToday(intro?.n ?? 0, newLimit);
+
 	const row = await c.env.DB.prepare(
 		`SELECT q.*,
               e.content_json AS explanation_content_json,
@@ -512,7 +529,10 @@ reviewRoutes.get("/anki/decks/:year/next", async (c) => {
        LEFT JOIN explanations e ON e.question_id = q.id
        LEFT JOIN fsrs_cards fc ON fc.question_id = q.id AND fc.user_email = ?
        WHERE q.year = ?
-         AND (fc.question_id IS NULL OR fc.due_at <= ?)
+         AND (
+           (fc.question_id IS NOT NULL AND fc.due_at <= ?)
+           OR (? > 0 AND (fc.question_id IS NULL OR fc.state = 0))
+         )
        ORDER BY
          CASE
            WHEN fc.question_id IS NOT NULL AND fc.state IN (1, 3) THEN 0
@@ -523,11 +543,14 @@ reviewRoutes.get("/anki/decks/:year/next", async (c) => {
          q.number ASC
        LIMIT 1`,
 	)
-		.bind(email, year, now, now)
+		.bind(email, year, now, newRemaining, now)
 		.first<AnkiQuestionRow>();
 
 	const deck = (await getDeckStats(c.env.DB, email, now, year))[0] ?? null;
-	if (!row) return c.json({ deck, question: null });
+	// So the client can distinguish "this year is finished" from "you have hit
+	// today's new-card allowance" — both otherwise look like question: null.
+	const newBudget = { new_remaining: newRemaining, new_limit: newLimit };
+	if (!row) return c.json({ deck, question: null, ...newBudget });
 
 	const { results: tagRows } = await c.env.DB.prepare(
 		"SELECT tag FROM question_tags WHERE question_id = ? ORDER BY created_at ASC",
@@ -535,7 +558,11 @@ reviewRoutes.get("/anki/decks/:year/next", async (c) => {
 		.bind(row.id)
 		.all<{ tag: string }>();
 
-	return c.json({ deck, question: ankiQuestionPayload(row, tagRows, now) });
+	return c.json({
+		deck,
+		question: ankiQuestionPayload(row, tagRows, now),
+		...newBudget,
+	});
 });
 
 // 卡片 payload 組裝 — /anki/decks/:year/next 與 /due/next 共用,結構必須一致。
