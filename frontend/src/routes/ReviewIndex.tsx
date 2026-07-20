@@ -9,6 +9,7 @@ import {
 } from '../lib/lastPath';
 import { ResumeChip } from '../components/ResumeChip';
 import { ConfidenceCalibration } from '../components/ConfidenceCalibration';
+import type { DueSummary } from '../lib/due';
 
 type YearMeta = { year: number; count: number };
 type QListItem = {
@@ -28,6 +29,8 @@ type Stats = {
 export function ReviewIndex() {
   const [years, setYears] = useState<YearMeta[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  // 跨年份到期佇列摘要 — CTA 與各年度的「N 張到期」小 badge 共用同一份。
+  const [due, setDue] = useState<DueSummary | null>(null);
   // 「你上次停在…」 — last question/year page visited, synced across devices.
   const [resume, setResume] = useState<LastPath | null>(null);
   const navigate = useNavigate();
@@ -35,6 +38,7 @@ export function ReviewIndex() {
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
     api.get<Stats>('/api/review/stats').then(setStats).catch(() => setStats(null));
+    api.get<DueSummary>('/api/review/due').then(setDue).catch(() => setDue(null));
     let cancelled = false;
     loadSectionPath('review').then((v) => {
       if (!cancelled) setResume(v);
@@ -53,6 +57,13 @@ export function ReviewIndex() {
     }
     return map;
   }, [stats]);
+
+  // year → 今天到期張數,給年度卡片上的小 badge 用。
+  const dueByYear = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const r of due?.by_year ?? []) map.set(r.year, r.due);
+    return map;
+  }, [due]);
 
   async function startRandom() {
     // pick random year, random question — quick path
@@ -83,12 +94,24 @@ export function ReviewIndex() {
         </div>
       )}
 
-      <button
-        onClick={startRandom}
-        className="w-full sm:w-auto bg-accent hover:bg-accent-dark text-white px-6 py-3 rounded font-medium transition mb-8"
-      >
-        隨機抽一題開始
-      </button>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-8">
+        <button
+          onClick={startRandom}
+          className="w-full sm:w-auto bg-accent hover:bg-accent-dark text-white px-6 py-3 rounded font-medium transition"
+        >
+          隨機抽一題開始
+        </button>
+        {/* 跨年份到期佇列入口 — 不必自己記得哪一年有卡到期。 */}
+        {due && due.due_total > 0 && (
+          <Link
+            to="/due"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded border border-accent/40 bg-accent/5 dark:bg-accent/15 px-5 py-3 text-ink-800 dark:text-ink-100 hover:border-accent transition"
+          >
+            今天 <span className="font-mono text-accent">{due.due_total}</span> 張到期
+            <span className="text-xs text-ink-500 dark:text-ink-400">→</span>
+          </Link>
+        )}
+      </div>
 
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -125,6 +148,11 @@ export function ReviewIndex() {
                   )}
                 </div>
                 <div className="text-xs text-ink-500 dark:text-ink-400">{y.count} 題</div>
+                {(dueByYear.get(y.year) ?? 0) > 0 && (
+                  <div className="ml-auto text-[11px] text-accent">
+                    {dueByYear.get(y.year)} 張到期
+                  </div>
+                )}
               </div>
 
               {/* Progress bar — % of questions in this year ever attempted */}
