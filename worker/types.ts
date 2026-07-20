@@ -40,6 +40,9 @@ export type Env = {
   // Question categories. Format: "<label>:<count>,...". Empty / missing
   // falls back to a single "全部:0" group so the app still boots.
   GROUPS?: string;
+  // 考試開始時間 (ISO-8601 with offset) — 鏡射自 config.toml [exam].date_iso。
+  // 未設時 /api/review/readiness 回 days_left: null,前端退化為只顯示速度。
+  EXAM_DATE_ISO?: string;
   // AI prompt wording — see config.toml [ai]. Each is optional and has a
   // generic fallback inside worker/routes/ai.ts so the app boots unset.
   AI_SPECIALTY_ZH?: string;

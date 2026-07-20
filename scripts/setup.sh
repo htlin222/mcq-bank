@@ -127,6 +127,7 @@ else
   GH_REPO=$(cfg project.gh_feedback_repo)
   ADMIN_EMAIL=$(cfg project.admin_emails)
   GROUPS_LIST=$(cfg groups.list)
+  EXAM_DATE_ISO=$(cfg exam.date_iso)
   AI_SPECIALTY_ZH=$(cfg ai.specialty_zh)
   AI_SPECIALTY_EN_LONG=$(cfg ai.specialty_en_long)
   AI_TAG_DISEASE_EXAMPLES=$(cfg ai.tag_disease_examples)
@@ -142,7 +143,7 @@ else
   cp wrangler.example.toml wrangler.toml
   python3 - wrangler.toml \
     "$WORKER_NAME" "$HOST" "$ZONE_NAME" "$D1_DB" "$R2_BUCKET" \
-    "$GH_REPO" "$ADMIN_EMAIL" "$GROUPS_LIST" \
+    "$GH_REPO" "$ADMIN_EMAIL" "$GROUPS_LIST" "$EXAM_DATE_ISO" \
     "$AI_SPECIALTY_ZH" "$AI_SPECIALTY_EN_LONG" \
     "$AI_TAG_DISEASE_EXAMPLES" "$AI_TAG_TOPIC_EXAMPLES" \
     "$AI_QA_QUESTION_EXAMPLES" "$AI_QA_TERMINOLOGY_EXAMPLES" \
@@ -150,9 +151,9 @@ else
 import sys, re
 path = sys.argv[1]
 (worker_name, host, zone_name, d1_db, r2_bucket, gh_repo, admin_email,
- groups_list, ai_specialty_zh, ai_specialty_en_long,
+ groups_list, exam_date_iso, ai_specialty_zh, ai_specialty_en_long,
  ai_tag_disease, ai_tag_topic, ai_qa_questions, ai_qa_terminology,
- ai_qa_mc_bad, ai_qa_mc_good) = sys.argv[2:18]
+ ai_qa_mc_bad, ai_qa_mc_good) = sys.argv[2:19]
 with open(path, 'r', encoding='utf-8') as f: t = f.read()
 
 def q(v): return v.replace('\\', '\\\\').replace('"', '\\"')
@@ -168,6 +169,7 @@ t = re.sub(r'bucket_name = "[^"]+"', f'bucket_name = "{q(r2_bucket)}"', t)
 keysub('GH_FEEDBACK_REPO', gh_repo)
 keysub('ADMIN_EMAILS', admin_email)
 keysub('GROUPS', groups_list)
+keysub('EXAM_DATE_ISO', exam_date_iso)
 keysub('AI_SPECIALTY_ZH', ai_specialty_zh)
 keysub('AI_SPECIALTY_EN_LONG', ai_specialty_en_long)
 keysub('AI_TAG_DISEASE_EXAMPLES', ai_tag_disease)
