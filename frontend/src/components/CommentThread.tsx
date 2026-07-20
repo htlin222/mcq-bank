@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ThumbsUp } from 'lucide-react';
 import { api } from '../lib/api';
+import { rankByHelpful } from '../lib/helpful';
 import { loadDraft, saveDraft, clearDraft } from '../lib/drafts';
 import { Avatar } from './Avatar';
 import { RichEditor } from './RichEditor';
@@ -18,6 +19,9 @@ type Comment = {
   created_at: number;
   helpful_count: number;
   voted_by_me: 0 | 1;
+  // 該題有 status='promoted' 的挑戰,且本留言作者就是提案人 —— 社群已用
+  // 行動認證過這個人的判斷,「最有幫助」時置頂。
+  adopted: 0 | 1;
 };
 
 type Tree = Comment & { children: Tree[] };
@@ -49,6 +53,8 @@ export function CommentThread({
 }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  // 預設時間序 —— 討論串的可讀性來自時序。「最有幫助」是使用者主動切換的檢視。
+  const [sort, setSort] = useState<'time' | 'helpful'>('time');
 
   const load = async () => {
     setLoading(true);
@@ -63,13 +69,38 @@ export function CommentThread({
 
   useEffect(() => { load(); }, [questionId]);
 
-  const tree = useMemo(() => buildTree(comments), [comments]);
+  // 排序只作用在 root 層;子回覆永遠維持時序,否則對話讀不通。
+  const tree = useMemo(() => {
+    const roots = buildTree(comments);
+    return sort === 'helpful' ? rankByHelpful(roots, Date.now()) : roots;
+  }, [comments, sort]);
 
   return (
     <section className="space-y-6">
-      <h3 className="text-lg font-serif font-semibold text-ink-800 dark:text-ink-100 border-b border-ink-200 dark:border-ink-700 pb-2">
-        討論串 <span className="text-ink-400 dark:text-ink-500 text-sm font-sans font-normal">({comments.length})</span>
-      </h3>
+      <div className="flex items-center gap-3 border-b border-ink-200 dark:border-ink-700 pb-2">
+        <h3 className="text-lg font-serif font-semibold text-ink-800 dark:text-ink-100">
+          討論串 <span className="text-ink-400 dark:text-ink-500 text-sm font-sans font-normal">({comments.length})</span>
+        </h3>
+        {comments.length > 1 && (
+          <div className="ml-auto flex gap-1">
+            {(['time', 'helpful'] as const).map((k) => (
+              <button
+                key={k}
+                onClick={() => setSort(k)}
+                aria-pressed={sort === k}
+                className={
+                  'px-2.5 py-1 rounded text-xs transition ' +
+                  (sort === k
+                    ? 'bg-accent text-white'
+                    : 'bg-ink-100 dark:bg-ink-700 text-ink-600 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-600')
+                }
+              >
+                {k === 'time' ? '依時間' : '最有幫助'}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <NewCommentBox questionId={questionId} onPosted={load} />
 
