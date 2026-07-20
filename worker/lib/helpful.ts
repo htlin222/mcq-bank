@@ -9,7 +9,7 @@ export type Rankable = {
   id: string;
   helpful_count: number;
   created_at: number;
-  adopted?: boolean;
+  adopted?: boolean | number; // D1 的 EXISTS 回 0/1,前端 state 用 boolean —— 兩者都收
 };
 
 const DAY = 86_400_000;

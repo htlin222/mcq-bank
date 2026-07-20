@@ -17,7 +17,11 @@ commentsRoutes.get("/:id/comments", async (c) => {
 	const { results } = await c.env.DB.prepare(
 		`SELECT c.*, u.display_name, u.avatar_key,
               COALESCE(hc.n, 0) AS helpful_count,
-              CASE WHEN mv.user_email IS NULL THEN 0 ELSE 1 END AS voted_by_me
+              CASE WHEN mv.user_email IS NULL THEN 0 ELSE 1 END AS voted_by_me,
+              EXISTS (SELECT 1 FROM answer_challenges ac
+                       WHERE ac.question_id = c.question_id
+                         AND ac.status = 'promoted'
+                         AND ac.proposer_email = c.author_email) AS adopted
        FROM comments c
        LEFT JOIN users u ON u.email = c.author_email
        LEFT JOIN (SELECT target_id, COUNT(*) AS n FROM helpful_votes
@@ -129,7 +133,7 @@ commentsRoutes.post("/:id/comments", async (c) => {
 		.first();
 
 	// 新留言必然零票 —— 補上常數欄讓形狀與 list 端點一致。
-	return c.json({ ...created, helpful_count: 0, voted_by_me: 0 }, 201);
+	return c.json({ ...created, helpful_count: 0, voted_by_me: 0, adopted: 0 }, 201);
 });
 
 // Edit own comment
