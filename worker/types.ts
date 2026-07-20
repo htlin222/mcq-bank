@@ -131,4 +131,10 @@ export type ExamSession = {
   score: number | null;
   duration_sec: number | null;
   mode: string;
+  // migration 0026 — 自訂測驗。舊列走 DEFAULT('year'/0/1/NULL)。
+  // year = 0 是 custom 的哨兵值,判斷種類一律看 kind。
+  kind: 'year' | 'custom';
+  tutor: 0 | 1;
+  timed: 0 | 1;
+  filter_json: string | null;
 };

@@ -25,7 +25,7 @@
 - `review_progress`(`0001:128-138`)— `times_seen` / `times_correct`(`:131-132`)、`last_correct`(`:135`);`bookmarked` 欄位已於 `migrations/0006_bookmark_folders.sql:41` 移除。
 - `bookmark_items`(`0006:22-29`)— PK `(user_email, question_id)`,`folder_id` 可為 NULL。
 - `question_tags`(`migrations/0003_year_and_groups.sql:26`)、`questions."group"`(`0003:15`,CHECK 內科/共同)。
-- **現存最後一支 migration 是 `0022_highlights.sql`。** 本計畫指定用 **0023**;實作前務必先 `ls migrations/` 重新確認最後一號,若已有 0023 就往後順延並同步改本文件的檔名。
+- **實作時現存最後一支 migration 是 `0025_review_progress_question_idx.sql`**(main 已合併 0023 attempts / 0024 helpful_votes / 0025),故本計畫實際使用 **0026**。
 
 **篩選既有寫法(可抄的樣板):**
 - `GET /api/questions`(`worker/routes/questions.ts:17`)— year / group / q / tags,tag 走 `HAVING COUNT(DISTINCT tag) = ?` 的 **AND** 語意(`:46-64`)。
@@ -72,10 +72,10 @@
 
 ---
 
-### Task 1.1: migration 0023 — session 種類欄位 + 答案排序欄位
+### Task 1.1: migration 0026 — session 種類欄位 + 答案排序欄位
 
 **Files:**
-- Create: `migrations/0023_custom_test_sessions.sql`
+- Create: `migrations/0026_custom_test_sessions.sql`
 - Modify: `worker/types.ts`(`ExamSession` 型別,現況 `:125-134`)
 - Test: 無(純 schema,由 Task 1.2 之後的端點測試覆蓋)
 
@@ -84,7 +84,7 @@
 **Step 2 — 寫 migration:**
 ```sql
 -- ============================================================
--- Migration 0023: Custom test builder sessions
+-- Migration 0026: Custom test builder sessions
 --
 -- 自訂測驗沿用 exam_sessions/exam_answers,不另開表。舊列的 DEFAULT
 -- 就是原本的「年度全真考」語意,無需 backfill。
