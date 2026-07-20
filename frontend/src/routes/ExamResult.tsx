@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Flag } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { choicePct, type StatsPayload } from '../lib/choiceStats';
@@ -26,6 +27,9 @@ type Result = {
     stem: string;
     /** null for sessions predating the attempts log (migration 0023). */
     elapsed_ms: number | null;
+    /** 標記待回頭檢查(migration 0028)。舊列 DEFAULT 0。 */
+    flagged: 0 | 1;
+    flagged_at: number | null;
   }[];
 };
 
@@ -47,7 +51,7 @@ function fmtMs(ms: number): string {
 export function ExamResult() {
   const { sid } = useParams<{ sid: string }>();
   const [data, setData] = useState<Result | null>(null);
-  const [filter, setFilter] = useState<'all' | 'wrong' | 'right'>('wrong');
+  const [filter, setFilter] = useState<'all' | 'wrong' | 'right' | 'flagged'>('wrong');
   const [pacing, setPacing] = useState<Pacing | null>(null);
 
   useEffect(() => {
@@ -66,9 +70,12 @@ export function ExamResult() {
   const mins = Math.floor(data.session.duration_sec / 60);
   const secs = data.session.duration_sec % 60;
 
+  const flaggedCount = data.answers.filter((a) => a.flagged === 1).length;
+
   const visible = data.answers.filter((a) => {
     if (filter === 'all') return true;
     if (filter === 'wrong') return a.is_correct !== 1;
+    if (filter === 'flagged') return a.flagged === 1;
     return a.is_correct === 1;
   });
 
@@ -161,19 +168,22 @@ export function ExamResult() {
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-4 text-sm">
-        {(['wrong', 'right', 'all'] as const).map((f) => (
+        {(['wrong', 'right', 'flagged', 'all'] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
+            // 沒有標記題時不給點,避免點進空清單。
+            disabled={f === 'flagged' && flaggedCount === 0}
             className={`px-3 py-1.5 rounded border transition ${
               filter === f
                 ? 'bg-ink-900 dark:bg-ink-700 text-white border-ink-900 dark:border-ink-700'
                 : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-ink-400 dark:hover:border-ink-500'
-            }`}
+            } disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-ink-200 dark:disabled:hover:border-ink-700`}
           >
             {f === 'all' && `全部 (${total})`}
             {f === 'right' && `答對 (${correct})`}
             {f === 'wrong' && `答錯/未答 (${total - correct})`}
+            {f === 'flagged' && `標記 (${flaggedCount})`}
           </button>
         ))}
       </div>
@@ -200,6 +210,14 @@ export function ExamResult() {
                 >
                   {a.number}
                 </span>
+                {/* 標記過的題目:與考試中同一組 amber 視覺 */}
+                {a.flagged === 1 && (
+                  <Flag
+                    size={11}
+                    className="shrink-0 mt-1 fill-amber-500 text-amber-600"
+                    aria-label="已標記"
+                  />
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed inline-flex items-start gap-1.5">
                     <BookmarkBadge questionId={a.question_id} className="mt-1" />
