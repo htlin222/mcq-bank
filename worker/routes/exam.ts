@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { AppContext, Env, ExamSession, Question } from '../types';
 import { uuid, optionsToRecord } from '../lib/db';
+import { clampElapsedMs, insertAttemptOp } from '../lib/attempts';
 
 export const examRoutes = new Hono<AppContext>();
 
@@ -215,7 +216,11 @@ examRoutes.post('/:sid/resume', async (c) => {
 examRoutes.post('/:sid/answer', async (c) => {
   const sid = c.req.param('sid');
   const email = c.var.email;
-  const body = await c.req.json<{ question_id: string; chosen: string }>();
+  const body = await c.req.json<{
+    question_id: string;
+    chosen: string;
+    elapsed_ms?: number;
+  }>();
 
   // Ownership + active session check
   const session = await c.env.DB
@@ -229,14 +234,30 @@ examRoutes.post('/:sid/answer', async (c) => {
   if (session.user_email !== email) return c.json({ error: 'forbidden' }, 403);
   if (session.finished_at) return c.json({ error: 'session already finished' }, 400);
 
-  await c.env.DB
-    .prepare(
-      `UPDATE exam_answers
-       SET chosen = ?, answered_at = ?
-       WHERE session_id = ? AND question_id = ?`
-    )
-    .bind(body.chosen, Date.now(), sid, body.question_id)
-    .run();
+  // exam_answers 仍是 resume 用的「當前作答狀態」(可覆寫);attempts 則
+  // append 一筆事件。改答案會產生多筆 attempt — 這是刻意的,改答案本身
+  // 就是配速訊號,配速報告以 SUM(elapsed_ms) 聚合同一 (session, question)。
+  const now = Date.now();
+  await c.env.DB.batch([
+    c.env.DB
+      .prepare(
+        `UPDATE exam_answers
+         SET chosen = ?, answered_at = ?
+         WHERE session_id = ? AND question_id = ?`
+      )
+      .bind(body.chosen, now, sid, body.question_id),
+    insertAttemptOp({
+      db: c.env.DB,
+      email,
+      questionId: body.question_id,
+      chosen: body.chosen,
+      isCorrect: null, // 模擬考交卷前不揭曉,判定留給 finish
+      source: 'exam',
+      sessionId: sid,
+      elapsedMs: clampElapsedMs(body.elapsed_ms),
+      now,
+    }),
+  ]);
 
   return c.json({ ok: true });
 });
@@ -268,6 +289,23 @@ examRoutes.post('/:sid/finish', async (c) => {
              WHEN chosen = (SELECT answer FROM questions WHERE id = exam_answers.question_id)
              THEN 1 ELSE 0 END
        WHERE session_id = ?`
+    )
+    .bind(sid)
+    .run();
+
+  // Backfill the attempt log's verdict now that the answer is revealed.
+  // Uses the same correct_answer_at_finish snapshot so a later challenge
+  // promotion doesn't retroactively rewrite this session's history.
+  await c.env.DB
+    .prepare(
+      `UPDATE attempts
+       SET is_correct = CASE
+             WHEN chosen = (SELECT COALESCE(ea.correct_answer_at_finish, q.answer)
+                            FROM exam_answers ea JOIN questions q ON q.id = ea.question_id
+                            WHERE ea.session_id = attempts.session_id
+                              AND ea.question_id = attempts.question_id)
+             THEN 1 ELSE 0 END
+       WHERE session_id = ? AND is_correct IS NULL`
     )
     .bind(sid)
     .run();
