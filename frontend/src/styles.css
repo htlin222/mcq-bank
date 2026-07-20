@@ -101,11 +101,17 @@
 }
 
 /* 防劇透 cloze self-test (AnnotatableContent): while active, every highlight is
-   covered like a fill-in-the-blank — text hidden under a solid block — and a
+   covered like a fill-in-the-blank — the text itself is `color: transparent`, so
+   the block only has to *mark* the blank, not hide anything. It therefore sits
+   at a low tint by default (reads as a quiet gap in the paragraph rather than a
+   redaction bar) and goes full strength on hover to signal it is clickable. A
    click reveals just that one (`.cloze-revealed`). */
 .cloze-active .tiptap mark {
-  @apply bg-yellow-300 dark:bg-yellow-500/60 rounded-sm px-0.5 cursor-pointer select-none;
+  @apply bg-yellow-300/40 dark:bg-yellow-500/25 rounded-sm px-0.5 cursor-pointer select-none transition-colors;
   color: transparent;
+}
+.cloze-active .tiptap mark:hover {
+  @apply bg-yellow-300 dark:bg-yellow-500/60;
 }
 .cloze-active .tiptap mark::selection {
   color: transparent;

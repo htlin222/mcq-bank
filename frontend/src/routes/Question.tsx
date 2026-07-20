@@ -194,13 +194,17 @@ export function Question() {
 	// section (詳解 / 個人筆記), session-only, reset when switching questions.
 	const [expCloze, setExpCloze] = useState(false);
 	const [noteCloze, setNoteCloze] = useState(false);
-	// 自動挖空: AI-extracted key terms for the 詳解, fetched on demand.
+	// 自動挖空: AI-extracted key terms, fetched on demand. Kept per section —
+	// 詳解 and 個人筆記 are different texts and get their own term list.
 	const [autoClozeTerms, setAutoClozeTerms] = useState<string[] | null>(null);
 	const [autoClozeLoading, setAutoClozeLoading] = useState(false);
+	const [noteAutoTerms, setNoteAutoTerms] = useState<string[] | null>(null);
+	const [noteAutoLoading, setNoteAutoLoading] = useState(false);
 	useEffect(() => {
 		setExpCloze(false);
 		setNoteCloze(false);
 		setAutoClozeTerms(null);
+		setNoteAutoTerms(null);
 	}, [data?.id]);
 
 	async function loadAutoCloze(qid: string) {
@@ -216,6 +220,22 @@ export function Question() {
 			setAutoClozeTerms([]);
 		} finally {
 			setAutoClozeLoading(false);
+		}
+	}
+
+	async function loadNoteAutoCloze(qid: string) {
+		if (noteAutoLoading) return;
+		setNoteAutoLoading(true);
+		try {
+			const r = await api.get<{ terms: string[] }>(
+				`/api/questions/${qid}/auto-cloze?source=note`,
+			);
+			setNoteAutoTerms(r.terms);
+			setNoteCloze(r.terms.length > 0);
+		} catch {
+			setNoteAutoTerms([]);
+		} finally {
+			setNoteAutoLoading(false);
 		}
 	}
 	// Live comment count for the 討論串 tab badge. Seeded from the question
@@ -1020,10 +1040,25 @@ export function Question() {
 							>
 								<Videotape size={14} /> {noteCloze ? "取消" : "防劇透"}
 							</button>
+							<button
+								type="button"
+								onClick={() => loadNoteAutoCloze(data.id)}
+								disabled={noteAutoLoading}
+								title="自動挖空:AI 從你的筆記挑出關鍵詞後遮住,供自我測驗(點各別揭曉)"
+								className={
+									"absolute top-3 right-40 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition disabled:opacity-50 " +
+									(noteAutoTerms && noteAutoTerms.length > 0
+										? "bg-accent text-white"
+										: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
+								}
+							>
+								<Sparkles size={14} /> {noteAutoLoading ? "挖空中…" : "自動挖空"}
+							</button>
 							<NoteContent
 								content={noteJson}
 								annotateKeyPrefix={`anno:note:${data.id}`}
 								cloze={noteCloze}
+								autoTerms={noteAutoTerms ?? undefined}
 							/>
 							<footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
 								僅你可見

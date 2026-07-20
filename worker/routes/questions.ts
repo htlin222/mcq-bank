@@ -508,33 +508,52 @@ questionsRoutes.get("/_meta/tags", async (c) => {
 });
 
 // ------------------------------------------------------------
-// 自動 cloze — AI-extracted key terms for the shared 詳解, cached per
-// explanation version. On-demand only (button press) to stay within the
-// free Workers AI budget. No FSRS: this just feeds the 防劇透 self-test.
+// 自動 cloze — AI-extracted key terms, on-demand only (button press) to stay
+// within the free Workers AI budget. No FSRS: this just feeds the 防劇透
+// self-test.
+//   ?source=explanation (default) — the shared 詳解, cached per version.
+//   ?source=note                  — this user's 個人筆記. Not cached: a private
+//                                   note has no version column and gets edited
+//                                   far more often than it gets cloze'd.
 // ------------------------------------------------------------
 questionsRoutes.get("/:id/auto-cloze", async (c) => {
 	const id = c.req.param("id");
+	const source = c.req.query("source") === "note" ? "note" : "explanation";
 
-	const exp = await c.env.DB.prepare(
-		"SELECT content_json, version FROM explanations WHERE question_id = ?",
-	)
-		.bind(id)
-		.first<{ content_json: string; version: number }>();
-	if (!exp) return c.json({ terms: [], cached: false });
+	let contentJson: string;
+	let expVersion = 0; // only meaningful (and only written back) for 詳解
+	if (source === "note") {
+		const note = await c.env.DB.prepare(
+			"SELECT content_json FROM personal_notes WHERE user_email = ? AND question_id = ?",
+		)
+			.bind(c.var.email, id)
+			.first<{ content_json: string }>();
+		if (!note) return c.json({ terms: [], cached: false });
+		contentJson = note.content_json;
+	} else {
+		const exp = await c.env.DB.prepare(
+			"SELECT content_json, version FROM explanations WHERE question_id = ?",
+		)
+			.bind(id)
+			.first<{ content_json: string; version: number }>();
+		if (!exp) return c.json({ terms: [], cached: false });
+		contentJson = exp.content_json;
 
-	// Cache hit — same explanation version, reuse the extracted terms.
-	const cached = await c.env.DB.prepare(
-		"SELECT terms_json, version FROM explanation_cloze WHERE question_id = ?",
-	)
-		.bind(id)
-		.first<{ terms_json: string; version: number }>();
-	if (cached && cached.version === exp.version) {
-		return c.json({ terms: safeParseTerms(cached.terms_json), cached: true });
+		// Cache hit — same explanation version, reuse the extracted terms.
+		const cached = await c.env.DB.prepare(
+			"SELECT terms_json, version FROM explanation_cloze WHERE question_id = ?",
+		)
+			.bind(id)
+			.first<{ terms_json: string; version: number }>();
+		if (cached && cached.version === exp.version) {
+			return c.json({ terms: safeParseTerms(cached.terms_json), cached: true });
+		}
+		expVersion = exp.version;
 	}
 
 	let doc: unknown;
 	try {
-		doc = JSON.parse(exp.content_json);
+		doc = JSON.parse(contentJson);
 	} catch {
 		return c.json({ terms: [], cached: false });
 	}
@@ -567,7 +586,7 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 				{
 					role: "system",
 					content:
-						"你是醫學考試出題助教。從詳解中挑出最值得考的 5–8 個關鍵詞(疾病名、藥名、機轉、數值、基因)。" +
+						`你是醫學考試出題助教。從${source === "note" ? "這份讀書筆記" : "詳解"}中挑出最值得考的 5–8 個關鍵詞(疾病名、藥名、機轉、數值、基因)。` +
 						"必須是原文中一字不差出現的片段(供挖空自我測驗用),不要改寫、不要翻譯、不要加解釋。只輸出 JSON。",
 				},
 				{ role: "user", content: text.slice(0, 3000) },
@@ -581,16 +600,18 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 
 	if (terms.length === 0) return c.json({ terms: [], cached: false });
 
-	await c.env.DB.prepare(
-		`INSERT INTO explanation_cloze (question_id, version, terms_json, created_at)
+	if (source === "explanation") {
+		await c.env.DB.prepare(
+			`INSERT INTO explanation_cloze (question_id, version, terms_json, created_at)
      VALUES (?, ?, ?, ?)
      ON CONFLICT(question_id) DO UPDATE SET
        version = excluded.version,
        terms_json = excluded.terms_json,
        created_at = excluded.created_at`,
-	)
-		.bind(id, exp.version, JSON.stringify(terms), Date.now())
-		.run();
+		)
+			.bind(id, expVersion, JSON.stringify(terms), Date.now())
+			.run();
+	}
 
 	return c.json({ terms, cached: false });
 });

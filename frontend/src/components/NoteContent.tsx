@@ -7,7 +7,11 @@ import { AnnotatableContent, hashContent } from './AnnotatableContent';
 // (select→螢光標記, click→清除, cloze). Each batch keys its localStorage by a
 // hash of its own content, namespaced per note by `keyPrefix`, so highlights
 // survive re-renders and stay put even as accordions open/close.
-type AnnoCtx = { keyPrefix: string; cloze: boolean } | null;
+type AnnoCtx = {
+  keyPrefix: string;
+  cloze: boolean;
+  autoTerms?: string[];
+} | null;
 const AnnotationCtx = createContext<AnnoCtx>(null);
 
 // Read-only renderer for 個人筆記 with two view-only affordances:
@@ -67,15 +71,22 @@ export function NoteContent({
   content,
   annotateKeyPrefix,
   cloze = false,
+  autoTerms,
 }: {
   content: any;
   /** When set, section bodies become annotatable, keyed under this prefix. */
   annotateKeyPrefix?: string;
   cloze?: boolean;
+  /**
+   * 自動挖空 terms for the whole note. Every section body gets the same list and
+   * marks whichever terms appear in it — a term from another section simply
+   * finds no match here.
+   */
+  autoTerms?: string[];
 }) {
   const items = buildTree(content?.content ?? []);
   const ctx: AnnoCtx = annotateKeyPrefix
-    ? { keyPrefix: annotateKeyPrefix, cloze }
+    ? { keyPrefix: annotateKeyPrefix, cloze, autoTerms }
     : null;
   return (
     <AnnotationCtx.Provider value={ctx}>
@@ -96,6 +107,7 @@ function SectionBody({ doc }: { doc: any }) {
       content={doc}
       storeKey={`${anno.keyPrefix}:${hashContent(doc)}`}
       cloze={anno.cloze}
+      autoTerms={anno.autoTerms}
     />
   );
 }
