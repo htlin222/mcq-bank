@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { choicePct, type StatsPayload } from '../lib/choiceStats';
 import { describeFilters } from '../lib/customTestLabel';
+import { ExportButton } from '../components/ExportDialog';
 
 type Result = {
   session: {
@@ -74,10 +75,17 @@ export function ExamResult() {
 
   return (
     <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      <header className="mb-8">
+      <header className="mb-8 flex items-center justify-between gap-4">
         <Link to="/exam" className="text-sm text-ink-500 dark:text-ink-400 hover:text-accent">
           ← 全真作答
         </Link>
+        <div className="flex items-center gap-2">
+          <ExportButton scope={{ kind: 'exam', session_id: data.session.id }} />
+          <ExportButton
+            scope={{ kind: 'exam', session_id: data.session.id, only_wrong: true }}
+            label="只匯出答錯的"
+          />
+        </div>
       </header>
 
       {/* Score banner */}
