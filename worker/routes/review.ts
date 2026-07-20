@@ -328,17 +328,28 @@ reviewRoutes.get("/heatmap", async (c) => {
 
 	// Buckets: bind everything to the user's clock by computing day-strings
 	// (YYYY-MM-DD) in UTC+8 (Asia/Taipei). D1 supports strftime modifier '+8 hours'.
+	//
+	// Counts come from `attempts` (one row per answer). This used to read
+	// review_progress.last_seen_at — an aggregate row that gets overwritten,
+	// so answering 10 questions in a day only ever counted as 1. The
+	// exam_answers branch is gone too: exam answers now land in `attempts`,
+	// so keeping it would double-count.
+	//
+	// fsrs_review_logs stays: a bare FSRS rating with no `chosen` never
+	// reaches `attempts`, so dropping it would lose those reviews. Anki
+	// reviews that DO carry a `chosen` are counted by both branches — an
+	// accepted overlap, since dropping either one loses more than it fixes.
+	//
+	// NOTE: `attempts` only starts at migration 0023 and history was
+	// deliberately not backfilled (aggregates can't be expanded into real
+	// timestamps without fabricating them), so days before that go blank.
 	const { results } = await c.env.DB.prepare(
 		`WITH a AS (
-         SELECT last_seen_at AS ts FROM review_progress
-           WHERE user_email = ? AND last_seen_at >= ?
+         SELECT created_at AS ts FROM attempts
+           WHERE user_email = ? AND created_at >= ?
          UNION ALL
          SELECT reviewed_at FROM fsrs_review_logs
            WHERE user_email = ? AND reviewed_at >= ?
-         UNION ALL
-         SELECT ea.answered_at FROM exam_answers ea
-           JOIN exam_sessions es ON es.id = ea.session_id
-           WHERE es.user_email = ? AND ea.answered_at >= ?
        )
        SELECT strftime('%Y-%m-%d', ts / 1000, 'unixepoch', '+8 hours') AS d,
               COUNT(*) AS n
@@ -347,7 +358,7 @@ reviewRoutes.get("/heatmap", async (c) => {
        GROUP BY d
        ORDER BY d`,
 	)
-		.bind(email, since, email, since, email, since)
+		.bind(email, since, email, since)
 		.all<{ d: string; n: number }>();
 	return c.json(results);
 });
