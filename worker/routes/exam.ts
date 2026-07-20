@@ -3,6 +3,7 @@ import type { AppContext, Env, ExamSession, Question } from '../types';
 import { uuid, optionsToRecord } from '../lib/db';
 import { clampElapsedMs, insertAttemptOp } from '../lib/attempts';
 import { median, pacingSplit } from '../lib/pacing';
+import { buildTestFilter, normalizeFilters, type RawTestFilters } from '../lib/testBuilder';
 
 export const examRoutes = new Hono<AppContext>();
 
@@ -105,6 +106,112 @@ examRoutes.post('/start', async (c) => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// 自訂測驗(custom test builder)
+//
+// 產生的 session 與 /start 完全同構:一列 exam_sessions + N 列 exam_answers,
+// 下游的 /state /answer /pause /resume /finish /:sid 一行都不用改(除了排序
+// 改吃 ea.seq)。差別只在 exam_sessions.kind='custom'、year=0 哨兵,以及
+// tutor/timed/filter_json 三個旗標。
+//
+// 這兩個 handler 必須註冊在 /:sid/* 之前 —— Hono 依註冊順序比對,
+// POST /custom/preview 與 POST /:sid/pause 同為兩段路徑。
+// ---------------------------------------------------------------------------
+
+// 不計時:cap 大到不會觸發自動交卷(前端改為往上計時的碼表)。
+const UNTIMED_CAP_MS = 24 * 60 * 60 * 1000;
+
+// 預覽符合題數 — UI 每次改條件就打一次,只做一個 COUNT(*),不建 session。
+examRoutes.post('/custom/preview', async (c) => {
+  const email = c.var.email;
+  const f = normalizeFilters(await c.req.json<RawTestFilters>().catch(() => ({})));
+  const { joinSql, whereSql, params } = buildTestFilter(f, email);
+
+  const row = await c.env.DB
+    .prepare(`SELECT COUNT(*) AS n FROM questions q ${joinSql} ${whereSql}`)
+    .bind(...params)
+    .first<{ n: number }>();
+
+  const available = row?.n ?? 0;
+  return c.json({ available, requested: f.count, will_use: Math.min(available, f.count) });
+});
+
+// 依篩選條件抽題並建立一場自訂測驗。回傳體與 /start 同形(多帶 kind/tutor/
+// timed/year 與 requested/actual),前端可共用型別。
+examRoutes.post('/custom', async (c) => {
+  const email = c.var.email;
+  const f = normalizeFilters(await c.req.json<RawTestFilters>().catch(() => ({})));
+  const { joinSql, whereSql, params } = buildTestFilter(f, email);
+
+  // 隨機抽題:D1 的 RANDOM() 對 1000 列題庫成本可忽略。
+  const { results: questions } = await c.env.DB
+    .prepare(
+      `SELECT q.id, q.year, q.number, q.stem, q.options_json
+       FROM questions q ${joinSql} ${whereSql}
+       ORDER BY RANDOM() LIMIT ?`
+    )
+    .bind(...params, f.count)
+    .all<Pick<Question, 'id' | 'year' | 'number' | 'stem' | 'options_json'>>();
+
+  if (questions.length === 0) {
+    return c.json({ error: 'no questions match', available: 0 }, 404);
+  }
+
+  const sessionId = uuid();
+  const now = Date.now();
+  // 題數不足時不報錯 —— 直接用實際可用題數出卷,回傳體帶 requested/actual
+  // 讓 UI 講清楚(不靜默截斷)。
+  const capMs = f.timed ? questions.length * MS_PER_QUESTION : UNTIMED_CAP_MS;
+
+  const ops = [
+    c.env.DB
+      .prepare(
+        `INSERT INTO exam_sessions
+           (id, user_email, year, started_at, mode, elapsed_ms, running_since, cap_ms,
+            kind, tutor, timed, filter_json)
+         VALUES (?, ?, 0, ?, 'partial', 0, ?, ?, 'custom', ?, ?, ?)`
+      )
+      .bind(
+        sessionId,
+        email,
+        now,
+        now,
+        capMs,
+        f.tutor ? 1 : 0,
+        f.timed ? 1 : 0,
+        JSON.stringify(f),
+      ),
+  ];
+  questions.forEach((q, i) => {
+    ops.push(
+      c.env.DB
+        .prepare(`INSERT INTO exam_answers (session_id, question_id, seq) VALUES (?, ?, ?)`)
+        .bind(sessionId, q.id, i)
+    );
+  });
+  await c.env.DB.batch(ops);
+
+  return c.json({
+    session_id: sessionId,
+    started_at: now,
+    elapsed_ms: 0,
+    running_since: now,
+    cap_ms: capMs,
+    kind: 'custom' as const,
+    tutor: (f.tutor ? 1 : 0) as 0 | 1,
+    timed: (f.timed ? 1 : 0) as 0 | 1,
+    requested: f.count,
+    actual: questions.length,
+    questions: questions.map((q) => ({
+      id: q.id,
+      year: q.year,
+      number: q.number,
+      stem: q.stem,
+      options: optionsToRecord(q.options_json),
+    })),
+  });
+});
+
 // Resume / fetch an in-progress session (with all questions + saved answers).
 // Used when the user navigates back to /exam/:sid after leaving.
 examRoutes.get('/:sid/state', async (c) => {
@@ -122,14 +229,16 @@ examRoutes.get('/:sid/state', async (c) => {
 
   const { results: rows } = await c.env.DB
     .prepare(
-      `SELECT q.id, q.number, q.stem, q.options_json, ea.chosen
+      // COALESCE(ea.seq, q.number):自訂測驗跨年份時 q.number 會重複,seq 才是
+      // 卷內順序;seq 為 NULL 的舊 session 退回原本的 q.number 排序(等價)。
+      `SELECT q.id, q.year, q.number, q.stem, q.options_json, ea.chosen
        FROM exam_answers ea
        JOIN questions q ON q.id = ea.question_id
        WHERE ea.session_id = ?
-       ORDER BY q.number ASC`
+       ORDER BY COALESCE(ea.seq, q.number) ASC, q.year ASC, q.number ASC`
     )
     .bind(sid)
-    .all<{ id: string; number: number; stem: string; options_json: string; chosen: string | null }>();
+    .all<{ id: string; year: number; number: number; stem: string; options_json: string; chosen: string | null }>();
 
   const liveElapsed = session.running_since
     ? session.elapsed_ms + (now - session.running_since)
@@ -141,8 +250,14 @@ examRoutes.get('/:sid/state', async (c) => {
     elapsed_ms: liveElapsed,
     running_since: session.running_since,
     cap_ms: session.cap_ms,
+    // 自訂測驗的 UI 靠這三個旗標決定計時方向、標題與 tutor 揭曉。
+    // 舊 session 由 migration 0026 的 DEFAULT 落在 'year'/0/1。
+    kind: session.kind,
+    tutor: session.tutor,
+    timed: session.timed,
     questions: rows.map((r) => ({
       id: r.id,
+      year: r.year,
       number: r.number,
       stem: r.stem,
       options: optionsToRecord(r.options_json),
@@ -358,7 +473,7 @@ examRoutes.get('/:sid', async (c) => {
   const { results: answers } = await c.env.DB
     .prepare(
       `SELECT ea.question_id, ea.chosen, ea.is_correct, ea.answered_at,
-              q.number, q.stem,
+              q.year, q.number, q.stem,
               COALESCE(ea.correct_answer_at_finish, q.answer) AS correct_answer,
               t.elapsed_ms
        FROM exam_answers ea
@@ -369,7 +484,7 @@ examRoutes.get('/:sid', async (c) => {
          GROUP BY question_id
        ) t ON t.question_id = ea.question_id
        WHERE ea.session_id = ?
-       ORDER BY q.number ASC`
+       ORDER BY COALESCE(ea.seq, q.number) ASC, q.year ASC, q.number ASC`
     )
     .bind(sid, sid)
     .all();
