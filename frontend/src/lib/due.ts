@@ -22,3 +22,14 @@ export const dueKindLabel: Record<DueKind, string> = {
   due: '到期',
   new: '新卡',
 };
+
+/** 絕對時間點的短標籤,用於「下一張 …」。到點(或已過)顯示「現在」。 */
+export function formatDueAt(dueAt: number) {
+  if (dueAt - Date.now() <= 45_000) return '現在';
+  return new Date(dueAt).toLocaleString('zh-TW', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}

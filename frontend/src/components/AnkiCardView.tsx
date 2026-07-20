@@ -300,12 +300,6 @@ function formatDueDelta(dueAt: number) {
   return `${Math.ceil(hours / 24)} 天`;
 }
 
-export function formatDueAt(dueAt: number) {
-  if (dueAt - Date.now() <= 45_000) return '現在';
-  return new Date(dueAt).toLocaleString('zh-TW', {
-    month: 'numeric',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+// 真正的實作住在 lib/due.ts(首頁 CTA 也要用),這裡只 re-export 給兩支
+// 卡片頁沿用既有的 import 路徑。
+export { formatDueAt } from '../lib/due';

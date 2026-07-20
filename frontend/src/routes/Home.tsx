@@ -8,6 +8,7 @@ import { ResumeChip } from '../components/ResumeChip';
 import { useMe } from '../hooks/useMe';
 import { ActivityHeatmap } from '../components/ActivityHeatmap';
 import { GROUPS, TOTAL_EXAM_COUNT } from '../lib/groups';
+import { formatDueAt, type DueSummary } from '../lib/due';
 
 type YearMeta = { year: number; count: number };
 type Stats = {
@@ -42,6 +43,8 @@ export function Home() {
   const { me } = useMe();
   const [years, setYears] = useState<YearMeta[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  // 跨年份到期佇列摘要 — 決定要不要顯示「今天 N 張」CTA。
+  const [due, setDue] = useState<DueSummary | null>(null);
   const [countdown, setCountdown] = useState<Countdown>(() => countdownTo(EXAM_DATE));
   // 「繼續上次」— read once on mount; dismissable for this visit.
   const [resume, setResume] = useState(() => loadLastPath());
@@ -49,6 +52,7 @@ export function Home() {
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
     api.get<Stats>('/api/review/stats').then(setStats).catch(() => setStats(null));
+    api.get<DueSummary>('/api/review/due').then(setDue).catch(() => setDue(null));
     // Tick once per second so the SS digits keep up. State updates are cheap
     // here — only the countdown card depends on it.
     const t = window.setInterval(() => setCountdown(countdownTo(EXAM_DATE)), 1000);
@@ -123,6 +127,26 @@ export function Home() {
             </>
           )}
         </div>
+
+        {/* 跨年份「今天該複習什麼」入口。0 張時只留一行低調文字,不搶版面。 */}
+        {due && due.due_total > 0 ? (
+          <Link
+            to="/due"
+            className="mt-3 flex items-center justify-between gap-3 flex-wrap rounded-lg border border-accent/30 bg-accent/5 dark:bg-accent/15 px-4 py-3 hover:border-accent transition"
+          >
+            <span className="text-ink-800 dark:text-ink-100">
+              今天 <span className="font-mono text-accent text-lg">{due.due_total}</span> 張到期
+            </span>
+            <span className="text-xs text-ink-500 dark:text-ink-400">
+              到期 {due.due_review} · 學習中 {due.learning} · 新卡 {due.new_remaining} →
+            </span>
+          </Link>
+        ) : due ? (
+          <p className="mt-3 text-xs text-ink-400 dark:text-ink-500">
+            今天沒有到期卡片
+            {due.next_due_at ? ` · 下一張 ${formatDueAt(due.next_due_at)}` : ''}
+          </p>
+        ) : null}
       </section>
 
       {/* Activity heatmap + stats summary */}
