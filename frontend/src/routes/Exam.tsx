@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { GROUPS, groupCounts } from '../lib/groups';
 import { loadSectionPath, clearSectionPath, type LastPath } from '../lib/lastPath';
 import { ResumeChip } from '../components/ResumeChip';
+import { flaggedIds, reconcileFlags, setFlag, toServerFlags } from '../lib/examFlagStore';
 import { TutorReveal } from '../components/TutorReveal';
 import {
   startTimer,
@@ -26,6 +27,9 @@ type ExamQuestion = {
   stem: string;
   options: Record<string, string>;
   chosen?: string | null;
+  /** 標記待回頭檢查(migration 0028 起由 /state 帶出,跨裝置同步)。 */
+  flagged?: boolean;
+  flagged_at?: number | null;
 };
 
 type ExamState = {
@@ -227,38 +231,29 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
   const [now, setNow] = useState(Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [busy, setBusy] = useState(false);
-  // 標記題目 (待回頭檢查) — local-only, persisted in sessionStorage so a
-  // refresh during the exam doesn't drop the user's flags. Not synced to
-  // the server (these are ephemeral exam-time aids, no need for a roundtrip).
+  // 標記題目 (待回頭檢查) — 本機(localStorage)即時生效,server 背景同步,
+  // 進入 session 時對帳(examFlagStore)。換裝置/關分頁都留得住。
   // 教學模式:已揭曉答案的題目 id。只有送出答案之後才會加進來,
   // TutorReveal 也只在這裡面才 mount —— 否則 /api/questions/:id 會提前
   // 把正解送到瀏覽器。
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
-  const [marked, setMarked] = useState<Set<string>>(() => {
-    try {
-      const raw = sessionStorage.getItem(`exam-marks-${sessionId}`);
-      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
+  const [marked, setMarked] = useState<Set<string>>(
+    () => new Set(flaggedIds(sessionId)),
+  );
   const flushTimers = useRef<Record<string, number>>({});
   // Per-question timer: restarts on every question change, and follows both
   // the tab's visibility and the session's own pause state.
   const timer = useRef<TimerState>(startTimer(Date.now()));
 
   function toggleMark(qid: string) {
-    setMarked((prev) => {
-      const next = new Set(prev);
-      if (next.has(qid)) next.delete(qid);
-      else next.add(qid);
-      try {
-        sessionStorage.setItem(`exam-marks-${sessionId}`, JSON.stringify([...next]));
-      } catch {
-        /* storage full / disabled — non-fatal */
-      }
-      return next;
-    });
+    const next = new Set(marked);
+    if (next.has(qid)) next.delete(qid);
+    else next.add(qid);
+    setMarked(next);
+    // 本機立即寫入 + 背景送 server(副作用刻意放在 updater 外)。
+    // 不在 API 失敗時回滾 UI —— 離線時標記不該從畫面上消失,
+    // 下次進入 session 由 reconcileFlags 補推。
+    setFlag(sessionId, qid, next.has(qid));
   }
 
   // Load: prefer fresh state from server (works after refresh / device switch)
@@ -279,6 +274,21 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       setAnswers((prev) => ({ ...seed, ...prev }));
       // 教學模式續答:已作答的題目答案早就送出過,揭曉狀態要一起還原。
       if (s.tutor === 1) setRevealed(new Set(Object.keys(seed)));
+      // 標記對帳:複用這份 /state 回應,不多打 API。本機較新的會被推上去,
+      // server 較新的直接採用 —— 重新進入 session 以合併結果為準。
+      void reconcileFlags(sessionId, toServerFlags(s.questions))
+        .then((flags) => {
+          setMarked(
+            new Set(
+              Object.entries(flags)
+                .filter(([, v]) => v.flagged)
+                .map(([qid]) => qid),
+            ),
+          );
+        })
+        .catch(() => {
+          /* 對帳失敗不影響作答流程,畫面維持本機標記 */
+        });
     }).catch(() => {
       if (!cached) {
         alert('找不到作答中的 session,可能已結束或非你本人。');
@@ -442,7 +452,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       }
       await api.post(`/api/exam/${sessionId}/finish`);
       sessionStorage.removeItem(`exam-${sessionId}`);
-      sessionStorage.removeItem(`exam-marks-${sessionId}`);
+      // 標記刻意保留(server 也留著):結果頁的「標記」頁籤要用它做二輪複習。
       navigate(`/exam/${sessionId}/result`);
     } finally {
       setSubmitting(false);
