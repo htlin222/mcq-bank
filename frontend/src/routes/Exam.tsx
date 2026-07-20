@@ -5,6 +5,15 @@ import { api } from '../lib/api';
 import { GROUPS, groupCounts } from '../lib/groups';
 import { loadSectionPath, clearSectionPath, type LastPath } from '../lib/lastPath';
 import { ResumeChip } from '../components/ResumeChip';
+import {
+  startTimer,
+  hide,
+  show,
+  pause as pauseTimer,
+  resume as resumeTimer,
+  read,
+  type TimerState,
+} from '../lib/questionTimer';
 
 type YearMeta = { year: number; count: number };
 
@@ -212,6 +221,9 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
     }
   });
   const flushTimers = useRef<Record<string, number>>({});
+  // Per-question timer: restarts on every question change, and follows both
+  // the tab's visibility and the session's own pause state.
+  const timer = useRef<TimerState>(startTimer(Date.now()));
 
   function toggleMark(qid: string) {
     setMarked((prev) => {
@@ -250,6 +262,19 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       }
     });
   }, [sessionId, navigate]);
+
+  // Restart the per-question timer on question change, and pause it while
+  // the tab is hidden (looking something up shouldn't count as think time).
+  useEffect(() => {
+    timer.current = startTimer(Date.now());
+    function onVisibility() {
+      timer.current = document.hidden
+        ? hide(timer.current, Date.now())
+        : show(timer.current, Date.now());
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [activeIdx]);
 
   // Tick (only when running)
   useEffect(() => {
@@ -313,6 +338,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       api.post(`/api/exam/${sessionId}/answer`, {
         question_id: q.id,
         chosen: letter,
+        elapsed_ms: read(timer.current, Date.now()).elapsedMs,
       });
     }, 400);
   }
@@ -324,6 +350,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       const r = await api.post<{ elapsed_ms: number; running_since: null }>(
         `/api/exam/${sessionId}/pause`
       );
+      timer.current = pauseTimer(timer.current, Date.now());
       setState((s) => s && { ...s, elapsed_ms: r.elapsed_ms, running_since: null });
     } finally { setBusy(false); }
   }
@@ -335,6 +362,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       const r = await api.post<{ elapsed_ms: number; running_since: number }>(
         `/api/exam/${sessionId}/resume`
       );
+      timer.current = resumeTimer(timer.current, Date.now());
       setState((s) => s && { ...s, elapsed_ms: r.elapsed_ms, running_since: r.running_since });
     } finally { setBusy(false); }
   }
@@ -352,6 +380,9 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
     setSubmitting(true);
     try {
       Object.entries(flushTimers.current).forEach(([, id]) => window.clearTimeout(id));
+      // Deliberately no elapsed_ms here: this loop re-sends every answer as a
+      // safety net at submit time, it isn't a fresh answering event. Attaching
+      // a duration would inject fabricated timing into the pacing report.
       for (const [qid, letter] of Object.entries(answers)) {
         await api.post(`/api/exam/${sessionId}/answer`, {
           question_id: qid,
