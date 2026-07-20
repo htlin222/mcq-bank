@@ -135,6 +135,12 @@ export function RichEditor({
 
   const uploadAndInsert = useCallback(async (file: File) => {
     if (!editor) return;
+    // R2 uploads have no offline queue — fail loudly and early rather than
+    // dropping a broken image node into someone's draft.
+    if (!navigator.onLine) {
+      alert('離線中,無法上傳圖片。連線後再試一次。');
+      return;
+    }
     try {
       const { url } = await api.upload<{ url: string }>('/api/upload', file);
       editor.chain().focus().setImage({ src: url }).run();
