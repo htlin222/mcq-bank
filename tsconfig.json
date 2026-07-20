@@ -9,6 +9,11 @@
     "noImplicitAny": true,
     "noFallthroughCasesInSwitch": true,
     "isolatedModules": true,
+    // Lets non-test worker modules import a sibling as "./x.ts" — needed so
+    // node --test (which resolves specifiers literally) can load a module that
+    // has cross-file imports. wrangler/esbuild resolves the explicit extension.
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
