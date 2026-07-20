@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { GROUPS, groupCounts } from '../lib/groups';
 import { loadSectionPath, clearSectionPath, type LastPath } from '../lib/lastPath';
 import { ResumeChip } from '../components/ResumeChip';
+import { TutorReveal } from '../components/TutorReveal';
 import {
   startTimer,
   hide,
@@ -19,6 +20,8 @@ type YearMeta = { year: number; count: number };
 
 type ExamQuestion = {
   id: string;
+  /** 自訂測驗可跨年份,標題要顯示「114-007」而非只有題號。年度考忽略即可。 */
+  year?: number;
   number: number;
   stem: string;
   options: Record<string, string>;
@@ -31,6 +34,10 @@ type ExamState = {
   elapsed_ms: number;
   running_since: number | null;  // null = paused
   cap_ms: number;                // 100 * 60 * 1000
+  /** migration 0026 起由 /state 帶出;舊 client / 舊 session 視為年度考。 */
+  kind?: 'year' | 'custom';
+  tutor?: 0 | 1;
+  timed?: 0 | 1;
   questions: ExamQuestion[];
 };
 
@@ -223,6 +230,10 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
   // 標記題目 (待回頭檢查) — local-only, persisted in sessionStorage so a
   // refresh during the exam doesn't drop the user's flags. Not synced to
   // the server (these are ephemeral exam-time aids, no need for a roundtrip).
+  // 教學模式:已揭曉答案的題目 id。只有送出答案之後才會加進來,
+  // TutorReveal 也只在這裡面才 mount —— 否則 /api/questions/:id 會提前
+  // 把正解送到瀏覽器。
+  const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [marked, setMarked] = useState<Set<string>>(() => {
     try {
       const raw = sessionStorage.getItem(`exam-marks-${sessionId}`);
@@ -266,6 +277,8 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
       const seed: Record<string, string> = {};
       for (const q of s.questions) if (q.chosen) seed[q.id] = q.chosen;
       setAnswers((prev) => ({ ...seed, ...prev }));
+      // 教學模式續答:已作答的題目答案早就送出過,揭曉狀態要一起還原。
+      if (s.tutor === 1) setRevealed(new Set(Object.keys(seed)));
     }).catch(() => {
       if (!cached) {
         alert('找不到作答中的 session,可能已結束或非你本人。');
@@ -322,7 +335,11 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
     ? state.elapsed_ms + (now - state.running_since)
     : state.elapsed_ms;
   const remaining = Math.max(0, state.cap_ms - live);
-  const overtime = live > state.cap_ms;
+  // 不計時的 session 沒有「超時」概念(cap 是 24 小時的形式值)。
+  const isCustom = state.kind === 'custom';
+  const isTutor = state.tutor === 1;
+  const isTimed = state.timed !== 0;
+  const overtime = isTimed && live > state.cap_ms;
   const isPaused = state.running_since === null;
 
   // Format mm:ss for remaining (or live elapsed if overtime)
@@ -342,9 +359,32 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 
   function choose(letter: string) {
     if (isPaused) return;
+    // 教學模式:答案一旦送出就鎖住,不可改答。
+    if (isTutor && revealed.has(q.id)) return;
     setAnswers((prev) => ({ ...prev, [q.id]: letter }));
     if (flushTimers.current[q.id])
       window.clearTimeout(flushTimers.current[q.id]);
+    if (isTutor) {
+      // 不 debounce:答案即刻定案,且要等 POST 成功才揭曉,確保
+      // TutorReveal(會抓到正解)不會在答案送出前就 mount。
+      const qid = q.id;
+      api
+        .post(`/api/exam/${sessionId}/answer`, {
+          question_id: qid,
+          chosen: letter,
+          elapsed_ms: read(timer.current, Date.now()).elapsedMs,
+        })
+        .then(() => setRevealed((prev) => new Set(prev).add(qid)))
+        .catch(() => {
+          // 送出失敗就不揭曉,使用者可以重選。
+          setAnswers((prev) => {
+            const next = { ...prev };
+            delete next[qid];
+            return next;
+          });
+        });
+      return;
+    }
     flushTimers.current[q.id] = window.setTimeout(() => {
       api.post(`/api/exam/${sessionId}/answer`, {
         question_id: q.id,
@@ -411,13 +451,20 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 
   const answered = Object.keys(answers).length;
   const total = state.questions.length;
-  const warningSoon = !overtime && remaining < 10 * 60_000;
+  const warningSoon = isTimed && !overtime && remaining < 10 * 60_000;
 
   return (
     <div className="min-h-screen bg-ink-50 dark:bg-ink-900 pb-32">
       {/* Sticky header */}
       <header className="sticky top-0 z-10 bg-white dark:bg-ink-800 border-b border-ink-200 dark:border-ink-700 px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div className="text-sm flex items-center gap-3 flex-wrap">
+          {isCustom && (
+            <>
+              <span className="text-ink-700 dark:text-ink-200">自訂測驗</span>
+              <span className="text-ink-400 dark:text-ink-500">·</span>
+            </>
+          )}
+          {/* 不計時:碼表往上跑,不做紅色告警。 */}
           <span
             className={
               'font-mono ' +
@@ -427,10 +474,17 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
                 ? 'text-amber-700'
                 : 'text-ink-900 dark:text-ink-100')
             }
-            title={isPaused ? '已暫停' : '倒數中'}
+            title={isPaused ? '已暫停' : isTimed ? '倒數中' : '計時中(不倒數)'}
           >
-            {overtime ? '超時 ' + fmt(live - state.cap_ms) : fmt(remaining)}
+            {!isTimed
+              ? fmt(live)
+              : overtime
+              ? '超時 ' + fmt(live - state.cap_ms)
+              : fmt(remaining)}
           </span>
+          {!isTimed && (
+            <span className="text-xs text-ink-500 dark:text-ink-400">不計時</span>
+          )}
           <span className="text-ink-400 dark:text-ink-500">·</span>
           <span className="text-ink-600 dark:text-ink-300">
             {answered}/{total} 題已答
@@ -481,7 +535,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
             <Pause className="mx-auto text-ink-400 dark:text-ink-500" size={48} strokeWidth={1.5} />
             <h2 className="font-serif text-xl text-ink-800 dark:text-ink-200 mt-3">已暫停作答</h2>
             <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
-              倒數計時已停止。隨時點「繼續」恢復。
+              {isTimed ? '倒數計時已停止。' : '計時已暫停。'}隨時點「繼續」恢復。
             </p>
             <button
               onClick={resume}
@@ -500,7 +554,18 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
           <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
             <div className="flex items-center justify-between mb-3 gap-3">
               <div className="text-sm text-ink-500 dark:text-ink-400">
-                第 {q.number} 題 / {total}
+                {isCustom ? (
+                  <>
+                    第 {activeIdx + 1} / {total} 題
+                    <span className="font-mono ml-2 text-ink-400 dark:text-ink-500">
+                      {q.year}-{String(q.number).padStart(3, '0')}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    第 {q.number} 題 / {total}
+                  </>
+                )}
               </div>
               <button
                 onClick={() => toggleMark(q.id)}
@@ -525,13 +590,18 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
                 .filter((L) => q.options[L])
                 .map((L) => {
                   const selected = answers[q.id] === L;
+                  const locked = isTutor && revealed.has(q.id);
                   return (
                     <li
                       key={L}
                       onClick={() => choose(L)}
-                      className={`flex gap-3 items-start p-3 rounded border cursor-pointer transition ${
+                      className={`flex gap-3 items-start p-3 rounded border transition ${
+                        locked ? 'cursor-default' : 'cursor-pointer'
+                      } ${
                         selected
                           ? 'border-accent bg-accent/5'
+                          : locked
+                          ? 'border-ink-200 dark:border-ink-700 opacity-60'
                           : 'border-ink-200 dark:border-ink-700 hover:border-ink-400 hover:bg-ink-50 dark:hover:bg-ink-700/50'
                       }`}
                     >
@@ -543,6 +613,12 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
                   );
                 })}
             </ul>
+
+            {/* 教學模式:只有在答案送出後才 mount(元件內會抓含正解的
+                /api/questions/:id,提前 mount 等於提前洩題)。 */}
+            {isTutor && revealed.has(q.id) && answers[q.id] && (
+              <TutorReveal questionId={q.id} chosen={answers[q.id]} />
+            )}
           </div>
 
           <div className="mt-5 flex gap-2 justify-between">
@@ -592,7 +668,8 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
                         : 'border-ink-200 dark:border-ink-700 text-ink-500 dark:text-ink-400 hover:border-ink-400'
                     }`}
                   >
-                    {qq.number}
+                    {/* 自訂測驗跨年份時 number 會重複,格子用卷內序號。 */}
+                    {isCustom ? i + 1 : qq.number}
                     {m && (
                       <Flag
                         size={9}
