@@ -50,10 +50,11 @@ export function hashText(s: string): string {
  * every cached term list instead of leaving old readers stuck with terms
  * produced by the previous prompt.
  */
-export const CLOZE_PROMPT_VERSION = "2";
+export const CLOZE_PROMPT_VERSION = "3";
 
 // Trim, drop terms shorter than 2 chars, de-dupe (first occurrence wins),
-// cap at 20 so a single explanation never becomes an unusable cloze wall.
+// cap at 50 — the owner wants roughly one blank per line, so the cap is a
+// runaway guard rather than a readability limit.
 export function dedupeTerms(terms: unknown): string[] {
 	if (!Array.isArray(terms)) return [];
 	const seen = new Set<string>();
@@ -64,7 +65,7 @@ export function dedupeTerms(terms: unknown): string[] {
 		if (t.length < 2 || seen.has(t)) continue;
 		seen.add(t);
 		out.push(t);
-		if (out.length >= 20) break;
+		if (out.length >= 50) break;
 	}
 	return out;
 }

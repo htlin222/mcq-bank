@@ -29,13 +29,13 @@ test("跨段落以換行分隔,不黏在一起", () => {
 	assert.equal(explanationPlainText(doc), "第一段\n第二段");
 });
 
-test("關鍵詞去重、去頭尾空白、剔除過短、限量 20", () => {
+test("關鍵詞去重、去頭尾空白、剔除過短、限量 50", () => {
 	assert.deepEqual(dedupeTerms([" BCR-ABL1 ", "BCR-ABL1", "的", "TKI"]), [
 		"BCR-ABL1",
 		"TKI",
 	]);
-	const many = Array.from({ length: 30 }, (_, i) => `term${i}`);
-	assert.equal(dedupeTerms(many).length, 20);
+	const many = Array.from({ length: 80 }, (_, i) => `term${i}`);
+	assert.equal(dedupeTerms(many).length, 50);
 });
 
 test("hashText 穩定、對內容敏感", () => {

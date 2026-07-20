@@ -686,7 +686,7 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 	let terms: string[] = [];
 	try {
 		const out = await c.env.AI.run(TEXT_MODEL, {
-			max_tokens: 900,
+			max_tokens: 1800,
 			temperature: 0.1,
 			response_format: {
 				type: "json_schema",
@@ -695,8 +695,8 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 					properties: {
 						terms: {
 							type: "array",
-							minItems: 5,
-							maxItems: 16,
+							minItems: 10,
+							maxItems: 40,
 							items: { type: "string" },
 						},
 					},
@@ -708,8 +708,8 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 				{
 					role: "system",
 					content:
-						`你是醫學考試出題助教。從${source === "note" ? "這份讀書筆記" : "詳解"}中挑出最值得考的 10–16 個關鍵詞(疾病名、藥名、機轉、數值、基因、診斷標準)。` +
-						"請涵蓋全文各段落,不要只集中在開頭。"  +
+						`你是醫學考試出題助教。從${source === "note" ? "這份讀書筆記" : "詳解"}中挑出 25–40 個值得考的關鍵詞(疾病名、藥名、機轉、數值、基因、診斷標準、預後因子)。` +
+						"目標密度是**每一行/每個條目至少 1 個**,請由上而下逐段挑選、平均分布到全文,不要只集中在開頭。"  +
 						"必須是原文中一字不差出現的片段(供挖空自我測驗用),不要改寫、不要翻譯、不要加解釋。只輸出 JSON。",
 				},
 				{ role: "user", content: text.slice(0, 6000) },
