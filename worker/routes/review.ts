@@ -16,6 +16,7 @@ import {
 } from "../lib/fsrs";
 import { calibration } from "../lib/calibration";
 import { clusterByThreshold, type VecItem } from "../lib/cluster";
+import { clampElapsedMs, insertAttemptOp } from "../lib/attempts";
 
 export const reviewRoutes = new Hono<AppContext>();
 
@@ -139,6 +140,8 @@ reviewRoutes.post("/answer", async (c) => {
 		question_id: string;
 		chosen: string;
 		confidence?: number;
+		elapsed_ms?: number;
+		source?: "review" | "drill";
 	}>();
 	const now = Date.now();
 
@@ -150,14 +153,28 @@ reviewRoutes.post("/answer", async (c) => {
 	if (!q) return c.json({ error: "no such question" }, 404);
 	const isCorrect = q.answer === body.chosen ? 1 : 0;
 
-	await answerProgressOp({
-		email,
-		questionId: body.question_id,
-		chosen: body.chosen,
-		isCorrect,
-		now,
-		db: c.env.DB,
-	}).run();
+	// 聚合(derived cache)與事件(唯一真相)同進同退 — D1 batch 是單一交易。
+	await c.env.DB.batch([
+		answerProgressOp({
+			email,
+			questionId: body.question_id,
+			chosen: body.chosen,
+			isCorrect,
+			now,
+			db: c.env.DB,
+		}),
+		insertAttemptOp({
+			db: c.env.DB,
+			email,
+			questionId: body.question_id,
+			chosen: body.chosen,
+			isCorrect,
+			source: body.source === "drill" ? "drill" : "review",
+			sessionId: null,
+			elapsedMs: clampElapsedMs(body.elapsed_ms),
+			now,
+		}),
+	]);
 
 	// Pre-answer confidence (JOL) is optional — log it only when 1/2/3 so the
 	// mock-exam flow (which never sends it) is unaffected.
@@ -434,6 +451,7 @@ reviewRoutes.post("/anki/review", async (c) => {
 		question_id?: string;
 		rating?: string;
 		chosen?: string | null;
+		elapsed_ms?: number;
 	}>();
 	const questionId = (body.question_id || "").trim();
 	const rating = ratingFromInput(body.rating);
@@ -540,6 +558,20 @@ reviewRoutes.post("/anki/review", async (c) => {
 				isCorrect,
 				now,
 				db: c.env.DB,
+			}),
+		);
+		// 只有帶 chosen 的 rating 才算一次 MCQ 作答;純 rating 不進 attempts。
+		ops.push(
+			insertAttemptOp({
+				db: c.env.DB,
+				email,
+				questionId,
+				chosen,
+				isCorrect,
+				source: "anki",
+				sessionId: null,
+				elapsedMs: clampElapsedMs(body.elapsed_ms),
+				now,
 			}),
 		);
 	}
