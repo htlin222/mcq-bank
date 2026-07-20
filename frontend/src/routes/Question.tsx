@@ -51,6 +51,13 @@ type MainTab = "question" | "explanation" | "note" | "discussion" | "similar";
 
 type Tab = "explanation" | "note" | "discussion" | "similar";
 
+// 防劇透 / 自動挖空 toggles in the 詳解 and 個人筆記 toolbars — same look in both.
+const TOOL_BTN = (on: boolean) =>
+	"inline-flex items-center gap-1 rounded px-2 py-1 text-sm transition disabled:opacity-50 " +
+	(on
+		? "bg-accent text-white"
+		: "text-ink-500 dark:text-ink-400 hover:text-accent hover:bg-accent/10");
+
 type SimilarItem = {
 	id: string;
 	year: number;
@@ -863,55 +870,51 @@ export function Question() {
 					) : hasExplanation ? (
 						<>
 							<article className="relative bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
-								<button
-									onClick={startEdit}
-									disabled={
-										lockState.status === "acquiring" ||
-										lockState.status === "locked-by-other"
-									}
-									className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded bg-white/85 dark:bg-ink-800/85 backdrop-blur px-2 py-1 text-sm text-accent hover:text-accent-dark disabled:opacity-40"
-								>
-									{lockState.status === "locked-by-other" ? (
-										<>{lockState.lockedBy} 正在編輯…</>
-									) : (
-										<>
-											<Pencil size={14} /> 編輯
-										</>
+								{/* Toolbar sits in normal flow above the body — absolutely
+								    positioned buttons used to sit on top of the first line. */}
+								<div className="flex flex-wrap justify-end gap-1.5 mb-3">
+									{revealedExp && (
+										<button
+											type="button"
+											onClick={() => loadAutoCloze(data.id)}
+											disabled={autoClozeLoading}
+											title="自動挖空:AI 挑出關鍵詞後遮住,供自我測驗(點各別揭曉)"
+											className={TOOL_BTN(
+												!!autoClozeTerms && autoClozeTerms.length > 0,
+											)}
+										>
+											<Sparkles size={14} />{" "}
+											{autoClozeLoading ? "挖空中…" : "自動挖空"}
+										</button>
 									)}
-								</button>
-								{revealedExp && (
+									{revealedExp && (
+										<button
+											type="button"
+											onClick={() => setExpCloze((v) => !v)}
+											title="防劇透:遮住你標記的重點來自我測驗(點各別揭曉/收回)"
+											aria-pressed={expCloze}
+											className={TOOL_BTN(expCloze)}
+										>
+											<Videotape size={14} /> {expCloze ? "取消" : "防劇透"}
+										</button>
+									)}
 									<button
-										type="button"
-										onClick={() => setExpCloze((v) => !v)}
-										title="防劇透:遮住你標記的重點來自我測驗(點各別揭曉/收回)"
-										aria-pressed={expCloze}
-										className={
-											"absolute top-3 right-20 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition " +
-											(expCloze
-												? "bg-accent text-white"
-												: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
+										onClick={startEdit}
+										disabled={
+											lockState.status === "acquiring" ||
+											lockState.status === "locked-by-other"
 										}
+										className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-accent hover:bg-accent/10 disabled:opacity-40"
 									>
-										<Videotape size={14} /> {expCloze ? "取消" : "防劇透"}
+										{lockState.status === "locked-by-other" ? (
+											<>{lockState.lockedBy} 正在編輯…</>
+										) : (
+											<>
+												<Pencil size={14} /> 編輯
+											</>
+										)}
 									</button>
-								)}
-								{revealedExp && (
-									<button
-										type="button"
-										onClick={() => loadAutoCloze(data.id)}
-										disabled={autoClozeLoading}
-										title="自動挖空:AI 挑出關鍵詞後遮住,供自我測驗(點各別揭曉)"
-										className={
-											"absolute top-3 right-40 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition disabled:opacity-50 " +
-											(autoClozeTerms && autoClozeTerms.length > 0
-												? "bg-accent text-white"
-												: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
-										}
-									>
-										<Sparkles size={14} />{" "}
-										{autoClozeLoading ? "挖空中…" : "自動挖空"}
-									</button>
-								)}
+								</div>
 								<div
 									className={
 										"relative " + (revealedExp ? "" : "min-h-[6rem]")
@@ -1020,40 +1023,32 @@ export function Question() {
 						</div>
 					) : noteJson ? (
 						<article className="relative bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
-							<button
-								onClick={startNoteEdit}
-								className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded bg-white/85 dark:bg-ink-800/85 backdrop-blur px-2 py-1 text-sm text-accent hover:text-accent-dark"
-							>
-								<Pencil size={14} /> 編輯
-							</button>
-							<button
-								type="button"
-								onClick={() => setNoteCloze((v) => !v)}
-								title="防劇透:遮住你標記的重點來自我測驗(點各別揭曉/收回)"
-								aria-pressed={noteCloze}
-								className={
-									"absolute top-3 right-20 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition " +
-									(noteCloze
-										? "bg-accent text-white"
-										: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
-								}
-							>
-								<Videotape size={14} /> {noteCloze ? "取消" : "防劇透"}
-							</button>
-							<button
-								type="button"
-								onClick={() => loadNoteAutoCloze(data.id)}
-								disabled={noteAutoLoading}
-								title="自動挖空:AI 從你的筆記挑出關鍵詞後遮住,供自我測驗(點各別揭曉)"
-								className={
-									"absolute top-3 right-40 z-10 inline-flex items-center gap-1 rounded backdrop-blur px-2 py-1 text-sm transition disabled:opacity-50 " +
-									(noteAutoTerms && noteAutoTerms.length > 0
-										? "bg-accent text-white"
-										: "bg-white/85 dark:bg-ink-800/85 text-ink-500 dark:text-ink-400 hover:text-accent")
-								}
-							>
-								<Sparkles size={14} /> {noteAutoLoading ? "挖空中…" : "自動挖空"}
-							</button>
+							<div className="flex flex-wrap justify-end gap-1.5 mb-3">
+								<button
+									type="button"
+									onClick={() => loadNoteAutoCloze(data.id)}
+									disabled={noteAutoLoading}
+									title="自動挖空:AI 從你的筆記挑出關鍵詞後遮住,供自我測驗(點各別揭曉)"
+									className={TOOL_BTN(!!noteAutoTerms && noteAutoTerms.length > 0)}
+								>
+									<Sparkles size={14} /> {noteAutoLoading ? "挖空中…" : "自動挖空"}
+								</button>
+								<button
+									type="button"
+									onClick={() => setNoteCloze((v) => !v)}
+									title="防劇透:遮住你標記的重點來自我測驗(點各別揭曉/收回)"
+									aria-pressed={noteCloze}
+									className={TOOL_BTN(noteCloze)}
+								>
+									<Videotape size={14} /> {noteCloze ? "取消" : "防劇透"}
+								</button>
+								<button
+									onClick={startNoteEdit}
+									className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-accent hover:bg-accent/10"
+								>
+									<Pencil size={14} /> 編輯
+								</button>
+							</div>
 							<NoteContent
 								content={noteJson}
 								annotateKeyPrefix={`anno:note:${data.id}`}
