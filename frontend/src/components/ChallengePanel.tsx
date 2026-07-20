@@ -342,7 +342,7 @@ function RecentPromotionPill({ challenge }: { challenge: ResolvedChallenge }) {
         )}
       </div>
       {showRationale && !!rationaleDoc && (
-        <article className="mt-2.5 pt-2.5 border-t border-emerald-200 dark:border-emerald-700/60 prose-tight text-ink-800 dark:text-ink-200">
+        <article className="mt-2.5 pt-2.5 border-t border-emerald-200 dark:border-emerald-700/60 prose-tight text-sm text-ink-800 dark:text-ink-200">
           <ReadOnlyContent content={rationaleDoc} />
         </article>
       )}

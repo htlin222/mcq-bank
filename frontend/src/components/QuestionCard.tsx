@@ -357,19 +357,23 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
                 {L}
               </span>
               <span className="relative leading-relaxed text-ink-800 dark:text-ink-200">{text}</span>
-              {revealed && isCorrect && (
-                <span className="relative ml-auto inline-flex items-center gap-1 text-emerald-700 text-sm font-medium shrink-0">
-                  <Check size={16} /> 正解
-                </span>
-              )}
-              {revealed && selected && !isCorrect && (
-                <span className="relative ml-auto inline-flex items-center gap-1 text-rose-700 text-sm font-medium shrink-0">
-                  <X size={16} /> 你的選擇
-                </span>
-              )}
-              {pct !== null && (
-                <span className="relative ml-auto shrink-0 self-center text-xs tabular-nums text-ink-500 dark:text-ink-400">
-                  {pct}%
+              {(revealed || pct !== null) && (
+                <span className="relative ml-auto self-center inline-flex flex-col items-end gap-1 shrink-0">
+                  {revealed && isCorrect && (
+                    <span className="inline-flex items-center gap-1 text-emerald-700 text-sm font-medium">
+                      <Check size={16} /> 正解
+                    </span>
+                  )}
+                  {revealed && selected && !isCorrect && (
+                    <span className="inline-flex items-center gap-1 text-rose-700 text-sm font-medium">
+                      <X size={16} /> 你的選擇
+                    </span>
+                  )}
+                  {pct !== null && (
+                    <span className="text-xs tabular-nums text-ink-500 dark:text-ink-400">
+                      {pct}%
+                    </span>
+                  )}
                 </span>
               )}
             </li>
