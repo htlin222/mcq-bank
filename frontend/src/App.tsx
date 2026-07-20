@@ -35,6 +35,7 @@ import { FeedbackButton } from "./components/FeedbackButton";
 import { OnlineUsers } from "./components/OnlineUsers";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { PomodoroFab } from "./components/PomodoroFab";
+import { UpdatePrompt } from "./components/UpdatePrompt";
 import { ChatProvider } from "./chat/ChatProvider";
 import { ChatToaster } from "./chat/ChatToaster";
 import { ChatBell } from "./chat/ChatBell";
@@ -218,6 +219,9 @@ export default function App() {
 
 			{/* 番茄鐘 — floats over 複習模式 only (hides itself elsewhere). */}
 			<PomodoroFab />
+
+			{/* "有新版本" strip — only visible when a new SW is waiting. */}
+			<UpdatePrompt />
 
 			{/* Mobile bottom nav */}
 			<nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-ink-800 border-t border-ink-200 dark:border-ink-700 grid grid-cols-5 z-20 safe-bottom">
