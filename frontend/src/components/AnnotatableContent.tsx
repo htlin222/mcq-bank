@@ -5,7 +5,13 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { Highlighter, X as XIcon } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
 import { readLocal, saveHighlight, reconcileHighlight } from '../lib/highlightStore';
-import { termRanges, clozeSig, parseRevealState, type TextRun } from '../lib/autoCloze';
+import {
+  termRanges,
+  clozeSig,
+  parseRevealState,
+  type TextRun,
+  type Range,
+} from '../lib/autoCloze';
 
 // Read-only content carrying two INDEPENDENT annotation layers:
 //
@@ -43,6 +49,10 @@ export function hashContent(content: any): string {
   for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
   return String(h >>> 0);
 }
+
+// Plugin state for the AI cloze decoration layer: where the blanks are, and
+// which of them the reader has already revealed.
+type AutoClozeState = { ranges: Range[]; revealed: number[] };
 
 type Popup =
   | { kind: 'add'; x: number; y: number; from: number; to: number }
@@ -185,8 +195,8 @@ export function AnnotatableContent({
   // ── AI cloze layer (decorations only) ──
   // One plugin per editor instance; its state is a plain {ranges, revealed}
   // pushed in by the effect below via a meta transaction.
-  const keyRef = useRef<PluginKey | null>(null);
-  if (!keyRef.current) keyRef.current = new PluginKey('autoCloze');
+  const keyRef = useRef<PluginKey<AutoClozeState> | null>(null);
+  if (!keyRef.current) keyRef.current = new PluginKey<AutoClozeState>('autoCloze');
 
   useEffect(() => {
     if (!editor) return;
@@ -194,12 +204,12 @@ export function AnnotatableContent({
     const plugin = new Plugin({
       key,
       state: {
-        init: () => ({ ranges: [] as { from: number; to: number }[], revealed: [] as number[] }),
-        apply: (tr, value) => tr.getMeta(key) ?? value,
+        init: (): AutoClozeState => ({ ranges: [], revealed: [] }),
+        apply: (tr, value: AutoClozeState): AutoClozeState => tr.getMeta(key) ?? value,
       },
       props: {
         decorations(state) {
-          const v = key.getState(state);
+          const v: AutoClozeState | undefined = key.getState(state);
           if (!v || v.ranges.length === 0) return null;
           const max = state.doc.content.size;
           const shown = new Set(v.revealed);
