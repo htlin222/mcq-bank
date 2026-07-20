@@ -117,6 +117,17 @@ function ExamStart() {
         </div>
       )}
 
+      {/* 自訂測驗入口 — 年度卡片之外的另一條動線 */}
+      <Link
+        to="/exam/new"
+        className="block mb-8 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 hover:border-accent hover:shadow-paper transition"
+      >
+        <div className="font-serif text-xl text-ink-900 dark:text-ink-100">自訂測驗</div>
+        <div className="text-xs text-ink-500 dark:text-ink-400 mt-1">
+          挑狀態、範圍與題數,自己出一份卷 →
+        </div>
+      </Link>
+
       {/* 科別選擇 */}
       <div className="mb-8 flex flex-wrap gap-2 items-center">
         <span className="text-xs uppercase tracking-wider text-ink-400 dark:text-ink-500 mr-1">科別</span>
