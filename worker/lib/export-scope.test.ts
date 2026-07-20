@@ -1,0 +1,186 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import {
+	parseScope,
+	scopeLabel,
+	scopeSql,
+	filenameFor,
+	MAX_QUESTIONS,
+	type ExportScope,
+} from "./export-scope.ts";
+
+const EMAIL = "me@x.test";
+
+// ------------------------------------------------------------- parseScope
+
+test("parseScope 每種 kind 回正確物件", () => {
+	assert.deepEqual(parseScope({ kind: "folder", folder_id: "f1" }), {
+		scope: { kind: "folder", folder_id: "f1" },
+		truncated: false,
+	});
+	assert.deepEqual(parseScope({ kind: "folder", folder_id: null }).scope, {
+		kind: "folder",
+		folder_id: null,
+	});
+	assert.deepEqual(parseScope({ kind: "bookmarks" }).scope, { kind: "bookmarks" });
+	assert.deepEqual(parseScope({ kind: "notes" }).scope, { kind: "notes" });
+	assert.deepEqual(parseScope({ kind: "highlights" }).scope, { kind: "highlights" });
+	assert.deepEqual(parseScope({ kind: "year", year: 114 }).scope, { kind: "year", year: 114 });
+	assert.deepEqual(parseScope({ kind: "year", year: "114" }).scope, { kind: "year", year: 114 });
+	assert.deepEqual(parseScope({ kind: "wrong", year: 113, group: "內科", tags: ["CML"] }).scope, {
+		kind: "wrong",
+		year: 113,
+		group: "內科",
+		tags: ["CML"],
+	});
+	assert.deepEqual(parseScope({ kind: "wrong" }).scope, { kind: "wrong" });
+	assert.deepEqual(parseScope({ kind: "exam", session_id: "s1", only_wrong: true }).scope, {
+		kind: "exam",
+		session_id: "s1",
+		only_wrong: true,
+	});
+	assert.deepEqual(parseScope({ kind: "ids", ids: ["114-001"] }).scope, {
+		kind: "ids",
+		ids: ["114-001"],
+	});
+});
+
+test("parseScope 缺欄位 / 未知 kind / 非物件 → { error }", () => {
+	assert.ok(parseScope(null).error);
+	assert.ok(parseScope("x").error);
+	assert.ok(parseScope({}).error);
+	assert.ok(parseScope({ kind: "nope" }).error);
+	assert.ok(parseScope({ kind: "folder" }).error); // folder_id 必填(可為 null)
+	assert.ok(parseScope({ kind: "year" }).error);
+	assert.ok(parseScope({ kind: "year", year: "abc" }).error);
+	assert.ok(parseScope({ kind: "exam" }).error);
+	assert.ok(parseScope({ kind: "ids" }).error);
+	assert.ok(parseScope({ kind: "ids", ids: [] }).error);
+	assert.ok(parseScope({ kind: "ids", ids: [1, 2] }).error);
+});
+
+test("parseScope:ids 上限 MAX_QUESTIONS,超過截斷並回 truncated: true", () => {
+	const ids = Array.from({ length: MAX_QUESTIONS + 5 }, (_, i) => `114-${i}`);
+	const r = parseScope({ kind: "ids", ids });
+	assert.equal(r.truncated, true);
+	assert.equal((r.scope as any).ids.length, MAX_QUESTIONS);
+	assert.equal(parseScope({ kind: "ids", ids: ["a"] }).truncated, false);
+});
+
+test("parseScope:ids 去重且保持順序", () => {
+	const r = parseScope({ kind: "ids", ids: ["a", "b", "a"] });
+	assert.deepEqual((r.scope as any).ids, ["a", "b"]);
+});
+
+// -------------------------------------------------------------- scopeLabel
+
+test("scopeLabel 回中文範圍描述", () => {
+	assert.equal(scopeLabel({ kind: "folder", folder_id: "f1" }, "心臟"), "收藏・心臟");
+	assert.equal(scopeLabel({ kind: "folder", folder_id: null }), "收藏・未分類");
+	assert.equal(scopeLabel({ kind: "bookmarks" }), "全部收藏");
+	assert.equal(scopeLabel({ kind: "notes" }), "我的筆記");
+	assert.equal(scopeLabel({ kind: "highlights" }), "我的畫記");
+	assert.equal(scopeLabel({ kind: "year", year: 114 }), "114 年");
+	assert.equal(scopeLabel({ kind: "wrong" }), "錯題");
+	assert.equal(scopeLabel({ kind: "wrong", year: 113 }), "錯題(113 年)");
+	assert.equal(scopeLabel({ kind: "wrong", year: 113, group: "內科" }), "錯題(113 年・內科)");
+	assert.equal(scopeLabel({ kind: "exam", session_id: "s1" }), "測驗結果");
+	assert.equal(scopeLabel({ kind: "exam", session_id: "s1", only_wrong: true }), "測驗結果(答錯的題)");
+	assert.equal(scopeLabel({ kind: "ids", ids: ["a"] }), "自選題目");
+	assert.equal(scopeLabel({ kind: "ids", ids: ["a"], label: "搜尋結果" }), "搜尋結果");
+});
+
+test("scopeLabel:使用者可控的 label 被消毒(去控制字元、限長)", () => {
+	const evil = scopeLabel({ kind: "ids", ids: ["a"], label: "a\nb\u0000c" });
+	assert.ok(!/[\n\u0000]/.test(evil));
+	assert.ok(scopeLabel({ kind: "ids", ids: ["a"], label: "x".repeat(200) }).length <= 60);
+});
+
+test("filenameFor 產生安全檔名(無路徑分隔、無控制字元)", () => {
+	const n = filenameFor({ kind: "folder", folder_id: "f" }, "md", { folderName: "心/臟" });
+	assert.ok(n.endsWith(".md"));
+	assert.ok(!n.includes("/"));
+	assert.ok(!n.includes("\\"));
+	assert.ok(filenameFor({ kind: "year", year: 114 }, "csv").endsWith(".csv"));
+});
+
+// --------------------------------------------------------------- scopeSql
+//
+// 這一組是隱私防線:任何新增的 kind 都必須在這裡補一個 params[0] === email
+// 的斷言,否則就會漏綁使用者。
+
+const ALL_KINDS: ExportScope[] = [
+	{ kind: "folder", folder_id: "f1" },
+	{ kind: "folder", folder_id: null },
+	{ kind: "bookmarks" },
+	{ kind: "notes" },
+	{ kind: "highlights" },
+	{ kind: "wrong" },
+	{ kind: "wrong", year: 113, group: "內科", tags: ["CML", "TKI"] },
+	{ kind: "year", year: 114 },
+	{ kind: "exam", session_id: "s1" },
+	{ kind: "exam", session_id: "s1", only_wrong: true },
+	{ kind: "ids", ids: ["114-001", "114-002"] },
+];
+
+test("每一種 kind 的 params[0] 都是 email", () => {
+	for (const scope of ALL_KINDS) {
+		const { params } = scopeSql(scope, EMAIL);
+		assert.equal(params[0], EMAIL, `params[0] 不是 email: ${JSON.stringify(scope)}`);
+	}
+});
+
+test("ALL_KINDS 覆蓋了所有 kind(新增 kind 時這裡會失敗)", () => {
+	const covered = new Set(ALL_KINDS.map((s) => s.kind));
+	assert.deepEqual(
+		[...covered].sort(),
+		["bookmarks", "exam", "folder", "highlights", "ids", "notes", "wrong", "year"],
+	);
+});
+
+test("每一種 kind 的 SQL 都選出 id 欄且參數個數與 ? 相符", () => {
+	for (const scope of ALL_KINDS) {
+		const { sql, params } = scopeSql(scope, EMAIL);
+		assert.match(sql, /\bAS id\b/, `缺 AS id: ${scope.kind}`);
+		assert.equal(
+			(sql.match(/\?/g) || []).length,
+			params.length,
+			`? 與參數數量不符: ${JSON.stringify(scope)}`,
+		);
+	}
+});
+
+test("私有 scope 的 SQL 都明確 where 到 user_email", () => {
+	for (const kind of ["folder", "bookmarks", "notes", "highlights", "wrong", "exam"] as const) {
+		const scope = ALL_KINDS.find((s) => s.kind === kind)!;
+		const { sql } = scopeSql(scope, EMAIL);
+		assert.match(sql, /user_email\s*=\s*\?/, `${kind} 沒有綁 user_email`);
+	}
+});
+
+test("folder_id null → IS NULL 而不是 = ?", () => {
+	const a = scopeSql({ kind: "folder", folder_id: null }, EMAIL);
+	assert.match(a.sql, /folder_id IS NULL/);
+	assert.deepEqual(a.params, [EMAIL]);
+	const b = scopeSql({ kind: "folder", folder_id: "f1" }, EMAIL);
+	assert.deepEqual(b.params, [EMAIL, "f1"]);
+});
+
+test("wrong scope 的 tag/year/group 過濾都排在 email 之後", () => {
+	const { params } = scopeSql(
+		{ kind: "wrong", year: 113, group: "內科", tags: ["CML", "TKI"] },
+		EMAIL,
+	);
+	assert.deepEqual(params, [EMAIL, 113, "內科", "CML", "TKI", 2]);
+});
+
+test("exam only_wrong 加上答錯條件", () => {
+	assert.ok(!scopeSql({ kind: "exam", session_id: "s" }, EMAIL).sql.includes("is_correct"));
+	assert.ok(scopeSql({ kind: "exam", session_id: "s", only_wrong: true }, EMAIL).sql.includes("is_correct"));
+});
+
+test("ids scope 用逐個 placeholder,不做字串內插", () => {
+	const { sql, params } = scopeSql({ kind: "ids", ids: ["114-001", "114-002"] }, EMAIL);
+	assert.deepEqual(params, [EMAIL, "114-001", "114-002"]);
+	assert.ok(!sql.includes("114-001"));
+});

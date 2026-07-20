@@ -10,6 +10,7 @@ import {
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
+import { ExportButton } from '../components/ExportDialog';
 import { GROUPS, groupBadgeClass } from '../lib/groups';
 import {
   type Hit,
@@ -202,9 +203,15 @@ export function Search() {
 
   return (
     <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-6 inline-flex items-center gap-2">
-        <SearchIcon size={26} /> 搜尋
-      </h1>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 inline-flex items-center gap-2">
+          <SearchIcon size={26} /> 搜尋
+        </h1>
+        {hits && hits.length > 0 && (
+          // 搜尋結果刻意用 ids scope:worker 端不複製 search.ts 的 FTS 查詢。
+          <ExportButton scope={{ kind: 'ids', ids: hits.map((h) => h.id), label: '搜尋結果' }} />
+        )}
+      </div>
 
       <form
         onSubmit={(e) => { e.preventDefault(); doSearch(); }}

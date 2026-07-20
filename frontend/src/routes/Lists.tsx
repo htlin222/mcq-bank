@@ -4,6 +4,8 @@ import { X as XIcon } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { GROUPS, groupBadgeClass } from '../lib/groups';
+import { ExportButton } from '../components/ExportDialog';
+import type { ExportScope } from '../lib/export-scope';
 
 type Row = {
   id: string;
@@ -44,6 +46,15 @@ export function WrongQuestions() {
     api.get<Row[]>(`/api/review/wrong${query ? '?' + query : ''}`).then(setRows);
   }, [query]);
 
+  // 匯出範圍跟著畫面上的 filter 走。
+  const wrongScope: ExportScope = useMemo(() => {
+    const s: ExportScope = { kind: 'wrong' };
+    if (year) s.year = Number(year);
+    if (group) s.group = group;
+    if (tagSet.size > 0) s.tags = [...tagSet];
+    return s;
+  }, [year, group, tagSet]);
+
   function toggleTag(t: string) {
     setTagSet((prev) => {
       const next = new Set(prev);
@@ -55,7 +66,10 @@ export function WrongQuestions() {
 
   return (
     <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-4">錯題回顧</h1>
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100">錯題回顧</h1>
+        <ExportButton scope={wrongScope} />
+      </div>
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-6">
         <p className="text-sm text-ink-500 dark:text-ink-400">複習模式中答錯的題目,按錯誤率排序。</p>
         {/* 帶著當前 filter 進出卷頁,status 預設勾「做錯過」 */}
