@@ -7,6 +7,29 @@ export class ApiError extends Error {
   }
 }
 
+// When a Cloudflare Access session expires the *edge* answers with a 302 to
+// the login page (the Worker itself always replies 401 JSON). fetch() follows
+// redirects, so we get status 200 + res.ok === true + an HTML body from
+// cloudflareaccess.com — which used to be swallowed as if it were data, since
+// the JSON.parse below falls back to handing the raw text back to the caller.
+//
+// Detect it by provenance, never by status, and recover with a *full*
+// navigation so the browser actually follows Access's redirect. A SPA
+// navigation would not. sw.ts has the same check for requests it serves.
+function assertNotAccessRedirect(res: Response): void {
+  let crossOrigin = false;
+  if (res.url) {
+    try {
+      crossOrigin = new URL(res.url, location.origin).origin !== location.origin;
+    } catch {
+      crossOrigin = true;
+    }
+  }
+  if (!res.redirected && !crossOrigin) return;
+  if (location.pathname !== '/') location.assign('/');
+  throw new ApiError(401, { error: 'access_session_expired' });
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -32,6 +55,8 @@ async function request<T>(
     credentials: 'include',
   });
 
+  assertNotAccessRedirect(res);
+
   const text = await res.text();
   let data: any = null;
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }
@@ -56,6 +81,9 @@ export const api = {
       body: JSON.stringify(body ?? {}),
       credentials: 'include',
     });
+    // Same trap as request(): an expired Access session would otherwise be
+    // downloaded as a file full of login-page HTML.
+    assertNotAccessRedirect(res);
     if (!res.ok) {
       const text = await res.text();
       let data: any = text;
