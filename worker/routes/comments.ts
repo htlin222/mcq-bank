@@ -13,14 +13,23 @@ export const commentsRoutes = new Hono<AppContext>();
 // List comments for a question (returns flat list; client builds tree by parent_id)
 commentsRoutes.get("/:id/comments", async (c) => {
 	const id = c.req.param("id");
+	// helpful 計數與「我投過沒」在同一次查詢帶回,避免每則留言一次 round-trip。
 	const { results } = await c.env.DB.prepare(
-		`SELECT c.*, u.display_name, u.avatar_key
+		`SELECT c.*, u.display_name, u.avatar_key,
+              COALESCE(hc.n, 0) AS helpful_count,
+              CASE WHEN mv.user_email IS NULL THEN 0 ELSE 1 END AS voted_by_me
        FROM comments c
        LEFT JOIN users u ON u.email = c.author_email
+       LEFT JOIN (SELECT target_id, COUNT(*) AS n FROM helpful_votes
+                   WHERE target_type = 'comment' GROUP BY target_id) hc
+              ON hc.target_id = c.id
+       LEFT JOIN helpful_votes mv
+              ON mv.target_type = 'comment' AND mv.target_id = c.id
+             AND mv.user_email = ?
        WHERE c.question_id = ? AND c.deleted_at IS NULL
        ORDER BY c.created_at ASC`,
 	)
-		.bind(id)
+		.bind(c.var.email, id)
 		.all();
 	return c.json(results);
 });
@@ -119,7 +128,8 @@ commentsRoutes.post("/:id/comments", async (c) => {
 		.bind(commentId)
 		.first();
 
-	return c.json(created, 201);
+	// 新留言必然零票 —— 補上常數欄讓形狀與 list 端點一致。
+	return c.json({ ...created, helpful_count: 0, voted_by_me: 0 }, 201);
 });
 
 // Edit own comment
