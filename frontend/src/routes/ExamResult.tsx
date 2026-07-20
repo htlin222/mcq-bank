@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { choicePct, type StatsPayload } from '../lib/choiceStats';
+import { describeFilters } from '../lib/customTestLabel';
 
 type Result = {
   session: {
@@ -12,6 +13,9 @@ type Result = {
     finished_at: number;
     score: number;
     duration_sec: number;
+    /** migration 0026;舊列走 DEFAULT 'year'。判斷種類看 kind,不要看 year。 */
+    kind?: 'year' | 'custom';
+    filter_json?: string | null;
   };
   answers: {
     question_id: string;
@@ -79,7 +83,18 @@ export function ExamResult() {
       {/* Score banner */}
       <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mb-8 text-center">
         <div className="text-sm text-ink-500 dark:text-ink-400 mb-2">
-          {data.session.year} 年度模擬考
+          {data.session.kind === 'custom' ? (
+            <>
+              自訂測驗
+              {describeFilters(data.session.filter_json) && (
+                <span className="block text-xs mt-0.5">
+                  {describeFilters(data.session.filter_json)}
+                </span>
+              )}
+            </>
+          ) : (
+            <>{data.session.year} 年度模擬考</>
+          )}
         </div>
         <div className="font-serif text-6xl text-ink-900 dark:text-ink-100 mb-3">
           {correct}<span className="text-ink-300 dark:text-ink-600 text-3xl">/{total}</span>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
+import { describeFilters, sessionTitle } from '../lib/customTestLabel';
 
 type Session = {
   id: string;
@@ -10,6 +11,9 @@ type Session = {
   finished_at: number | null;
   score: number | null;
   duration_sec: number | null;
+  /** migration 0026;判斷種類一律看 kind,自訂測驗的 year 是 0 哨兵。 */
+  kind?: 'year' | 'custom';
+  filter_json?: string | null;
 };
 
 export function ExamHistory() {
@@ -21,9 +25,10 @@ export function ExamHistory() {
   }, []);
 
   async function remove(s: Session) {
+    const who = s.kind === 'custom' ? '自訂測驗' : `民國 ${s.year}`;
     const label = s.finished_at
-      ? `民國 ${s.year} · ${new Date(s.started_at).toLocaleDateString('zh-TW')} · 分數 ${s.score ?? '-'}`
-      : `民國 ${s.year} · ${new Date(s.started_at).toLocaleString('zh-TW')} (未完成)`;
+      ? `${who} · ${new Date(s.started_at).toLocaleDateString('zh-TW')} · 分數 ${s.score ?? '-'}`
+      : `${who} · ${new Date(s.started_at).toLocaleString('zh-TW')} (未完成)`;
     if (!confirm(`刪除這筆作答紀錄?\n${label}`)) return;
     setBusy(s.id);
     try {
@@ -57,13 +62,23 @@ export function ExamHistory() {
                   to={done ? `/exam/${s.id}/result` : `/exam/${s.id}`}
                   className="flex items-center gap-3 p-3 flex-1 min-w-0"
                 >
-                  <span className="font-serif text-xl text-ink-900 dark:text-ink-100 w-16 text-center shrink-0">
-                    {s.year}
+                  <span
+                    className={
+                      'text-ink-900 dark:text-ink-100 w-16 text-center shrink-0 ' +
+                      (s.kind === 'custom' ? 'text-xs leading-tight' : 'font-serif text-xl')
+                    }
+                  >
+                    {s.kind === 'custom' ? '自訂' : sessionTitle(s)}
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-ink-500 dark:text-ink-400">
                       {new Date(s.started_at).toLocaleString('zh-TW')}
                     </div>
+                    {s.kind === 'custom' && describeFilters(s.filter_json) && (
+                      <div className="text-xs text-ink-400 dark:text-ink-500 mt-0.5 truncate">
+                        {describeFilters(s.filter_json)}
+                      </div>
+                    )}
                     {!done && (
                       <div className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">未完成 · 點擊繼續</div>
                     )}
