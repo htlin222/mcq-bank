@@ -7,6 +7,7 @@ import { Avatar } from './Avatar';
 import { RichEditor } from './RichEditor';
 import { ReadOnlyContent } from './ReadOnlyContent';
 import { CommentListSkeleton } from './Skeleton';
+import { useOnline } from '../hooks/useOnline';
 
 type Comment = {
   id: string;
@@ -140,6 +141,8 @@ function NewCommentBox({ questionId, parentId, onPosted, onCancel }: {
     () => loadDraft(draftKey) ?? { type: 'doc', content: [] },
   );
   const [busy, setBusy] = useState(false);
+  // 留言離線送不出去(也沒有離線佇列),寧可停用按鈕也不要送出後才失敗。
+  const online = useOnline();
   const [resetKey, setResetKey] = useState(0);
 
   const submit = async () => {
@@ -185,10 +188,11 @@ function NewCommentBox({ questionId, parentId, onPosted, onCancel }: {
         )}
         <button
           onClick={submit}
-          disabled={busy}
+          disabled={busy || !online}
+          title={online ? undefined : '離線中,連線後才能送出'}
           className="px-4 py-1.5 text-sm bg-accent text-white rounded hover:bg-accent-dark disabled:opacity-50 transition-colors"
         >
-          {busy ? '送出中…' : (parentId ? '回覆' : '發表')}
+          {!online ? '離線中' : busy ? '送出中…' : (parentId ? '回覆' : '發表')}
         </button>
       </div>
     </div>

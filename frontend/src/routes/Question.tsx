@@ -21,6 +21,7 @@ import { buildOpenEvidenceUrl } from "../lib/openevidence";
 import { useQuestion } from "../hooks/useQuestion";
 import { useLock } from "../hooks/useLock";
 import { useMe } from "../hooks/useMe";
+import { useOnline } from "../hooks/useOnline";
 import { QuestionCard } from "../components/QuestionCard";
 import { RichEditor } from "../components/RichEditor";
 import { AnnotatableContent } from "../components/AnnotatableContent";
@@ -80,6 +81,9 @@ export function Question() {
 	const { me } = useMe();
 	const { data, error, reload } = useQuestion(id);
 	const { state: lockState, acquire, release } = useLock(id || "");
+	// 詳解 is behind a pessimistic server lock — attempting to edit offline can
+	// only ever fail, and would strand a draft against a lock we never held.
+	const online = useOnline();
 
 	const [tab, setTab] = useState<Tab>("explanation");
 
@@ -928,9 +932,11 @@ export function Question() {
 									<button
 										onClick={startEdit}
 										disabled={
+											!online ||
 											lockState.status === "acquiring" ||
 											lockState.status === "locked-by-other"
 										}
+										title={online ? undefined : "離線中,無法取得編輯鎖"}
 										className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-accent hover:bg-accent/10 disabled:opacity-40"
 									>
 										{lockState.status === "locked-by-other" ? (
@@ -1008,7 +1014,9 @@ export function Question() {
 								</p>
 								<button
 									onClick={startEdit}
-									className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium"
+									disabled={!online}
+									title={online ? undefined : "離線中,無法取得編輯鎖"}
+									className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium disabled:opacity-40"
 								>
 									開始寫詳解
 								</button>

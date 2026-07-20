@@ -282,6 +282,44 @@ GROUP BY rp.user_email, rp.question_id
 HAVING rp.times_seen <> attempts_n LIMIT 20;
 ```
 
+### PWA: offline *reading* only, and the Access trap
+
+`frontend/src/sw.ts` (built by `vite-plugin-pwa` in **`injectManifest`** mode)
+precaches the app shell and runtime-caches an **allowlist** of read-only GET
+endpoints. There is no offline write path — no outbox, no background sync.
+Write UI is disabled while `navigator.onLine` is false.
+
+The one thing to understand before touching any of this: **an expired
+Cloudflare Access session is answered by the edge with a 302 to the login
+page, not by the Worker.** `fetch()` follows it, so the response looks like
+`status === 200`, `res.ok === true`, with `text/html` from
+`*.cloudflareaccess.com`. Caching that gives every user a permanently cached
+login page served by a SW that never hits the network again — unrecoverable
+without clearing site data. So:
+
+- Cacheability is decided by `frontend/src/lib/sw-guards.ts`
+  (`res.redirected` / cross-origin `res.url` / `opaqueredirect` / 401 / 403 /
+  content-type), **never by status**. Workbox's `cacheableResponse` plugin
+  only sees status and cannot detect this — hence the hand-written
+  `cacheWillUpdate`. Unit tests live next to it.
+- Navigation is `NetworkOnly` + `setCatchHandler` → precached `index.html`.
+  Do **not** switch to `generateSW`/`navigateFallback`: its cache-first
+  navigation is exactly the trap above.
+- `frontend/src/lib/api.ts` repeats the check for the non-SW path.
+- `/manifest.webmanifest`, `/sw.js`, `/icons/*` are Access-**bypassed**
+  (`scripts/setup-public-bypass.sh`) — install and SW update checks happen
+  without a session, and a 302 there kills the install prompt and pins users
+  to the old worker forever.
+
+**Kill switch.** `frontend/public/sw-kill.js` unregisters the worker and drops
+all caches. Deploy it as `/sw.js` (`cp frontend/public/sw-kill.js
+frontend/public/sw.js`, rebuild, redeploy Pages) and every client self-heals on
+next open. A Pages rollback alone does **not** remove a registered SW.
+
+Adding an endpoint to the runtime cache means editing `CACHEABLE_API` in
+`sw-guards.ts`. `/api/me`, notifications, chat, exam, review/drill scheduling,
+highlights and `/pdf/*` must stay out — see the comment block there for why.
+
 ### Images: R2 via Worker proxy (not public bucket)
 
 Uploads: `POST /api/upload` (multipart) → Worker validates size/MIME → R2 put with UUID key → returns `/img/<key>` URL.
