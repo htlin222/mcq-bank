@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { ThumbsUp } from 'lucide-react';
 import { api } from '../lib/api';
 import { loadDraft, saveDraft, clearDraft } from '../lib/drafts';
 import { Avatar } from './Avatar';
@@ -15,6 +16,8 @@ type Comment = {
   avatar_key: string | null;
   content_json: string;
   created_at: number;
+  helpful_count: number;
+  voted_by_me: 0 | 1;
 };
 
 type Tree = Comment & { children: Tree[] };
@@ -178,6 +181,41 @@ function CommentItem({ comment, questionId, currentEmail, onChange, depth }: {
   const isOwn = comment.author_email === currentEmail;
   const maxDepth = 3;
 
+  // 「有幫助」樂觀更新:只動本地狀態,不重抓整串(重抓會把展開中的回覆框、
+  // 編輯草稿一併重置)。失敗就回滾。
+  const [helpful, setHelpful] = useState({
+    count: comment.helpful_count ?? 0,
+    mine: comment.voted_by_me === 1,
+  });
+  const [voting, setVoting] = useState(false);
+
+  // 整串重抓(有人發文/編輯/刪除)時,把別人投的票同步進來。飛行中不動,
+  // 免得覆蓋掉樂觀更新。
+  useEffect(() => {
+    if (voting) return;
+    setHelpful({
+      count: comment.helpful_count ?? 0,
+      mine: comment.voted_by_me === 1,
+    });
+  }, [comment.helpful_count, comment.voted_by_me]);
+
+  const toggleHelpful = async () => {
+    if (voting || isOwn) return;
+    const prev = helpful;
+    setHelpful({ count: prev.count + (prev.mine ? -1 : 1), mine: !prev.mine });
+    setVoting(true);
+    try {
+      const r = prev.mine
+        ? await api.del<{ helpful_count: number }>(`/api/comments/${comment.id}/helpful`)
+        : await api.post<{ helpful_count: number }>(`/api/comments/${comment.id}/helpful`, {});
+      setHelpful({ count: r.helpful_count, mine: !prev.mine }); // 以伺服器為準
+    } catch {
+      setHelpful(prev);
+    } finally {
+      setVoting(false);
+    }
+  };
+
   const saveEdit = async () => {
     await api.patch(`/api/questions/${questionId}/comments/${comment.id}`, {
       content_json: editContent,
@@ -240,6 +278,30 @@ function CommentItem({ comment, questionId, currentEmail, onChange, depth }: {
           )}
 
           <footer className="flex gap-3 mt-2 text-xs text-ink-500 dark:text-ink-400">
+            {/* 自己的留言只顯示計數(對應 API 的 403 禁止自投);零票時連數字
+                都不顯示,版面保持安靜、也不讓沒人按的留言變成公開的難堪。 */}
+            {isOwn ? (
+              helpful.count > 0 && (
+                <span className="inline-flex items-center gap-1 text-ink-400 dark:text-ink-500">
+                  <ThumbsUp size={13} /> {helpful.count}
+                </span>
+              )
+            ) : (
+              <button
+                onClick={toggleHelpful}
+                disabled={voting}
+                aria-pressed={helpful.mine}
+                title={helpful.mine ? '取消標記' : '這則留言幫到我了'}
+                className={
+                  'inline-flex items-center gap-1 transition-colors disabled:opacity-50 ' +
+                  (helpful.mine ? 'text-accent' : 'hover:text-accent')
+                }
+              >
+                <ThumbsUp size={13} className={helpful.mine ? 'fill-current' : undefined} />
+                {helpful.count > 0 && helpful.count}
+                <span className="sr-only">有幫助</span>
+              </button>
+            )}
             {depth < maxDepth && !editing && (
               <button onClick={() => setReplying(!replying)} className="hover:text-accent">
                 {replying ? '取消回覆' : '回覆'}
