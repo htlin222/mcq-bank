@@ -9,6 +9,7 @@ import { mergeSimilar } from "../lib/similar";
 import { explanationPlainText, dedupeTerms } from "../lib/cloze";
 import { EMBED_MODEL, TEXT_MODEL } from "../lib/ai-models";
 import { median, percentile, MIN_COHORT } from "../lib/pacing";
+import { tallyChoices, type Vote } from "../lib/choiceStats";
 
 export const questionsRoutes = new Hono<AppContext>();
 
@@ -487,6 +488,64 @@ questionsRoutes.get("/:id/stats", async (c) => {
 	// Below MIN_COHORT the "cohort median" is just naming names — withhold it.
 	const cohort = times.length >= MIN_COHORT ? times.map((r) => r.ms) : [];
 
+	// ----------------------------------------------------------
+	// Per-option choice distribution ("62% picked B").
+	//
+	// Two sources, merged into one vote per user (latest wins):
+	//   attempts        — source of truth since 0023, covers review/drill/anki
+	//                     AND mock exams, but was deliberately not backfilled.
+	//   review_progress — last_chosen carries the pre-0023 history, which is
+	//                     the only record of early answers.
+	// In-flight exams are excluded (an attempt with a session_id whose session
+	// has no finished_at): the answer isn't revealed to that user yet, so
+	// neither their own vote nor anyone else's may leak through it.
+	// ----------------------------------------------------------
+	const qRow = await c.env.DB.prepare(
+		"SELECT options_json FROM questions WHERE id = ?",
+	)
+		.bind(id)
+		.first<{ options_json: string }>();
+	const letters = qRow ? Object.keys(optionsToRecord(qRow.options_json)) : [];
+
+	const { results: rpVotes } = await c.env.DB.prepare(
+		`SELECT user_email AS user, last_chosen AS chosen, COALESCE(last_seen_at, 0) AS at
+     FROM review_progress
+     WHERE question_id = ? AND last_chosen IS NOT NULL`,
+	)
+		.bind(id)
+		.all<Vote>();
+
+	const { results: attemptVotes } = await c.env.DB.prepare(
+		`SELECT a.user_email AS user, a.chosen AS chosen, a.created_at AS at
+     FROM attempts a
+     LEFT JOIN exam_sessions s ON s.id = a.session_id
+     WHERE a.question_id = ? AND a.chosen IS NOT NULL
+       AND (a.session_id IS NULL OR s.finished_at IS NOT NULL)`,
+	)
+		.bind(id)
+		.all<Vote>();
+
+	// attempts last: on an identical timestamp the source of truth wins.
+	const votes = [...rpVotes, ...attemptVotes];
+	const mine =
+		votes
+			.filter((v) => v.user === c.var.email)
+			.sort((a, b) => a.at - b.at)
+			.pop()?.chosen ?? null;
+
+	const tallied = tallyChoices(votes, {
+		letters,
+		minResponders: MIN_COHORT,
+	});
+	// Withholding the distribution from someone who hasn't answered isn't
+	// politeness — the distribution itself leaks which option is popular.
+	const choicesState: "ok" | "not_answered" | "below_threshold" = !mine
+		? "not_answered"
+		: tallied.suppressed
+			? "below_threshold"
+			: "ok";
+	const expose = choicesState === "ok";
+
 	return c.json({
 		attempts,
 		correct,
@@ -496,6 +555,12 @@ questionsRoutes.get("/:id/stats", async (c) => {
 		median_elapsed_ms: median(cohort),
 		p90_elapsed_ms: percentile(cohort, 0.9),
 		timed_responders: times.length,
+		choices: expose ? tallied.counts : null,
+		choice_pct: expose ? tallied.pct : null,
+		// A headcount with no direction to it — safe to return either way.
+		choice_responders: tallied.responders,
+		choices_state: choicesState,
+		my_choice: mine,
 	});
 });
 
