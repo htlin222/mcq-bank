@@ -17,6 +17,16 @@ import {
 import { calibration } from "../lib/calibration";
 import { clusterByThreshold, type VecItem } from "../lib/cluster";
 import { clampElapsedMs, insertAttemptOp } from "../lib/attempts";
+import {
+	clampHour,
+	dayWindow,
+	DEFAULT_DAY_START_HOUR,
+} from "../lib/due-window";
+import {
+	parseNewLimit,
+	pickNextKind,
+	remainingNewToday,
+} from "../lib/queue-mix";
 
 export const reviewRoutes = new Hono<AppContext>();
 
@@ -393,6 +403,114 @@ reviewRoutes.get("/anki/decks", async (c) => {
 	return c.json(await getDeckStats(c.env.DB, email, Date.now()));
 });
 
+type DueSummary = {
+	learning: number;
+	due_review: number;
+	new_available: number;
+	new_remaining: number;
+	new_introduced_today: number;
+	new_limit: number;
+	due_total: number;
+	next_due_at: number | null;
+	by_year: { year: number; due: number }[];
+	day_start_hour: number;
+	day_start: number;
+	day_end: number;
+};
+
+// 跨年份的「今天該複習什麼」摘要。與 getDeckStats 的差別:這裡套用日界
+// (預設凌晨 4 點)與每日新卡上限,review 卡用日級判定、learning 卡用分鐘級。
+async function getDueSummary(
+	db: D1Database,
+	email: string,
+	now: number,
+	opts: { dayStartHour: number; newLimit: number },
+): Promise<DueSummary> {
+	const w = dayWindow(now, { dayStartHour: opts.dayStartHour });
+
+	const agg = await db
+		.prepare(
+			`WITH mine AS (SELECT * FROM fsrs_cards WHERE user_email = ?)
+       SELECT
+         SUM(CASE WHEN mine.state IN (1,3) AND mine.due_at <= ? THEN 1 ELSE 0 END) AS learning,
+         SUM(CASE WHEN mine.state = 2 AND mine.due_at <= ? THEN 1 ELSE 0 END) AS due_review,
+         SUM(CASE WHEN mine.question_id IS NULL OR mine.state = 0 THEN 1 ELSE 0 END) AS new_available,
+         MIN(CASE WHEN mine.question_id IS NOT NULL
+                   AND NOT ((mine.state IN (1,3) AND mine.due_at <= ?)
+                         OR (mine.state = 2 AND mine.due_at <= ?))
+                  THEN mine.due_at END) AS next_due_at
+       FROM questions q
+       LEFT JOIN mine ON mine.question_id = q.id`,
+		)
+		.bind(email, now, w.dayEnd, now, w.dayEnd)
+		.first<Record<string, number | null>>();
+
+	// fsrs_review_logs.state 是「複習前」的狀態(ts-fsrs RecordLogItem.log.state),
+	// 所以 state = 0 的 log 就是該卡首次亮相 = 今天引入的新卡。
+	const intro = await db
+		.prepare(
+			`SELECT COUNT(*) AS n FROM fsrs_review_logs
+       WHERE user_email = ? AND reviewed_at >= ? AND reviewed_at < ? AND state = 0`,
+		)
+		.bind(email, w.dayStart, w.dayEnd)
+		.first<{ n: number }>();
+
+	const { results: by_year } = await db
+		.prepare(
+			`WITH mine AS (SELECT * FROM fsrs_cards WHERE user_email = ?)
+       SELECT q.year AS year, COUNT(*) AS due
+       FROM questions q JOIN mine ON mine.question_id = q.id
+       WHERE (mine.state IN (1,3) AND mine.due_at <= ?)
+          OR (mine.state = 2 AND mine.due_at <= ?)
+       GROUP BY q.year ORDER BY q.year DESC`,
+		)
+		.bind(email, now, w.dayEnd)
+		.all<{ year: number; due: number }>();
+
+	const learning = agg?.learning ?? 0;
+	const due_review = agg?.due_review ?? 0;
+	const new_available = agg?.new_available ?? 0;
+	const new_introduced_today = intro?.n ?? 0;
+	const new_remaining = Math.min(
+		new_available,
+		remainingNewToday(new_introduced_today, opts.newLimit),
+	);
+
+	return {
+		learning,
+		due_review,
+		new_available,
+		new_remaining,
+		new_introduced_today,
+		new_limit: opts.newLimit,
+		due_total: learning + due_review + new_remaining,
+		next_due_at: agg?.next_due_at ?? null,
+		by_year,
+		day_start_hour: opts.dayStartHour,
+		day_start: w.dayStart,
+		day_end: w.dayEnd,
+	};
+}
+
+function dueQueryOpts(c: {
+	req: { query: (k: string) => string | undefined };
+}): { dayStartHour: number; newLimit: number } {
+	const raw = c.req.query("day_start");
+	return {
+		dayStartHour: clampHour(
+			raw === undefined ? DEFAULT_DAY_START_HOUR : Number(raw),
+		),
+		newLimit: parseNewLimit(c.req.query("new_limit")),
+	};
+}
+
+// 跨年份「今天該複習」摘要。逐年統計仍走 GET /anki/decks。
+reviewRoutes.get("/due", async (c) => {
+	return c.json(
+		await getDueSummary(c.env.DB, c.var.email, Date.now(), dueQueryOpts(c)),
+	);
+});
+
 // Next due/new Anki card for a year deck. Existing due cards come first,
 // then unseen cards in question-number order.
 reviewRoutes.get("/anki/decks/:year/next", async (c) => {
@@ -444,6 +562,15 @@ reviewRoutes.get("/anki/decks/:year/next", async (c) => {
 		.bind(row.id)
 		.all<{ tag: string }>();
 
+	return c.json({ deck, question: ankiQuestionPayload(row, tagRows, now) });
+});
+
+// 卡片 payload 組裝 — /anki/decks/:year/next 與 /due/next 共用,結構必須一致。
+function ankiQuestionPayload(
+	row: AnkiQuestionRow,
+	tagRows: { tag: string }[],
+	now: number,
+) {
 	const fsrsRow = joinedFsrsRow(row);
 	const explanation: Partial<Explanation> | null = row.explanation_content_json
 		? {
@@ -455,27 +582,95 @@ reviewRoutes.get("/anki/decks/:year/next", async (c) => {
 			}
 		: null;
 
-	return c.json({
-		deck,
-		question: {
-			id: row.id,
-			year: row.year,
-			number: row.number,
-			stem: row.stem,
-			options: optionsToRecord(row.options_json),
-			answer: row.answer,
-			group: row.group,
-			difficulty: row.difficulty,
-			source: row.source,
-			tags: tagRows.map((r) => r.tag),
-			explanation,
-			fsrs: {
-				card: fsrsRow,
-				preview: previewFsrs(fsrsRow, now),
-				retrievability: retrievability(fsrsRow, now),
-			},
+	return {
+		id: row.id,
+		year: row.year,
+		number: row.number,
+		stem: row.stem,
+		options: optionsToRecord(row.options_json),
+		answer: row.answer,
+		group: row.group,
+		difficulty: row.difficulty,
+		source: row.source,
+		tags: tagRows.map((r) => r.tag),
+		explanation,
+		fsrs: {
+			card: fsrsRow,
+			preview: previewFsrs(fsrsRow, now),
+			retrievability: retrievability(fsrsRow, now),
 		},
+	};
+}
+
+// 跨年份到期佇列的下一張。與 /anki/decks/:year/next 並存:那支是「我要刷某
+// 一年」(限定年份、無新卡上限),這支是「今天該做什麼」(全年份、按 due
+// 排序、套每日新卡上限與交錯)。評分仍走 POST /anki/review,attempts 的寫入
+// 路徑一行都不變。
+reviewRoutes.get("/due/next", async (c) => {
+	const email = c.var.email;
+	const now = Date.now();
+	const opts = dueQueryOpts(c);
+	const served = Math.max(0, Number(c.req.query("served") ?? 0) || 0);
+
+	const queue = await getDueSummary(c.env.DB, email, now, opts);
+	const kind = pickNextKind({
+		served,
+		learning: queue.learning,
+		dueReview: queue.due_review,
+		newAvailable: queue.new_available,
+		newRemaining: queue.new_remaining,
 	});
+	if (!kind) return c.json({ queue, kind: null, question: null });
+
+	const filter =
+		kind === "learning"
+			? "fc.state IN (1,3) AND fc.due_at <= ?"
+			: kind === "due"
+				? "fc.state = 2 AND fc.due_at <= ?"
+				: "(fc.question_id IS NULL OR fc.state = 0)";
+	const order =
+		kind === "new"
+			? "q.year DESC, q.number ASC"
+			: "fc.due_at ASC, q.year DESC, q.number ASC";
+	const bind =
+		kind === "new"
+			? [email]
+			: [email, kind === "learning" ? now : queue.day_end];
+
+	const row = await c.env.DB.prepare(
+		`SELECT q.*,
+            e.content_json AS explanation_content_json,
+            e.version AS explanation_version,
+            e.updated_by AS explanation_updated_by,
+            e.updated_at AS explanation_updated_at,
+            fc.due_at AS fsrs_due_at,
+            fc.stability AS fsrs_stability,
+            fc.difficulty AS fsrs_difficulty,
+            fc.elapsed_days AS fsrs_elapsed_days,
+            fc.scheduled_days AS fsrs_scheduled_days,
+            fc.learning_steps AS fsrs_learning_steps,
+            fc.reps AS fsrs_reps,
+            fc.lapses AS fsrs_lapses,
+            fc.state AS fsrs_state,
+            fc.last_review_at AS fsrs_last_review_at
+     FROM questions q
+     LEFT JOIN explanations e ON e.question_id = q.id
+     LEFT JOIN fsrs_cards fc ON fc.question_id = q.id AND fc.user_email = ?
+     WHERE ${filter}
+     ORDER BY ${order}
+     LIMIT 1`,
+	)
+		.bind(...bind)
+		.first<AnkiQuestionRow>();
+	if (!row) return c.json({ queue, kind: null, question: null });
+
+	const { results: tagRows } = await c.env.DB.prepare(
+		"SELECT tag FROM question_tags WHERE question_id = ? ORDER BY created_at ASC",
+	)
+		.bind(row.id)
+		.all<{ tag: string }>();
+
+	return c.json({ queue, kind, question: ankiQuestionPayload(row, tagRows, now) });
 });
 
 // Grade the current Anki card with FSRS. `chosen` is optional: if present,
