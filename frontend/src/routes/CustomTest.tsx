@@ -21,10 +21,20 @@ const STATUS_OPTIONS: { key: Status; label: string; hint: string }[] = [
 
 type Preview = { available: number; requested: number; will_use: number };
 
+// POST /api/exam/custom 的回傳與 /start 同形(多帶 kind/tutor/timed 與
+// requested/actual),整包直接塞進 sessionStorage 給 /exam/:sid 當首屏快取。
 type BuildResult = {
   session_id: string;
+  started_at: number;
+  elapsed_ms: number;
+  running_since: number | null;
+  cap_ms: number;
+  kind: 'custom';
+  tutor: 0 | 1;
+  timed: 0 | 1;
   requested: number;
   actual: number;
+  questions: { id: string; year: number; number: number; stem: string; options: Record<string, string> }[];
 };
 
 const TAGS_COLLAPSED = 30;
