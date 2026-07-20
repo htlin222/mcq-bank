@@ -1,9 +1,10 @@
 import { useEditor, EditorContent } from '@tiptap/react';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { Highlighter, X as XIcon } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
+import { normalizeTiptapDoc } from '../lib/tiptap-doc';
 import { readLocal, saveHighlight, reconcileHighlight } from '../lib/highlightStore';
 import {
   termRanges,
@@ -66,7 +67,15 @@ export function AnnotatableContent({
   autoTerms,
   onCounts,
 }: Props) {
-  const base = content || { type: 'doc', content: [] };
+  // 正規化 snake_case 節點名稱(見 lib/tiptap-doc.ts),否則 schema 會把整份文件
+  // 丟掉 —— 詳解就變成一張空白卡片。useMemo 是必要的而非最佳化:`base` 餵給
+  // hashContent,而那個 hash 是畫記的儲存 key,每次 render 換新物件會讓下面兩個
+  // effect 不停重跑。乾淨的文件(絕大多數)會原樣回來,hash 因此完全不變,既有畫記
+  // 不受影響。
+  const base = useMemo(
+    () => normalizeTiptapDoc(content) || { type: 'doc', content: [] },
+    [content],
+  );
   const editor = useEditor({
     extensions: buildExtensions({ readOnly: true }),
     content: base,

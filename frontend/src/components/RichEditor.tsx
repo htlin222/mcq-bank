@@ -1,6 +1,6 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import { DOMParser as PMDOMParser } from '@tiptap/pm/model';
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Bold,
   Italic,
@@ -19,6 +19,7 @@ import {
   Redo2,
 } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
+import { normalizeTiptapDoc } from '../lib/tiptap-doc';
 import { transformPastedHTML } from '../lib/paste-transform';
 import {
   looksLikeMarkdown,
@@ -47,6 +48,10 @@ export function RichEditor({
   autofocus = false,
   toolbarActions,
 }: Props) {
+  // 遺留的 snake_case 節點名稱在 schema 裡不存在,會讓整份文件被丟掉
+  // (見 lib/tiptap-doc.ts)。在編輯端也正規化,順帶讓下一次儲存把資料寫回
+  // camelCase。useMemo 保住身分,下面的同步 effect 才不會每次 render 都跑。
+  const doc = useMemo(() => normalizeTiptapDoc(content), [content]);
   // handlePaste (defined in the useEditor config below) needs the editor to
   // insert parsed markdown, but `editor` isn't assigned yet at config time.
   // Read it through a ref that we keep pointed at the latest instance.
@@ -57,7 +62,7 @@ export function RichEditor({
   const [oeOpen, setOeOpen] = useState(false);
   const editor = useEditor({
     extensions: buildExtensions({ placeholder }),
-    content: content || { type: 'doc', content: [] },
+    content: doc || { type: 'doc', content: [] },
     editable,
     autofocus: autofocus ? 'end' : false,
     onCreate: ({ editor }) => { editorRef.current = editor; },
@@ -157,12 +162,12 @@ export function RichEditor({
 
   // Sync external content changes (e.g. after lock release / version pull)
   useEffect(() => {
-    if (editor && content && !editor.isFocused) {
+    if (editor && doc && !editor.isFocused) {
       const current = JSON.stringify(editor.getJSON());
-      const incoming = JSON.stringify(content);
-      if (current !== incoming) editor.commands.setContent(content, false);
+      const incoming = JSON.stringify(doc);
+      if (current !== incoming) editor.commands.setContent(doc, false);
     }
-  }, [content, editor]);
+  }, [doc, editor]);
 
   if (!editor) return null;
 
