@@ -7,6 +7,7 @@ import { useMe } from '../hooks/useMe';
 import { ChallengePanel } from './ChallengePanel';
 import { groupBadgeClass } from '../lib/groups';
 import { startTimer, hide, show, read, type TimerState } from '../lib/questionTimer';
+import { choicePct, type StatsPayload } from '../lib/choiceStats';
 
 type Props = {
   question: QuestionFull;
@@ -68,16 +69,6 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
 
   // Aggregate (anonymous) review-mode stats. Lazy-loaded once the answer
   // is revealed — adds one extra request per card view, not per page load.
-  type StatsPayload = {
-    attempts: number;
-    correct: number;
-    responders: number;
-    accuracy: number | null;
-    my_elapsed_ms: number | null;
-    median_elapsed_ms: number | null;
-    p90_elapsed_ms: number | null;
-    timed_responders: number;
-  };
   const [stats, setStats] = useState<StatsPayload | null>(null);
   useEffect(() => {
     if (!revealed) return;
@@ -325,8 +316,10 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
         {options.map(({ L, text }) => {
           const selected = chosen === L;
           const isCorrect = L === currentAnswer;
+          // 全體選項分布(server 只在「你已作答且人數達門檻」時放行)。
+          const pct = choicePct(stats, L);
           let cls =
-            'flex gap-3 items-start p-3 rounded border cursor-pointer transition';
+            'relative overflow-hidden flex gap-3 items-start p-3 rounded border cursor-pointer transition';
           if (!revealed) {
             cls += selected
               ? ' border-accent bg-accent/5 dark:bg-accent/15'
@@ -350,18 +343,33 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
                 setChosen(L);
               }}
             >
-              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
+              {pct !== null && (
+                <span
+                  aria-hidden
+                  className={
+                    'absolute inset-y-0 left-0 pointer-events-none ' +
+                    (isCorrect ? 'bg-accent/15' : 'bg-ink-200/60 dark:bg-ink-600/40')
+                  }
+                  style={{ width: `${pct}%` }}
+                />
+              )}
+              <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
                 {L}
               </span>
-              <span className="leading-relaxed text-ink-800 dark:text-ink-200">{text}</span>
+              <span className="relative leading-relaxed text-ink-800 dark:text-ink-200">{text}</span>
               {revealed && isCorrect && (
-                <span className="ml-auto inline-flex items-center gap-1 text-emerald-700 text-sm font-medium shrink-0">
+                <span className="relative ml-auto inline-flex items-center gap-1 text-emerald-700 text-sm font-medium shrink-0">
                   <Check size={16} /> 正解
                 </span>
               )}
               {revealed && selected && !isCorrect && (
-                <span className="ml-auto inline-flex items-center gap-1 text-rose-700 text-sm font-medium shrink-0">
+                <span className="relative ml-auto inline-flex items-center gap-1 text-rose-700 text-sm font-medium shrink-0">
                   <X size={16} /> 你的選擇
+                </span>
+              )}
+              {pct !== null && (
+                <span className="relative ml-auto shrink-0 self-center text-xs tabular-nums text-ink-500 dark:text-ink-400">
+                  {pct}%
                 </span>
               )}
             </li>
@@ -435,6 +443,16 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
             <span className="text-ink-400 dark:text-ink-500">
               · 全體被作答 {stats.attempts} 次 / 答對 {stats.correct} 次,
               答對率 {stats.accuracy ?? 0}%
+            </span>
+          )}
+          {stats?.choices_state === 'ok' && (
+            <span className="text-ink-400 dark:text-ink-500">
+              · {stats.choice_responders} 人作答的選項分布
+            </span>
+          )}
+          {stats?.choices_state === 'below_threshold' && (
+            <span className="text-ink-400 dark:text-ink-500">
+              · 作答人數不足,暫不顯示選項分布
             </span>
           )}
           {/* Timing. The cohort median is withheld below the anonymity
