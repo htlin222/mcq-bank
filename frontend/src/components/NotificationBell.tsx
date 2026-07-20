@@ -11,6 +11,7 @@ type Notification = {
     | 'reply'
     | 'edit'
     | 'chat_mention'
+    | 'helpful'
     | 'challenge_filed'
     | 'challenge_promoted'
     | 'challenge_rejected'
@@ -42,6 +43,9 @@ function notificationLabel(n: Notification): string {
       return '更新了詳解';
     case 'chat_mention':
       return '在聊天大廳提到了你';
+    // actor_email 刻意為 NULL(不揭露投票人),所以這句自己就要能站得住。
+    case 'helpful':
+      return '有人覺得你的留言有幫助';
     case 'challenge_filed':
       return '對本題答案發起挑戰';
     case 'challenge_promoted':
