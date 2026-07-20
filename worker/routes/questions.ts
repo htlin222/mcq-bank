@@ -8,6 +8,7 @@ import { isAdminEmail } from "../lib/admin";
 import { mergeSimilar } from "../lib/similar";
 import { explanationPlainText, dedupeTerms } from "../lib/cloze";
 import { EMBED_MODEL, TEXT_MODEL } from "../lib/ai-models";
+import { median, percentile, MIN_COHORT } from "../lib/pacing";
 
 export const questionsRoutes = new Hono<AppContext>();
 
@@ -468,7 +469,34 @@ questionsRoutes.get("/:id/stats", async (c) => {
 	const responders = row?.responders ?? 0;
 	const accuracy = attempts > 0 ? Math.round((correct * 1000) / attempts) / 10 : null;
 
-	return c.json({ attempts, correct, responders, accuracy });
+	// Per-question timing. One sample per user (their fastest run) so
+	// re-drilling the same question can't stuff the distribution. Outliers
+	// above the frontend cap (10 min — "left the tab open over lunch") are
+	// dropped rather than clamped so they don't drag the median up.
+	const { results: times } = await c.env.DB.prepare(
+		`SELECT user_email, MIN(elapsed_ms) AS ms
+     FROM attempts
+     WHERE question_id = ? AND elapsed_ms IS NOT NULL
+       AND elapsed_ms > 0 AND elapsed_ms <= 600000
+     GROUP BY user_email`,
+	)
+		.bind(id)
+		.all<{ user_email: string; ms: number }>();
+
+	const my = times.find((r) => r.user_email === c.var.email)?.ms ?? null;
+	// Below MIN_COHORT the "cohort median" is just naming names — withhold it.
+	const cohort = times.length >= MIN_COHORT ? times.map((r) => r.ms) : [];
+
+	return c.json({
+		attempts,
+		correct,
+		responders,
+		accuracy,
+		my_elapsed_ms: my,
+		median_elapsed_ms: median(cohort),
+		p90_elapsed_ms: percentile(cohort, 0.9),
+		timed_responders: times.length,
+	});
 });
 
 // ------------------------------------------------------------
