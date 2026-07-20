@@ -56,7 +56,16 @@ export function WrongQuestions() {
   return (
     <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-4">錯題回顧</h1>
-      <p className="text-sm text-ink-500 dark:text-ink-400 mb-6">複習模式中答錯的題目,按錯誤率排序。</p>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-6">
+        <p className="text-sm text-ink-500 dark:text-ink-400">複習模式中答錯的題目,按錯誤率排序。</p>
+        {/* 帶著當前 filter 進出卷頁,status 預設勾「做錯過」 */}
+        <Link
+          to={`/exam/new?status=wrong${query ? '&' + query : ''}`}
+          className="text-sm text-accent hover:text-accent-dark"
+        >
+          把這些出成一份測驗 →
+        </Link>
+      </div>
 
       <div className="flex flex-wrap gap-2 mb-3 items-center text-sm">
         <select
