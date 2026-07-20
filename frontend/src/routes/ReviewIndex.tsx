@@ -101,6 +101,9 @@ export function ReviewIndex() {
         >
           隨機抽一題開始
         </button>
+        <Link to="/exam/new" className="text-sm text-accent hover:text-accent-dark self-center">
+          或 自訂一份測驗 →
+        </Link>
         {/* 跨年份到期佇列入口 — 不必自己記得哪一年有卡到期。 */}
         {due && due.due_total > 0 && (
           <Link
