@@ -1,0 +1,17 @@
+{
+  // The service worker needs lib.webworker, which cannot share a program with
+  // lib.dom (they redeclare the same globals). So sw.ts is excluded from
+  // tsconfig.json and type-checked here instead; `pnpm build` runs both.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "WebWorker"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["vite-plugin-pwa/client"],
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "strict": true
+  },
+  "include": ["src/sw.ts", "src/lib/sw-guards.ts"]
+}

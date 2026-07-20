@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 const CONFIG_PATH = path.resolve(__dirname, '..', 'config.toml');
 
@@ -104,8 +105,76 @@ function appConfigPlugin(): Plugin {
   };
 }
 
+// PWA: installable manifest + a hand-written service worker.
+//
+// `injectManifest` (not `generateSW`) is deliberate. generateSW's
+// navigateFallback is cache-first, which would happily serve a precached
+// index.html forever — including to a user whose Cloudflare Access session
+// has expired, who then never sees the Access login redirect. src/sw.ts
+// implements NetworkOnly navigation + an explicit cacheability guard
+// instead. See docs/plans/2026-07-20-pwa-offline.md.
+function pwaPlugin(): Plugin[] {
+  return VitePWA({
+    strategies: 'injectManifest',
+    srcDir: 'src',
+    filename: 'sw.ts',
+    // Show a "new version" prompt rather than silently taking over: an
+    // already-loaded tab references hashed chunks that the new deploy no
+    // longer has, so auto-skipWaiting turns lazy routes into blank pages.
+    registerType: 'prompt',
+    // Registration lives in src/lib/pwa.ts — avoids shipping an extra
+    // /registerSW.js that would need its own Access bypass.
+    injectRegister: null,
+    // Brand strings come from config.toml via the same bootConfig the rest
+    // of the app uses. Colours mirror tailwind.config.js.
+    manifest: {
+      name: bootConfig.brand.long_title,
+      short_name: bootConfig.brand.short_name,
+      description: bootConfig.brand.subtitle,
+      lang: 'zh-TW',
+      start_url: '/',
+      scope: '/',
+      display: 'standalone',
+      orientation: 'portrait',
+      background_color: '#f7f5f2', // ink-50
+      theme_color: '#a8442a', // accent.DEFAULT
+      icons: [
+        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        {
+          src: '/icons/icon-512-maskable.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable',
+        },
+      ],
+    },
+    injectManifest: {
+      // build.sourcemap is on, so .map files must never enter the precache
+      // manifest. The lecture reader's chunks — including EmbedPDF's
+      // *-engine / browser-* bundles, ~1 MB together — are lazy-loaded and
+      // useless offline anyway (pdfium.wasm and the CJK fonts come from
+      // cdn.jsdelivr.net at runtime, see public/_headers). manual.html and
+      // og-image.png are large public-landing assets, not app shell.
+      globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+      globIgnores: [
+        '**/*.map',
+        'manual.html',
+        'og-image.png',
+        '**/*[Ll]ecture*',
+        '**/*-engine-*.js',
+        '**/browser-*.js',
+      ],
+      maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+    },
+    // Keep the SW out of `vite dev` — a stale registration hijacking HMR is
+    // a miserable debugging experience. Test it via `pnpm build && pnpm preview`.
+    devOptions: { enabled: false },
+  });
+}
+
 export default defineConfig({
-  plugins: [react(), appConfigPlugin()],
+  plugins: [react(), appConfigPlugin(), pwaPlugin()],
   server: {
     port: 5173,
     proxy: {
