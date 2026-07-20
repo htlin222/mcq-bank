@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Settings2 } from 'lucide-react';
 import { api } from '../lib/api';
 
 // 讀書進度預估卡片 —— 「以我目前的速度,考前做得完嗎」。
@@ -47,6 +48,10 @@ export function verdict(p: Pacing): string {
 export function PacingCard() {
   const [p, setP] = useState<Pacing | null>(null);
   const [failed, setFailed] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [saveErr, setSaveErr] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
     return api
@@ -62,6 +67,21 @@ export function PacingCard() {
     load();
   }, [load]);
 
+  async function save() {
+    setSaving(true);
+    setSaveErr('');
+    try {
+      await api.put('/api/review/goal', { weekly_target: Number(draft) });
+      // 重新取數而不是只改本地 state —— week_pct / week_met 是後端算的。
+      await load();
+      setEditing(false);
+    } catch {
+      setSaveErr('請輸入 1 到 1000 之間的題數');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   // 固定高度的骨架,避免卡片載入完成時把下面的 heatmap 推下去(CLS)。
   if (!p) {
     return (
@@ -75,10 +95,24 @@ export function PacingCard() {
 
   return (
     <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 shadow-paper min-h-[7.5rem]">
-      <p className="text-xs text-ink-500 dark:text-ink-400">
-        {p.days_left != null ? `距考試 ${p.days_left} 天 · ` : ''}
-        已完成 {p.completed} / {p.total_questions} 題
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs text-ink-500 dark:text-ink-400">
+          {p.days_left != null ? `距考試 ${p.days_left} 天 · ` : ''}
+          已完成 {p.completed} / {p.total_questions} 題
+        </p>
+        <button
+          type="button"
+          aria-label="設定每週目標"
+          onClick={() => {
+            setDraft(String(p.weekly_target));
+            setSaveErr('');
+            setEditing((v) => !v);
+          }}
+          className="shrink-0 text-ink-400 hover:text-accent transition"
+        >
+          <Settings2 size={16} strokeWidth={1.5} />
+        </button>
+      </div>
 
       <div className="mt-3">
         <div className="flex items-baseline justify-between gap-2 flex-wrap">
@@ -88,6 +122,11 @@ export function PacingCard() {
               {p.week_done}
             </span>{' '}
             / {p.week_target} 題
+            {p.weekly_target_is_default ? (
+              <span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500">
+                建議值
+              </span>
+            ) : null}
           </span>
           <span className="text-xs text-ink-400 dark:text-ink-500">
             {p.week_met ? '本週目標已達成' : `本週起算 ${p.week_start}`}
@@ -108,7 +147,50 @@ export function PacingCard() {
         </div>
       </div>
 
-      <p className="mt-3 text-sm text-ink-600 dark:text-ink-300">{verdict(p)}</p>
+      {editing ? (
+        <div className="mt-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <label
+              htmlFor="weekly-target"
+              className="text-sm text-ink-600 dark:text-ink-300"
+            >
+              每週目標
+            </label>
+            <input
+              id="weekly-target"
+              type="number"
+              min={1}
+              max={1000}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              className="w-24 px-2 py-1 rounded border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-ink-800 dark:text-ink-100 font-mono tabular-nums text-sm"
+            />
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving}
+              className="px-3 py-1 text-sm rounded bg-accent text-white hover:bg-accent-dark disabled:opacity-50 transition"
+            >
+              儲存
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(false);
+                setSaveErr('');
+              }}
+              className="px-3 py-1 text-sm rounded border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-accent transition"
+            >
+              取消
+            </button>
+          </div>
+          {saveErr ? (
+            <p className="mt-2 text-xs text-ink-600 dark:text-ink-300">{saveErr}</p>
+          ) : null}
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-ink-600 dark:text-ink-300">{verdict(p)}</p>
+      )}
     </div>
   );
 }
