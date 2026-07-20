@@ -15,7 +15,23 @@
 **既有的離線 apkg 流程 —— `scripts/build-anki.py`(750 行)**
 
 - 用 `wrangler d1 execute --json` 逐年撈題(`scripts/build-anki.py:539-572`,`questions LEFT JOIN explanations`)。**沒有 personal_notes、沒有 highlights** —— 這正是「帶不走自己的筆記」的根因。入口是 `package.json` 的 `anki:build` / `anki:build:mine`,產物 `anki-deck/血專-1xx年.apkg`(最大 12.8 MB,gitignored),使用者無法自選範圍。
-- 卡片組法(可直接沿用的模板語彙):Front = `.qid` + `.stem` + `<ul class="options">`;Back = `.answer` 正解 + `.expl` 詳解 HTML(`scripts/build-anki.py:648-668`)。
+- 卡片組法:Front = `.qid` + `.stem` + `<ul class="options">`;Back = `.answer` 正解 + `.expl` 詳解 HTML(`:648-668`)。**但這份不是樣式基準 —— 見下。**
+
+**樣式基準:`~/mcq-to-anki`(github.com/htlin222/mcq-to-anki)**
+
+擁有者指定**這份才是偏好樣式**,匯出的 HTML 一律以它為準,不要沿用 `build-anki.py` 內嵌的那版。
+
+- 檔案:`src/mcq_to_anki/templates/{front.html, back.html, styling.css}`(CSS 約 340 行)。
+- 配色是 **Catppuccin**:`.card` 定義 Latte 亮色變數、`.card.nightMode` 覆寫成 Mocha 深色,全部走 `--ctp-*` CSS 變數。**匯出的 HTML 要把兩套變數都帶上**,並用 `@media (prefers-color-scheme: dark)` 對應 `.nightMode` 那組(Anki 用 class 切換,瀏覽器裡沒有那個 class)。
+- class 語彙(比 `build-anki.py` 那版多,新 renderer 要對齊這一份):
+  - 外層 `main.anki-note`(`width: min(860px, 100%)`、置中、clamp padding)
+  - `.field-front` 題面;`.field-front--review` 是「已作答後縮小的題面」——匯出成單檔閱讀時只需要 `.field-front`
+  - `.qid`(題號,`--ctp-subtext0`)、`.stem`(`white-space: pre-wrap`)
+  - `.options` 無序清單 + **`.optkey`**(選項字母,絕對定位、`--ctp-blue`)—— `build-anki.py` 那版沒有 `.optkey`,renderer 要產生它
+  - `.answer`(`--ctp-green`)、`.expl`(上方分隔線)
+  - 已備妥的內容樣式:`.expl h1~h6`(`--ctp-mauve`)、`p` / `ul` / `ol` / `blockquote` / `table` / `th` / `td` / `code` / `pre` / `hr` / `img`(`max-height: 52vh`)、`strong`(mauve)、`em`(teal)、`a`(blue)
+- 個人筆記與畫記是**這份 CSS 還沒有的新內容**,需新增 class(建議 `.note` 沿用 `.expl` 的分隔線語彙、`mark` 用 `--ctp-yellow` 底)。**新增的 class 要一併回饋到 mcq-to-anki**,否則兩邊會漂移。
+- 實作方式:把 `styling.css` **複製**進 `worker/lib/export-styles.ts` 當字串常數(worker 無 FS,不能 runtime 讀檔),檔頭註明來源 repo 與同步責任。
 - **TipTap → HTML 的既有實作在 `scripts/build-anki.py:592-635`**:涵蓋 doc / text(bold, italic, link)/ paragraph / heading / bulletList / orderedList / listItem / blockquote / hardBreak / image;**未涵蓋 table、codeBlock、highlight、mention、questionRef**,未知節點靜默降級成 children(`:635`)。新的 TS renderer 要**移植這份對照表並補齊缺口**,不要重新發明。
 - 圖片:`/img/<key>` 經 `local_path()` 對映回 repo 的 `years/<yy>/images/`(`:579-586`)再打包進 apkg media(`:680-688`),對映不到就靜默略過(`:589, :630`)。→ 這條路徑**只在有 repo 原始檔的本機成立**,worker 端無法重用。
 - ⚠️ 命名衝突:`frontend/src/routes/AnkiDeck.tsx` 是**站內 FSRS 複習頁**(`/api/review/anki/decks`,`worker/routes/review.ts:339`),與 apkg 無關,不要改到它。
@@ -198,7 +214,7 @@ export type ExportScope =
 - **Step 1 — 失敗測試(不碰 D1,純邏輯):** `parseScope(body)` 每種 kind 回正確物件,缺欄位 / 未知 kind → `{ error }`;`scopeLabel(scope)` 回中文範圍描述(進檔頭與檔名),如 `收藏・心臟`、`錯題(113 年)`、`搜尋結果`;`scopeSql(scope, email)` 回 `{ sql, params }`,**每一種 kind 各一個案例斷言 `params[0] === email`**(防止未來新增 kind 時漏綁);`ids` 上限 200,超過截斷並回 `truncated: true`。
 - **Step 2:** `node --test worker/lib/export-scope.test.ts` → FAIL。
 - **Step 3 — 實作:** where 條件沿用既有查詢 —— `folder`/`bookmarks` → `bookmark_items`(`worker/routes/bookmarks.ts:44-52`);`notes` → `personal_notes`(`:20-28`);`highlights` → `highlights` 表 + 從 `store_key` 反解 qid;`wrong` → `review_progress` 條件(`worker/routes/review.ts:600-602`);`exam` → `exam_sessions` join `answer_history`,**where `user_email = ?`**。搜尋結果刻意**不**複製 `worker/routes/search.ts:22` 的 FTS SQL,改由前端把目前結果的 id 傳成 `ids` scope —— 這個取捨要寫進 `export-scope.ts` 的註解。
-- **Step 4:** PASS → `pnpm test` → `git commit -m "feat(export): scope vocabulary + per-user scoped SQL"`
+- **Step 4:** PASS → `pnpm test` → commit `feat(export): scope vocabulary + per-user scoped SQL`
 
 ---
 
@@ -237,9 +253,9 @@ export function contentDisposition(name: string): string {
 - **Step 4 — 驗證**(`pnpm dev` + `cd frontend && pnpm dev`,Vite proxy 注入 `X-Dev-Email`;若 API 全數 500/404,先確認 8787 沒被 OpenEvidence MCP relay 佔走):
 
 ```bash
-H="-H 'Content-Type: application/json' -H 'X-Dev-Email: <admin_email>'"
-curl -s -X POST http://localhost:8787/api/export/preview $H -d '{"scope":{"kind":"year","year":114}}'
-curl -OJ -X POST http://localhost:8787/api/export $H \
+E='X-Dev-Email: <admin_email>'; J='Content-Type: application/json'
+curl -s -X POST http://localhost:8787/api/export/preview -H "$E" -H "$J" -d '{"scope":{"kind":"year","year":114}}'
+curl -OJ -X POST http://localhost:8787/api/export -H "$E" -H "$J" \
   -d '{"scope":{"kind":"ids","ids":["114-001","114-002"]},"format":"md"}'
 ```
 
@@ -261,10 +277,8 @@ curl -OJ -X POST http://localhost:8787/api/export $H \
 #columns:Front,Back,Tags
 #tags column:3
 ```
-
-  Front/Back 用 **Task 1.1 的 `docToHtml`**,結構對齊 `scripts/build-anki.py:656-668`(`.qid` / `.stem` / `ul.options` / `.answer` / `.expl`),再追加 `.note`(我的筆記)與 `.hl`(我的畫記)。Tags 欄 = `question_tags` + `年份-114`,空白換 `_`(Anki tag 不能有空白)。圖片 `<img src>` 一律改寫成**絕對 URL**,測試斷言不出現相對路徑。
-- **Step 2:** FAIL → **Step 3** 實作 → **Step 4** PASS(`pnpm test`)。
-- **Step 5:** `git commit -m "feat(export): Anki-importable CSV renderer"`
+  Front/Back 用 **Task 1.1 的 `docToHtml`**,結構對齊**樣式基準 `~/mcq-to-anki` 的 `front.html` / `back.html`**(`main.anki-note` > `.field-front` / `.field-back`,內含 `.qid` / `.stem` / `ul.options` + `.optkey` / `.answer` / `.expl`),再追加 `.note`(我的筆記)與 `.hl`(我的畫記)。匯進 Anki 後套用同一份 `styling.css`,所以 CSV 只出 HTML 結構、不內嵌 `<style>`。Tags 欄 = `question_tags` + `年份-114`,空白換 `_`(Anki tag 不能有空白)。圖片 `<img src>` 一律改寫成**絕對 URL**,測試斷言不出現相對路徑。
+- **Step 2:** FAIL → **Step 3** 實作 → **Step 4** PASS(`pnpm test`)→ `git commit -m "feat(export): Anki-importable CSV renderer"`
 
 **已知 caveat(必須寫進 UI 文案):** 第一版不輸出 guid column,匯入的卡與 `anki-deck/*.apkg` 的卡是**不同 note**,同一題會出現兩張。要合併需移植 genanki `guid_for("hema-2026", id)` 的雜湊演算法(對照 genanki 原始碼確認,並用既有 apkg 實測驗證)再加 `#guid column:`。另外 Anki 不抓遠端圖,絕對 URL **離線看不到圖且需已登入 Access**。
 
@@ -276,8 +290,7 @@ curl -OJ -X POST http://localhost:8787/api/export $H \
 
 - **Step 1:** `format: "csv"` 分支 → `Content-Type: text/csv; charset=utf-8`,檔名 `.csv`,開頭補 UTF-8 BOM(否則 Excel 開中文亂碼;Anki 能容忍 BOM)。
 - **Step 2:** 絕對 URL 的 origin 取自 `c.env.PUBLIC_HOST`(worker 不讀 `config.toml`,見 CLAUDE.md),**不得 hard-code**。
-- **Step 3:** 驗證 `curl -OJ … -d '{…,"format":"csv"}'`,實際拖進 Anki 匯入,確認 notetype / deck / tags 都對。
-- **Step 4:** `git commit -m "feat(export): csv format with absolute image URLs"`
+- **Step 3:** 驗證 `curl -OJ … -d '{…,"format":"csv"}'`,實際拖進 Anki 匯入,確認 notetype / deck / tags 都對 → `git commit -m "feat(export): csv format with absolute image URLs"`
 
 ---
 
@@ -297,7 +310,7 @@ download: async (path: string, body: any): Promise<void> => {
   const a = document.createElement("a");
   a.href = url; a.download = m ? decodeURIComponent(m[1]) : "export"; a.click();
   URL.revokeObjectURL(url);
-},
+},   // 掛進 frontend/src/lib/api.ts:43 的 api 物件
 ```
 
 - **Step 2:** `ExportDialog.tsx`,props `{ scope: ExportScope; onClose: () => void }`。掛載時打 `/api/export/preview` 顯示「將匯出 N 題(範圍標籤)」;格式二選一(Markdown / Anki CSV,各附一句用途);三個 include checkbox;超過 200 題停用按鈕並提示縮小範圍。視覺沿用 ink/cream + `#a8442a` accent(`frontend/tailwind.config.js:21`),不引入新設計語彙。
@@ -311,8 +324,7 @@ download: async (path: string, body: any): Promise<void> => {
 
 - **Step 1:** 每頁一顆一致的「匯出」按鈕(同 icon、同文案),開 `ExportDialog`。
 - **Step 2:** 手動走完五個入口各一次,確認下載的 `.md` 內含且**只含**自己的筆記與畫記。
-- **Step 3(安全驗收關鍵):** 換 `X-Dev-Email` 成第二個帳號,對同一個 folder id 打 `/api/export`,**必須**回空範圍或 400,不能拿到別人的收藏。
-- **Step 4:** `git commit -m "feat(ui): export entry points across bookmarks/year/search/exam/wrong"`
+- **Step 3(安全驗收關鍵):** 換 `X-Dev-Email` 成第二個帳號,對同一個 folder id 打 `/api/export`,**必須**回空範圍或 400,不能拿到別人的收藏 → `git commit -m "feat(ui): export entry points across bookmarks/year/search/exam/wrong"`
 
 ---
 
@@ -323,9 +335,8 @@ download: async (path: string, body: any): Promise<void> => {
 - **Step 1 — 失敗測試:** `collectImageKeys(items)` 從所有 TipTap doc 走出 `/img/<key>`(去重、排除 http(s) 外連、拒 `..`);`planEmbed(keys, { maxCount: 20, maxBytes: 4_000_000 })` 回 `{ embed, skipped }`。
 - **Step 2:** 實作。R2 讀取用 `c.env.R2.get(key)`(與 `worker/routes/images.ts:15` 同路徑,**bucket 維持私有**),並行度限 6,累計超過 `maxBytes` 就停止並把其餘丟進 `skipped`。
 - **Step 3:** `format: "md"` 加 `embed_images: true` → renderer 的 `opts.imageSrc` 回 `data:<mime>;base64,…`;被 skip 的維持 `/img/<key>`,檔尾附「N 張圖片因體積上限未內嵌」。
-- **Step 4:** 新增 `format: "html"` — 用 `docToHtml` 包成自帶 `<style>` 的單檔(排版思路參考 `scripts/build-anki.py:141-486`,但配色改成本站 ink/cream 而非 catppuccin)。UI 說明「用瀏覽器列印成 PDF」。
-- **Step 5:** 驗證體積與耗時:`curl -OJ` 一個含圖的 20 題範圍,`ls -lh` 確認 < 5 MB,`wrangler tail` 看 CPU time 未超標。
-- **Step 6:** `pnpm test` → `git commit -m "feat(export): base64 image embedding + single-file HTML format"`
+- **Step 4:** 新增 `format: "html"` — 用 `docToHtml` 包成自帶 `<style>` 的單檔,`<style>` 內容來自 `worker/lib/export-styles.ts`(即 `~/mcq-to-anki` 的 `styling.css`,**擁有者指定的樣式基準**)。結構照 `back.html`:`main.anki-note` 包 `.field-front` + `.field-back`,多題就重複 `main` 並以 `<hr>` 分隔。**注意**:`.card` / `.card.nightMode` 是 Anki 的 class,單檔 HTML 要把亮色變數放 `:root`、深色那組放 `@media (prefers-color-scheme: dark)`,否則深色模式不會生效。`.anki-note` 的 `min-height: 100vh` 在多題單檔要移除,否則每題佔滿一整螢幕。UI 說明「用瀏覽器列印成 PDF」。
+- **Step 5:** 驗證體積與耗時:`curl -OJ` 一個含圖的 20 題範圍,`ls -lh` 確認 < 5 MB,`wrangler tail` 看 CPU time 未超標 → `pnpm test` → `git commit -m "feat(export): base64 image embedding + single-file HTML format"`
 
 ---
 
@@ -333,9 +344,7 @@ download: async (path: string, body: any): Promise<void> => {
 
 **Files:** Modify `worker/routes/export.ts`(新增 `format: "bundle"` → 回 JSON `{ markdown, images: string[] }`)、`frontend/src/components/ExportDialog.tsx`、`frontend/package.json`(加 `fflate`,~8 KB gzip)
 
-前端拿到 bundle 後對每個 `/img/<key>` 自行 `fetch`(Access cookie 自動帶),用 fflate 打包成 `<範圍>.zip`(`index.md` + `images/`)。圖片下載的 CPU 與頻寬因此落在瀏覽器,**完全繞開 worker 的 CPU 與體積上限** —— 這是大範圍下唯一能保住圖片的路徑,但只在 Task 5 的限額被實際打到時才做。
-
-`git commit -m "feat(export): browser-side zip bundling with images"`
+前端拿到 bundle 後對每個 `/img/<key>` 自行 `fetch`(Access cookie 自動帶),用 fflate 打包成 `<範圍>.zip`(`index.md` + `images/`)。圖片下載的 CPU 與頻寬因此落在瀏覽器,**完全繞開 worker 的 CPU 與體積上限** —— 這是大範圍下唯一能保住圖片的路徑,但只在 Task 5 的限額被實際打到時才做。驗證:含圖 100 題匯出成 zip 解開後圖片齊全。commit `feat(export): browser-side zip bundling with images`。
 
 ---
 
@@ -347,10 +356,8 @@ download: async (path: string, body: any): Promise<void> => {
 - [ ] Markdown 檔在 Obsidian / VS Code / GitHub 三處預覽正常,中文檔名不亂碼
 - [ ] CSV 實際匯入 Anki:notetype `血專`、deck、tags 正確,HTML 有渲染
 - [ ] **A 帳號無法匯出 B 帳號的收藏 / 筆記 / 畫記**(Task 4.2 Step 3 已實測)
-- [ ] 匯出檔中不出現他人 email 或他人筆記內容
-- [ ] 201 題的範圍回 413 且 UI 有可讀提示,不是白畫面
-- [ ] `wrangler tail` 觀察一次 200 題匯出,CPU time 未超標
-- [ ] R2 bucket 仍為私有(dashboard 確認未開公開存取)
+- [ ] 匯出檔中不出現他人 email 或他人筆記內容;201 題的範圍回 413 且 UI 有可讀提示,不是白畫面
+- [ ] `wrangler tail` 觀察一次 200 題匯出,CPU time 未超標;R2 bucket 仍為私有(dashboard 確認未開公開存取)
 
 ## 風險與回滾
 
