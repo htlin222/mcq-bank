@@ -25,6 +25,7 @@ import {
 	saveYearPosition,
 } from "./lib/lastPath";
 import { useMe } from "./hooks/useMe";
+import { useOnline } from "./hooks/useOnline";
 import { migrateLocalHighlights } from "./lib/highlightStore";
 import { migrateLocalExamFlags } from "./lib/examFlagStore";
 import { Avatar } from "./components/Avatar";
@@ -117,6 +118,7 @@ export default function App() {
 		<div className="min-h-screen bg-ink-50 dark:bg-ink-900 text-ink-800 dark:text-ink-200 flex flex-col">
 			<LastPathTracker />
 			<ChatToaster />
+			<OfflineBanner />
 			{/* Top bar */}
 			<header className="sticky top-0 z-20 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
@@ -227,6 +229,22 @@ export default function App() {
 			</nav>
 		</div>
 		</ChatProvider>
+	);
+}
+
+// A thin strip rather than a toast: it has to stay visible for as long as the
+// condition holds, and it must not cover the text someone is trying to read
+// on the train.
+function OfflineBanner() {
+	const online = useOnline();
+	if (online) return null;
+	return (
+		<div
+			role="status"
+			className="sticky top-14 z-20 border-l-4 border-accent bg-ink-100 dark:bg-ink-800 px-4 py-1.5 text-xs text-ink-700 dark:text-ink-200"
+		>
+			離線中 · 可閱讀已看過的內容,編輯功能暫停
+		</div>
 	);
 }
 
