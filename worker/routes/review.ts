@@ -363,6 +363,30 @@ reviewRoutes.get("/heatmap", async (c) => {
 	return c.json(results);
 });
 
+// Daily accuracy + average per-question time from the attempts log —
+// the data basis for a learning curve. Bucketed by UTC+8 day, same as
+// /heatmap. avg_ms is null for days with no timed answers (old clients,
+// or answers that arrived without elapsed_ms).
+reviewRoutes.get("/pacing", async (c) => {
+	const email = c.var.email;
+	const days = Math.min(parseInt(c.req.query("days") || "90"), 365);
+	const since = Date.now() - days * 86_400_000;
+
+	const { results } = await c.env.DB.prepare(
+		`SELECT strftime('%Y-%m-%d', created_at / 1000, 'unixepoch', '+8 hours') AS d,
+            COUNT(*) AS n,
+            SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) AS correct,
+            AVG(CASE WHEN elapsed_ms BETWEEN 1 AND 600000 THEN elapsed_ms END) AS avg_ms
+     FROM attempts
+     WHERE user_email = ? AND created_at >= ?
+     GROUP BY d ORDER BY d`,
+	)
+		.bind(email, since)
+		.all<{ d: string; n: number; correct: number; avg_ms: number | null }>();
+
+	return c.json(results);
+});
+
 // FSRS/Anki deck stats. Each exam year is treated as a deck.
 reviewRoutes.get("/anki/decks", async (c) => {
 	const email = c.var.email;
