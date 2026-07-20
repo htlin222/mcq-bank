@@ -54,6 +54,17 @@ test("詳解是空 doc 時也不出現(渲染後為空字串)", () => {
 	assert.ok(!md.includes("### 詳解"));
 });
 
+test("詳解 / 筆記內的標題被壓到 #### 以下,不會蓋過區塊標題", () => {
+	const md = renderQuestionMarkdown({
+		...base,
+		explanation: {
+			type: "doc",
+			content: [{ type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "機轉" }] }],
+		},
+	});
+	assert.ok(md.includes("### 詳解\n\n#### 機轉"));
+});
+
 test("筆記為 null 時「我的筆記」不出現", () => {
 	assert.ok(!renderQuestionMarkdown(base).includes("### 我的筆記"));
 	const md = renderQuestionMarkdown({ ...base, note: p("記得考") });

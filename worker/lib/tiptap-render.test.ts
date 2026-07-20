@@ -62,6 +62,14 @@ test("heading 依 level 轉 #", () => {
 	);
 });
 
+test("headingShift 把巢狀文件的標題往下壓,並夾在 h6", () => {
+	const h = (level: number) => doc({ type: "heading", attrs: { level }, content: [t("A")] });
+	assert.equal(docToMarkdown(h(1), { headingShift: 3 }), "#### A");
+	assert.equal(docToMarkdown(h(3), { headingShift: 3 }), "###### A");
+	assert.equal(docToMarkdown(h(6), { headingShift: 3 }), "###### A");
+	assert.equal(docToHtml(h(1), { headingShift: 3 }), "<h4>A</h4>");
+});
+
 test("text marks:bold / italic / strike / code / highlight / link", () => {
 	assert.equal(docToMarkdown(doc(p(t("A", [{ type: "bold" }])))), "**A**");
 	assert.equal(docToMarkdown(doc(p(t("B", [{ type: "italic" }])))), "*B*");

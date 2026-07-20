@@ -29,6 +29,11 @@ export type Env = {
   CF_ACCOUNT_ID?: string;
   ACCESS_APP_ID?: string;
   ROSTER_CSV_URL?: string;
+  // Public host (e.g. "qa.example.com"). Optional: /api/export falls back to
+  // the request origin for the absolute image URLs it puts in CSV/HTML, so
+  // this only needs setting if the worker is reached on a different host than
+  // the one users should link to.
+  PUBLIC_HOST?: string;
   // Optional — feedback button is disabled if either is missing.
   GH_FEEDBACK_REPO?: string;  // "owner/repo"
   GH_FEEDBACK_TOKEN?: string; // PAT with issues:write

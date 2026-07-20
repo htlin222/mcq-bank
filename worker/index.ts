@@ -29,6 +29,7 @@ import { lectureRoutes } from './routes/lectures';
 import { chatRoutes } from './routes/chat';
 import { oeRoutes } from './routes/oe';
 import { stateRoutes } from './routes/state';
+import { exportRoutes } from './routes/export';
 import { drillRoutes } from './routes/drill';
 import { highlightsRoutes } from './routes/highlights';
 
@@ -103,6 +104,7 @@ app.route('/api/lectures', lectureRoutes);
 app.route('/api/chat', chatRoutes);
 app.route('/api/oe', oeRoutes);
 app.route('/api/state', stateRoutes);
+app.route('/api/export', exportRoutes);
 
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 

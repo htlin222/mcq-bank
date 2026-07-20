@@ -56,10 +56,13 @@ export function renderQuestionMarkdown(item: ExportItem, opts: RenderOpts = {}):
 		out.push(`標籤:${item.tags.map((t) => `\`${t}\``).join(" ")}`);
 	}
 
-	const expl = docToMarkdown(item.explanation, opts);
+	// Docs are nested under an h3 section heading — push their own headings down.
+	const nested: RenderOpts = { ...opts, headingShift: (opts.headingShift ?? 0) + 3 };
+
+	const expl = docToMarkdown(item.explanation, nested);
 	if (expl) out.push("### 詳解", expl);
 
-	const note = docToMarkdown(item.note, opts);
+	const note = docToMarkdown(item.note, nested);
 	if (note) out.push("### 我的筆記", note);
 
 	if (item.highlights.length > 0) {
