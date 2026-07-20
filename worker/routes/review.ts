@@ -17,6 +17,7 @@ import {
 import { calibration } from "../lib/calibration";
 import { clusterByThreshold, type VecItem } from "../lib/cluster";
 import { clampElapsedMs, insertAttemptOp } from "../lib/attempts";
+import { dailyActivity, todayInTaipei } from "../lib/activity";
 import {
 	clampHour,
 	dayWindow,
@@ -336,41 +337,12 @@ reviewRoutes.get("/heatmap", async (c) => {
 	const days = Math.min(parseInt(c.req.query("days") || "120"), 365);
 	const since = Date.now() - days * 86_400_000;
 
-	// Buckets: bind everything to the user's clock by computing day-strings
-	// (YYYY-MM-DD) in UTC+8 (Asia/Taipei). D1 supports strftime modifier '+8 hours'.
-	//
-	// Counts come from `attempts` (one row per answer). This used to read
-	// review_progress.last_seen_at — an aggregate row that gets overwritten,
-	// so answering 10 questions in a day only ever counted as 1. The
-	// exam_answers branch is gone too: exam answers now land in `attempts`,
-	// so keeping it would double-count.
-	//
-	// fsrs_review_logs stays: a bare FSRS rating with no `chosen` never
-	// reaches `attempts`, so dropping it would lose those reviews. Anki
-	// reviews that DO carry a `chosen` are counted by both branches — an
-	// accepted overlap, since dropping either one loses more than it fixes.
-	//
-	// NOTE: `attempts` only starts at migration 0023 and history was
-	// deliberately not backfilled (aggregates can't be expanded into real
-	// timestamps without fabricating them), so days before that go blank.
-	const { results } = await c.env.DB.prepare(
-		`WITH a AS (
-         SELECT created_at AS ts FROM attempts
-           WHERE user_email = ? AND created_at >= ?
-         UNION ALL
-         SELECT reviewed_at FROM fsrs_review_logs
-           WHERE user_email = ? AND reviewed_at >= ?
-       )
-       SELECT strftime('%Y-%m-%d', ts / 1000, 'unixepoch', '+8 hours') AS d,
-              COUNT(*) AS n
-       FROM a
-       WHERE ts IS NOT NULL
-       GROUP BY d
-       ORDER BY d`,
-	)
-		.bind(email, since, email, since)
-		.all<{ d: string; n: number }>();
-	return c.json(results);
+	// Buckets: day-strings (YYYY-MM-DD) in UTC+8 (Asia/Taipei). The query
+	// (and the reasoning behind which tables it reads) lives in
+	// worker/lib/activity.ts — shared with the readiness card so the heatmap
+	// squares and the card's daily rate can never disagree.
+	// Response shape is unchanged: [{ d, n }, ...] ordered by day.
+	return c.json(await dailyActivity(c.env.DB, email, since));
 });
 
 // Daily accuracy + average per-question time from the attempts log —
