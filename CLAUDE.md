@@ -237,6 +237,38 @@ Frontend: `ChatProvider` holds one app-wide WS connection (toasts work
 on every page); toast preference lives in `users.chat_notify`
 (`all`/`mention`/`off`), editable from the chat page header.
 
+### 作答歷史: `attempts` is the source of truth
+
+`attempts` (migration `0023`) is an append-only event log — one row per
+answer, with `source` (`review`/`exam`/`drill`/`anki`), optional
+`session_id`, and client-measured `elapsed_ms` (server-clamped by
+`clampElapsedMs` in `worker/lib/attempts.ts`).
+
+- **`review_progress` is a derived cache.** `times_seen / times_correct /
+  last_*` are all recomputable from `attempts`. It's still dual-written
+  (and always will be) because it *also* carries `bookmarked` /
+  `bookmark_folder_id`, which are NOT derived. On drift, recompute from
+  `attempts` and overwrite `review_progress` — never the other way.
+- **`exam_answers` stays the mock exam's current answer state** (mutable,
+  for resume + scoring). It is not history; every write also appends to
+  `attempts`.
+- **New features read `attempts`.** Writes go through `insertAttemptOp`
+  batched with the aggregate write, so the two can't diverge mid-flight.
+- **History was not backfilled.** Pre-0023 data only ever had aggregates;
+  expanding `times_seen=5` into 5 fabricated timestamps would poison the
+  source of truth. Older days show no timing and no heatmap counts.
+
+Reconciliation query, if drift is ever suspected:
+
+```sql
+SELECT rp.user_email, rp.question_id, rp.times_seen, COUNT(a.id) AS attempts_n
+FROM review_progress rp
+LEFT JOIN attempts a ON a.user_email = rp.user_email AND a.question_id = rp.question_id
+WHERE rp.last_seen_at > <0023 套用時間>   -- 更早的資料必然不等(未回填)
+GROUP BY rp.user_email, rp.question_id
+HAVING rp.times_seen <> attempts_n LIMIT 20;
+```
+
 ### Images: R2 via Worker proxy (not public bucket)
 
 Uploads: `POST /api/upload` (multipart) → Worker validates size/MIME → R2 put with UUID key → returns `/img/<key>` URL.
