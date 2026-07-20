@@ -123,6 +123,19 @@ If any of those fail, that's the bug to chase before declaring done.
   `CF_ACCESS_TEAM_DOMAIN=localhost` to enable the bypass.
 - `pnpm db:migrate:local` errors about missing `database_id` — fine for
   local (uses `.wrangler/state/`); only `--remote` needs it.
+- **Running `deploy.sh` from a git worktree silently ships the frontend
+  to a Pages *Preview*, not production.** `wrangler pages deploy` derives
+  the environment from the current git branch name, and a worktree is
+  never on `main`. The Worker deploys normally (it isn't branch-aware),
+  so the result is a live "new Worker + old frontend" split that looks
+  like a caching problem. Either deploy from the main checkout on `main`,
+  or append `--branch main` to the Pages step. Verify with
+  `wrangler pages deployment list --project-name <project>` — the top row
+  must say `Production │ main`.
+- Freshly deployed frontend not taking effect in the browser — the tab
+  can hold a cached `index.html`. A plain reload may reuse it; hard-reload
+  (ignore cache) and confirm the served bundle hash matches
+  `frontend/dist/index.html` before concluding the deploy failed.
 
 ## Configuration model (for any code that touches resource names)
 
