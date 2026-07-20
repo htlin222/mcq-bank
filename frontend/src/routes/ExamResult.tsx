@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
+import { choicePct, type StatsPayload } from '../lib/choiceStats';
 
 type Result = {
   session: {
@@ -203,10 +204,97 @@ export function ExamResult() {
                   </div>
                 </div>
               </Link>
+              <ChoiceDistribution
+                questionId={a.question_id}
+                chosen={a.chosen}
+                correctAnswer={a.correct_answer}
+              />
             </li>
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+/**
+ * 逐題檢討的選項分布。100 題全部預抓等於 100 個 request,所以只在
+ * 使用者展開該題時才打 `/stats`(每題最多一次)。
+ */
+function ChoiceDistribution({
+  questionId,
+  chosen,
+  correctAnswer,
+}: {
+  questionId: string;
+  chosen: string | null;
+  correctAnswer: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [stats, setStats] = useState<StatsPayload | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!open || stats) return;
+    let cancelled = false;
+    api
+      .get<StatsPayload>(`/api/questions/${questionId}/stats`)
+      .then((r) => { if (!cancelled) setStats(r); })
+      .catch(() => { if (!cancelled) setFailed(true); });
+    return () => { cancelled = true; };
+  }, [open, stats, questionId]);
+
+  // server 只在 choices_state === 'ok' 時給 letters;其餘狀態沒有分布可畫。
+  const letters = stats?.choices_state === 'ok' ? Object.keys(stats.choice_pct ?? {}) : [];
+
+  return (
+    <div className="px-3 pb-1">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="text-xs text-ink-400 dark:text-ink-500 hover:text-accent py-1"
+      >
+        {open ? '收合選項分布' : '看選項分布'}
+      </button>
+      {open && (
+        <div className="pb-2 text-xs text-ink-500 dark:text-ink-400">
+          {failed && <p>分布載入失敗</p>}
+          {!failed && !stats && <p>載入中…</p>}
+          {stats?.choices_state === 'not_answered' && (
+            <p>本題你未作答,作答後才會顯示分布</p>
+          )}
+          {stats?.choices_state === 'below_threshold' && (
+            <p>作答人數不足,暫不顯示選項分布</p>
+          )}
+          {letters.map((L) => {
+            const pct = choicePct(stats, L) ?? 0;
+            const isCorrect = L === correctAnswer;
+            return (
+              <div key={L} className="flex items-center gap-2 py-0.5">
+                <span className="w-4 font-mono text-ink-700 dark:text-ink-300">{L}</span>
+                <span className="relative h-3 flex-1 rounded bg-ink-100 dark:bg-ink-700/50 overflow-hidden">
+                  <span
+                    aria-hidden
+                    className={
+                      'absolute inset-y-0 left-0 ' +
+                      (isCorrect ? 'bg-accent/15' : 'bg-ink-200/60 dark:bg-ink-600/40')
+                    }
+                    style={{ width: `${pct}%` }}
+                  />
+                </span>
+                <span className="w-12 text-right tabular-nums">{pct}%</span>
+                <span className="w-8 shrink-0">
+                  {isCorrect && '✓'}
+                  {L === chosen && '你'}
+                </span>
+              </div>
+            );
+          })}
+          {stats?.choices_state === 'ok' && (
+            <p className="mt-1">{stats.choice_responders} 人作答</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
