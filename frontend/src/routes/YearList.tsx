@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { GROUPS, groupBadgeClass } from '../lib/groups';
 import { ResumeChip } from '../components/ResumeChip';
+import { ExportButton } from '../components/ExportDialog';
 import {
   loadYearPosition,
   clearYearPosition,
@@ -148,6 +149,8 @@ export function YearList() {
           </h1>
           <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{countsSummary}</p>
         </div>
+        <div className="flex items-center gap-2">
+        <ExportButton scope={{ kind: 'year', year: Number(year) }} />
         <Link
           to={`/anki/${year}`}
           className="inline-flex items-center justify-center gap-2 rounded bg-accent hover:bg-accent-dark text-white px-4 py-2 text-sm font-medium transition"
@@ -161,6 +164,7 @@ export function YearList() {
             </span>
           )}
         </Link>
+        </div>
       </header>
 
       {resumeItem && (

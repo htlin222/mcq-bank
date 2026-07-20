@@ -5,6 +5,8 @@ import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { groupBadgeClass } from '../lib/groups';
 import { loadNoteHighlights, mergeNoteHighlights, type HlGroup } from '../lib/noteHighlights';
+import { ExportButton } from '../components/ExportDialog';
+import type { ExportScope } from '../lib/export-scope';
 
 type Folder = { id: string; name: string; sort: number; item_count: number };
 type FoldersResp = {
@@ -143,9 +145,24 @@ export function Bookmarks() {
 
   const totalCount = folders.reduce((s, f) => s + f.item_count, 0) + uncatCount;
 
+  // 側欄的四個分類直接對應四種匯出範圍。
+  const exportScope: ExportScope =
+    active === ALL
+      ? { kind: 'bookmarks' }
+      : active === UNCATEGORIZED
+      ? { kind: 'folder', folder_id: null }
+      : active === NOTES
+      ? { kind: 'notes' }
+      : active === HIGHLIGHTS
+      ? { kind: 'highlights' }
+      : { kind: 'folder', folder_id: active };
+
   return (
     <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-6">我的收藏</h1>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100">我的收藏</h1>
+        <ExportButton scope={exportScope} />
+      </div>
 
       <div className="grid sm:grid-cols-[200px_1fr] gap-6">
         {/* Folder sidebar */}
