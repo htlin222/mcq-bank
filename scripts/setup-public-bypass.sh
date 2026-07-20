@@ -47,6 +47,18 @@ PATHS=(
   # Claude Code / claude.ai (no Access session) can reach it; the Worker's
   # apiKeyMiddleware (timing-safe key + email allowlist) is the sole gate.
   "/api/mcq/*|${SLUG} public · mcq-api"
+  # PWA. Install and service-worker update checks are initiated by the browser
+  # itself and can happen with no Access session — the SW update fetch is not
+  # even guaranteed to carry cookies. Behind Access those requests get a 302
+  # to the login page, so the browser sees HTML: the install prompt disappears
+  # and the SW update fails on a MIME mismatch, pinning users to the old
+  # worker forever. Keeping /sw.js reachable is also what makes the
+  # public/sw-kill.js kill switch work (see docs/plans/2026-07-20-pwa-offline.md).
+  # Exposure: brand strings, icons, and precache filenames whose files already
+  # live under the bypassed /assets/*. No new data surface.
+  "/manifest.webmanifest|${SLUG} public · pwa-manifest"
+  "/sw.js|${SLUG} public · pwa-sw"
+  "/icons/*|${SLUG} public · pwa-icons"
   "/|${SLUG} public · landing"
 )
 
@@ -127,5 +139,8 @@ else
   echo "  curl -sI https://$HOST/og-image.png | head -3"
   echo "  curl -sI https://$HOST/ | head -3"
   echo "  curl -sI https://$HOST/api/me | head -3"
+  echo "  curl -sI https://$HOST/manifest.webmanifest | head -3   # 200 + manifest+json"
+  echo "  curl -sI https://$HOST/sw.js | head -3                  # 200 + javascript"
+  echo "  curl -sI https://$HOST/icons/icon-192.png | head -3     # 200 + image/png"
   echo "  curl -sI https://$HOST/api/health | head -3   # should still 302 (gated)"
 fi
