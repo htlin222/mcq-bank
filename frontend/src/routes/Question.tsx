@@ -51,6 +51,13 @@ type MainTab = "question" | "explanation" | "note" | "discussion" | "similar";
 
 type Tab = "explanation" | "note" | "discussion" | "similar";
 
+// Why 自動挖空 came back empty, in the reader's words.
+const AUTO_CLOZE_REASON: Record<string, string> = {
+	no_content: "這裡還沒有內容可以挖空",
+	too_short: "內容太短,挖空起來沒意義",
+	ai_empty: "AI 這次挑不出關鍵詞,可以再按一次",
+};
+
 // 防劇透 / 自動挖空 toggles in the 詳解 and 個人筆記 toolbars — same look in both.
 const TOOL_BTN = (on: boolean) =>
 	"inline-flex items-center gap-1 rounded px-2 py-1 text-sm transition disabled:opacity-50 " +
@@ -197,52 +204,64 @@ export function Question() {
 	// the answer before attempting. CSS-only blur on the already-rendered
 	// ReadOnlyContent, so no extra render pass and no content duplication.
 	const [revealedExp, setRevealedExp] = useState(false);
-	// 防劇透 self-test: cover the reader's own 螢光標記 like cloze blanks. Per
-	// section (詳解 / 個人筆記), session-only, reset when switching questions.
+	// 防劇透 and 自動挖空 are two independent switches over the same reader:
+	//   防劇透 = 遮 / 不遮 (covers 個人畫記 + whatever the AI layer contributes)
+	//   自動挖空 = AI 關鍵詞這層在不在 (press again to take it away)
+	// Both are per section (詳解 / 個人筆記) and reset when switching questions.
+	// The AI terms are never written into 個人畫記 — they are a separate,
+	// server-cached list handed to the renderer as a decoration layer.
 	const [expCloze, setExpCloze] = useState(false);
 	const [noteCloze, setNoteCloze] = useState(false);
-	// 自動挖空: AI-extracted key terms, fetched on demand. Kept per section —
-	// 詳解 and 個人筆記 are different texts and get their own term list.
 	const [autoClozeTerms, setAutoClozeTerms] = useState<string[] | null>(null);
 	const [autoClozeLoading, setAutoClozeLoading] = useState(false);
+	const [autoClozeMsg, setAutoClozeMsg] = useState<string | null>(null);
 	const [noteAutoTerms, setNoteAutoTerms] = useState<string[] | null>(null);
 	const [noteAutoLoading, setNoteAutoLoading] = useState(false);
+	const [noteAutoMsg, setNoteAutoMsg] = useState<string | null>(null);
 	useEffect(() => {
 		setExpCloze(false);
 		setNoteCloze(false);
 		setAutoClozeTerms(null);
 		setNoteAutoTerms(null);
+		setAutoClozeMsg(null);
+		setNoteAutoMsg(null);
 	}, [data?.id]);
 
-	async function loadAutoCloze(qid: string) {
-		if (autoClozeLoading) return;
-		setAutoClozeLoading(true);
-		try {
-			const r = await api.get<{ terms: string[] }>(
-				`/api/questions/${qid}/auto-cloze`,
-			);
-			setAutoClozeTerms(r.terms);
-			setExpCloze(r.terms.length > 0);
-		} catch {
-			setAutoClozeTerms([]);
-		} finally {
-			setAutoClozeLoading(false);
+	// Toggle the AI layer for a section. Pressing it while it is on removes it
+	// outright (no reload needed); pressing it while off fetches the terms —
+	// cached server-side, so a repeat press costs nothing — and, as a
+	// convenience, turns 防劇透 on so the blanks are actually covered.
+	async function toggleAutoCloze(qid: string, target: "exp" | "note") {
+		const on = target === "exp" ? autoClozeTerms : noteAutoTerms;
+		const setTerms = target === "exp" ? setAutoClozeTerms : setNoteAutoTerms;
+		const setLoading = target === "exp" ? setAutoClozeLoading : setNoteAutoLoading;
+		const setMsg = target === "exp" ? setAutoClozeMsg : setNoteAutoMsg;
+		const setCloze = target === "exp" ? setExpCloze : setNoteCloze;
+		const loading = target === "exp" ? autoClozeLoading : noteAutoLoading;
+		if (loading) return;
+		if (on && on.length > 0) {
+			setTerms(null);
+			setMsg(null);
+			return;
 		}
-	}
-
-	async function loadNoteAutoCloze(qid: string) {
-		if (noteAutoLoading) return;
-		setNoteAutoLoading(true);
+		setLoading(true);
+		setMsg(null);
 		try {
-			const r = await api.get<{ terms: string[] }>(
-				`/api/questions/${qid}/auto-cloze?source=note`,
+			const r = await api.get<{ terms: string[]; reason?: string }>(
+				`/api/questions/${qid}/auto-cloze${target === "note" ? "?source=note" : ""}`,
 			);
-			setNoteAutoTerms(r.terms);
-			setNoteCloze(r.terms.length > 0);
+			if (r.terms.length === 0) {
+				setTerms(null);
+				setMsg(AUTO_CLOZE_REASON[r.reason ?? ""] ?? "這次挑不出關鍵詞,請再試一次");
+				return;
+			}
+			setTerms(r.terms);
+			setCloze(true);
 		} catch {
-			setNoteAutoTerms([]);
+			setTerms(null);
+			setMsg("自動挖空失敗,請稍後再試");
 		} finally {
-			setNoteAutoLoading(false);
+			setLoading(false);
 		}
 	}
 	// Live comment count for the 討論串 tab badge. Seeded from the question
@@ -876,27 +895,35 @@ export function Question() {
 									{revealedExp && (
 										<button
 											type="button"
-											onClick={() => loadAutoCloze(data.id)}
+											onClick={() => toggleAutoCloze(data.id, "exp")}
 											disabled={autoClozeLoading}
-											title="自動挖空:AI 挑出關鍵詞後遮住,供自我測驗(點各別揭曉)"
-											className={TOOL_BTN(
-												!!autoClozeTerms && autoClozeTerms.length > 0,
-											)}
+											title="自動挖空:AI 挑出關鍵詞當空格,只在防劇透開著時遮住(點各別揭曉)。再按一次移除這層,不影響你的螢光標記"
+											aria-pressed={!!autoClozeTerms?.length}
+											className={TOOL_BTN(!!autoClozeTerms?.length)}
 										>
 											<Sparkles size={14} />{" "}
-											{autoClozeLoading ? "挖空中…" : "自動挖空"}
+											{autoClozeLoading
+												? "挖空中…"
+												: autoClozeTerms?.length
+													? `自動挖空 ${autoClozeTerms.length}`
+													: "自動挖空"}
 										</button>
 									)}
 									{revealedExp && (
 										<button
 											type="button"
 											onClick={() => setExpCloze((v) => !v)}
-											title="防劇透:遮住你標記的重點來自我測驗(點各別揭曉/收回)"
+											title="防劇透:遮住你的螢光標記(以及自動挖空挑的關鍵詞)來自我測驗,點各別揭曉/收回"
 											aria-pressed={expCloze}
 											className={TOOL_BTN(expCloze)}
 										>
 											<Videotape size={14} /> {expCloze ? "取消" : "防劇透"}
 										</button>
+									)}
+									{autoClozeMsg && (
+										<span className="self-center text-xs text-ink-400 dark:text-ink-500">
+											{autoClozeMsg}
+										</span>
 									)}
 									<button
 										onClick={startEdit}
@@ -1027,22 +1054,33 @@ export function Question() {
 							<div className="flex flex-wrap justify-end gap-1.5 mb-3">
 								<button
 									type="button"
-									onClick={() => loadNoteAutoCloze(data.id)}
+									onClick={() => toggleAutoCloze(data.id, "note")}
 									disabled={noteAutoLoading}
-									title="自動挖空:AI 從你的筆記挑出關鍵詞後遮住,供自我測驗(點各別揭曉)"
-									className={TOOL_BTN(!!noteAutoTerms && noteAutoTerms.length > 0)}
+									title="自動挖空:AI 從你的筆記挑出關鍵詞當空格,只在防劇透開著時遮住(點各別揭曉)。再按一次移除這層,不影響你的螢光標記"
+									aria-pressed={!!noteAutoTerms?.length}
+									className={TOOL_BTN(!!noteAutoTerms?.length)}
 								>
-									<Sparkles size={14} /> {noteAutoLoading ? "挖空中…" : "自動挖空"}
+									<Sparkles size={14} />{" "}
+									{noteAutoLoading
+										? "挖空中…"
+										: noteAutoTerms?.length
+											? `自動挖空 ${noteAutoTerms.length}`
+											: "自動挖空"}
 								</button>
 								<button
 									type="button"
 									onClick={() => setNoteCloze((v) => !v)}
-									title="防劇透:遮住你標記的重點來自我測驗(點各別揭曉/收回)"
+									title="防劇透:遮住你的螢光標記(以及自動挖空挑的關鍵詞)來自我測驗,點各別揭曉/收回"
 									aria-pressed={noteCloze}
 									className={TOOL_BTN(noteCloze)}
 								>
 									<Videotape size={14} /> {noteCloze ? "取消" : "防劇透"}
 								</button>
+								{noteAutoMsg && (
+									<span className="self-center text-xs text-ink-400 dark:text-ink-500">
+										{noteAutoMsg}
+									</span>
+								)}
 								<button
 									onClick={startNoteEdit}
 									className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-accent hover:bg-accent/10"

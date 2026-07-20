@@ -34,6 +34,16 @@ function walk(node: PMNode | null | undefined, out: string[]): void {
 	if (node.type && BLOCK_TYPES.has(node.type)) out.push("\n");
 }
 
+// djb2 — stable fingerprint of a stored JSON blob. Used to key the 個人筆記
+// cloze cache: a note has no version column, so "has the text changed?" is the
+// only invalidation signal available. Same algorithm as the frontend's
+// hashContent so the two agree if we ever need to compare them.
+export function hashText(s: string): string {
+	let h = 5381;
+	for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+	return String(h >>> 0);
+}
+
 // Trim, drop terms shorter than 2 chars, de-dupe (first occurrence wins),
 // cap at 10 so a single explanation never becomes an unusable cloze wall.
 export function dedupeTerms(terms: unknown): string[] {

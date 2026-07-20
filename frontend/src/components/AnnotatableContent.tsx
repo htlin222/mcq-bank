@@ -1,32 +1,37 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { Plugin, PluginKey } from '@tiptap/pm/state';
+import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { Highlighter, X as XIcon } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
 import { readLocal, saveHighlight, reconcileHighlight } from '../lib/highlightStore';
+import { termRanges, clozeSig, parseRevealState, type TextRun } from '../lib/autoCloze';
 
-// Read-only content that the reader can personally annotate: select text to add
-// a 螢光標記 (highlight), click a mark to clear it, and — when `cloze` is on —
-// every mark is covered like a fill-in-the-blank that reveals on click.
+// Read-only content carrying two INDEPENDENT annotation layers:
 //
-// The editor is a real ProseMirror instance (editable:false); highlight marks
-// are applied by programmatic transactions (allowed even when not editable) and
-// the annotated doc is persisted to localStorage under `storeKey` (invalidated
-// when the underlying content changes). Nothing touches the server — highlights
-// are a private, this-device layer. Cloze reveal state is session-only.
+//   1. 個人畫記 — the reader's own 螢光標記. Real Highlight marks inside the
+//      document, persisted to localStorage + the server (`highlightStore`).
+//      Durable, cross-device, and the only thing a yellow mark ever means.
+//   2. 自動挖空 — AI-extracted key terms (`autoTerms`). Rendered as a
+//      ProseMirror *decoration* layer, so they never enter the document and
+//      therefore can never be persisted as if the reader had marked them.
+//      The term list itself is cached server-side, not here.
+//
+// `cloze` (防劇透) is the orthogonal switch: when on, both layers are covered
+// like fill-in-the-blanks and a click reveals one blank. The AI layer only
+// renders while 防劇透 is on — turn it off and you are looking at clean text
+// with only your own highlights, exactly as if 自動挖空 had never been pressed.
 
 type Props = {
   content: any;
   /** localStorage namespace for this doc's highlights, e.g. `anno:exp:114-001`. */
   storeKey: string;
-  /** When true, cover every highlighted span like a cloze blank. */
+  /** When true, cover every blank (own highlights + AI terms) for self-testing. */
   cloze?: boolean;
-  /**
-   * AI-extracted key terms to auto-highlight (verbatim substrings). Applied
-   * on top of the reader's own marks, NOT persisted — a reload clears them.
-   * Combined with `cloze`, this turns a 詳解 into a fill-in-the-blank test
-   * without the reader hand-marking anything.
-   */
+  /** AI-extracted key terms (verbatim substrings). Never persisted. */
   autoTerms?: string[];
+  /** Reports how many blanks each layer currently contributes. */
+  onCounts?: (counts: { manual: number; auto: number }) => void;
 };
 
 // djb2 — cheap stable fingerprint of the base doc so stale highlights (saved
@@ -44,7 +49,13 @@ type Popup =
   | { kind: 'clear'; x: number; y: number; from: number; to: number }
   | null;
 
-export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms }: Props) {
+export function AnnotatableContent({
+  content,
+  storeKey,
+  cloze = false,
+  autoTerms,
+  onCounts,
+}: Props) {
   const base = content || { type: 'doc', content: [] };
   const editor = useEditor({
     extensions: buildExtensions({ readOnly: true }),
@@ -56,53 +67,84 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
   const [popup, setPopup] = useState<Popup>(null);
   const baseHash = hashContent(base);
 
-  // Cloze reveal state: indices (in DOM order) of the marks the reader has
-  // un-hidden. Kept in React state (+ sessionStorage, per doc) rather than as a
-  // bare DOM class, so a reveal survives re-renders and can be toggled back
-  // hidden — a DOM class alone got wiped on repaint, so reveals only stuck once.
+  // Bumped whenever something replaces the document wholesale (initial load,
+  // cross-device reconcile). The decoration/reveal effects key off it so their
+  // positions are recomputed against the doc actually on screen.
+  const [docRev, setDocRev] = useState(0);
+
+  // ── reveal state ──
+  // Two namespaces, because the two layers have independent blank indices:
+  //   `revealed`     — index into the <mark> elements (the reader's own)
+  //   `autoRevealed` — index into the AI ranges
+  // Persisted per doc in sessionStorage; the auto half is tied to `sig` so a
+  // different term list can never inherit stale reveals.
   const clozeKey = storeKey + ':cloze';
-  const [revealed, setRevealed] = useState<Set<number>>(() => {
+  const sig = clozeSig(autoTerms);
+  const [revealed, setRevealed] = useState<Set<number>>(new Set());
+  const [autoRevealed, setAutoRevealed] = useState<Set<number>>(new Set());
+  const revealedRef = useRef(revealed);
+  const autoRevealedRef = useRef(autoRevealed);
+  revealedRef.current = revealed;
+  autoRevealedRef.current = autoRevealed;
+
+  useEffect(() => {
+    let raw: string | null = null;
     try {
-      const raw = sessionStorage.getItem(clozeKey);
-      if (raw) return new Set(JSON.parse(raw) as number[]);
+      raw = sessionStorage.getItem(clozeKey);
     } catch {
-      /* ignore */
+      /* unavailable — start clean */
     }
-    return new Set();
-  });
+    const st = parseRevealState(raw, sig);
+    setRevealed(new Set(st.m));
+    setAutoRevealed(new Set(st.a));
+  }, [clozeKey, sig]);
+
+  const writeReveal = useCallback(
+    (m: Set<number>, a: Set<number>) => {
+      try {
+        sessionStorage.setItem(clozeKey, JSON.stringify({ m: [...m], a: [...a], sig }));
+      } catch {
+        /* best-effort */
+      }
+    },
+    [clozeKey, sig],
+  );
+
   const toggleRevealed = useCallback(
     (idx: number) => {
       setRevealed((prev) => {
-        const next = new Set(prev);
-        if (next.has(idx)) next.delete(idx);
-        else next.add(idx);
-        try {
-          sessionStorage.setItem(clozeKey, JSON.stringify([...next]));
-        } catch {
-          /* best-effort */
-        }
+        const next = toggled(prev, idx);
+        writeReveal(next, autoRevealedRef.current);
         return next;
       });
     },
-    [clozeKey],
+    [writeReveal],
   );
 
-  // Persist the current (annotated) doc; keyed by a hash of the base content so
-  // a changed source discards stale marks.
+  const toggleAutoRevealed = useCallback(
+    (idx: number) => {
+      setAutoRevealed((prev) => {
+        const next = toggled(prev, idx);
+        writeReveal(revealedRef.current, next);
+        return next;
+      });
+    },
+    [writeReveal],
+  );
+
+  // ── persistence of the reader's own layer ──
   // Tracks whether the user has edited highlights since this doc mounted, so a
   // slow server reconcile can't clobber their fresh, local-newer changes.
+  // No auto-cloze interlock here on purpose: the AI layer isn't in the document,
+  // so a 畫記 edit made with 自動挖空 on saves like any other.
   const dirtyRef = useRef(false);
 
   const persist = useCallback(() => {
     if (!editor) return;
-    // While AI auto-terms are applied, the doc holds ephemeral highlights that
-    // must never be saved (they'd resurrect as permanent "manual" marks on
-    // reload). Skip persistence entirely for this transient self-test state.
-    if (autoTerms && autoTerms.length > 0) return;
     dirtyRef.current = true;
     // Writes localStorage immediately + syncs to the server (fire-and-forget).
     saveHighlight(storeKey, baseHash, editor.getJSON());
-  }, [editor, storeKey, baseHash, autoTerms]);
+  }, [editor, storeKey, baseHash]);
 
   // Load base content, then re-apply saved highlights if they match this text.
   // localStorage is read synchronously for an instant, flash-free paint.
@@ -115,23 +157,24 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
     const root = editor.view.dom as HTMLElement;
     wrapTables(root);
     requestAnimationFrame(() => wrapTables(root));
+    setDocRev((r) => r + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, editor, storeKey]);
 
   // Cross-device sync: reconcile with the server after the instant local paint.
   // Only applies a doc when the server holds a NEWER copy (another device);
-  // skips if the user already highlighted here (dirty) or auto-cloze is on.
+  // skips if the user already highlighted here (dirty).
   useEffect(() => {
     if (!editor) return;
     let cancelled = false;
     reconcileHighlight(storeKey, baseHash).then((serverDoc) => {
       if (cancelled || serverDoc == null) return;
       if (dirtyRef.current) return;
-      if (autoTerms && autoTerms.length > 0) return;
       editor.commands.setContent(serverDoc, false);
       const root = editor.view.dom as HTMLElement;
       wrapTables(root);
       requestAnimationFrame(() => wrapTables(root));
+      setDocRev((r) => r + 1);
     });
     return () => {
       cancelled = true;
@@ -139,43 +182,73 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, editor, storeKey]);
 
-  // Auto-highlight AI-extracted terms (verbatim substrings) on top of the
-  // loaded doc. Runs after the content-load effect (definition order), so its
-  // setContent can't wipe these. Not persisted — ephemeral cloze scaffolding.
-  useEffect(() => {
-    if (!editor || !autoTerms || autoTerms.length === 0) return;
-    const terms = autoTerms.filter((t) => typeof t === 'string' && t.length >= 2);
-    if (terms.length === 0) return;
-    const ranges: { from: number; to: number }[] = [];
-    editor.state.doc.descendants((node, pos) => {
-      if (!node.isText || !node.text) return;
-      const text = node.text;
-      for (const term of terms) {
-        let idx = text.indexOf(term);
-        while (idx !== -1) {
-          ranges.push({ from: pos + idx, to: pos + idx + term.length });
-          idx = text.indexOf(term, idx + term.length);
-        }
-      }
-    });
-    if (ranges.length === 0) return;
-    let chain = editor.chain();
-    for (const r of ranges) chain = chain.setTextSelection(r).setHighlight();
-    chain.run();
-    window.getSelection()?.removeAllRanges();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor, autoTerms, content]);
+  // ── AI cloze layer (decorations only) ──
+  // One plugin per editor instance; its state is a plain {ranges, revealed}
+  // pushed in by the effect below via a meta transaction.
+  const keyRef = useRef<PluginKey | null>(null);
+  if (!keyRef.current) keyRef.current = new PluginKey('autoCloze');
 
-  // Paint the reveal state onto the current marks (index = DOM order). Runs
-  // after content loads and on every reveal/cloze toggle, so a repaint can't
-  // strand a stale class. When cloze is off, no mark is revealed-styled.
+  useEffect(() => {
+    if (!editor) return;
+    const key = keyRef.current!;
+    const plugin = new Plugin({
+      key,
+      state: {
+        init: () => ({ ranges: [] as { from: number; to: number }[], revealed: [] as number[] }),
+        apply: (tr, value) => tr.getMeta(key) ?? value,
+      },
+      props: {
+        decorations(state) {
+          const v = key.getState(state);
+          if (!v || v.ranges.length === 0) return null;
+          const max = state.doc.content.size;
+          const shown = new Set(v.revealed);
+          const decos = v.ranges
+            .filter((r) => r.from >= 0 && r.to <= max && r.to > r.from)
+            .map((r, i) =>
+              Decoration.inline(r.from, r.to, {
+                class: 'cloze-auto' + (shown.has(i) ? ' cloze-revealed' : ''),
+                'data-cloze-auto': String(i),
+              }),
+            );
+          return DecorationSet.create(state.doc, decos);
+        },
+      },
+    });
+    editor.registerPlugin(plugin);
+    return () => {
+      editor.unregisterPlugin(key);
+    };
+  }, [editor]);
+
+  // Recompute the AI ranges against the live doc and push them + reveal state
+  // into the plugin. `cloze` gates the whole layer: 防劇透 off ⇒ zero ranges ⇒
+  // no decorations at all, so the AI layer is genuinely invisible, not just
+  // un-styled.
+  const onCountsRef = useRef(onCounts);
+  onCountsRef.current = onCounts;
+  useEffect(() => {
+    if (!editor) return;
+    const active = cloze && !!autoTerms && autoTerms.length > 0;
+    const ranges = active ? termRanges(collectRuns(editor.state.doc), autoTerms!) : [];
+    const tr = editor.state.tr.setMeta(keyRef.current!, {
+      ranges,
+      revealed: [...autoRevealed],
+    });
+    tr.setMeta('addToHistory', false);
+    editor.view.dispatch(tr);
+    const manual = (editor.view.dom as HTMLElement).querySelectorAll('mark').length;
+    onCountsRef.current?.({ manual, auto: ranges.length });
+  }, [editor, cloze, autoTerms, autoRevealed, docRev]);
+
+  // Paint the reveal state onto the reader's own marks (index = DOM order).
+  // Runs after content loads and on every reveal/cloze toggle, so a repaint
+  // can't strand a stale class. When cloze is off, no mark is revealed-styled.
   useEffect(() => {
     if (!editor) return;
     const marks = (editor.view.dom as HTMLElement).querySelectorAll('mark');
-    marks.forEach((m, i) =>
-      m.classList.toggle('cloze-revealed', cloze && revealed.has(i)),
-    );
-  }, [editor, cloze, revealed, content]);
+    marks.forEach((m, i) => m.classList.toggle('cloze-revealed', cloze && revealed.has(i)));
+  }, [editor, cloze, revealed, docRev]);
 
   // Selection → "add highlight" popup. Runs on pointer release inside the view.
   useEffect(() => {
@@ -215,14 +288,27 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
     };
   }, [editor, cloze]);
 
-  // Click a <mark>: in cloze mode reveal just that blank; otherwise offer to
-  // clear the highlight.
+  // Click inside the view. In cloze mode a click reveals exactly one blank —
+  // an AI blank if the click landed in one (checked first, since an AI term can
+  // sit inside a highlighted span), otherwise the reader's own mark. Outside
+  // cloze mode, clicking a mark offers to clear it.
   useEffect(() => {
     if (!editor) return;
     const dom = editor.view.dom as HTMLElement;
     const onClick = (e: MouseEvent) => {
       const t = e.target as Node;
       const el = t instanceof Element ? t : t.parentElement;
+
+      if (cloze) {
+        const auto = el?.closest('[data-cloze-auto]');
+        if (auto && dom.contains(auto)) {
+          e.preventDefault();
+          const idx = Number(auto.getAttribute('data-cloze-auto'));
+          if (Number.isInteger(idx)) toggleAutoRevealed(idx);
+          return;
+        }
+      }
+
       const mark = el?.closest('mark');
       if (!mark || !dom.contains(mark)) return;
       if (cloze) {
@@ -253,7 +339,7 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
     };
     dom.addEventListener('click', onClick);
     return () => dom.removeEventListener('click', onClick);
-  }, [editor, cloze, toggleRevealed]);
+  }, [editor, cloze, toggleRevealed, toggleAutoRevealed]);
 
   // Dismiss the popup on outside click / scroll / Escape.
   useEffect(() => {
@@ -279,11 +365,7 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
 
   function applyHighlight() {
     if (!editor || popup?.kind !== 'add') return;
-    editor
-      .chain()
-      .setTextSelection({ from: popup.from, to: popup.to })
-      .setHighlight()
-      .run();
+    editor.chain().setTextSelection({ from: popup.from, to: popup.to }).setHighlight().run();
     window.getSelection()?.removeAllRanges();
     persist();
     setPopup(null);
@@ -291,11 +373,7 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
 
   function clearHighlight() {
     if (!editor || popup?.kind !== 'clear') return;
-    editor
-      .chain()
-      .setTextSelection({ from: popup.from, to: popup.to })
-      .unsetHighlight()
-      .run();
+    editor.chain().setTextSelection({ from: popup.from, to: popup.to }).unsetHighlight().run();
     persist();
     setPopup(null);
   }
@@ -329,6 +407,21 @@ export function AnnotatableContent({ content, storeKey, cloze = false, autoTerms
       )}
     </div>
   );
+}
+
+function toggled(prev: Set<number>, idx: number): Set<number> {
+  const next = new Set(prev);
+  if (next.has(idx)) next.delete(idx);
+  else next.add(idx);
+  return next;
+}
+
+function collectRuns(doc: any): TextRun[] {
+  const runs: TextRun[] = [];
+  doc.descendants((node: any, pos: number) => {
+    if (node.isText && node.text) runs.push({ pos, text: node.text });
+  });
+  return runs;
 }
 
 function wrapTables(root: HTMLElement) {

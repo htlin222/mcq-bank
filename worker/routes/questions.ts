@@ -6,7 +6,7 @@ import { ftsQuery } from "./search";
 import { getActiveChallenges } from "../lib/challenges";
 import { isAdminEmail } from "../lib/admin";
 import { mergeSimilar } from "../lib/similar";
-import { explanationPlainText, dedupeTerms } from "../lib/cloze";
+import { explanationPlainText, dedupeTerms, hashText } from "../lib/cloze";
 import { EMBED_MODEL, TEXT_MODEL } from "../lib/ai-models";
 import { median, percentile, MIN_COHORT } from "../lib/pacing";
 import { tallyChoices, type Vote } from "../lib/choiceStats";
@@ -605,31 +605,53 @@ questionsRoutes.get("/_meta/tags", async (c) => {
 // within the free Workers AI budget. No FSRS: this just feeds the 防劇透
 // self-test.
 //   ?source=explanation (default) — the shared 詳解, cached per version.
-//   ?source=note                  — this user's 個人筆記. Not cached: a private
-//                                   note has no version column and gets edited
-//                                   far more often than it gets cloze'd.
+//   ?source=note                  — this user's 個人筆記, cached per user by a
+//                                   hash of the note text (no version column).
+//
+// The terms are ONLY ever returned to the client as a list; they are never
+// written into the reader's 個人畫記. Machine scaffolding and the reader's own
+// marks live in separate stores on purpose.
+//
+// When the list comes back empty the response carries a `reason` so the UI can
+// say why instead of looking broken.
 // ------------------------------------------------------------
+type ClozeReason = "no_content" | "too_short" | "ai_empty";
+const clozeEmpty = (reason: ClozeReason) =>
+	({ terms: [] as string[], cached: false, reason }) as const;
+
 questionsRoutes.get("/:id/auto-cloze", async (c) => {
 	const id = c.req.param("id");
 	const source = c.req.query("source") === "note" ? "note" : "explanation";
 
 	let contentJson: string;
 	let expVersion = 0; // only meaningful (and only written back) for 詳解
+	let noteHash = ""; // ditto, for 個人筆記
 	if (source === "note") {
 		const note = await c.env.DB.prepare(
 			"SELECT content_json FROM personal_notes WHERE user_email = ? AND question_id = ?",
 		)
 			.bind(c.var.email, id)
 			.first<{ content_json: string }>();
-		if (!note) return c.json({ terms: [], cached: false });
+		if (!note) return c.json(clozeEmpty("no_content"));
 		contentJson = note.content_json;
+		noteHash = hashText(contentJson);
+
+		// Cache hit — note text unchanged since the last extraction.
+		const cached = await c.env.DB.prepare(
+			"SELECT terms_json, content_hash FROM note_cloze WHERE user_email = ? AND question_id = ?",
+		)
+			.bind(c.var.email, id)
+			.first<{ terms_json: string; content_hash: string }>();
+		if (cached && cached.content_hash === noteHash) {
+			return c.json({ terms: safeParseTerms(cached.terms_json), cached: true });
+		}
 	} else {
 		const exp = await c.env.DB.prepare(
 			"SELECT content_json, version FROM explanations WHERE question_id = ?",
 		)
 			.bind(id)
 			.first<{ content_json: string; version: number }>();
-		if (!exp) return c.json({ terms: [], cached: false });
+		if (!exp) return c.json(clozeEmpty("no_content"));
 		contentJson = exp.content_json;
 
 		// Cache hit — same explanation version, reuse the extracted terms.
@@ -648,10 +670,10 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 	try {
 		doc = JSON.parse(contentJson);
 	} catch {
-		return c.json({ terms: [], cached: false });
+		return c.json(clozeEmpty("no_content"));
 	}
 	const text = explanationPlainText(doc);
-	if (text.length < 40) return c.json({ terms: [], cached: false });
+	if (text.length < 40) return c.json(clozeEmpty("too_short"));
 
 	// Extract verbatim key terms via the text model (structured output).
 	let terms: string[] = [];
@@ -691,7 +713,7 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 		terms = [];
 	}
 
-	if (terms.length === 0) return c.json({ terms: [], cached: false });
+	if (terms.length === 0) return c.json(clozeEmpty("ai_empty"));
 
 	if (source === "explanation") {
 		await c.env.DB.prepare(
@@ -703,6 +725,17 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
        created_at = excluded.created_at`,
 		)
 			.bind(id, expVersion, JSON.stringify(terms), Date.now())
+			.run();
+	} else {
+		await c.env.DB.prepare(
+			`INSERT INTO note_cloze (user_email, question_id, content_hash, terms_json, created_at)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(user_email, question_id) DO UPDATE SET
+       content_hash = excluded.content_hash,
+       terms_json = excluded.terms_json,
+       created_at = excluded.created_at`,
+		)
+			.bind(c.var.email, id, noteHash, JSON.stringify(terms), Date.now())
 			.run();
 	}
 

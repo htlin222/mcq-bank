@@ -121,6 +121,25 @@
   color: inherit;
 }
 
+/* 自動挖空 (AI) blanks. A decoration layer, not a mark — it exists only while
+   防劇透 is on and never touches the document, so it cannot be mistaken for (or
+   saved as) the reader's own 螢光標記. Tinted with the accent rather than
+   marker-yellow so the two kinds of blank stay tellable apart at a glance. */
+.cloze-active .tiptap .cloze-auto {
+  @apply bg-accent/15 border-b border-accent/40 rounded-sm px-0.5 cursor-pointer select-none transition-colors;
+  color: transparent;
+}
+.cloze-active .tiptap .cloze-auto:hover {
+  @apply bg-accent/40;
+}
+.cloze-active .tiptap .cloze-auto::selection {
+  color: transparent;
+}
+.cloze-active .tiptap .cloze-auto.cloze-revealed {
+  @apply bg-accent/10;
+  color: inherit;
+}
+
 /* Tables (@tiptap/extension-table). Base table fills the reading column and
    wraps cells. In read-only view ReadOnlyContent wraps each table in
    `.table-scroll`; there the table keeps a min width so one too wide for the

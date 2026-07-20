@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { explanationPlainText, dedupeTerms } from "./cloze.ts";
+import { explanationPlainText, dedupeTerms, hashText } from "./cloze.ts";
 
 test("攤平 TipTap 文字 (段落內相鄰 text 串接)", () => {
 	const doc = {
@@ -36,6 +36,12 @@ test("關鍵詞去重、去頭尾空白、剔除過短、限量 10", () => {
 	]);
 	const many = Array.from({ length: 20 }, (_, i) => `term${i}`);
 	assert.equal(dedupeTerms(many).length, 10);
+});
+
+test("hashText 穩定、對內容敏感", () => {
+	assert.equal(hashText("abc"), hashText("abc"));
+	assert.notEqual(hashText("abc"), hashText("abd"));
+	assert.equal(hashText(""), hashText(""));
 });
 
 test("空輸入 / 非陣列安全回空", () => {
