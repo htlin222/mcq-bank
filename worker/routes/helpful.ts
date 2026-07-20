@@ -87,8 +87,27 @@ async function maybeNotifyFirstHelpful(
     now: number;
   }
 ): Promise<void> {
-  // TODO(Task 1.3): 實作首次投票通知。
-  void db;
-  void args;
-  void uuid;
+  const seen = await db
+    .prepare(
+      `SELECT 1 FROM notifications WHERE kind = 'helpful' AND comment_id = ? LIMIT 1`
+    )
+    .bind(args.cid)
+    .first();
+  if (seen) return;
+
+  await db
+    .prepare(
+      `INSERT INTO notifications
+         (id, recipient, kind, question_id, comment_id, actor_email, preview, created_at)
+       VALUES (?, ?, 'helpful', ?, ?, NULL, ?, ?)`
+    )
+    .bind(
+      uuid(),
+      args.target.author_email,
+      args.target.question_id,
+      args.cid,
+      '有人覺得你的留言有幫助',
+      args.now
+    )
+    .run();
 }
