@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { LogOut, RefreshCw } from 'lucide-react';
 import { useMe, type Me } from '../hooks/useMe';
 import { Avatar } from '../components/Avatar';
 import { api } from '../lib/api';
+import { signOut, reloadFresh } from '../lib/signOut';
 
 export function Profile() {
   const { me, loading, update } = useMe();
@@ -120,6 +122,53 @@ export function Profile() {
       </div>
 
       <McqKeyCard me={me} />
+      <AccountCard email={me.email} />
+    </div>
+  );
+}
+
+// 帳號區:登出,以及「只清快取不登出」。後者是給那個典型症狀用的 —— 一般視窗
+// 顯示壞掉、無痕視窗正常,代表卡住的是這台裝置的 Service Worker 快取,不是帳號。
+function AccountCard({ email }: { email: string }) {
+  const [busy, setBusy] = useState<null | 'cache' | 'signout'>(null);
+
+  return (
+    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
+      <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">帳號</h2>
+      <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-5">
+        目前登入身分 <span className="font-mono text-[0.9em]">{email}</span>。
+        登入由 Cloudflare Access 管理,登出後要再用 Email 收驗證碼才能回來。
+      </p>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={async () => {
+            setBusy('signout');
+            await signOut();
+          }}
+          disabled={busy !== null}
+          className="inline-flex items-center gap-2 bg-ink-900 hover:bg-ink-700 dark:bg-ink-700 dark:hover:bg-ink-600 text-white px-4 py-2 rounded text-sm font-medium transition disabled:opacity-40"
+        >
+          <LogOut size={15} /> {busy === 'signout' ? '登出中…' : '登出'}
+        </button>
+        <button
+          onClick={async () => {
+            setBusy('cache');
+            await reloadFresh();
+          }}
+          disabled={busy !== null}
+          title="註銷 Service Worker、倒掉離線快取後重新載入。不會登出,也不會動到你的畫記或筆記。"
+          className="inline-flex items-center gap-2 border border-ink-300 dark:border-ink-600 text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700 px-4 py-2 rounded text-sm transition disabled:opacity-40"
+        >
+          <RefreshCw size={15} /> {busy === 'cache' ? '清除中…' : '清除本機快取並重新載入'}
+        </button>
+      </div>
+
+      <p className="text-xs text-ink-400 dark:text-ink-500 mt-3 leading-relaxed">
+        頁面顯示不正常、但無痕視窗開起來正常 —— 那是這台裝置的離線快取卡住了,
+        按「清除本機快取並重新載入」即可,不必登出。
+        登出則會一併清掉本機快取與偏好設定;畫記與筆記存在伺服器上,不受影響。
+      </p>
     </div>
   );
 }
