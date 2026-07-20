@@ -231,14 +231,24 @@ examRoutes.get('/:sid/state', async (c) => {
     .prepare(
       // COALESCE(ea.seq, q.number):自訂測驗跨年份時 q.number 會重複,seq 才是
       // 卷內順序;seq 為 NULL 的舊 session 退回原本的 q.number 排序(等價)。
-      `SELECT q.id, q.year, q.number, q.stem, q.options_json, ea.chosen
+      `SELECT q.id, q.year, q.number, q.stem, q.options_json, ea.chosen,
+              ea.flagged, ea.flagged_at
        FROM exam_answers ea
        JOIN questions q ON q.id = ea.question_id
        WHERE ea.session_id = ?
        ORDER BY COALESCE(ea.seq, q.number) ASC, q.year ASC, q.number ASC`
     )
     .bind(sid)
-    .all<{ id: string; year: number; number: number; stem: string; options_json: string; chosen: string | null }>();
+    .all<{
+      id: string;
+      year: number;
+      number: number;
+      stem: string;
+      options_json: string;
+      chosen: string | null;
+      flagged: number;
+      flagged_at: number | null;
+    }>();
 
   const liveElapsed = session.running_since
     ? session.elapsed_ms + (now - session.running_since)
@@ -262,6 +272,9 @@ examRoutes.get('/:sid/state', async (c) => {
       stem: r.stem,
       options: optionsToRecord(r.options_json),
       chosen: r.chosen,
+      // 標記(migration 0028)。舊列 DEFAULT 0 → false,不會壞。
+      flagged: r.flagged === 1,
+      flagged_at: r.flagged_at,
     })),
   });
 });
@@ -378,6 +391,50 @@ examRoutes.post('/:sid/answer', async (c) => {
   return c.json({ ok: true });
 });
 
+// 標記/取消標記一題(待回頭檢查)。
+//
+// 刻意與 /answer 分離,不共用同一個 handler:
+//  - /answer 有 400ms debounce,且交卷前會把所有答案全量重送一次
+//    (frontend/src/routes/Exam.tsx 的 submit()),把標記塞進去會讓
+//    「只改標記」也一起重寫 chosen / answered_at,並多寫一筆 attempts。
+//  - /answer 的 DB.batch() 是 exam_answers + attempts 的交易,標記
+//    不該混進那條路徑。
+//
+// 與 /answer 另一個差異:**已交卷的 session 仍允許改標記** —— 檢討期
+// 二輪複習需要,且 flagged 完全不參與計分(見 /finish)。
+// 冪等:重送同值只是把同樣的 0/1 再寫一次,回傳相同 body。
+examRoutes.put('/:sid/flag', async (c) => {
+  const sid = c.req.param('sid');
+  const email = c.var.email;
+  const body = await c.req
+    .json<{ question_id?: string; flagged?: boolean; at?: number }>()
+    .catch(() => ({} as { question_id?: string; flagged?: boolean; at?: number }));
+  if (!body.question_id || typeof body.flagged !== 'boolean') {
+    return c.json({ error: 'question_id and flagged required' }, 400);
+  }
+
+  const session = await c.env.DB
+    .prepare('SELECT user_email FROM exam_sessions WHERE id = ?')
+    .bind(sid)
+    .first<{ user_email: string }>();
+  if (!session) return c.json({ error: 'session not found' }, 404);
+  if (session.user_email !== email) return c.json({ error: 'forbidden' }, 403);
+
+  const at = typeof body.at === 'number' ? body.at : Date.now();
+  // UPDATE(非 upsert):/start 與 /custom 都已為每題預建列,用 UPDATE 順便
+  // 擋掉不屬於這場考試的 question_id,避免被塞進假列。
+  const res = await c.env.DB
+    .prepare(
+      `UPDATE exam_answers SET flagged = ?, flagged_at = ?
+       WHERE session_id = ? AND question_id = ?`
+    )
+    .bind(body.flagged ? 1 : 0, at, sid, body.question_id)
+    .run();
+  if (!res.meta.changes) return c.json({ error: 'question not in session' }, 404);
+
+  return c.json({ ok: true, flagged: body.flagged, flagged_at: at });
+});
+
 // Finish the exam — computes score, freezes timer
 examRoutes.post('/:sid/finish', async (c) => {
   const sid = c.req.param('sid');
@@ -473,6 +530,7 @@ examRoutes.get('/:sid', async (c) => {
   const { results: answers } = await c.env.DB
     .prepare(
       `SELECT ea.question_id, ea.chosen, ea.is_correct, ea.answered_at,
+              ea.flagged, ea.flagged_at,
               q.year, q.number, q.stem,
               COALESCE(ea.correct_answer_at_finish, q.answer) AS correct_answer,
               t.elapsed_ms
