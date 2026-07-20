@@ -41,6 +41,7 @@ import { Landing } from "./routes/Landing";
 import { Chat } from "./routes/Chat";
 import { ReviewIndex } from "./routes/ReviewIndex";
 import { AnkiDeck } from "./routes/AnkiDeck";
+import { DueQueue } from "./routes/DueQueue";
 import { YearList } from "./routes/YearList";
 import { Question } from "./routes/Question";
 import { Drill } from "./routes/Drill";
@@ -168,6 +169,7 @@ export default function App() {
 				<Routes>
 					<Route path="/" element={<Home />} />
 					<Route path="/review" element={<ReviewIndex />} />
+					<Route path="/due" element={<DueQueue />} />
 					<Route path="/anki/:year" element={<AnkiDeck />} />
 					<Route path="/year/:year" element={<YearList />} />
 					<Route path="/q/:id" element={<Question />} />

@@ -137,6 +137,7 @@ export function describePath(path: string): string {
     '/exam-history': '作答紀錄',
     '/profile': '個人資料',
     '/anki': 'Anki 卡片',
+    '/due': '今日複習',
   };
   return named[base] ?? base;
 }
