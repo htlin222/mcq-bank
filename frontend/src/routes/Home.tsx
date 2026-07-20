@@ -7,6 +7,7 @@ import { loadLastPath, describePath } from '../lib/lastPath';
 import { ResumeChip } from '../components/ResumeChip';
 import { useMe } from '../hooks/useMe';
 import { ActivityHeatmap } from '../components/ActivityHeatmap';
+import { PacingCard } from '../components/PacingCard';
 import { GROUPS, TOTAL_EXAM_COUNT } from '../lib/groups';
 import { formatDueAt, type DueSummary } from '../lib/due';
 
@@ -147,6 +148,12 @@ export function Home() {
             {due.next_due_at ? ` · 下一張 ${formatDueAt(due.next_due_at)}` : ''}
           </p>
         ) : null}
+      </section>
+
+      {/* 讀書進度預估 — 把倒數與活動量接起來。天數用 API 的 days_left,
+          不是上面倒數卡的 countdown.days(ceil vs floor,會差一天)。 */}
+      <section className="mb-8">
+        <PacingCard />
       </section>
 
       {/* Activity heatmap + stats summary */}
