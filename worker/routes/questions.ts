@@ -622,13 +622,22 @@ questionsRoutes.get("/_meta/tags", async (c) => {
 // When the list comes back empty the response carries a `reason` so the UI can
 // say why instead of looking broken.
 // ------------------------------------------------------------
-type ClozeReason = "no_content" | "too_short" | "ai_empty" | "ai_error";
+type ClozeReason =
+	| "no_content"
+	| "too_short"
+	| "ai_empty"
+	| "ai_error"
+	| "not_cached";
 const clozeEmpty = (reason: ClozeReason) =>
 	({ terms: [] as string[], cached: false, reason }) as const;
 
 questionsRoutes.get("/:id/auto-cloze", async (c) => {
 	const id = c.req.param("id");
 	const source = c.req.query("source") === "note" ? "note" : "explanation";
+	// Restore-only mode: hand back a previously extracted list if one is still
+	// valid, never spend Workers AI. The page uses this to bring blanks back
+	// after a reload without silently re-billing a generation on every visit.
+	const cachedOnly = c.req.query("cached_only") === "1";
 
 	let contentJson: string;
 	let expVersion = ""; // only meaningful (and only written back) for 詳解
@@ -652,6 +661,7 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 		if (cached && cached.content_hash === noteHash) {
 			return c.json({ terms: safeParseTerms(cached.terms_json), cached: true });
 		}
+		if (cachedOnly) return c.json(clozeEmpty("not_cached"));
 	} else {
 		const exp = await c.env.DB.prepare(
 			"SELECT content_json, version FROM explanations WHERE question_id = ?",
@@ -672,6 +682,7 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 		if (cached && String(cached.version) === `${exp.version}:${CLOZE_PROMPT_VERSION}`) {
 			return c.json({ terms: safeParseTerms(cached.terms_json), cached: true });
 		}
+		if (cachedOnly) return c.json(clozeEmpty("not_cached"));
 		expVersion = `${exp.version}:${CLOZE_PROMPT_VERSION}`;
 	}
 

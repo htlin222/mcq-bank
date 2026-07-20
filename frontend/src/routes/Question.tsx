@@ -30,6 +30,7 @@ import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
 import { searchNeighbors } from "../lib/searchCache";
+import { rememberAutoCloze, wasAutoCloze } from "../lib/clozePref";
 
 // Resizable two-pane split (≥md). `splitPct` is the left pane's share of the
 // row width; the rest goes to the right pane. Persisted as a UI layout pref.
@@ -231,6 +232,38 @@ export function Question() {
 		setNoteAutoMsg(null);
 	}, [data?.id]);
 
+	// Bring back the blanks this reader had up last time. `cached_only=1` means
+	// a reload never silently spends Workers AI: if the cache expired (the text
+	// changed, or the prompt version moved on) the section simply comes back
+	// un-blanked and the button is there to press.
+	useEffect(() => {
+		const qid = data?.id;
+		if (!qid) return;
+		let cancelled = false;
+		for (const source of ["explanation", "note"] as const) {
+			if (!wasAutoCloze(qid, source)) continue;
+			const qs = source === "note" ? "?source=note&cached_only=1" : "?cached_only=1";
+			api
+				.get<{ terms: string[] }>(`/api/questions/${qid}/auto-cloze${qs}`)
+				.then((r) => {
+					if (cancelled || !r.terms?.length) return;
+					if (source === "note") {
+						setNoteAutoTerms(r.terms);
+						setNoteCloze(true);
+					} else {
+						setAutoClozeTerms(r.terms);
+						setExpCloze(true);
+					}
+				})
+				.catch(() => {
+					/* offline or gone — leave the section un-blanked */
+				});
+		}
+		return () => {
+			cancelled = true;
+		};
+	}, [data?.id]);
+
 	// Toggle the AI layer for a section. Pressing it while it is on removes it
 	// outright (no reload needed); pressing it while off fetches the terms —
 	// cached server-side, so a repeat press costs nothing — and, as a
@@ -246,6 +279,7 @@ export function Question() {
 		if (on && on.length > 0) {
 			setTerms(null);
 			setMsg(null);
+			rememberAutoCloze(qid, target === "note" ? "note" : "explanation", false);
 			return;
 		}
 		setLoading(true);
@@ -261,6 +295,7 @@ export function Question() {
 			}
 			setTerms(r.terms);
 			setCloze(true);
+			rememberAutoCloze(qid, target === "note" ? "note" : "explanation", true);
 		} catch {
 			setTerms(null);
 			setMsg("自動挖空失敗,請稍後再試");
