@@ -23,6 +23,7 @@ import { foldersRoutes } from './routes/folders';
 import { bookmarksRoutes } from './routes/bookmarks';
 import { feedbackRoutes } from './routes/feedback';
 import { challengesRoutes, questionChallengeRoutes } from './routes/challenges';
+import { helpfulRoutes } from './routes/helpful';
 import { mcqRoutes } from './routes/mcq';
 import { lectureRoutes } from './routes/lectures';
 import { chatRoutes } from './routes/chat';
@@ -84,6 +85,7 @@ app.route('/api/questions', notesRoutes);        // /:id/note
 app.route('/api/questions', commentsRoutes);     // /:id/comments
 app.route('/api/questions', questionChallengeRoutes); // /:id/challenges*
 app.route('/api/challenges', challengesRoutes);  // /:cid/votes etc.
+app.route('/api/comments', helpfulRoutes);       // /:cid/helpful
 app.route('/api/upload', uploadRoutes);
 app.route('/img', imagesRoutes);
 app.route('/pdf', pdfRoutes);
