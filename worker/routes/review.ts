@@ -18,6 +18,7 @@ import { calibration } from "../lib/calibration";
 import { clusterByThreshold, type VecItem } from "../lib/cluster";
 import { clampElapsedMs, insertAttemptOp } from "../lib/attempts";
 import { dailyActivity, todayInTaipei } from "../lib/activity";
+import { computePacing, suggestWeeklyTarget } from "../lib/goal-pacing";
 import {
 	clampHour,
 	dayWindow,
@@ -822,6 +823,86 @@ reviewRoutes.get("/stats", async (c) => {
 		total_attempts: totalCorrect?.t ?? 0,
 		by_year: byYear.results,
 	});
+});
+
+// 讀書進度預估 — 「以我目前的速度,考前做得完嗎」。
+//
+// 路徑叫 /readiness 而不是計畫寫的 /pacing:`GET /api/review/pacing` 已經
+// 被每日正確率 + 每題平均秒數佔用(見上面),同名會直接吃掉既有端點。
+//
+// 全部 per-user(`c.var.email`),不接受 email 參數,也不回任何跨使用者
+// 的比較數字 —— 沒有排行榜、沒有積分、沒有連續天數。
+reviewRoutes.get("/readiness", async (c) => {
+	const email = c.var.email;
+	const now = Date.now();
+
+	const [total, done, goal] = await Promise.all([
+		c.env.DB.prepare("SELECT COUNT(*) AS n FROM questions").first<{
+			n: number;
+		}>(),
+		// 與 GET /stats 的 questions_attempted 同一個定義,兩張卡才不打架。
+		// 刻意不改用 COUNT(DISTINCT question_id) FROM attempts:attempts 自
+		// 0023 起才有,歷史未回填,改用它會讓老使用者的「已完成」憑空縮水。
+		c.env.DB.prepare(
+			"SELECT COUNT(*) AS n FROM review_progress WHERE user_email = ? AND times_seen > 0",
+		)
+			.bind(email)
+			.first<{ n: number }>(),
+		c.env.DB.prepare(
+			"SELECT weekly_target FROM study_goals WHERE user_email = ?",
+		)
+			.bind(email)
+			.first<{ weekly_target: number }>(),
+	]);
+
+	// 28 天視窗:近 7 天算速度,其餘留給前端畫趨勢(目前未用)。
+	const daily = await dailyActivity(c.env.DB, email, now - 28 * 86_400_000);
+
+	// 考試日:worker 讀不到 config.toml,值由 setup.sh 鏡射進 [vars]。
+	// 未設 / 設錯格式一律當作「沒有考試日」,不炸。
+	const examMs = c.env.EXAM_DATE_ISO ? Date.parse(c.env.EXAM_DATE_ISO) : NaN;
+	const daysLeft = Number.isFinite(examMs)
+		? Math.ceil((examMs - now) / 86_400_000)
+		: null;
+
+	const totalQ = total?.n ?? 0;
+	const completed = done?.n ?? 0;
+	const weeklyTarget =
+		goal?.weekly_target ??
+		suggestWeeklyTarget(Math.max(totalQ - completed, 0), daysLeft);
+
+	return c.json({
+		...computePacing({
+			daily,
+			today: todayInTaipei(now),
+			totalQuestions: totalQ,
+			completed,
+			daysLeft,
+			weeklyTarget,
+		}),
+		weekly_target: weeklyTarget,
+		weekly_target_is_default: !goal,
+	});
+});
+
+// 設定每週目標。只有這一個數字被持久化 —— 進度本身永遠即時算。
+reviewRoutes.put("/goal", async (c) => {
+	const email = c.var.email;
+	const body = await c.req
+		.json<{ weekly_target?: number }>()
+		.catch(() => ({}) as { weekly_target?: number });
+	const t = Math.trunc(Number(body.weekly_target));
+	if (!Number.isFinite(t) || t < 1 || t > 1000) {
+		return c.json({ error: "weekly_target must be 1..1000" }, 400);
+	}
+	await c.env.DB.prepare(
+		`INSERT INTO study_goals (user_email, weekly_target, updated_at) VALUES (?, ?, ?)
+     ON CONFLICT(user_email) DO UPDATE SET weekly_target = excluded.weekly_target,
+                                           updated_at = excluded.updated_at`,
+	)
+		.bind(email, t, Date.now())
+		.run();
+	return c.json({ ok: true, weekly_target: t });
 });
 
 // Wrong-answer list (review-mode mistakes), with year/tag/group filters
