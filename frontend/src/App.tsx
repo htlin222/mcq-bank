@@ -49,6 +49,7 @@ import { WeaknessMap } from "./routes/WeaknessMap";
 import { Exam } from "./routes/Exam";
 import { ExamResult } from "./routes/ExamResult";
 import { ExamHistory } from "./routes/ExamHistory";
+import { CustomTest } from "./routes/CustomTest";
 import { Profile } from "./routes/Profile";
 import { WrongQuestions } from "./routes/Lists";
 import { Bookmarks } from "./routes/Bookmarks";
@@ -176,6 +177,8 @@ export default function App() {
 					<Route path="/drill/:anchor" element={<Drill />} />
 					<Route path="/weakness-map" element={<WeaknessMap />} />
 					<Route path="/exam" element={<Exam />} />
+					{/* 必須排在 /exam/:sid 之前,否則 "new" 會被當成 session id */}
+					<Route path="/exam/new" element={<CustomTest />} />
 					<Route path="/exam/:sid" element={<Exam />} />
 					<Route path="/exam/:sid/result" element={<ExamResult />} />
 					<Route path="/exam-history" element={<ExamHistory />} />
@@ -339,7 +342,9 @@ function LastPathTracker() {
 		// last-seen question, so /year/:year can offer 「你上次停在…」.
 		const qm = /^\/q\/((\d{3})-\d{3})$/.exec(pathname);
 		if (qm) saveYearPosition(Number(qm[2]), qm[1]);
-		if (/^\/exam\/[^/]+$/.test(pathname)) saveSectionPath("exam", path);
+		// /exam/new 是出卷表單,不是進行中的 session — 別存成可續答的位置。
+		if (/^\/exam\/[^/]+$/.test(pathname) && pathname !== "/exam/new")
+			saveSectionPath("exam", path);
 		// Reaching the result page means the exam is over — nothing to resume.
 		if (/^\/exam\/[^/]+\/result$/.test(pathname)) clearSectionPath("exam");
 	}, [location]);
