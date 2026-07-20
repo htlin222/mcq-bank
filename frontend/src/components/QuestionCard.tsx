@@ -441,8 +441,13 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
           )}
           {stats && stats.attempts > 0 && (
             <span className="text-ink-400 dark:text-ink-500">
-              · 全體被作答 {stats.attempts} 次 / 答對 {stats.correct} 次,
-              答對率 {stats.accuracy ?? 0}%
+              · 全體被作答 {stats.attempts} 次
+              {/* accuracy/correct come back null until you have answered — the
+                  server withholds them so the crowd can't steer your pick.
+                  `?? 0` would render a confident, wrong "答對率 0%". */}
+              {stats.accuracy !== null && stats.accuracy !== undefined && (
+                <> / 答對 {stats.correct} 次,答對率 {stats.accuracy}%</>
+              )}
             </span>
           )}
           {stats?.choices_state === 'ok' && (

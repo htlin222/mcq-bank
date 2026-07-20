@@ -14,6 +14,7 @@ import {
 } from "../lib/cloze";
 import { EMBED_MODEL, TEXT_MODEL } from "../lib/ai-models";
 import { median, percentile, MIN_COHORT } from "../lib/pacing";
+import { parseTagList } from "../lib/sql-params";
 import { tallyChoices, type Vote } from "../lib/choiceStats";
 
 export const questionsRoutes = new Hono<AppContext>();
@@ -51,10 +52,7 @@ questionsRoutes.get("/", async (c) => {
 	let joinSql = "";
 	const joinParams: any[] = [];
 	if (tags) {
-		const tagList = tags
-			.split(",")
-			.map((t) => t.trim())
-			.filter(Boolean);
+		const tagList = parseTagList(tags);
 		if (tagList.length > 0) {
 			// q must have ALL tags
 			joinSql = `
@@ -553,9 +551,13 @@ questionsRoutes.get("/:id/stats", async (c) => {
 
 	return c.json({
 		attempts,
-		correct,
 		responders,
-		accuracy,
+		// Accuracy is gated the same way the distribution is. It doesn't name an
+		// option, but "94% got this right" before you answer still steers you
+		// toward the obvious choice — and steering is exactly what a self-test
+		// must not do. Headcounts carry no direction, so they stay open.
+		correct: mine ? correct : null,
+		accuracy: mine ? accuracy : null,
 		my_elapsed_ms: my,
 		median_elapsed_ms: median(cohort),
 		p90_elapsed_ms: percentile(cohort, 0.9),

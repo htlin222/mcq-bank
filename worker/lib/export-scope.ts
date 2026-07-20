@@ -27,6 +27,8 @@ export type ExportScope =
 
 // Hard cap. Free-plan Workers get 10 ms CPU per invocation; string assembly
 // for 200 questions is comfortably inside that, 1000 is not.
+import { parseTagList } from "./sql-params.ts";
+
 export const MAX_QUESTIONS = 200;
 
 const MAX_LABEL = 60;
@@ -68,7 +70,11 @@ export function parseScope(body: unknown): ParseResult {
 			}
 			if (typeof b.group === "string" && b.group) scope.group = b.group;
 			if (Array.isArray(b.tags)) {
-				const tags = b.tags.filter((t): t is string => typeof t === "string" && !!t.trim());
+				// Capped: these become `tag IN (?, ?, …)` further down, and an
+				// unbounded list is one D1 "too many SQL variables" from a 500.
+				const tags = parseTagList(
+					b.tags.filter((t): t is string => typeof t === "string").join(","),
+				);
 				if (tags.length > 0) scope.tags = tags;
 			}
 			return { scope, truncated: false };

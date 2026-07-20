@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { parseTagList } from '../lib/sql-params';
 import type { AppContext } from '../types';
 
 export const searchRoutes = new Hono<AppContext>();
@@ -50,7 +51,7 @@ searchRoutes.get('/', async (c) => {
 
   let tagJoin = '';
   if (tags) {
-    const list = tags.split(',').map((t) => t.trim()).filter(Boolean);
+    const list = parseTagList(tags);
     if (list.length > 0) {
       tagJoin = `
         JOIN (
