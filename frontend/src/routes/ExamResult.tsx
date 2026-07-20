@@ -19,17 +19,38 @@ type Result = {
     number: number;
     correct_answer: string;
     stem: string;
+    /** null for sessions predating the attempts log (migration 0023). */
+    elapsed_ms: number | null;
   }[];
 };
+
+type Pacing = {
+  n: number;
+  first_half_avg_ms: number | null;
+  second_half_avg_ms: number | null;
+  delta_pct: number | null;
+  median_ms: number | null;
+  slowest: { question_id: string; number: number; ms: number }[];
+};
+
+/** mm:ss — matches the 分/秒 style used elsewhere on this page. */
+function fmtMs(ms: number): string {
+  const sec = Math.round(ms / 1000);
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+}
 
 export function ExamResult() {
   const { sid } = useParams<{ sid: string }>();
   const [data, setData] = useState<Result | null>(null);
   const [filter, setFilter] = useState<'all' | 'wrong' | 'right'>('wrong');
+  const [pacing, setPacing] = useState<Pacing | null>(null);
 
   useEffect(() => {
     if (!sid) return;
     api.get<Result>(`/api/exam/${sid}`).then(setData);
+    api.get<Pacing>(`/api/exam/${sid}/pacing`).then(setPacing).catch(() => {
+      /* pacing is best-effort — never block the result page */
+    });
   }, [sid]);
 
   if (!data) return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
@@ -70,6 +91,57 @@ export function ExamResult() {
           {new Date(data.session.finished_at).toLocaleString('zh-TW')}
         </div>
       </div>
+
+      {/* Pacing card */}
+      {pacing && (
+        <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 sm:p-5 shadow-paper mb-8">
+          {pacing.n === 0 ? (
+            <p className="text-sm text-ink-400 dark:text-ink-500">
+              本場沒有逐題計時資料(舊場次)
+            </p>
+          ) : (
+            <>
+              <div className="text-xs text-ink-500 dark:text-ink-400 mb-2">配速</div>
+              <p className="text-sm text-ink-700 dark:text-ink-300 leading-relaxed">
+                前半段平均 {fmtMs(pacing.first_half_avg_ms ?? 0)} ·{' '}
+                後半段平均 {fmtMs(pacing.second_half_avg_ms ?? 0)}
+                {pacing.delta_pct !== null && (
+                  <>
+                    {' '}·{' '}
+                    <span
+                      className={
+                        pacing.delta_pct > 25
+                          ? 'font-medium text-rose-700 dark:text-rose-400'
+                          : pacing.delta_pct < -25
+                          ? 'font-medium text-emerald-700 dark:text-emerald-400'
+                          : 'font-medium text-ink-800 dark:text-ink-200'
+                      }
+                    >
+                      {pacing.delta_pct >= 0
+                        ? `後段慢了 ${pacing.delta_pct}%`
+                        : `後段快了 ${-pacing.delta_pct}%`}
+                    </span>
+                  </>
+                )}
+              </p>
+              {pacing.slowest.length > 0 && (
+                <div className="text-xs text-ink-500 dark:text-ink-400 mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                  <span>最慢五題:</span>
+                  {pacing.slowest.map((s) => (
+                    <Link
+                      key={s.question_id}
+                      to={`/q/${s.question_id}`}
+                      className="hover:text-accent"
+                    >
+                      第 {s.number} 題 {fmtMs(s.ms)}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-4 text-sm">
@@ -127,6 +199,7 @@ export function ExamResult() {
                         ✗ 你選 {a.chosen} · 正解 {a.correct_answer}
                       </span>
                     )}
+                    <span> · 用時 {a.elapsed_ms === null ? '—' : fmtMs(a.elapsed_ms)}</span>
                   </div>
                 </div>
               </Link>
