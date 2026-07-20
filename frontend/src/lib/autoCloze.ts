@@ -17,6 +17,26 @@ export type Range = { from: number; to: number };
  * "BCR-ABL1" at the same spot) so one blank never nests inside another —
  * nested decorations would produce a blank the reader can't reveal as a unit.
  */
+/**
+ * Join runs that sit back-to-back in the document into one searchable run.
+ *
+ * A term that straddles a mark boundary — "**BCR-ABL1** 融合基因" — is two text
+ * nodes in the doc, so searching each run separately silently finds neither.
+ * Positions inside a block advance 1:1 with characters, so concatenating
+ * touching runs keeps `pos + index` exact. Runs in different blocks are never
+ * touching (the block close/open tokens cost a position each), so this can
+ * never match a "term" spanning two paragraphs.
+ */
+export function mergeTouchingRuns(runs: TextRun[]): TextRun[] {
+  const out: TextRun[] = [];
+  for (const run of runs) {
+    const last = out[out.length - 1];
+    if (last && last.pos + last.text.length === run.pos) last.text += run.text;
+    else out.push({ pos: run.pos, text: run.text });
+  }
+  return out;
+}
+
 export function termRanges(runs: TextRun[], terms: string[]): Range[] {
   const wanted = terms.filter((t) => typeof t === 'string' && t.length >= 2);
   if (wanted.length === 0) return [];
@@ -24,7 +44,7 @@ export function termRanges(runs: TextRun[], terms: string[]): Range[] {
   const ordered = [...wanted].sort((a, b) => b.length - a.length);
 
   const hits: Range[] = [];
-  for (const run of runs) {
+  for (const run of mergeTouchingRuns(runs)) {
     for (const term of ordered) {
       let idx = run.text.indexOf(term);
       while (idx !== -1) {

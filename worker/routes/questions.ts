@@ -6,7 +6,12 @@ import { ftsQuery } from "./search";
 import { getActiveChallenges } from "../lib/challenges";
 import { isAdminEmail } from "../lib/admin";
 import { mergeSimilar } from "../lib/similar";
-import { explanationPlainText, dedupeTerms, hashText } from "../lib/cloze";
+import {
+	explanationPlainText,
+	dedupeTerms,
+	hashText,
+	CLOZE_PROMPT_VERSION,
+} from "../lib/cloze";
 import { EMBED_MODEL, TEXT_MODEL } from "../lib/ai-models";
 import { median, percentile, MIN_COHORT } from "../lib/pacing";
 import { tallyChoices, type Vote } from "../lib/choiceStats";
@@ -624,7 +629,7 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 	const source = c.req.query("source") === "note" ? "note" : "explanation";
 
 	let contentJson: string;
-	let expVersion = 0; // only meaningful (and only written back) for 詳解
+	let expVersion = ""; // only meaningful (and only written back) for 詳解
 	let noteHash = ""; // ditto, for 個人筆記
 	if (source === "note") {
 		const note = await c.env.DB.prepare(
@@ -634,7 +639,7 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 			.first<{ content_json: string }>();
 		if (!note) return c.json(clozeEmpty("no_content"));
 		contentJson = note.content_json;
-		noteHash = hashText(contentJson);
+		noteHash = hashText(CLOZE_PROMPT_VERSION + "|" + contentJson);
 
 		// Cache hit — note text unchanged since the last extraction.
 		const cached = await c.env.DB.prepare(
@@ -659,11 +664,13 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 			"SELECT terms_json, version FROM explanation_cloze WHERE question_id = ?",
 		)
 			.bind(id)
-			.first<{ terms_json: string; version: number }>();
-		if (cached && cached.version === exp.version) {
+			.first<{ terms_json: string; version: string }>();
+		// Token, not a plain version: rows written by an older prompt compare
+		// unequal and get recomputed rather than served stale.
+		if (cached && String(cached.version) === `${exp.version}:${CLOZE_PROMPT_VERSION}`) {
 			return c.json({ terms: safeParseTerms(cached.terms_json), cached: true });
 		}
-		expVersion = exp.version;
+		expVersion = `${exp.version}:${CLOZE_PROMPT_VERSION}`;
 	}
 
 	let doc: unknown;
@@ -679,7 +686,7 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 	let terms: string[] = [];
 	try {
 		const out = await c.env.AI.run(TEXT_MODEL, {
-			max_tokens: 400,
+			max_tokens: 900,
 			temperature: 0.1,
 			response_format: {
 				type: "json_schema",
@@ -688,8 +695,8 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 					properties: {
 						terms: {
 							type: "array",
-							minItems: 3,
-							maxItems: 8,
+							minItems: 5,
+							maxItems: 16,
 							items: { type: "string" },
 						},
 					},
@@ -701,10 +708,11 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 				{
 					role: "system",
 					content:
-						`你是醫學考試出題助教。從${source === "note" ? "這份讀書筆記" : "詳解"}中挑出最值得考的 5–8 個關鍵詞(疾病名、藥名、機轉、數值、基因)。` +
+						`你是醫學考試出題助教。從${source === "note" ? "這份讀書筆記" : "詳解"}中挑出最值得考的 10–16 個關鍵詞(疾病名、藥名、機轉、數值、基因、診斷標準)。` +
+						"請涵蓋全文各段落,不要只集中在開頭。"  +
 						"必須是原文中一字不差出現的片段(供挖空自我測驗用),不要改寫、不要翻譯、不要加解釋。只輸出 JSON。",
 				},
-				{ role: "user", content: text.slice(0, 3000) },
+				{ role: "user", content: text.slice(0, 6000) },
 			],
 		});
 		const raw = (out as { response?: unknown }).response ?? out;

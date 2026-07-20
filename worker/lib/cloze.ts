@@ -44,8 +44,16 @@ export function hashText(s: string): string {
 	return String(h >>> 0);
 }
 
+/**
+ * Bump whenever the extraction prompt, the term cap, or the input window
+ * changes. It rides in both cloze cache keys, so a change here invalidates
+ * every cached term list instead of leaving old readers stuck with terms
+ * produced by the previous prompt.
+ */
+export const CLOZE_PROMPT_VERSION = "2";
+
 // Trim, drop terms shorter than 2 chars, de-dupe (first occurrence wins),
-// cap at 10 so a single explanation never becomes an unusable cloze wall.
+// cap at 20 so a single explanation never becomes an unusable cloze wall.
 export function dedupeTerms(terms: unknown): string[] {
 	if (!Array.isArray(terms)) return [];
 	const seen = new Set<string>();
@@ -56,7 +64,7 @@ export function dedupeTerms(terms: unknown): string[] {
 		if (t.length < 2 || seen.has(t)) continue;
 		seen.add(t);
 		out.push(t);
-		if (out.length >= 10) break;
+		if (out.length >= 20) break;
 	}
 	return out;
 }
