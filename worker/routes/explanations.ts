@@ -129,6 +129,22 @@ explanationsRoutes.put('/:id/explanation', async (c) => {
   return c.json({ ok: true, version: newVersion });
 });
 
+// 協作訊號,取代「詳解投票」。詳解是單列可覆寫的活文件:對 question_id 投票
+// 會讓票活得比它背書的內容久(昨天 3 人覺得有幫助的那版今天可能已被改掉),
+// 對 version 投票則每次存檔歸零、還會誘導大家為保住票數而不去修。
+// 所以這裡只給描述性事實:多少人共筆過、目前第幾版。純聚合,零新表零新寫入。
+explanationsRoutes.get('/:id/explanation/stats', async (c) => {
+  const row = await c.env.DB
+    .prepare(
+      `SELECT COUNT(DISTINCT updated_by) AS contributors,
+              COALESCE(MAX(version), 0) AS versions
+         FROM explanation_history WHERE question_id = ?`
+    )
+    .bind(c.req.param('id'))
+    .first<{ contributors: number; versions: number }>();
+  return c.json(row ?? { contributors: 0, versions: 0 });
+});
+
 // History
 explanationsRoutes.get('/:id/explanation/history', async (c) => {
   const id = c.req.param('id');

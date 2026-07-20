@@ -969,6 +969,7 @@ export function Question() {
 										</>
 									)}
 									· v{data.explanation?.version ?? 0}
+									<ExplanationStats questionId={data.id} />
 								</footer>
 							</article>
 						</>
@@ -1301,5 +1302,39 @@ function TabButton({
 		>
 			{children}
 		</button>
+	);
+}
+
+// 共筆詳解的協作訊號。刻意不是投票:詳解是一列可被整份改寫的活文件,票會
+// 活得比它背書的內容久,變成誤導訊號。這裡只陳述事實 —— 幾個人動過、第幾版。
+// 不排名、不比較人。
+function ExplanationStats({ questionId }: { questionId: string }) {
+	const [stats, setStats] = useState<{
+		contributors: number;
+		versions: number;
+	} | null>(null);
+
+	useEffect(() => {
+		let alive = true;
+		api
+			.get<{ contributors: number; versions: number }>(
+				`/api/questions/${questionId}/explanation/stats`,
+			)
+			.then((s) => {
+				if (alive) setStats(s);
+			})
+			.catch(() => {
+				/* 訊號而已,拿不到就不顯示 */
+			});
+		return () => {
+			alive = false;
+		};
+	}, [questionId]);
+
+	if (!stats || stats.contributors === 0) return null;
+	return (
+		<span className="block mt-1">
+			{stats.contributors} 人共筆 · 第 {stats.versions} 版
+		</span>
 	);
 }
