@@ -6,6 +6,7 @@ import { useBookmarkSet } from '../hooks/useBookmarkSet';
 import { useMe } from '../hooks/useMe';
 import { ChallengePanel } from './ChallengePanel';
 import { groupBadgeClass } from '../lib/groups';
+import { startTimer, hide, show, read, type TimerState } from '../lib/questionTimer';
 
 type Props = {
   question: QuestionFull;
@@ -15,6 +16,13 @@ type Props = {
 };
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
+
+// 「74 秒」/「2 分 14 秒」— 短時間用純秒數比較好比對。
+function fmtSeconds(ms: number): string {
+  const sec = Math.round(ms / 1000);
+  if (sec < 120) return `${sec} 秒`;
+  return `${Math.floor(sec / 60)} 分 ${sec % 60} 秒`;
+}
 
 export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared }: Props) {
   const bookmarkSet = useBookmarkSet();
@@ -44,6 +52,20 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     setAnswerError(null);
   }, [question.id, question.answer]);
 
+  // Per-question timer. Restarts on every question change; the tab being
+  // hidden (looking something up elsewhere) doesn't count toward the time.
+  const timer = useRef<TimerState>(startTimer(Date.now()));
+  useEffect(() => {
+    timer.current = startTimer(Date.now());
+    function onVisibility() {
+      timer.current = document.hidden
+        ? hide(timer.current, Date.now())
+        : show(timer.current, Date.now());
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [question.id]);
+
   // Aggregate (anonymous) review-mode stats. Lazy-loaded once the answer
   // is revealed — adds one extra request per card view, not per page load.
   type StatsPayload = {
@@ -51,6 +73,10 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     correct: number;
     responders: number;
     accuracy: number | null;
+    my_elapsed_ms: number | null;
+    median_elapsed_ms: number | null;
+    p90_elapsed_ms: number | null;
+    timed_responders: number;
   };
   const [stats, setStats] = useState<StatsPayload | null>(null);
   useEffect(() => {
@@ -68,7 +94,12 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     try {
       const r = await api.post<{ correct: boolean; correct_answer: string }>(
         '/api/review/answer',
-        { question_id: question.id, chosen, confidence },
+        {
+          question_id: question.id,
+          chosen,
+          confidence,
+          elapsed_ms: read(timer.current, Date.now()).elapsedMs,
+        },
       );
       setRevealed(true);
       onAnswered?.(chosen, r.correct);
@@ -404,6 +435,15 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
             <span className="text-ink-400 dark:text-ink-500">
               · 全體被作答 {stats.attempts} 次 / 答對 {stats.correct} 次,
               答對率 {stats.accuracy ?? 0}%
+            </span>
+          )}
+          {/* Timing. The cohort median is withheld below the anonymity
+              threshold — then we only show the user their own seconds. */}
+          {stats && stats.my_elapsed_ms !== null && (
+            <span className="text-ink-400 dark:text-ink-500">
+              · 你 {fmtSeconds(stats.my_elapsed_ms)}
+              {stats.median_elapsed_ms !== null &&
+                ` · 全體中位數 ${fmtSeconds(stats.median_elapsed_ms)}`}
             </span>
           )}
           <div className="ml-auto flex items-center justify-end gap-2 flex-wrap">
