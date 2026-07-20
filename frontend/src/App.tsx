@@ -26,6 +26,7 @@ import {
 } from "./lib/lastPath";
 import { useMe } from "./hooks/useMe";
 import { migrateLocalHighlights } from "./lib/highlightStore";
+import { migrateLocalExamFlags } from "./lib/examFlagStore";
 import { Avatar } from "./components/Avatar";
 import { NotificationBell } from "./components/NotificationBell";
 import { ChallengeBell } from "./components/ChallengeBell";
@@ -84,8 +85,12 @@ export default function App() {
 
 	// Once authenticated, upload any pre-sync localStorage 畫記 to the server
 	// (once per device). No-op after the first run or if already migrated.
+	// 考試標記同理,但舊資料在 sessionStorage,只救得到還開著的分頁。
 	useEffect(() => {
-		if (me?.email) void migrateLocalHighlights();
+		if (me?.email) {
+			void migrateLocalHighlights();
+			void migrateLocalExamFlags();
+		}
 	}, [me?.email]);
 
 	// Boot splash while the first /api/me call resolves — avoids flashing the
