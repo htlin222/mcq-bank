@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { ThumbsUp } from 'lucide-react';
 import { api } from '../lib/api';
 import { rankByHelpful } from '../lib/helpful';
@@ -151,17 +151,21 @@ function NewCommentBox({ questionId, parentId, onPosted, onCancel }: {
   // 留言離線送不出去(也沒有離線佇列),寧可停用按鈕也不要送出後才失敗。
   const online = useOnline();
   const [resetKey, setResetKey] = useState(0);
+  // 冪等:同一次送出動作沿用同一個 key(網路重試不重複建留言),成功後重置。
+  const idemKey = useRef<string | null>(null);
 
   const submit = async () => {
     const isEmpty = !content?.content?.length ||
       (content.content.length === 1 && !content.content[0]?.content?.length);
     if (isEmpty) return;
     setBusy(true);
+    if (!idemKey.current) idemKey.current = crypto.randomUUID();
     try {
       await api.post(`/api/questions/${questionId}/comments`, {
         content_json: content,
         parent_id: parentId,
-      });
+      }, idemKey.current);
+      idemKey.current = null;
       clearDraft(draftKey);
       setContent({ type: 'doc', content: [] });
       setResetKey((k) => k + 1);

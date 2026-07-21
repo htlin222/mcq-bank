@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MessageSquareWarning, X, Loader2, CheckCircle2 } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
@@ -42,6 +42,8 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ url: string; number: number } | null>(null);
+  // 冪等:同一次送出動作用同一個 key(網路重試沿用),成功後重置供下次。
+  const idemKey = useRef<string | null>(null);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -59,13 +61,15 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
     }
     setSubmitting(true);
     setError(null);
+    if (!idemKey.current) idemKey.current = crypto.randomUUID();
     try {
       const r = await api.post<{ url: string; number: number }>('/api/feedback', {
         title: title.trim(),
         body: body.trim(),
         url: window.location.href,
-      });
+      }, idemKey.current);
       setSuccess({ url: r.url, number: r.number });
+      idemKey.current = null;
     } catch (e) {
       if (e instanceof ApiError) {
         setError(`送出失敗 (${e.status}): ${JSON.stringify(e.data)}`);

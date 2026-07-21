@@ -149,5 +149,21 @@ export default {
         console.error('[cron note-links] failed', e);
       }),
     );
+
+    // 請求去重表過期清理 — 刪 7 天前的列(遠大於任何合理的重試窗口)。
+    // Date.now() 在 worker runtime 可用。獨立 try/catch,不拖累其他 cron。
+    ctx.waitUntil(
+      (async () => {
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const res = await env.DB.prepare(
+          'DELETE FROM request_dedup WHERE created_at < ?',
+        )
+          .bind(cutoff)
+          .run();
+        console.log(`[cron request-dedup] purged ${res.meta?.changes ?? 0} rows`);
+      })().catch((e) => {
+        console.error('[cron request-dedup] failed', e);
+      }),
+    );
   },
 };

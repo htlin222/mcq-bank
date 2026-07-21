@@ -68,6 +68,18 @@ export class ChatRoom extends DurableObject<Env> {
         PRIMARY KEY (message_id, email, emoji)
       );
     `);
+    // 冪等:client 產生的訊息 id(cid)。已部署的 DO 早已有 messages 表,
+    // ADD COLUMN 沒有 IF NOT EXISTS —— 第二次啟動會丟「duplicate column」,
+    // 用 try/catch 守住(既有列的 client_id 為 NULL,SQLite 允許多個 NULL
+    // 並存於 UNIQUE index,不影響沒帶 cid 的舊訊息流)。
+    try {
+      this.ctx.storage.sql.exec('ALTER TABLE messages ADD COLUMN client_id TEXT');
+    } catch {
+      /* 欄位已存在 —— 忽略 */
+    }
+    this.ctx.storage.sql.exec(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_client_id ON messages(client_id)',
+    );
     // Keepalive pings answered without waking the DO out of hibernation.
     this.ctx.setWebSocketAutoResponse(
       new WebSocketRequestResponsePair('ping', 'pong'),
@@ -146,10 +158,23 @@ export class ChatRoom extends DurableObject<Env> {
 
   private async handleSend(
     who: Attachment,
-    msg: { text?: unknown; mentions?: unknown; mentionAll?: unknown; replyTo?: unknown },
+    msg: {
+      text?: unknown;
+      mentions?: unknown;
+      mentionAll?: unknown;
+      replyTo?: unknown;
+      cid?: unknown;
+    },
   ) {
     const text = typeof msg.text === 'string' ? msg.text.trim() : '';
     if (!text || text.length > MAX_TEXT_LEN) return;
+
+    // 冪等:client 產生的訊息 id。重送同一 cid → INSERT OR IGNORE 命中既有列,
+    // 不再新增、不廣播。沒帶 cid(舊 client)→ NULL,行為與現況完全一致。
+    const cid =
+      typeof msg.cid === 'string' && msg.cid.length > 0 && msg.cid.length <= 200
+        ? msg.cid
+        : null;
 
     const mentionAll = msg.mentionAll === true;
     const rawMentions = Array.isArray(msg.mentions)
@@ -177,10 +202,11 @@ export class ChatRoom extends DurableObject<Env> {
     }
 
     const now = Date.now();
-    const row = this.ctx.storage.sql
+    const inserted = this.ctx.storage.sql
       .exec<MessageRow>(
-        `INSERT INTO messages (email, name, text, mentions, mention_all, reply_to, reply_name, reply_snippet, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+        `INSERT OR IGNORE INTO messages
+           (email, name, text, mentions, mention_all, reply_to, reply_name, reply_snippet, client_id, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
         who.email,
         who.name,
         text,
@@ -189,9 +215,15 @@ export class ChatRoom extends DurableObject<Env> {
         replyTo,
         replyName,
         replySnippet,
+        cid,
         now,
       )
-      .one();
+      .toArray();
+
+    // INSERT OR IGNORE 命中既有 cid → 沒有 RETURNING 列 → 重送,直接略過
+    // 廣播與離線通知(原始送出時早已廣播 + 通知過)。
+    if (inserted.length === 0) return;
+    const row = inserted[0];
 
     this.trim();
     this.broadcast({ type: 'message', message: row });

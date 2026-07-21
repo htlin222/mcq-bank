@@ -34,7 +34,7 @@ async function request<T>(
   method: string,
   path: string,
   body?: any,
-  opts: { isForm?: boolean } = {}
+  opts: { isForm?: boolean; idempotencyKey?: string } = {}
 ): Promise<T> {
   const headers: Record<string, string> = {};
   let bodyPayload: BodyInit | undefined;
@@ -46,6 +46,12 @@ async function request<T>(
       headers['Content-Type'] = 'application/json';
       bodyPayload = JSON.stringify(body);
     }
+  }
+
+  // 冪等:呼叫端可帶「每次動作一個」的穩定 key,重送時沿用同一個。
+  // 沒帶就完全不加 header,伺服器端行為與現況一致(向後相容)。
+  if (opts.idempotencyKey) {
+    headers['Idempotency-Key'] = opts.idempotencyKey;
   }
 
   const res = await fetch(path, {
@@ -67,8 +73,10 @@ async function request<T>(
 
 export const api = {
   get:   <T = any>(path: string) => request<T>('GET', path),
-  post:  <T = any>(path: string, body?: any) => request<T>('POST', path, body),
-  put:   <T = any>(path: string, body?: any) => request<T>('PUT', path, body),
+  post:  <T = any>(path: string, body?: any, idempotencyKey?: string) =>
+    request<T>('POST', path, body, { idempotencyKey }),
+  put:   <T = any>(path: string, body?: any, idempotencyKey?: string) =>
+    request<T>('PUT', path, body, { idempotencyKey }),
   patch: <T = any>(path: string, body?: any) => request<T>('PATCH', path, body),
   del:   <T = any>(path: string) => request<T>('DELETE', path),
   // File downloads can't go through request(): it always JSON.parses the body.
@@ -108,9 +116,9 @@ export const api = {
     a.remove();
     URL.revokeObjectURL(url);
   },
-  upload:<T = any>(path: string, file: File) => {
+  upload:<T = any>(path: string, file: File, idempotencyKey?: string) => {
     const fd = new FormData();
     fd.append('file', file);
-    return request<T>('POST', path, fd, { isForm: true });
+    return request<T>('POST', path, fd, { isForm: true, idempotencyKey });
   },
 };

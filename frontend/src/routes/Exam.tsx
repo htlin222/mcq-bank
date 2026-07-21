@@ -57,6 +57,9 @@ const GROUP_COUNTS: Record<string, number> = groupCounts();
 function ExamStart() {
   const [years, setYears] = useState<YearMeta[]>([]);
   const [starting, setStarting] = useState<number | null>(null);
+  // 冪等:同一次開考動作沿用同一個 key(依年份綁定,重試不會重複建 session);
+  // 換年份或成功後重新產生。
+  const startIdemKey = useRef<{ year: number; key: string } | null>(null);
   const [groups, setGroups] = useState<Set<Group>>(
     () => new Set(GROUPS.map((g) => g.label)),
   );
@@ -93,11 +96,15 @@ function ExamStart() {
   async function start(year: number) {
     if (starting || groups.size === 0) return;
     setStarting(year);
+    if (!startIdemKey.current || startIdemKey.current.year !== year) {
+      startIdemKey.current = { year, key: crypto.randomUUID() };
+    }
     try {
       const s = await api.post<ExamState>('/api/exam/start', {
         year,
         groups: [...groups],
-      });
+      }, startIdemKey.current.key);
+      startIdemKey.current = null;
       sessionStorage.setItem(`exam-${s.session_id}`, JSON.stringify(s));
       navigate(`/exam/${s.session_id}`);
     } finally {
