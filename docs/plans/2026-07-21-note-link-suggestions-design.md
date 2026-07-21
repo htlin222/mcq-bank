@@ -1,7 +1,21 @@
 # 筆記關聯連結建議(Note Link Suggestions)設計
 
 日期:2026-07-21
-狀態:範圍已與 owner 確認,待實作
+狀態:**已實作並在本地 smoke test 通過**(migration 0030)。全確定性 SQL,
+零 Workers AI 神經元。
+
+實作對照:
+- `migrations/0030_note_links.sql` — keyword_vocab / note_terms /
+  note_link_suggestions 三表 + personal_notes.needs_relink
+- `worker/lib/note-terms.ts`(純函式,`note-terms.test.ts` 6 案)—
+  plainTextFromDoc / extractTerms(受控詞比對) / mergeTopSuggestions(排序+護欄)
+- `worker/lib/note-links.ts` — loadVocab / rebuildVocab(IDF) /
+  computeNoteSuggestions(單則) / drainRelinkQueue(預算 drain)
+- `worker/routes/notes.ts` — 寫入設 needs_relink=1;`GET /:id/note/links`
+  (髒則惰性計算) ;DELETE 連帶清 note_terms/suggestions
+- `worker/routes/mcq.ts` — mcq skill 寫入路徑同設 needs_relink=1
+- `worker/index.ts` `scheduled()` — 夜間 rebuildVocab + drainRelinkQueue
+- `frontend/src/routes/Question.tsx` — 筆記分頁「你可能想連結」側欄
 
 ## 目標
 
@@ -91,42 +105,60 @@ CREATE INDEX idx_note_links ON note_link_suggestions(user_email, question_id, sc
 > 連到題目即涵蓋。若日後要突顯詳解,加 `target_kind='explanation'` 即可,
 > schema 不變。
 
-## 每日 cron(夜間批次)
+## 計算模型:寫入=旗標、讀取=惰性、夜間=預算 drain
 
-在既有 `scheduled` handler 內串一個步驟(用 `ctx.waitUntil`),流程:
+分三段,把「即時感」與「成本可控」拆開:
 
-1. **重建 `keyword_vocab`**:`SELECT tag, COUNT(*) FROM question_tags
-   GROUP BY tag`,算 `idf`,排除 stopwords,覆寫。
-2. **挑出需重算的筆記**:`personal_notes` 中 `updated_at > 上次 cron 時間`
-   者(增量;首次全量)。
-3. **對每則筆記**:
-   a. 取其 `content_json` → 純文字(重用 `tiptapToMarkdown`,見
-      `worker/routes/mcq.ts:4`)。
-   b. 對 `keyword_vocab` 做確定性比對,得到命中的受控詞集合 `T`
-      (可再與該筆記 `note_cloze.terms_json` 取聯集加強召回)。
-   c. **候選題目**:`question_tags` 中帶有 `T` 內任一詞的題目
-      (排除筆記自身題目)。
-   d. **候選筆記**:**同一 user** 其他筆記,其命中詞集合與 `T` 有交集。
-      需要一份 per-user 的「筆記→命中詞」對照(步驟 3b 的產物存成暫表
-      或一次算全量)。
-   e. 每個候選算 `score = Σ idf(共享詞)`;過門檻者按 score 取
-      **top 5**;寫入 `note_link_suggestions`(先刪該筆記舊列再插)。
+1. **寫入端(便宜):** `PUT /:id/note`(web 與 mcq skill 兩條路徑)只把
+   `needs_relink=1`。不抽詞、不算候選 —— 就算有人一次倒 500 則也不觸發
+   計算,不製造白天尖峰。
+2. **讀取端(惰性,單則):** `GET /:id/note/links` 若該筆記 `needs_relink=1`,
+   就地 `computeNoteSuggestions()` 一次(抽詞 → note_terms → 兩條候選 SQL →
+   合併取 top-5 → 寫 suggestions → 清旗標),再回傳。單則、純 SQL、在 fetch
+   handler(CPU 充裕),讓「使用者剛開的那則筆記」建議即時出現。
+3. **夜間 cron(批次,有預算):** `scheduled()` →
+   `rebuildVocab()`(重建 df/idf)+ `drainRelinkQueue()`:掃 `needs_relink=1`,
+   **最舊優先**逐則 `computeNoteSuggestions()`,到 `DRAIN_MAX_NOTES` /
+   `DRAIN_MAX_WRITES` 就停,剩下明晚再做。負責:沒人開過的筆記、mcq 批次
+   匯入的筆記、以及讓 note→note 在雙方都被算過後串起來。
 
-成本:全確定性 SQL + 字串比對,**零神經元**;20 人 × 1000 題規模,
-夜間批次秒級完成,穩落免費額度內。
+`computeNoteSuggestions()` 的兩條候選 SQL(見 `worker/lib/note-links.ts`):
+
+- **候選題目**:`question_tags` 帶有本筆記命中詞者,`SUM(COALESCE(v.idf,0.5))`
+  排序,`json_group_array(tag)` 帶回共享詞;排除本題。
+- **候選筆記**:`note_terms` 中 **`user_email = 本人`** 且詞交集者,排除本則。
+  `WHERE nt.user_email = ?` 就是隱私紅線 —— SQL 層保證永遠不跨人。
+
+## 免費方案用量與安全邊際
+
+主力路徑**零 Workers AI 神經元**(10,000/日 完全不碰)。真正的天花板是:
+
+| 資源 | 免費額度/日(00:00 UTC 重置) | 本功能 |
+|---|---|---|
+| Workers AI 神經元 | 10,000 | 0 |
+| D1 寫入列 | 100,000 | 夜間 drain 的預算對象 |
+| Worker CPU / 每次 cron | 10 ms | 計算下推 D1,故極省 |
+
+- 每則筆記重算 ≈ 刪+插 note_terms(≤24)+ 刪+插 suggestions(≤5)+ 清旗標
+  ≈ 十幾列寫入。`DRAIN_MAX_WRITES = 20,000`(D1 寫入額度 20%)→ 每晚約
+  1,500 則上限,替白天 app 永遠留 80% 餘裕。
+- **突發防護**:某人半夜生 5,000 則 → 佇列在幾個晚上內、每晚固定配額消化
+  (`remaining` 會在 cron log 顯示),不會單晚爆量。
+- **CPU**:`*/10 19-21 UTC`(≈台北 03–05 點)多次觸發,每次只吃一小塊,
+  且比對/排序都在 D1,Worker 自身 CPU 遠低於 10ms。
 
 ## 執行期端點
 
 ```
-GET /api/questions/:id/note/links
+GET /api/questions/:id/note/links → { links: [{ targetKind, targetId,
+     year, number, stem, group, sharedTerms }] }
 ```
 
-- 以 `c.var.email` + `:id` 讀 `note_link_suggestions`,join 目標題目
-  取顯示用標題(題號 / 年份 / stem 首句)與「是否含詳解」。
-- 回傳 `{ links: [{ targetKind, targetId, title, sharedTerms, score }] }`。
-- **純查表**,無 AI、無 Vectorize 呼叫。
-- 讀取路徑不進 PWA runtime cache(比照 `sw-guards.ts` 對個人化端點的
-  處置——這是 per-user 資料)。
+- 以 `c.var.email` + `:id` 為界;髒則先惰性計算,再讀 `note_link_suggestions`
+  join `questions` 補顯示欄位。
+- note-kind 結果額外要求「該目標筆記仍屬本人且存在」(`EXISTS` 子查詢),
+  避免刪除後的懸空建議外顯。
+- **無 AI、無 Vectorize 呼叫。**
 
 ## 前端
 
@@ -149,6 +181,23 @@ GET /api/questions/:id/note/links
 - ❌ 跨使用者的筆記關聯(違反 `migrations/0009` 隱私設計)。
 - ❌ 執行期即時 AI / Vectorize(成本與延遲;改為夜間預算)。
 - ❌ 自動把連結寫進筆記正文。
+
+## 已知取捨:建議的「新鮮度」
+
+派生快取必然有滯後。因為只有 `needs_relink=1` 的筆記會重算,一則**已算過**
+的筆記不會因為「別處新增了相關筆記/題目」而自動刷新 —— 要等它自己被再次
+編輯,或夜間 cron 掃到它。具體表現:
+
+- 你寫了筆記 A(算過),稍後才寫下相關的筆記 B →A 要到下次被編輯/夜間
+  重算才會出現 →B 的連結。B 自己則是一開就即時看到 →A(前提:A 已算過)。
+
+這是**偏保守**的方向(寧可少連,不亂連),符合「避免過多連結」的目標,可接受。
+若要更即時,兩個漸進選項(未實作):
+
+- 寫入端順便把「同一使用者、且與新筆記共享詞」的其他筆記也標 `needs_relink=1`
+  (bounded cascade,只在自己的筆記圖內,成本可控)。
+- 夜間 drain 排空髒佇列後若預算有餘,輪流重算「最久沒算過」的筆記,吸收
+  題庫標籤演進造成的漂移。
 
 ## 未來延伸(reserved)
 

@@ -77,6 +77,16 @@ type SimilarItem = {
 	source: "vec" | "tag" | "fts";
 };
 
+type NoteLink = {
+	targetKind: "note" | "question";
+	targetId: string;
+	year: number;
+	number: number;
+	stem: string;
+	group: string | null;
+	sharedTerms: string[];
+};
+
 export function Question() {
 	const { id } = useParams<{ id: string }>();
 	const { me } = useMe();
@@ -386,6 +396,29 @@ export function Question() {
 			cancelled = true;
 		};
 	}, [data?.id]);
+
+	// 你可能想連結 — 依筆記命中的受控關鍵字建議相關題目 / 你自己的其他筆記。
+	// 伺服端惰性計算(零 Workers AI 神經元)。僅在有筆記時抓;存檔後
+	// (updated_at 變) 會重抓,伺服端會重算。
+	const [noteLinks, setNoteLinks] = useState<NoteLink[]>([]);
+	useEffect(() => {
+		if (!data?.id || !data.my_note) {
+			setNoteLinks([]);
+			return;
+		}
+		let cancelled = false;
+		api
+			.get<{ links: NoteLink[] }>(`/api/questions/${data.id}/note/links`)
+			.then((r) => {
+				if (!cancelled) setNoteLinks(r.links ?? []);
+			})
+			.catch(() => {
+				if (!cancelled) setNoteLinks([]);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [data?.id, data?.my_note?.updated_at]);
 
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -1147,6 +1180,50 @@ export function Question() {
 									</>
 								)}
 							</footer>
+
+							{/* 你可能想連結 — 依筆記命中的受控關鍵字(疾病/主題)建議
+							    相關題目 與你自己的其他筆記。最多 5 條(連結密度護欄)。 */}
+							{noteLinks.length > 0 && (
+								<section className="mt-5 pt-4 border-t border-ink-100 dark:border-ink-700">
+									<h3 className="flex items-center gap-1.5 text-sm font-medium text-ink-600 dark:text-ink-300 mb-2">
+										<LinkIcon size={14} /> 你可能想連結
+									</h3>
+									<ul className="space-y-1">
+										{noteLinks.map((l) => (
+											<li key={`${l.targetKind}:${l.targetId}`}>
+												<Link
+													to={`/q/${l.targetId}`}
+													className="group flex items-start gap-2 rounded p-2 -mx-2 hover:bg-ink-50 dark:hover:bg-ink-800/60 transition"
+												>
+													<span className="font-mono text-xs text-ink-500 dark:text-ink-400 shrink-0 mt-0.5">
+														{l.year}-{String(l.number).padStart(3, "0")}
+													</span>
+													<span className="min-w-0 flex-1">
+														<span className="block text-sm text-ink-700 dark:text-ink-200 line-clamp-1 group-hover:text-accent">
+															{l.stem}
+														</span>
+														<span className="mt-1 flex flex-wrap items-center gap-1">
+															{l.targetKind === "note" && (
+																<span className="rounded-full bg-accent/10 text-accent text-[11px] px-1.5 py-0.5">
+																	你的筆記
+																</span>
+															)}
+															{l.sharedTerms.slice(0, 4).map((t) => (
+																<span
+																	key={t}
+																	className="rounded-full bg-ink-100 dark:bg-ink-700 text-ink-500 dark:text-ink-300 text-[11px] px-1.5 py-0.5"
+																>
+																	{t}
+																</span>
+															))}
+														</span>
+													</span>
+												</Link>
+											</li>
+										))}
+									</ul>
+								</section>
+							)}
 						</article>
 					) : (
 						<div className="bg-ink-50 dark:bg-ink-800/60 border border-dashed border-ink-200 dark:border-ink-700 rounded-lg p-8 text-center">

@@ -206,11 +206,12 @@ mcqRoutes.put('/:id/note', async (c) => {
 
   const now = Date.now();
   await c.env.DB.prepare(
-    `INSERT INTO personal_notes (user_email, question_id, content_json, updated_at)
-     VALUES (?, ?, ?, ?)
+    `INSERT INTO personal_notes (user_email, question_id, content_json, updated_at, needs_relink)
+     VALUES (?, ?, ?, ?, 1)
      ON CONFLICT(user_email, question_id) DO UPDATE SET
        content_json = excluded.content_json,
-       updated_at   = excluded.updated_at`
+       updated_at   = excluded.updated_at,
+       needs_relink = 1`
   )
     .bind(email, id, JSON.stringify(doc), now)
     .run();

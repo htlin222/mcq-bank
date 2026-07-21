@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { authMiddleware } from './lib/auth';
 import { syncRoster } from './lib/roster-sync';
+import { rebuildVocab, drainRelinkQueue } from './lib/note-links';
 import type { AppContext, Env } from './types';
 
 import { meRoutes } from './routes/me';
@@ -132,6 +133,21 @@ export default {
           console.error('[cron roster-sync] failed', e);
           throw e; // surface as a failed cron invocation in observability
         }),
+    );
+
+    // 筆記關聯連結 — 夜間重建詞表 + 依「寫入預算上限」逐則消化 needs_relink
+    // 佇列。突發的大量筆記會自動分攤到接下來幾晚,替白天 app 留 D1 額度餘裕。
+    // 全確定性 SQL,零 Workers AI 神經元。獨立 try/catch,不拖累 roster sync。
+    ctx.waitUntil(
+      (async () => {
+        const vocabN = await rebuildVocab(env.DB);
+        const stats = await drainRelinkQueue(env.DB);
+        console.log(
+          `[cron note-links] vocab=${vocabN} processed=${stats.processed} writes=${stats.writes} remaining=${stats.remaining}`,
+        );
+      })().catch((e) => {
+        console.error('[cron note-links] failed', e);
+      }),
     );
   },
 };
