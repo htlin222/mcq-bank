@@ -62,6 +62,17 @@ new_sqlite_classes = ["ChatRoom"]
 tag = "v2"
 new_sqlite_classes = ["UserState"]
 
+# Cron Trigger — drives worker/index.ts `scheduled()`:
+#   1. roster → Access policy + D1 users sync (worker/lib/roster-sync.ts)
+#   2. 筆記關聯連結:重建詞表 + 依寫入預算逐則消化 needs_relink 佇列
+#      (worker/lib/note-links.ts;全確定性 SQL,零 Workers AI 神經元)
+# Each firing drains up to DRAIN_MAX_NOTES / DRAIN_MAX_WRITES then stops, so a
+# sudden pile of notes spreads over several runs. Fire it a few times overnight
+# (免費層每次 cron 上限 10ms CPU;計算已下推到 D1,故 CPU 極省) — 例如凌晨
+# 每 10 分鐘一次。UTC 記得換算:額度在 00:00 UTC 重置。
+[triggers]
+crons = ["*/10 19-21 * * *"]  # ≈ 台北 03:00–05:00;分攤 + 白天 app 留餘裕
+
 # Optional KV for caching (uncomment after `wrangler kv namespace create CACHE`)
 # [[kv_namespaces]]
 # binding = "CACHE"
