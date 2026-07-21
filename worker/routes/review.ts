@@ -17,6 +17,7 @@ import {
 import { calibration } from "../lib/calibration";
 import { clusterByThreshold, type VecItem } from "../lib/cluster";
 import { clampElapsedMs, insertAttemptOp } from "../lib/attempts";
+import { readIdemKey, idemLookup, idemRecordOp } from "../lib/idempotency";
 import { dailyActivity, todayInTaipei } from "../lib/activity";
 import { computePacing, suggestWeeklyTarget } from "../lib/goal-pacing";
 import {
@@ -157,6 +158,13 @@ reviewRoutes.post("/answer", async (c) => {
 	}>();
 	const now = Date.now();
 
+	// 冪等:重送同一 key 直接 replay,計數不重複 +1、attempts 不多一列。
+	const idemKey = readIdemKey(c);
+	if (idemKey) {
+		const hit = await idemLookup(c.env.DB, email, idemKey);
+		if (hit) return c.json(hit.body as any, hit.status as any);
+	}
+
 	// Check correctness
 	const q = await c.env.DB.prepare("SELECT answer FROM questions WHERE id = ?")
 		.bind(body.question_id)
@@ -164,9 +172,10 @@ reviewRoutes.post("/answer", async (c) => {
 
 	if (!q) return c.json({ error: "no such question" }, 404);
 	const isCorrect = q.answer === body.chosen ? 1 : 0;
+	const payload = { correct: !!isCorrect, correct_answer: q.answer };
 
 	// 聚合(derived cache)與事件(唯一真相)同進同退 — D1 batch 是單一交易。
-	await c.env.DB.batch([
+	const ops = [
 		answerProgressOp({
 			email,
 			questionId: body.question_id,
@@ -186,7 +195,20 @@ reviewRoutes.post("/answer", async (c) => {
 			elapsedMs: clampElapsedMs(body.elapsed_ms),
 			now,
 		}),
-	]);
+	];
+	if (idemKey) {
+		ops.push(
+			idemRecordOp(c.env.DB, {
+				email,
+				key: idemKey,
+				endpoint: "POST /review/answer",
+				status: 200,
+				body: payload,
+				now,
+			}),
+		);
+	}
+	await c.env.DB.batch(ops);
 
 	// Pre-answer confidence (JOL) is optional — log it only when 1/2/3 so the
 	// mock-exam flow (which never sends it) is unaffected.
@@ -199,7 +221,7 @@ reviewRoutes.post("/answer", async (c) => {
 			.run();
 	}
 
-	return c.json({ correct: !!isCorrect, correct_answer: q.answer });
+	return c.json(payload);
 });
 
 // Confidence calibration for the current user — per-bucket accuracy plus the
@@ -677,6 +699,14 @@ reviewRoutes.get("/due/next", async (c) => {
 // it also records the MCQ answer in the existing review_progress table.
 reviewRoutes.post("/anki/review", async (c) => {
 	const email = c.var.email;
+
+	// 冪等:重送同一 key 直接 replay,避免 FSRS 排程被重推、logs / attempts 重複 append。
+	const idemKey = readIdemKey(c);
+	if (idemKey) {
+		const hit = await idemLookup(c.env.DB, email, idemKey);
+		if (hit) return c.json(hit.body as any, hit.status as any);
+	}
+
 	const body = await c.req.json<{
 		question_id?: string;
 		rating?: string;
@@ -806,15 +836,28 @@ reviewRoutes.post("/anki/review", async (c) => {
 		);
 	}
 
-	await c.env.DB.batch(ops);
-	return c.json({
+	const payload = {
 		ok: true,
 		rating: ratingName(rating),
 		correct,
 		correct_answer: question.answer,
 		card,
 		preview: previewFsrs(card, now),
-	});
+	};
+	if (idemKey) {
+		ops.push(
+			idemRecordOp(c.env.DB, {
+				email,
+				key: idemKey,
+				endpoint: "POST /review/anki/review",
+				status: 200,
+				body: payload,
+				now,
+			}),
+		);
+	}
+	await c.env.DB.batch(ops);
+	return c.json(payload);
 });
 
 // My stats

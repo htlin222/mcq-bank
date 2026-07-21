@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 import { zipSync, strToU8 } from 'fflate';
 import type { AppContext, User } from '../types';
 import { deriveMcqKey } from '../lib/apikey';
+import { readIdemKey, idemLookup, idemRecordOp } from '../lib/idempotency';
 import { MCQ_BUNDLE } from '../generated/mcq-bundle';
 
 export const meRoutes = new Hono<AppContext>();
@@ -96,15 +97,47 @@ meRoutes.post('/mcq-key/rotate', async (c) => {
   const secret = c.env.MCQ_KEY_SECRET;
   if (!secret) return c.json({ error: 'mcq api not configured' }, 503);
   const email = c.var.email;
-  const row = await c.env.DB.prepare(
-    `UPDATE users SET mcq_key_version = mcq_key_version + 1, updated_at = ?
-     WHERE email = ? RETURNING mcq_key_version`,
+
+  // 冪等:重送同一 key 直接 replay,version 不重複 +1(否則舊 .skill 會被
+  // 多推一版而莫名失效)。
+  const idemKey = readIdemKey(c);
+  if (idemKey) {
+    const hit = await idemLookup(c.env.DB, email, idemKey);
+    if (hit) return c.json(hit.body as any, hit.status as any);
+  }
+
+  // 先讀現值、算出新版號,再以確定值寫回 —— 讓 payload 在 batch 前就已知,
+  // 去重列與 UPDATE 得以同進同退。
+  const cur = await c.env.DB.prepare(
+    'SELECT mcq_key_version FROM users WHERE email = ?',
   )
-    .bind(Date.now(), email)
+    .bind(email)
     .first<{ mcq_key_version: number }>();
-  const version = row?.mcq_key_version ?? 1;
+  const version = (cur?.mcq_key_version ?? 1) + 1;
+  const now = Date.now();
   const key = await deriveMcqKey(secret, email, version);
-  return c.json({ email, version, key });
+  const payload = { email, version, key };
+
+  const ops = [
+    c.env.DB
+      .prepare('UPDATE users SET mcq_key_version = ?, updated_at = ? WHERE email = ?')
+      .bind(version, now, email),
+  ];
+  if (idemKey) {
+    ops.push(
+      idemRecordOp(c.env.DB, {
+        email,
+        key: idemKey,
+        endpoint: 'POST /me/mcq-key/rotate',
+        status: 200,
+        body: payload,
+        now,
+      }),
+    );
+  }
+  await c.env.DB.batch(ops);
+
+  return c.json(payload);
 });
 
 // GET /api/me/mcq-skill — download the personalised .skill bundle: the

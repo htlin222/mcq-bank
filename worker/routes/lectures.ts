@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../types';
+import { readIdemKey, idemLookup, idemRecordOp } from '../lib/idempotency';
 
 export const lectureRoutes = new Hono<AppContext>();
 
@@ -153,22 +154,21 @@ lectureRoutes.get('/:slug/annotations', async (c) => {
 lectureRoutes.post('/:slug/annotations', async (c) => {
   const slug = c.req.param('slug');
   const email = c.var.email;
+
+  // 冪等:重送同一 key 直接 replay,不重複建立註記。
+  const idemKey = readIdemKey(c);
+  if (idemKey) {
+    const hit = await idemLookup(c.env.DB, email, idemKey);
+    if (hit) return c.json(hit.body as any, hit.status as any);
+  }
+
   const body = await c.req.json<{ kind: string; page: number; payload_json: any }>();
 
   const id = crypto.randomUUID();
   const now = Date.now();
   const payload = JSON.stringify(body.payload_json);
 
-  await c.env.DB
-    .prepare(
-      `INSERT INTO lecture_annotations
-         (id, user_email, slug, page, kind, payload_json, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .bind(id, email, slug, body.page, body.kind, payload, now, now)
-    .run();
-
-  return c.json({
+  const responseBody = {
     id,
     user_email: email,
     slug,
@@ -177,7 +177,32 @@ lectureRoutes.post('/:slug/annotations', async (c) => {
     payload_json: body.payload_json,
     created_at: now,
     updated_at: now,
-  });
+  };
+  // 註記 INSERT 與去重列走同一個 batch,原子提交。
+  const ops = [
+    c.env.DB
+      .prepare(
+        `INSERT INTO lecture_annotations
+         (id, user_email, slug, page, kind, payload_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(id, email, slug, body.page, body.kind, payload, now, now),
+  ];
+  if (idemKey) {
+    ops.push(
+      idemRecordOp(c.env.DB, {
+        email,
+        key: idemKey,
+        endpoint: 'POST /lectures/:slug/annotations',
+        status: 200,
+        body: responseBody,
+        now,
+      })
+    );
+  }
+  await c.env.DB.batch(ops);
+
+  return c.json(responseBody);
 });
 
 // Update an annotation's payload (and page if provided). Ownership-checked.
@@ -250,6 +275,14 @@ lectureRoutes.get('/:slug/notes', async (c) => {
 lectureRoutes.post('/:slug/notes', async (c) => {
   const slug = c.req.param('slug');
   const email = c.var.email;
+
+  // 冪等:重送同一 key 直接 replay,不重複建立筆記。
+  const idemKey = readIdemKey(c);
+  if (idemKey) {
+    const hit = await idemLookup(c.env.DB, email, idemKey);
+    if (hit) return c.json(hit.body as any, hit.status as any);
+  }
+
   const body = await c.req.json<{ page: number | null; content_json: any }>();
 
   const id = crypto.randomUUID();
@@ -257,16 +290,7 @@ lectureRoutes.post('/:slug/notes', async (c) => {
   const content = JSON.stringify(body.content_json);
   const page = body.page ?? null;
 
-  await c.env.DB
-    .prepare(
-      `INSERT INTO lecture_notes
-         (id, user_email, slug, page, content_json, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-    )
-    .bind(id, email, slug, page, content, now, now)
-    .run();
-
-  return c.json({
+  const responseBody = {
     id,
     user_email: email,
     slug,
@@ -274,7 +298,32 @@ lectureRoutes.post('/:slug/notes', async (c) => {
     content_json: body.content_json,
     created_at: now,
     updated_at: now,
-  });
+  };
+  // 筆記 INSERT 與去重列走同一個 batch,原子提交。
+  const ops = [
+    c.env.DB
+      .prepare(
+        `INSERT INTO lecture_notes
+         (id, user_email, slug, page, content_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(id, email, slug, page, content, now, now),
+  ];
+  if (idemKey) {
+    ops.push(
+      idemRecordOp(c.env.DB, {
+        email,
+        key: idemKey,
+        endpoint: 'POST /lectures/:slug/notes',
+        status: 200,
+        body: responseBody,
+        now,
+      })
+    );
+  }
+  await c.env.DB.batch(ops);
+
+  return c.json(responseBody);
 });
 
 // Upsert exactly one note for (user, slug, page). No DB unique constraint

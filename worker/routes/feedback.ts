@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../types';
+import { readIdemKey, idemLookup, idemRecordOp } from '../lib/idempotency';
 
 export const feedbackRoutes = new Hono<AppContext>();
 
@@ -18,6 +19,13 @@ feedbackRoutes.post('/', async (c) => {
 
   const email = c.var.email;
   const displayName = c.var.displayName || email.split('@')[0];
+
+  // 冪等:重送同一 key 直接 replay 上次結果,不再開一張 GitHub issue。
+  const idemKey = readIdemKey(c);
+  if (idemKey) {
+    const hit = await idemLookup(c.env.DB, email, idemKey);
+    if (hit) return c.json(hit.body, hit.status as any);
+  }
 
   type Body = { title?: string; body?: string; url?: string };
   const body = await c.req.json<Body>().catch(() => ({} as Body));
@@ -65,7 +73,22 @@ feedbackRoutes.post('/', async (c) => {
   }
 
   const issue = (await ghRes.json()) as { html_url?: string; number?: number };
-  return c.json({ ok: true, url: issue.html_url, number: issue.number });
+  const payload = { ok: true, url: issue.html_url, number: issue.number };
+
+  // GitHub 成功後才記去重列(無 D1 batch,單獨 .run())。若這步失敗,下次
+  // 重試會再開一張 issue —— 可接受的窗口(見設計文件威脅模型)。
+  if (idemKey) {
+    await idemRecordOp(c.env.DB, {
+      email,
+      key: idemKey,
+      endpoint: 'POST /feedback',
+      status: 200,
+      body: payload,
+      now: Date.now(),
+    }).run();
+  }
+
+  return c.json(payload);
 });
 
 // Lightweight probe so the frontend can hide the button when not configured.

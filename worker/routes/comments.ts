@@ -7,6 +7,7 @@ import {
 	extractQuestionRefs,
 	syncQuestionRefs,
 } from "../lib/db";
+import { readIdemKey, idemLookup, idemRecordOp } from "../lib/idempotency";
 
 export const commentsRoutes = new Hono<AppContext>();
 
@@ -42,6 +43,14 @@ commentsRoutes.get("/:id/comments", async (c) => {
 commentsRoutes.post("/:id/comments", async (c) => {
 	const questionId = c.req.param("id");
 	const email = c.var.email;
+
+	// 冪等:重送同一 key 直接 replay,不重複 INSERT 留言 / mentions / notifications。
+	const idemKey = readIdemKey(c);
+	if (idemKey) {
+		const hit = await idemLookup(c.env.DB, email, idemKey);
+		if (hit) return c.json(hit.body as any, hit.status as any);
+	}
+
 	const body = await c.req.json<{
 		content_json: any;
 		parent_id?: string;
@@ -65,12 +74,13 @@ commentsRoutes.post("/:id/comments", async (c) => {
 		parentAuthor = parent.author_email;
 	}
 
-	await c.env.DB.prepare(
-		`INSERT INTO comments
+	// 留言、mentions、notifications 與去重列改走同一個 DB.batch(),原子提交。
+	const ops: any[] = [
+		c.env.DB.prepare(
+			`INSERT INTO comments
        (id, question_id, parent_id, author_email, content_json, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-	)
-		.bind(
+		).bind(
 			commentId,
 			questionId,
 			body.parent_id || null,
@@ -78,24 +88,23 @@ commentsRoutes.post("/:id/comments", async (c) => {
 			contentStr,
 			now,
 			now,
-		)
-		.run();
+		),
+	];
 
 	// Notifications: mentions + reply to parent author
 	const mentioned = new Set(extractMentions(contentStr));
 	mentioned.delete(email);
 
-	const notifOps: any[] = [];
 	const preview = excerpt(contentStr);
 
 	for (const m of mentioned) {
-		notifOps.push(
+		ops.push(
 			c.env.DB.prepare(
 				`INSERT INTO mentions (source_type, source_id, mentioned_email, by_email, question_id, created_at)
            VALUES ('comment', ?, ?, ?, ?, ?)`,
 			).bind(commentId, m, email, questionId, now),
 		);
-		notifOps.push(
+		ops.push(
 			c.env.DB.prepare(
 				`INSERT INTO notifications (id, recipient, kind, question_id, comment_id, actor_email, preview, created_at)
            VALUES (?, ?, 'mention', ?, ?, ?, ?, ?)`,
@@ -104,7 +113,7 @@ commentsRoutes.post("/:id/comments", async (c) => {
 	}
 
 	if (parentAuthor && parentAuthor !== email && !mentioned.has(parentAuthor)) {
-		notifOps.push(
+		ops.push(
 			c.env.DB.prepare(
 				`INSERT INTO notifications (id, recipient, kind, question_id, comment_id, actor_email, preview, created_at)
            VALUES (?, ?, 'reply', ?, ?, ?, ?, ?)`,
@@ -112,7 +121,42 @@ commentsRoutes.post("/:id/comments", async (c) => {
 		);
 	}
 
-	if (notifOps.length) await c.env.DB.batch(notifOps);
+	// 回傳體以已知欄位就地組出(等價於原本 INSERT 後的 SELECT join),
+	// 讓去重列能在同一 batch 內帶上完整 replay body。
+	const author = await c.env.DB.prepare(
+		"SELECT display_name, avatar_key FROM users WHERE email = ?",
+	)
+		.bind(email)
+		.first<{ display_name: string | null; avatar_key: string | null }>();
+
+	const created = {
+		id: commentId,
+		question_id: questionId,
+		parent_id: body.parent_id || null,
+		author_email: email,
+		content_json: contentStr,
+		created_at: now,
+		updated_at: now,
+		deleted_at: null,
+		display_name: author?.display_name ?? null,
+		avatar_key: author?.avatar_key ?? null,
+	};
+	// 新留言必然零票 —— 補上常數欄讓形狀與 list 端點一致。
+	const payload = { ...created, helpful_count: 0, voted_by_me: 0, adopted: 0 };
+
+	if (idemKey) {
+		ops.push(
+			idemRecordOp(c.env.DB, {
+				email,
+				key: idemKey,
+				endpoint: "POST /comments/:id/comments",
+				status: 201,
+				body: payload,
+				now,
+			}),
+		);
+	}
+	await c.env.DB.batch(ops);
 
 	await syncQuestionRefs(c.env.DB, {
 		sourceType: "comment",
@@ -123,17 +167,7 @@ commentsRoutes.post("/:id/comments", async (c) => {
 		now,
 	});
 
-	// Return the created comment with author info
-	const created = await c.env.DB.prepare(
-		`SELECT c.*, u.display_name, u.avatar_key
-       FROM comments c LEFT JOIN users u ON u.email = c.author_email
-       WHERE c.id = ?`,
-	)
-		.bind(commentId)
-		.first();
-
-	// 新留言必然零票 —— 補上常數欄讓形狀與 list 端點一致。
-	return c.json({ ...created, helpful_count: 0, voted_by_me: 0, adopted: 0 }, 201);
+	return c.json(payload, 201);
 });
 
 // Edit own comment

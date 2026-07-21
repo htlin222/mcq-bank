@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { AppContext, Env, ExamSession, Question } from '../types';
 import { uuid, optionsToRecord } from '../lib/db';
 import { clampElapsedMs, insertAttemptOp } from '../lib/attempts';
+import { readIdemKey, idemLookup, idemRecordOp } from '../lib/idempotency';
 import { median, pacingSplit } from '../lib/pacing';
 import { buildTestFilter, normalizeFilters, type RawTestFilters } from '../lib/testBuilder';
 
@@ -39,6 +40,14 @@ function validGroupLabels(env: Env): string[] {
 // for backwards compatibility with older clients that don't send it.
 examRoutes.post('/start', async (c) => {
   const email = c.var.email;
+
+  // 冪等:重送同一 key 直接 replay,不重複建立 session + N 列 answers。
+  const idemKey = readIdemKey(c);
+  if (idemKey) {
+    const hit = await idemLookup(c.env.DB, email, idemKey);
+    if (hit) return c.json(hit.body as any, hit.status as any);
+  }
+
   const body = await c.req.json<{
     year: number;
     mode?: 'full' | 'partial';
@@ -89,9 +98,8 @@ examRoutes.post('/start', async (c) => {
         .bind(sessionId, q.id)
     );
   }
-  await c.env.DB.batch(ops);
 
-  return c.json({
+  const payload = {
     session_id: sessionId,
     started_at: now,
     elapsed_ms: 0,
@@ -103,7 +111,22 @@ examRoutes.post('/start', async (c) => {
       stem: q.stem,
       options: optionsToRecord(q.options_json),
     })),
-  });
+  };
+  if (idemKey) {
+    ops.push(
+      idemRecordOp(c.env.DB, {
+        email,
+        key: idemKey,
+        endpoint: 'POST /exam/start',
+        status: 200,
+        body: payload,
+        now,
+      })
+    );
+  }
+  await c.env.DB.batch(ops);
+
+  return c.json(payload);
 });
 
 // ---------------------------------------------------------------------------
@@ -140,6 +163,14 @@ examRoutes.post('/custom/preview', async (c) => {
 // timed/year 與 requested/actual),前端可共用型別。
 examRoutes.post('/custom', async (c) => {
   const email = c.var.email;
+
+  // 冪等:重送同一 key 直接 replay,不重複建立自訂測驗 session。
+  const idemKey = readIdemKey(c);
+  if (idemKey) {
+    const hit = await idemLookup(c.env.DB, email, idemKey);
+    if (hit) return c.json(hit.body as any, hit.status as any);
+  }
+
   const f = normalizeFilters(await c.req.json<RawTestFilters>().catch(() => ({})));
   const { joinSql, whereSql, params } = buildTestFilter(f, email);
 
@@ -189,9 +220,8 @@ examRoutes.post('/custom', async (c) => {
         .bind(sessionId, q.id, i)
     );
   });
-  await c.env.DB.batch(ops);
 
-  return c.json({
+  const payload = {
     session_id: sessionId,
     started_at: now,
     elapsed_ms: 0,
@@ -209,7 +239,22 @@ examRoutes.post('/custom', async (c) => {
       stem: q.stem,
       options: optionsToRecord(q.options_json),
     })),
-  });
+  };
+  if (idemKey) {
+    ops.push(
+      idemRecordOp(c.env.DB, {
+        email,
+        key: idemKey,
+        endpoint: 'POST /exam/custom',
+        status: 200,
+        body: payload,
+        now,
+      })
+    );
+  }
+  await c.env.DB.batch(ops);
+
+  return c.json(payload);
 });
 
 // Resume / fetch an in-progress session (with all questions + saved answers).
@@ -345,6 +390,14 @@ examRoutes.post('/:sid/resume', async (c) => {
 examRoutes.post('/:sid/answer', async (c) => {
   const sid = c.req.param('sid');
   const email = c.var.email;
+
+  // 冪等:重送同一 key 直接 replay,不重複 append attempts。
+  const idemKey = readIdemKey(c);
+  if (idemKey) {
+    const hit = await idemLookup(c.env.DB, email, idemKey);
+    if (hit) return c.json(hit.body as any, hit.status as any);
+  }
+
   const body = await c.req.json<{
     question_id: string;
     chosen: string;
@@ -367,7 +420,8 @@ examRoutes.post('/:sid/answer', async (c) => {
   // append 一筆事件。改答案會產生多筆 attempt — 這是刻意的,改答案本身
   // 就是配速訊號,配速報告以 SUM(elapsed_ms) 聚合同一 (session, question)。
   const now = Date.now();
-  await c.env.DB.batch([
+  const payload = { ok: true };
+  const ops = [
     c.env.DB
       .prepare(
         `UPDATE exam_answers
@@ -386,9 +440,22 @@ examRoutes.post('/:sid/answer', async (c) => {
       elapsedMs: clampElapsedMs(body.elapsed_ms),
       now,
     }),
-  ]);
+  ];
+  if (idemKey) {
+    ops.push(
+      idemRecordOp(c.env.DB, {
+        email,
+        key: idemKey,
+        endpoint: 'POST /exam/:sid/answer',
+        status: 200,
+        body: payload,
+        now,
+      })
+    );
+  }
+  await c.env.DB.batch(ops);
 
-  return c.json({ ok: true });
+  return c.json(payload);
 });
 
 // 標記/取消標記一題(待回頭檢查)。
