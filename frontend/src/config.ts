@@ -21,3 +21,11 @@ export type AppConfig = {
 declare const __APP_CONFIG__: AppConfig;
 
 export const config: AppConfig = __APP_CONFIG__;
+
+// Build/deploy timestamp of *this* bundle (yyyy-mm-dd hh:mm:ss, deploy-machine
+// local time), baked in by the `app-config` plugin. Used as a fallback when the
+// live /version.json fetch (the latest deploy's time) isn't reachable.
+declare const __BUILD_TIME__: string;
+
+export const buildTime: string =
+  typeof __BUILD_TIME__ === 'string' ? __BUILD_TIME__ : '';

@@ -54,16 +54,23 @@ export function CommentThread({
 }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  // The empty case is the common one, and the fetch is tiny — so flashing a
+  // 3-row skeleton and then collapsing to a one-line「還沒有討論」bumps the
+  // layout jarringly. Only reveal the skeleton if the load is actually slow.
+  const [showSkeleton, setShowSkeleton] = useState(false);
   // 預設時間序 —— 討論串的可讀性來自時序。「最有幫助」是使用者主動切換的檢視。
   const [sort, setSort] = useState<'time' | 'helpful'>('time');
 
   const load = async () => {
     setLoading(true);
+    const slow = setTimeout(() => setShowSkeleton(true), 300);
     try {
       const data = await api.get<Comment[]>(`/api/questions/${questionId}/comments`);
       setComments(data);
       onCountChange?.(data.length);
     } finally {
+      clearTimeout(slow);
+      setShowSkeleton(false);
       setLoading(false);
     }
   };
@@ -106,7 +113,7 @@ export function CommentThread({
       <NewCommentBox questionId={questionId} onPosted={load} />
 
       {loading ? (
-        <CommentListSkeleton count={3} />
+        showSkeleton ? <CommentListSkeleton count={3} /> : null
       ) : tree.length === 0 ? (
         <p className="text-ink-400 dark:text-ink-500 text-sm italic">還沒有討論。寫第一則吧。</p>
       ) : (

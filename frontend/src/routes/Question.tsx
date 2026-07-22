@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback, type CSSProperties } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import {
 	AppWindow,
@@ -11,6 +11,7 @@ import {
 	Search as SearchIcon,
 	Eye,
 	ExternalLink,
+	GripVertical,
 	Videotape,
 	Sparkles,
 	RefreshCcw,
@@ -109,6 +110,25 @@ export function Question() {
 	// Which pane is visible in tabs mode (≥md only).
 	const [mainTab, setMainTab] = useState<MainTab>("question");
 	const tabsMode = layout === "tabs";
+
+	// The inner 詳解共筆/… tab strip is sticky (see below); its measured height
+	// drives where the sticky per-pane toolbar (自動挖空/防劇透/編輯) pins, so the
+	// two stack flush instead of overlapping or leaving a gap. Only the columns
+	// layout stacks them — tabs mode scrolls the page normally.
+	const innerStripRef = useRef<HTMLDivElement>(null);
+	const [stripH, setStripH] = useState(0);
+	useEffect(() => {
+		const el = innerStripRef.current;
+		if (!el) return;
+		const update = () => setStripH(el.offsetHeight);
+		update();
+		const ro = new ResizeObserver(update);
+		ro.observe(el);
+		return () => ro.disconnect();
+		// `data` is a dep because the strip only mounts once the question loads
+		// (the component returns a skeleton while `!data`), so the ref is null on
+		// the first run and we must re-attach the observer once it exists.
+	}, [tabsMode, data]);
 
 	useEffect(() => {
 		try {
@@ -835,9 +855,14 @@ export function Question() {
 				role="separator"
 				aria-orientation="vertical"
 				aria-label="調整左右欄寬度（雙擊還原）"
-				className="group hidden shrink-0 cursor-col-resize select-none items-stretch justify-center md:flex md:w-6"
+				className="group relative hidden shrink-0 cursor-col-resize select-none items-center justify-center md:flex md:w-6"
 			>
-				<div className="w-1 rounded-full bg-ink-200 transition-colors group-hover:bg-accent dark:bg-ink-700" />
+				{/* Thin full-height rule + a grab handle that breaks the line so the
+					    divider reads as draggable rather than decorative. */}
+					<div className="absolute inset-y-0 w-px bg-ink-200 transition-colors group-hover:bg-accent dark:bg-ink-700" />
+					<div className="relative z-10 rounded bg-ink-50 py-1 text-ink-300 transition-colors group-hover:text-accent dark:bg-ink-900 dark:text-ink-600">
+						<GripVertical size={14} />
+					</div>
 			</div>
 			)}
 
@@ -861,7 +886,7 @@ export function Question() {
 					(tabsMode && mainTab === "similar" ? " md:hidden" : "")
 				}
 			>
-				<div className="sticky top-14 z-10 flex items-center justify-between gap-3 bg-ink-50/95 dark:bg-ink-900/95 backdrop-blur pt-1 pb-3 md:top-0">
+				<div ref={innerStripRef} className="sticky top-14 z-10 flex items-center justify-between gap-3 bg-ink-50/95 dark:bg-ink-900/95 backdrop-blur pt-1 pb-3 md:top-0">
 					<div
 						className={
 							"flex flex-wrap border-b border-ink-200 dark:border-ink-700" +
@@ -962,8 +987,23 @@ export function Question() {
 						<>
 							<article className="relative bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
 								{/* Toolbar sits in normal flow above the body — absolutely
-								    positioned buttons used to sit on top of the first line. */}
-								<div className="flex flex-wrap justify-end gap-1.5 mb-3">
+								    positioned buttons used to sit on top of the first line.
+								    In columns mode it pins under the sticky tab strip so the
+								    controls stay reachable while a long 詳解 scrolls; the
+								    bg + edge-bleed keep body text from showing through. */}
+								<div
+									className={
+										(tabsMode
+											? "mb-3"
+											: "substick -mx-5 sm:-mx-7 px-5 sm:px-7 pt-1 pb-2 bg-white dark:bg-ink-800 border-b border-ink-100 dark:border-ink-700") +
+										" flex flex-wrap items-center justify-end gap-1.5"
+									}
+									style={
+										tabsMode
+											? undefined
+											: ({ "--strip-h": `${stripH}px` } as CSSProperties)
+									}
+								>
 									{revealedExp && (
 										<button
 											type="button"
@@ -1127,7 +1167,19 @@ export function Question() {
 						</div>
 					) : noteJson ? (
 						<article className="relative bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
-							<div className="flex flex-wrap justify-end gap-1.5 mb-3">
+							<div
+								className={
+									(tabsMode
+										? "mb-3"
+										: "substick -mx-5 sm:-mx-7 px-5 sm:px-7 pt-1 pb-2 bg-white dark:bg-ink-800 border-b border-ink-100 dark:border-ink-700") +
+									" flex flex-wrap items-center justify-end gap-1.5"
+								}
+								style={
+									tabsMode
+										? undefined
+										: ({ "--strip-h": `${stripH}px` } as CSSProperties)
+								}
+							>
 								<button
 									type="button"
 									onClick={() => toggleAutoCloze(data.id, "note")}

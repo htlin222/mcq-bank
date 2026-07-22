@@ -6,6 +6,19 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const CONFIG_PATH = path.resolve(__dirname, '..', 'config.toml');
 
+// Build/deploy timestamp, computed once at config load, in the deploy machine's
+// local time (deploy.sh runs on the maintainer's box, in Asia/Taipei). Baked
+// into the bundle as __BUILD_TIME__ and emitted as /version.json so the running
+// tab can show when the latest deploy happened in the "new version" prompt.
+const BUILD_TIME = ((): string => {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ` +
+    `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+  );
+})();
+
 type GroupSpec = { label: string; count: number };
 
 type AppConfig = {
@@ -84,7 +97,21 @@ function appConfigPlugin(): Plugin {
   return {
     name: 'app-config',
     config() {
-      return { define: { __APP_CONFIG__: JSON.stringify(cfg) } };
+      return {
+        define: {
+          __APP_CONFIG__: JSON.stringify(cfg),
+          __BUILD_TIME__: JSON.stringify(BUILD_TIME),
+        },
+      };
+    },
+    // Emit /version.json (never precached — not in the SW glob), so the running
+    // tab can fetch the *latest deployed* build time for the update prompt.
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'version.json',
+        source: JSON.stringify({ buildTime: BUILD_TIME }),
+      });
     },
     configureServer(server) {
       server.watcher.add(CONFIG_PATH);

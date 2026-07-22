@@ -12,8 +12,35 @@ import { onNeedRefresh, applyUpdate } from '../lib/pwa';
  */
 export function UpdatePrompt() {
   const [show, setShow] = useState(false);
+  const [deployedAt, setDeployedAt] = useState('');
 
   useEffect(() => onNeedRefresh(setShow), []);
+
+  // When the prompt appears, ask the network — *through*, not from, the current
+  // service worker — for the latest deployed build time, so the user sees how
+  // fresh the waiting version is. /version.json is deliberately outside the SW
+  // precache glob, so this passes to the origin and returns the newest deploy.
+  // Best-effort: an expired Access session answers with a login redirect, not
+  // JSON, so we guard on content-type and simply omit the stamp if anything's off.
+  useEffect(() => {
+    if (!show) return;
+    let alive = true;
+    fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' })
+      .then((res) => {
+        const ct = res.headers.get('content-type') || '';
+        if (!res.ok || res.redirected || !ct.includes('json')) return null;
+        return res.json() as Promise<{ buildTime?: string }>;
+      })
+      .then((data) => {
+        if (alive && data?.buildTime) setDeployedAt(data.buildTime);
+      })
+      .catch(() => {
+        /* offline or blocked — leave the stamp out */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [show]);
 
   if (!show) return null;
 
@@ -22,7 +49,14 @@ export function UpdatePrompt() {
       role="status"
       className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-30 mx-auto max-w-md m-3 flex items-center gap-3 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 py-2.5 shadow-paper"
     >
-      <span className="text-sm text-ink-700 dark:text-ink-200">有新版本可用</span>
+      <div className="min-w-0">
+        <span className="text-sm text-ink-700 dark:text-ink-200">有新版本可用</span>
+        {deployedAt && (
+          <span className="block text-xs text-ink-400 dark:text-ink-500 tabular-nums">
+            {deployedAt} 部署
+          </span>
+        )}
+      </div>
       <button
         onClick={applyUpdate}
         className="ml-auto rounded bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-dark"
