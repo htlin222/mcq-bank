@@ -32,6 +32,7 @@ type AppConfig = {
   exam: { date_iso: string; date_label: string; countdown_label: string };
   public: { host: string; og_invite_line: string };
   storage: { theme_storage_key: string };
+  telegram?: { bot_username: string };
   dev: { dev_email: string };
   // Pre-parsed from [groups].list so frontend code never has to parse
   // "<label>:<count>,..." at runtime. See frontend/src/lib/groups.ts.

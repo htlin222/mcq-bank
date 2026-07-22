@@ -58,6 +58,12 @@ export type Env = {
   AI_QA_TERMINOLOGY_EXAMPLES?: string;
   AI_QA_MC_BAD_EXAMPLE?: string;
   AI_QA_MC_GOOD_EXAMPLE?: string;
+  // Telegram 出題機器人 (worker/routes/telegram.ts, worker/lib/tg-*.ts)。
+  // TG_BOT_TOKEN / TG_WEBHOOK_SECRET 是 secret;bot username 是 [vars]。
+  // 全未設時 webhook 回 200 忽略、cron 推播 no-op、link-code 回 501。
+  TG_BOT_TOKEN?: string;
+  TG_WEBHOOK_SECRET?: string;
+  TG_BOT_USERNAME?: string;   // 不含 @,用於組 deep link
 };
 
 // Hono variables injected by auth middleware

@@ -71,7 +71,10 @@ new_sqlite_classes = ["UserState"]
 # (免費層每次 cron 上限 10ms CPU;計算已下推到 D1,故 CPU 極省) — 例如凌晨
 # 每 10 分鐘一次。UTC 記得換算:額度在 00:00 UTC 重置。
 [triggers]
-crons = ["*/10 19-21 * * *"]  # ≈ 台北 03:00–05:00;分攤 + 白天 app 留餘裕
+# 兩個 cron,worker/index.ts scheduled() 依 event.cron 分派:
+#   "*/10 19-21 * * *" → roster-sync + note-links(原夜間工作,≈ 台北 03–05)
+#   "0 * * * *"        → Telegram 每日推播 tick(每小時比對各人本地推播時段)
+crons = ["*/10 19-21 * * *", "0 * * * *"]
 
 # Optional KV for caching (uncomment after `wrangler kv namespace create CACHE`)
 # [[kv_namespaces]]
@@ -85,6 +88,13 @@ crons = ["*/10 19-21 * * *"]  # ≈ 台北 03:00–05:00;分攤 + 白天 app 留
 GH_FEEDBACK_REPO = "your-github-handle/my-qa-bank"
 ADMIN_EMAILS = "you@example.com"
 # GH_FEEDBACK_TOKEN is a secret — set via:  wrangler secret put GH_FEEDBACK_TOKEN
+
+# Telegram 出題機器人。bot username(不含 @)用來組 deep link;token 與
+# webhook secret 是機密:
+#   wrangler secret put TG_BOT_TOKEN       # BotFather /newbot 給的 token
+#   wrangler secret put TG_WEBHOOK_SECRET  # 自訂一段亂數,setWebhook 會帶上
+# 三者皆未設時:webhook 靜默 200、cron 推播 no-op、/api/telegram/link-code 回 501。
+# TG_BOT_USERNAME = "my_hema_bot"
 
 # Question categories — mirrored from config.toml [groups].list by setup.sh.
 # Format: "<label>:<exam_count>,..." in display order.

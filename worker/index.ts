@@ -33,6 +33,8 @@ import { stateRoutes } from './routes/state';
 import { exportRoutes } from './routes/export';
 import { drillRoutes } from './routes/drill';
 import { highlightsRoutes } from './routes/highlights';
+import { webhookRoutes, telegramApiRoutes } from './routes/telegram';
+import { runPushTick } from './lib/tg-push';
 
 // Durable Object classes must be exported from the Worker entrypoint.
 export { ChatRoom } from './chat-room';
@@ -74,6 +76,11 @@ app.get('/api/health', (c) => c.json({ ok: true, service: 'hema-2026-api', ts: D
 // never inherits Access gating — the path is Access-bypassed at the edge.
 app.route('/api/mcq', mcqRoutes);
 
+// Telegram webhook — Telegram 伺服器無法過 Zero Trust,故掛在 /tg(不在
+// /api/* 下,不吃 authMiddleware),並在邊緣把 /tg/* 設為 Access bypass。
+// 自身以 X-Telegram-Bot-Api-Secret-Token 常數時間比對驗證。
+app.route('/tg', webhookRoutes);
+
 // All other routes require Access auth
 app.use('/api/*', authMiddleware);
 app.use('/img/*', authMiddleware);
@@ -106,6 +113,7 @@ app.route('/api/chat', chatRoutes);
 app.route('/api/oe', oeRoutes);
 app.route('/api/state', stateRoutes);
 app.route('/api/export', exportRoutes);
+app.route('/api/telegram', telegramApiRoutes);
 
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 
@@ -121,7 +129,19 @@ export default {
   // policy + D1 users sync. New people in the Google Sheet get login access
   // and a seeded users row without anyone running scripts/sync-access.ts.
   // Revoke-on-removal: the policy include[] is replaced with the merged list.
-  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext) {
+  async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
+    // Telegram 每日推播 tick — 掛在每小時整點的 cron("0 * * * *")。與夜間
+    // roster/note-links 分派,避免每小時都跑那兩個較重的工作。每次 tick 只送
+    // 「本地時 == push_hour 且今天還沒推過」的人,I/O 走 waitUntil 不佔 CPU。
+    if (event.cron === '0 * * * *') {
+      ctx.waitUntil(
+        runPushTick(env, Date.now())
+          .then((r) => console.log(`[cron tg-push] candidates=${r.candidates} pushed=${r.pushed} errors=${r.errors}`))
+          .catch((e) => console.error('[cron tg-push] failed', e)),
+      );
+      return;
+    }
+
     ctx.waitUntil(
       syncRoster(env)
         .then((r) =>
