@@ -15,6 +15,8 @@ export type AppConfig = {
   exam: { date_iso: string; date_label: string; countdown_label: string };
   public: { host: string; og_invite_line: string };
   storage: { theme_storage_key: string };
+  // Telegram 出題機器人的 bot username(不含 @)。空字串 = 隱藏綁定卡片。
+  telegram?: { bot_username: string };
   groups: GroupSpec[];
 };
 

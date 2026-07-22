@@ -62,6 +62,13 @@ og_invite_line = "Invite-only · Cloudflare Zero Trust"
 # collide on the same browser when developing locally.
 theme_storage_key = "my-qa-bank:theme"
 
+[telegram]
+# Telegram 出題機器人的 bot username(不含 @)。前端「個人」頁用它組綁定
+# deep link。留空 = 前端隱藏 Telegram 卡片。Worker 端另需在 wrangler.toml
+# [vars] 設同名 TG_BOT_USERNAME,並用 wrangler secret 設 TG_BOT_TOKEN /
+# TG_WEBHOOK_SECRET(見 wrangler.example.toml 與該設計文件)。
+bot_username = ""
+
 [dev]
 # Identity the Vite dev proxy injects as X-Dev-Email so the Worker
 # (CF_ACCESS_TEAM_DOMAIN === 'localhost') treats local requests as this

@@ -47,6 +47,10 @@ PATHS=(
   # Claude Code / claude.ai (no Access session) can reach it; the Worker's
   # apiKeyMiddleware (timing-safe key + email allowlist) is the sole gate.
   "/api/mcq/*|${SLUG} public · mcq-api"
+  # Telegram webhook. Telegram 伺服器沒有 Access session,回呼一律被 302 到
+  # 登入頁就永遠收不到 update。故整段 /tg/* Access-bypass;Worker 內以
+  # X-Telegram-Bot-Api-Secret-Token 常數時間比對驗證,才是真正的閘。
+  "/tg/*|${SLUG} public · telegram-webhook"
   # PWA. Install and service-worker update checks are initiated by the browser
   # itself and can happen with no Access session — the SW update fetch is not
   # even guaranteed to carry cookies. Behind Access those requests get a 302

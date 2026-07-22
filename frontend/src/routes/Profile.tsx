@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { LogOut, RefreshCw } from 'lucide-react';
+import { LogOut, RefreshCw, Send } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useMe, type Me } from '../hooks/useMe';
 import { Avatar } from '../components/Avatar';
 import { api } from '../lib/api';
@@ -121,6 +122,7 @@ export function Profile() {
         </div>
       </div>
 
+      <TelegramCard />
       <McqKeyCard me={me} />
       <AccountCard email={me.email} />
     </div>
@@ -169,6 +171,116 @@ function AccountCard({ email }: { email: string }) {
         按「清除本機快取並重新載入」即可,不必登出。
         登出則會一併清掉本機快取與偏好設定;畫記與筆記存在伺服器上,不受影響。
       </p>
+    </div>
+  );
+}
+
+// Telegram 出題機器人綁定。產生一次性 deep link,使用者在 Telegram 開啟即可
+// 把該裝置的 chat 綁到目前登入的 email;之後每日推題與作答都計入同一份進度。
+type TgStatus = {
+  configured: boolean;
+  bot_username: string | null;
+  linked: boolean;
+  subscribed: boolean;
+  username: string | null;
+};
+
+function TelegramCard() {
+  const [status, setStatus] = useState<TgStatus | null>(null);
+  const [link, setLink] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    api.get<TgStatus>('/api/telegram/status').then(setStatus).catch(() => setStatus(null));
+  }, []);
+
+  // bot 未設定(無 token / username)時整張卡片不顯示。
+  if (!status || !status.configured) return null;
+
+  async function genLink() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const r = await api.post<{ deep_link: string }>('/api/telegram/link-code');
+      setLink(r.deep_link);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function unlink() {
+    if (busy) return;
+    if (!confirm('解除綁定後,這個 Telegram 帳號將停止收到每日推題。確定?')) return;
+    setBusy(true);
+    try {
+      await api.post('/api/telegram/unlink');
+      setStatus((s) => (s ? { ...s, linked: false, subscribed: false } : s));
+      setLink(null);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
+      <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">Telegram 推播</h2>
+      <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-5">
+        綁定 Telegram 後,機器人會在你設定的時段每天推一題(優先複習到期題),
+        也能用 <code className="font-mono text-[0.85em]">/quiz</code> 挑年份做小測驗。
+        在聊天裡的作答會計入你在這裡的複習進度。
+      </p>
+
+      {status.linked ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex items-center gap-2 text-sm text-ink-700 dark:text-ink-200">
+            <Send size={15} className="text-accent" />
+            已綁定{status.username ? ` · @${status.username}` : ''}
+            <span className="text-ink-400 dark:text-ink-500">
+              (每日推播{status.subscribed ? '開' : '關'})
+            </span>
+          </span>
+          <button
+            onClick={unlink}
+            disabled={busy}
+            className="inline-flex items-center gap-2 border border-ink-300 dark:border-ink-600 text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700 px-4 py-2 rounded text-sm transition disabled:opacity-40"
+          >
+            解除綁定
+          </button>
+        </div>
+      ) : link ? (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+          {/* QR:桌機用手機 Telegram 掃碼綁定;白底 + 內距確保暗色模式也掃得到 */}
+          <div className="shrink-0 self-start bg-white p-3 rounded-lg border border-ink-200">
+            <QRCodeSVG value={link} size={148} level="M" />
+          </div>
+          <div className="flex flex-col gap-3">
+            <a
+              href={link}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded text-sm font-medium transition self-start"
+            >
+              <Send size={15} /> 在 Telegram 開啟以完成綁定
+            </a>
+            <p className="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">
+              <b>手機</b>:直接按上面按鈕。<br />
+              <b>電腦</b>:用手機的 Telegram 掃左邊 QR。<br />
+              開啟後在機器人對話按「START」即完成綁定。
+            </p>
+            <p className="text-xs text-ink-400 dark:text-ink-500 leading-relaxed">
+              連結 15 分鐘內有效、僅能使用一次。沒反應就回來重新產生。
+            </p>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={genLink}
+          disabled={busy}
+          className="inline-flex items-center gap-2 bg-ink-900 hover:bg-ink-700 dark:bg-ink-700 dark:hover:bg-ink-600 text-white px-4 py-2 rounded text-sm font-medium transition disabled:opacity-40"
+        >
+          <Send size={15} /> {busy ? '產生中…' : '產生綁定連結'}
+        </button>
+      )}
     </div>
   );
 }
