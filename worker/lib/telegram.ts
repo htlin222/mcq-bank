@@ -119,8 +119,9 @@ export function parseCallback(data: string | undefined): Callback {
   }
 }
 
+// 接受 3–4 位數年份 —— 這個 fork 用民國年(104–114),其他 fork 可能用西元年。
 function isYear(s: string | undefined): boolean {
-  return !!s && /^\d{4}$/.test(s);
+  return !!s && /^\d{3,4}$/.test(s);
 }
 function isHour(s: string | undefined): boolean {
   if (!s || !/^\d{1,2}$/.test(s)) return false;

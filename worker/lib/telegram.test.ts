@@ -38,6 +38,8 @@ test('parseOptions 正常與壞資料', () => {
 test('parseCallback 解析各前綴', () => {
   assert.deepEqual(parseCallback('ans:2024-001:B'), { kind: 'answer', qid: '2024-001', key: 'B' });
   assert.deepEqual(parseCallback('quiz:year:2024'), { kind: 'quiz-year', year: 2024 });
+  assert.deepEqual(parseCallback('quiz:year:114'), { kind: 'quiz-year', year: 114 }); // 民國年 3 位數
+  assert.deepEqual(parseCallback('set:year:114'), { kind: 'set-year', year: 114 });
   assert.deepEqual(parseCallback('quiz:count:20'), { kind: 'quiz-count', count: 20 });
   assert.deepEqual(parseCallback('set:sub:0'), { kind: 'set-sub', on: false });
   assert.deepEqual(parseCallback('set:sub:1'), { kind: 'set-sub', on: true });
