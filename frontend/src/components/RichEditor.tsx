@@ -172,7 +172,15 @@ export function RichEditor({
   if (!editor) return null;
 
   return (
-    <div className="border border-ink-200 dark:border-ink-700 rounded-lg bg-white dark:bg-ink-800 overflow-hidden">
+    <div
+      className={
+        'border border-ink-200 dark:border-ink-700 rounded-lg bg-white dark:bg-ink-800 overflow-hidden' +
+        // Editable: bound the height and let the text area scroll on its own so
+        // the toolbar (shrink-0, first flex child) stays pinned at the top.
+        // Read-only renders keep their natural height — never height-capped.
+        (editable ? ' flex flex-col max-h-[65vh]' : '')
+      }
+    >
       {editable && (
         <Toolbar
           editor={editor}
@@ -185,11 +193,11 @@ export function RichEditor({
         <OeImportDialog onClose={() => setOeOpen(false)} onInsert={insertOeHtml} />
       )}
       {uploading && (
-        <div className="h-0.5 bg-accent/15 overflow-hidden" role="progressbar" aria-label="上傳圖片中">
+        <div className="h-0.5 bg-accent/15 overflow-hidden shrink-0" role="progressbar" aria-label="上傳圖片中">
           <div className="h-full w-1/3 bg-accent animate-progress-bar" />
         </div>
       )}
-      <div className="p-4">
+      <div className={'p-4' + (editable ? ' flex-1 min-h-0 overflow-y-auto overscroll-contain' : '')}>
         <EditorContent editor={editor} />
       </div>
     </div>

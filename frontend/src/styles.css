@@ -240,7 +240,7 @@
 /* Individual buttons handle their own sizing/colors via the IconBtn
    component; this rule just lays out the strip. */
 .editor-toolbar {
-  @apply flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-ink-200 dark:border-ink-700 bg-ink-50/60 dark:bg-ink-800/60;
+  @apply flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-ink-200 dark:border-ink-700 bg-ink-50/60 dark:bg-ink-800/60 shrink-0;
 }
 
 /* === Animations === */

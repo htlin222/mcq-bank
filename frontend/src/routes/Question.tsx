@@ -760,7 +760,7 @@ export function Question() {
 			      strip, with normal page scrolling and a comfortable reading width.
 			    Below md both modes collapse to the same single stacked column. */}
 			{tabsMode && (
-				<div className="hidden md:flex flex-wrap border-b border-ink-200 dark:border-ink-700 mb-6 max-w-4xl mx-auto">
+				<div className="hidden md:flex flex-wrap border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto sticky top-14 z-10 bg-ink-50/95 dark:bg-ink-900/95 backdrop-blur pt-1 pb-0 mb-6">
 					<TabButton
 						active={mainTab === "question"}
 						onClick={() => setMainTab("question")}
@@ -861,7 +861,7 @@ export function Question() {
 					(tabsMode && mainTab === "similar" ? " md:hidden" : "")
 				}
 			>
-				<div className="flex items-center justify-between mb-3 gap-3">
+				<div className="sticky top-14 z-10 flex items-center justify-between gap-3 bg-ink-50/95 dark:bg-ink-900/95 backdrop-blur pt-1 pb-3 md:top-0">
 					<div
 						className={
 							"flex flex-wrap border-b border-ink-200 dark:border-ink-700" +
