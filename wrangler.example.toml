@@ -12,10 +12,16 @@ compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
 
 # Same-origin routes — Pages serves the SPA at the apex, Worker handles
-# /api/*, /img/* and /pdf/* on the same host so the browser's Access cookie
-# flows naturally and there's no CORS overhead.
+# /api/*, /img/*, /pdf/* and /tg/* on the same host so the browser's Access
+# cookie flows naturally and there's no CORS overhead. /tg/* 是 Telegram
+# webhook,必須在此登記進 Worker,否則會被 Pages 當 SPA 路由回 index.html
+# (POST 會拿到 405)。見 docs/plans/2026-07-22-telegram-bot-design.md。
 [[routes]]
 pattern = "qa.example.com/api/*"
+zone_name = "example.com"
+
+[[routes]]
+pattern = "qa.example.com/tg/*"
 zone_name = "example.com"
 
 [[routes]]

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LogOut, RefreshCw, Send } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useMe, type Me } from '../hooks/useMe';
 import { Avatar } from '../components/Avatar';
 import { api } from '../lib/api';
@@ -247,19 +248,29 @@ function TelegramCard() {
           </button>
         </div>
       ) : link ? (
-        <div className="flex flex-col gap-3">
-          <a
-            href={link}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded text-sm font-medium transition self-start"
-          >
-            <Send size={15} /> 在 Telegram 開啟以完成綁定
-          </a>
-          <p className="text-xs text-ink-400 dark:text-ink-500 leading-relaxed">
-            連結 15 分鐘內有效、僅能使用一次。開啟後在機器人對話按「START」即完成。
-            沒反應的話回來重新產生一次。
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+          {/* QR:桌機用手機 Telegram 掃碼綁定;白底 + 內距確保暗色模式也掃得到 */}
+          <div className="shrink-0 self-start bg-white p-3 rounded-lg border border-ink-200">
+            <QRCodeSVG value={link} size={148} level="M" />
+          </div>
+          <div className="flex flex-col gap-3">
+            <a
+              href={link}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded text-sm font-medium transition self-start"
+            >
+              <Send size={15} /> 在 Telegram 開啟以完成綁定
+            </a>
+            <p className="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">
+              <b>手機</b>:直接按上面按鈕。<br />
+              <b>電腦</b>:用手機的 Telegram 掃左邊 QR。<br />
+              開啟後在機器人對話按「START」即完成綁定。
+            </p>
+            <p className="text-xs text-ink-400 dark:text-ink-500 leading-relaxed">
+              連結 15 分鐘內有效、僅能使用一次。沒反應就回來重新產生。
+            </p>
+          </div>
         </div>
       ) : (
         <button

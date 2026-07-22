@@ -138,6 +138,9 @@ toggle）、`/stop`（暫停每日）、`/help`。
 - Cron：`crons = ["*/10 19-21 * * *", "0 * * * *"]`；`scheduled()` 依
   `event.cron` 分派（原 roster/note-links 維持原時段，新增每小時推播）。
 - Access bypass：`scripts/setup-public-bypass.sh` 增列 `/tg/*`。
+- **Worker route(關鍵)**：`wrangler.toml [[routes]]` 必須登記 `<host>/tg/*`,
+  否則同網域下 `/tg/*` 會落到 Pages 被當 SPA 路由(GET 回 index.html、POST 回
+  405),Telegram webhook 永遠收不到。與 `/api/*` 同理。
 
 ## 成本
 
