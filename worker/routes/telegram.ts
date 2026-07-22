@@ -7,6 +7,7 @@ import { Hono } from 'hono';
 import type { AppContext, Env } from '../types.ts';
 import {
   answerCallbackQuery,
+  appendExplanation,
   buildAnswerKeyboard,
   editMessageText,
   formatQuestion,
@@ -15,6 +16,7 @@ import {
   parseOptions,
   sendMessage,
   timingSafeEqual,
+  type InlineButton,
   type InlineKeyboard,
   type TgUpdate,
 } from '../lib/telegram.ts';
@@ -23,6 +25,7 @@ import {
   consumeLinkCode,
   createLinkCode,
   ensureUser,
+  getExplanationText,
   getSession,
   getUser,
   getUserByEmail,
@@ -163,11 +166,15 @@ async function handleCallback(env: Env, token: string, u: TgUpdate): Promise<voi
       const isCorrect: 0 | 1 = q.answer === cb.key ? 1 : 0;
       await recordAnswer(env.DB, email, q.id, cb.key, isCorrect, now);
       await answerCallbackQuery(token, cq.id, isCorrect ? '答對了 🎉' : '答錯了');
-      await editMessageText(token, chatId, messageId, formatReveal(q, cb.key, q.answer), detailButton(env, q.id));
 
-      // 若在小測驗中,推進下一題或給總結。
+      // 答對/答錯都揭曉詳解;測驗模式會自動推進,其餘模式給「下一題」按鈕。
       const sess = await getSession(env.DB, chatId);
-      if (sess?.kind === 'quiz' && sess.data.qid === q.id) {
+      const inQuiz = sess?.kind === 'quiz' && sess.data.qid === q.id;
+      const expl = await getExplanationText(env.DB, q.id);
+      const revealText = appendExplanation(formatReveal(q, cb.key, q.answer), expl);
+      await editMessageText(token, chatId, messageId, revealText, revealKeyboard(env, q.id, !inQuiz));
+
+      if (inQuiz) {
         const score = (sess.data.score ?? 0) + isCorrect;
         const remaining = sess.data.remaining ?? [];
         const total = sess.data.total ?? 0;
@@ -365,10 +372,19 @@ function countKeyboard(): InlineKeyboard {
   };
 }
 
-/** 「看詳解」連回 app 的按鈕;PUBLIC_HOST 未設時不顯示。 */
-function detailButton(env: Env, qid: string): InlineKeyboard | undefined {
-  if (!env.PUBLIC_HOST) return undefined;
-  return { inline_keyboard: [[{ text: '看詳解 / 討論', url: `https://${env.PUBLIC_HOST}/q/${qid}` }]] };
+/**
+ * 揭曉後的鍵盤:一列「看詳解 / 討論」連回 app(PUBLIC_HOST 有設時),
+ * withNext 時再加一列「下一題 ▶」(callback nav:today)。兩者皆無則回 undefined。
+ */
+function revealKeyboard(env: Env, qid: string, withNext: boolean): InlineKeyboard | undefined {
+  const rows: InlineButton[][] = [];
+  if (env.PUBLIC_HOST) {
+    rows.push([{ text: '看詳解 / 討論', url: `https://${env.PUBLIC_HOST}/q/${qid}` }]);
+  }
+  if (withNext) {
+    rows.push([{ text: '下一題 ▶', callback_data: 'nav:today' }]);
+  }
+  return rows.length ? { inline_keyboard: rows } : undefined;
 }
 
 function localDate(now: number, tzOffsetMin: number): string {

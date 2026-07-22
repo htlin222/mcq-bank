@@ -3,6 +3,8 @@
 // 同一份進度;不碰 fsrs_cards 排程(那是 anki 的另一條寫入路徑)。
 import type { D1Database } from '@cloudflare/workers-types';
 import { clampElapsedMs, insertAttemptOp } from './attempts.ts';
+import { tiptapToText } from './telegram.ts';
+import { nextFsrsCard, ratingFromInput, serializeCard, type FsrsCardRow } from './fsrs.ts';
 
 export type TgUserRow = {
   chat_id: number;
@@ -158,9 +160,31 @@ export async function consumeLinkCode(db: D1Database, code: string, now: number)
   return row.email;
 }
 
+// ---- 詳解 ----
+
+/** 取某題的共筆詳解純文字(TipTap JSON → text)。無詳解回空字串。 */
+export async function getExplanationText(db: D1Database, questionId: string): Promise<string> {
+  const row = await db
+    .prepare(`SELECT content_json FROM explanations WHERE question_id = ?`)
+    .bind(questionId)
+    .first<{ content_json: string }>();
+  if (!row?.content_json) return '';
+  try {
+    return tiptapToText(JSON.parse(row.content_json));
+  } catch {
+    return '';
+  }
+}
+
 // ---- 作答記錄 ----
 
-/** 與 /api/review/answer 同一雙寫:review_progress 聚合 + attempts 事件。 */
+/**
+ * 記錄一次 bot 作答 —— 與網頁 /api/review/anki/review 同一路徑,推進 FSRS 排程
+ * 後,同批寫 fsrs_cards / fsrs_review_logs / review_progress / attempts。
+ * 這是「每次都推同一題」的修正關鍵:不推進 FSRS 的話,到期卡永遠到期,選題
+ * 第一優先(依 due_at 最早)就會卡在同一題。答對→good、答錯→again。
+ * source='anki' 因為 bot 走的是 FSRS 間隔複習,與網頁 anki 一致。
+ */
 export async function recordAnswer(
   db: D1Database,
   email: string,
@@ -169,7 +193,51 @@ export async function recordAnswer(
   isCorrect: 0 | 1,
   now: number,
 ): Promise<void> {
+  const rating = ratingFromInput(isCorrect ? 'good' : 'again');
+  const existing = await db
+    .prepare(
+      `SELECT due_at, stability, difficulty, elapsed_days, scheduled_days,
+              learning_steps, reps, lapses, state, last_review_at
+       FROM fsrs_cards WHERE user_email = ? AND question_id = ?`,
+    )
+    .bind(email, questionId)
+    .first<FsrsCardRow>();
+  const result = nextFsrsCard(existing ?? null, now, rating!);
+  const card = serializeCard(result.card);
+  const log = result.log;
+
   await db.batch([
+    db
+      .prepare(
+        `INSERT INTO fsrs_cards
+         (user_email, question_id, due_at, stability, difficulty, elapsed_days,
+          scheduled_days, learning_steps, reps, lapses, state, last_review_at,
+          created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(user_email, question_id) DO UPDATE SET
+           due_at = excluded.due_at, stability = excluded.stability,
+           difficulty = excluded.difficulty, elapsed_days = excluded.elapsed_days,
+           scheduled_days = excluded.scheduled_days, learning_steps = excluded.learning_steps,
+           reps = excluded.reps, lapses = excluded.lapses, state = excluded.state,
+           last_review_at = excluded.last_review_at, updated_at = excluded.updated_at`,
+      )
+      .bind(
+        email, questionId, card.due_at, card.stability, card.difficulty, card.elapsed_days,
+        card.scheduled_days, card.learning_steps, card.reps, card.lapses, card.state,
+        card.last_review_at, now, now,
+      ),
+    db
+      .prepare(
+        `INSERT INTO fsrs_review_logs
+         (user_email, question_id, rating, state, due_at, stability, difficulty,
+          elapsed_days, last_elapsed_days, scheduled_days, learning_steps, reviewed_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        email, questionId, log.rating, log.state, log.due.getTime(), log.stability,
+        log.difficulty, log.elapsed_days, log.last_elapsed_days, log.scheduled_days,
+        log.learning_steps, log.review.getTime(), now,
+      ),
     db
       .prepare(
         `INSERT INTO review_progress
@@ -189,7 +257,7 @@ export async function recordAnswer(
       questionId,
       chosen,
       isCorrect,
-      source: 'review',
+      source: 'anki',
       sessionId: null,
       elapsedMs: clampElapsedMs(null),
       now,

@@ -9,6 +9,9 @@ import {
   formatQuestion,
   formatReveal,
   localParts,
+  tiptapToText,
+  appendExplanation,
+  TG_TEXT_LIMIT,
 } from './telegram.ts';
 
 const OPTS = '[{"key":"A","text":"甲"},{"key":"B","text":"乙 < 丙"},{"key":"C","text":"丁"},{"key":"D","text":"戊"}]';
@@ -84,6 +87,47 @@ test('formatReveal 標出對錯與正解', () => {
   assert.match(wrong, /正解是 <b>A<\/b>/);
   assert.match(wrong, /❌ \(B\)/);
   assert.match(wrong, /✅ \(A\)/);
+});
+
+test('tiptapToText 抽出純文字、清單加項目符號、圖片佔位', () => {
+  const doc = {
+    type: 'doc',
+    content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'AML 是 ' }, { type: 'text', text: '急性' }] },
+      { type: 'bulletList', content: [
+        { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: '第一' }] }] },
+        { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: '第二' }] }] },
+      ] },
+      { type: 'image', attrs: { src: 'x' } },
+    ],
+  };
+  const txt = tiptapToText(doc);
+  assert.match(txt, /AML 是 急性/);
+  assert.match(txt, /• 第一/);
+  assert.match(txt, /• 第二/);
+  assert.match(txt, /［圖片］/);
+});
+
+test('tiptapToText 壞資料回空字串', () => {
+  assert.equal(tiptapToText(null), '');
+  assert.equal(tiptapToText('nope'), '');
+  assert.equal(tiptapToText({ type: 'doc', content: [] }), '');
+});
+
+test('appendExplanation:空詳解回原文、正常接上、跳脫', () => {
+  assert.equal(appendExplanation('揭曉', ''), '揭曉');
+  assert.equal(appendExplanation('揭曉', '   '), '揭曉');
+  const out = appendExplanation('揭曉', 'a < b & c');
+  assert.match(out, /📖 詳解/);
+  assert.match(out, /a &lt; b &amp; c/);
+});
+
+test('appendExplanation:超長詳解截斷且不超過 Telegram 上限', () => {
+  const long = 'x'.repeat(5000);
+  const out = appendExplanation('揭曉', long);
+  assert.ok(out.length <= TG_TEXT_LIMIT);
+  assert.match(out, /…/);
+  assert.match(out, /點下方看全文/);
 });
 
 test('localParts 以偏移平移計算本地時與日期', () => {

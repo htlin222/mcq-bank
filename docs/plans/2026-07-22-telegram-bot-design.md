@@ -92,9 +92,11 @@ CREATE TABLE tg_sessions (
 ```
 
 `tg_users.email` 為可空外鍵：未綁定時 NULL，不受 FK 約束；綁定後帳號被移除
-會連帶清掉綁定。答題不另建進度表 —— 直接寫既有 `review_progress` + `attempts`
-（source=`review`），FSRS 到期查詢僅**讀** `fsrs_cards`，不改其排程狀態
-（與網頁「複習答題」路徑一致，anki 排程是另一條寫入路徑）。
+會連帶清掉綁定。答題不另建進度表 —— 走**與網頁 anki 複習相同**的寫入路徑
+（`recordAnswer` in `tg-store.ts`）：答對→FSRS `good`、答錯→`again`，同批寫
+`fsrs_cards`（推進 due_at）+ `fsrs_review_logs` + `review_progress` + `attempts`
+（source=`anki`）。**必須推進 FSRS**：選題第一優先是「到期題、依 due_at 最早」，
+若答題不改排程，到期卡永遠到期 → 每次都推同一題（實測踩過:114-003 卡住）。
 
 ## 模組
 

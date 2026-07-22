@@ -188,6 +188,57 @@ export function formatReveal(
   return lines.join('\n');
 }
 
+const BLOCK_TYPES = new Set(['paragraph', 'heading', 'blockquote', 'codeBlock', 'listItem']);
+
+/**
+ * TipTap / ProseMirror JSON → 純文字。詳解存的是 TipTap JSON,Telegram 只吃
+ * 純文字/基本 HTML,故走訪節點抽 text:區塊結尾補換行、清單項前加「• 」、
+ * 圖片以［圖片］佔位。壞資料回空字串而非丟例外。
+ */
+export function tiptapToText(doc: unknown): string {
+  const out: string[] = [];
+  const walk = (node: unknown): void => {
+    if (!node || typeof node !== 'object') return;
+    const n = node as { type?: string; text?: string; content?: unknown[] };
+    if (n.type === 'text' && typeof n.text === 'string') {
+      out.push(n.text);
+      return;
+    }
+    if (n.type === 'hardBreak') {
+      out.push('\n');
+      return;
+    }
+    if (n.type === 'image') {
+      out.push('［圖片］');
+      return;
+    }
+    if (n.type === 'listItem') out.push('• ');
+    if (Array.isArray(n.content)) n.content.forEach(walk);
+    if (n.type && BLOCK_TYPES.has(n.type)) out.push('\n');
+  };
+  walk(doc);
+  return out.join('').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/** Telegram sendMessage/editMessageText 單則文字上限。 */
+export const TG_TEXT_LIMIT = 4096;
+
+/**
+ * 把詳解接在揭曉文字之後,依 Telegram 4096 上限截斷(HTML 跳脫後計)。
+ * 詳解為空、或剩餘空間放不下有意義片段時,直接回原揭曉文字(靠按鈕看全文)。
+ */
+export function appendExplanation(reveal: string, explanation: string): string {
+  const body = explanation.trim();
+  if (!body) return reveal;
+  const header = '\n\n📖 詳解\n';
+  const budget = TG_TEXT_LIMIT - reveal.length - header.length - 40;
+  const cap = Math.min(1200, budget);
+  if (cap < 80) return reveal;
+  const truncated = body.length > cap;
+  const shown = escapeHtml(body.slice(0, cap)) + (truncated ? '…' : '');
+  return reveal + header + shown + (truncated ? '\n（點下方看全文）' : '');
+}
+
 /**
  * 由 UTC 毫秒 + 時區偏移(分鐘,UTC 以東為正)算出本地「時」與「YYYY-MM-DD」。
  * 用 getUTC* 於平移後的時間戳,避免依賴執行環境時區。
