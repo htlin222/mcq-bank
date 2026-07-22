@@ -56,6 +56,9 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
   // Per-question timer. Restarts on every question change; the tab being
   // hidden (looking something up elsewhere) doesn't count toward the time.
   const timer = useRef<TimerState>(startTimer(Date.now()));
+  // 冪等:同一次作答動作沿用同一個 key(依題號綁定,重試不重複計數);
+  // 換題或成功後重新產生。
+  const answerIdemKey = useRef<{ qid: string; key: string } | null>(null);
   useEffect(() => {
     timer.current = startTimer(Date.now());
     function onVisibility() {
@@ -82,6 +85,9 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
   async function submit() {
     if (!chosen || submitting) return;
     setSubmitting(true);
+    if (!answerIdemKey.current || answerIdemKey.current.qid !== question.id) {
+      answerIdemKey.current = { qid: question.id, key: crypto.randomUUID() };
+    }
     try {
       const r = await api.post<{ correct: boolean; correct_answer: string }>(
         '/api/review/answer',
@@ -91,7 +97,9 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
           confidence,
           elapsed_ms: read(timer.current, Date.now()).elapsedMs,
         },
+        answerIdemKey.current.key,
       );
+      answerIdemKey.current = null;
       setRevealed(true);
       onAnswered?.(chosen, r.correct);
     } finally {

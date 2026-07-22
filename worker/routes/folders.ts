@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../types';
 import { uuid } from '../lib/db';
+import { readIdemKey, idemLookup, idemRecordOp } from '../lib/idempotency';
 
 export const foldersRoutes = new Hono<AppContext>();
 
@@ -44,6 +45,14 @@ foldersRoutes.get('/', async (c) => {
 // Create folder
 foldersRoutes.post('/', async (c) => {
   const email = c.var.email;
+
+  // 冪等:重送同一 key 直接 replay,不重複建立資料夾。
+  const idemKey = readIdemKey(c);
+  if (idemKey) {
+    const hit = await idemLookup(c.env.DB, email, idemKey);
+    if (hit) return c.json(hit.body as any, hit.status as any);
+  }
+
   const body = await c.req.json<{ name: string; sort?: number }>();
   const name = (body.name || '').trim();
   if (!name || name.length > 40) {
@@ -51,18 +60,34 @@ foldersRoutes.post('/', async (c) => {
   }
   const id = uuid();
   const now = Date.now();
-  try {
-    await c.env.DB
+  const payload = { id, name };
+  // 資料夾 INSERT 與去重列走同一個 batch,原子提交。
+  const ops = [
+    c.env.DB
       .prepare(
         `INSERT INTO bookmark_folders (id, user_email, name, sort, created_at)
          VALUES (?, ?, ?, ?, ?)`
       )
-      .bind(id, email, name, body.sort ?? 0, now)
-      .run();
+      .bind(id, email, name, body.sort ?? 0, now),
+  ];
+  if (idemKey) {
+    ops.push(
+      idemRecordOp(c.env.DB, {
+        email,
+        key: idemKey,
+        endpoint: 'POST /folders',
+        status: 200,
+        body: payload,
+        now,
+      })
+    );
+  }
+  try {
+    await c.env.DB.batch(ops);
   } catch (e) {
     return c.json({ error: 'name conflict or invalid', detail: String(e) }, 409);
   }
-  return c.json({ id, name });
+  return c.json(payload);
 });
 
 // Rename / re-sort

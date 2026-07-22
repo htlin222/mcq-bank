@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LogOut, RefreshCw, Send } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useMe, type Me } from '../hooks/useMe';
@@ -299,6 +299,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function McqKeyCard({ me }: { me: Me }) {
   const [version, setVersion] = useState(me.mcq_key_version);
   const [rotating, setRotating] = useState(false);
+  // 冪等:同一次 rotate 動作沿用同一個 key,避免網路重試把 version 多推一版。
+  const rotateIdemKey = useRef<string | null>(null);
   const [keyInfo, setKeyInfo] = useState<{ version: number; key: string } | null>(null);
   const [revealing, setRevealing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -319,10 +321,16 @@ function McqKeyCard({ me }: { me: Me }) {
     if (rotating) return;
     if (!confirm('重新產生金鑰會讓你先前下載的 .skill 立即失效,需要重新下載。確定要繼續?')) return;
     setRotating(true);
+    if (!rotateIdemKey.current) rotateIdemKey.current = crypto.randomUUID();
     try {
-      const k = await api.post<{ version: number; key: string }>('/api/me/mcq-key/rotate');
+      const k = await api.post<{ version: number; key: string }>(
+        '/api/me/mcq-key/rotate',
+        undefined,
+        rotateIdemKey.current,
+      );
       setKeyInfo(k);
       setVersion(k.version);
+      rotateIdemKey.current = null;
     } finally {
       setRotating(false);
     }
