@@ -65,20 +65,18 @@ test('callback_data 皆 ≤ 64 bytes', () => {
   }
 });
 
-test('buildAnswerKeyboard 單欄、按鈕含完整選項文字', () => {
+test('buildAnswerKeyboard 每列最多 2 顆', () => {
   const kb = buildAnswerKeyboard('2024-001', parseOptions(OPTS));
-  assert.equal(kb.inline_keyboard.length, 4); // 4 選項 → 4 列
-  assert.equal(kb.inline_keyboard[0].length, 1); // 每列一顆
-  assert.equal(kb.inline_keyboard[0][0].text, '(A) 甲');
-  assert.equal(kb.inline_keyboard[1][0].text, '(B) 乙 < 丙'); // 純文字不跳脫
+  assert.equal(kb.inline_keyboard.length, 2);
+  assert.equal(kb.inline_keyboard[0].length, 2);
   assert.equal(kb.inline_keyboard[0][0].callback_data, 'ans:2024-001:A');
 });
 
-test('formatQuestion 只含題幹、不含選項與正解字樣', () => {
+test('formatQuestion 跳脫題幹且不含正解字樣', () => {
   const txt = formatQuestion(Q, '每日一題');
   assert.match(txt, /2024-001/);
   assert.match(txt, /下列何者 &amp; 為真/);
-  assert.doesNotMatch(txt, /乙/); // 選項移到按鈕,文字不再列
+  assert.match(txt, /乙 &lt; 丙/);
   assert.doesNotMatch(txt, /正解/);
 });
 
