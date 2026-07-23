@@ -1,0 +1,979 @@
+{
+  "source": "Wintrobe's Clinical Hematology, 15e",
+  "note": "Page ranges are 1-based PDF page indices in the master (calibre EPUB->PDF). Front matter (p1-71) and Index excluded. Regenerate: see scripts/README or the generator in git history.",
+  "index_page": 8859,
+  "chapters": [
+    {
+      "n": 1,
+      "slug": "wintrobe-ch1",
+      "title": "Wintrobe Ch1 · Examination of the Blood and Bone Marrow",
+      "chapter": "Examination of the Blood and Bone Marrow",
+      "start": 72,
+      "end": 142,
+      "pages": 71
+    },
+    {
+      "n": 2,
+      "slug": "wintrobe-ch2",
+      "title": "Wintrobe Ch2 · Clinical Flow Cytometry",
+      "chapter": "Clinical Flow Cytometry",
+      "start": 143,
+      "end": 205,
+      "pages": 63
+    },
+    {
+      "n": 3,
+      "slug": "wintrobe-ch3",
+      "title": "Wintrobe Ch3 · Cytogenetics",
+      "chapter": "Cytogenetics",
+      "start": 206,
+      "end": 246,
+      "pages": 41
+    },
+    {
+      "n": 4,
+      "slug": "wintrobe-ch4",
+      "title": "Wintrobe Ch4 · Molecular Diagnosis in Hematology",
+      "chapter": "Molecular Diagnosis in Hematology",
+      "start": 247,
+      "end": 279,
+      "pages": 33
+    },
+    {
+      "n": 5,
+      "slug": "wintrobe-ch5",
+      "title": "Wintrobe Ch5 · Origin and Development of Blood Cells",
+      "chapter": "Origin and Development of Blood Cells",
+      "start": 280,
+      "end": 362,
+      "pages": 83
+    },
+    {
+      "n": 6,
+      "slug": "wintrobe-ch6",
+      "title": "Wintrobe Ch6 · The Birth, Life, and Death of Red Blood Cells: Erythropoiesis, the Mature Red Blood Cell, and Cell Destruction",
+      "chapter": "The Birth, Life, and Death of Red Blood Cells: Erythropoiesis, the Mature Red Blood Cell, and Cell Destruction",
+      "start": 363,
+      "end": 558,
+      "pages": 196
+    },
+    {
+      "n": 7,
+      "slug": "wintrobe-ch7",
+      "title": "Wintrobe Ch7 · Neutrophilic Leukocytes",
+      "chapter": "Neutrophilic Leukocytes",
+      "start": 559,
+      "end": 663,
+      "pages": 105
+    },
+    {
+      "n": 8,
+      "slug": "wintrobe-ch8",
+      "title": "Wintrobe Ch8 · The Human Eosinophil",
+      "chapter": "The Human Eosinophil",
+      "start": 664,
+      "end": 773,
+      "pages": 110
+    },
+    {
+      "n": 9,
+      "slug": "wintrobe-ch9",
+      "title": "Wintrobe Ch9 · Mast Cells and Basophils: Ontogeny, Characteristics, and Functional Diversity",
+      "chapter": "Mast Cells and Basophils: Ontogeny, Characteristics, and Functional Diversity",
+      "start": 774,
+      "end": 822,
+      "pages": 49
+    },
+    {
+      "n": 10,
+      "slug": "wintrobe-ch10",
+      "title": "Wintrobe Ch10 · Monocytes, Macrophages, and Dendritic Cells",
+      "chapter": "Monocytes, Macrophages, and Dendritic Cells",
+      "start": 823,
+      "end": 929,
+      "pages": 107
+    },
+    {
+      "n": 11,
+      "slug": "wintrobe-ch11",
+      "title": "Wintrobe Ch11 · Lymphocytes and Lymphatic Organs",
+      "chapter": "Lymphocytes and Lymphatic Organs",
+      "start": 930,
+      "end": 1083,
+      "pages": 154
+    },
+    {
+      "n": 12,
+      "slug": "wintrobe-ch12",
+      "title": "Wintrobe Ch12 · B Lymphocytes",
+      "chapter": "B Lymphocytes",
+      "start": 1084,
+      "end": 1179,
+      "pages": 96
+    },
+    {
+      "n": 13,
+      "slug": "wintrobe-ch13",
+      "title": "Wintrobe Ch13 · T Lymphocytes",
+      "chapter": "T Lymphocytes",
+      "start": 1180,
+      "end": 1269,
+      "pages": 90
+    },
+    {
+      "n": 14,
+      "slug": "wintrobe-ch14",
+      "title": "Wintrobe Ch14 · Natural Killer and Innate Lymphoid Cells",
+      "chapter": "Natural Killer and Innate Lymphoid Cells",
+      "start": 1270,
+      "end": 1321,
+      "pages": 52
+    },
+    {
+      "n": 15,
+      "slug": "wintrobe-ch15",
+      "title": "Wintrobe Ch15 · Major Histocompatibility Complex",
+      "chapter": "Major Histocompatibility Complex",
+      "start": 1322,
+      "end": 1387,
+      "pages": 66
+    },
+    {
+      "n": 16,
+      "slug": "wintrobe-ch16",
+      "title": "Wintrobe Ch16 · Complement System",
+      "chapter": "Complement System",
+      "start": 1388,
+      "end": 1467,
+      "pages": 80
+    },
+    {
+      "n": 17,
+      "slug": "wintrobe-ch17",
+      "title": "Wintrobe Ch17 · Megakaryocytes",
+      "chapter": "Megakaryocytes",
+      "start": 1468,
+      "end": 1602,
+      "pages": 135
+    },
+    {
+      "n": 18,
+      "slug": "wintrobe-ch18",
+      "title": "Wintrobe Ch18 · Platelet Structure",
+      "chapter": "Platelet Structure",
+      "start": 1603,
+      "end": 1652,
+      "pages": 50
+    },
+    {
+      "n": 19,
+      "slug": "wintrobe-ch19",
+      "title": "Wintrobe Ch19 · Platelet Function in Hemostasis and Thrombosis",
+      "chapter": "Platelet Function in Hemostasis and Thrombosis",
+      "start": 1653,
+      "end": 1770,
+      "pages": 118
+    },
+    {
+      "n": 20,
+      "slug": "wintrobe-ch20",
+      "title": "Wintrobe Ch20 · Blood Coagulation and Fibrinolysis",
+      "chapter": "Blood Coagulation and Fibrinolysis",
+      "start": 1771,
+      "end": 2193,
+      "pages": 423
+    },
+    {
+      "n": 21,
+      "slug": "wintrobe-ch21",
+      "title": "Wintrobe Ch21 · Endothelium: Angiogenesis and the Regulation of Hemostasis",
+      "chapter": "Endothelium: Angiogenesis and the Regulation of Hemostasis",
+      "start": 2194,
+      "end": 2231,
+      "pages": 38
+    },
+    {
+      "n": 22,
+      "slug": "wintrobe-ch22",
+      "title": "Wintrobe Ch22 · Red Cell, Platelet, and White Cell Antigens",
+      "chapter": "Red Cell, Platelet, and White Cell Antigens",
+      "start": 2232,
+      "end": 2269,
+      "pages": 38
+    },
+    {
+      "n": 23,
+      "slug": "wintrobe-ch23",
+      "title": "Wintrobe Ch23 · Transfusion Medicine",
+      "chapter": "Transfusion Medicine",
+      "start": 2270,
+      "end": 2420,
+      "pages": 151
+    },
+    {
+      "n": 24,
+      "slug": "wintrobe-ch24",
+      "title": "Wintrobe Ch24 · Anemia: General Considerations",
+      "chapter": "Anemia: General Considerations",
+      "start": 2421,
+      "end": 2525,
+      "pages": 105
+    },
+    {
+      "n": 25,
+      "slug": "wintrobe-ch25",
+      "title": "Wintrobe Ch25 · Iron Deficiency and Related Disorders",
+      "chapter": "Iron Deficiency and Related Disorders",
+      "start": 2526,
+      "end": 2603,
+      "pages": 78
+    },
+    {
+      "n": 26,
+      "slug": "wintrobe-ch26",
+      "title": "Wintrobe Ch26 · Sideroblastic Anemias",
+      "chapter": "Sideroblastic Anemias",
+      "start": 2604,
+      "end": 2652,
+      "pages": 49
+    },
+    {
+      "n": 27,
+      "slug": "wintrobe-ch27",
+      "title": "Wintrobe Ch27 · Hemochromatosis",
+      "chapter": "Hemochromatosis",
+      "start": 2653,
+      "end": 2701,
+      "pages": 49
+    },
+    {
+      "n": 28,
+      "slug": "wintrobe-ch28",
+      "title": "Wintrobe Ch28 · Porphyrias",
+      "chapter": "Porphyrias",
+      "start": 2702,
+      "end": 2754,
+      "pages": 53
+    },
+    {
+      "n": 29,
+      "slug": "wintrobe-ch29",
+      "title": "Wintrobe Ch29 · Hereditary Spherocytosis, Hereditary Elliptocytosis, and Other Disorders Associated With Abnormalities of the Erythrocyte Membrane",
+      "chapter": "Hereditary Spherocytosis, Hereditary Elliptocytosis, and Other Disorders Associated With Abnormalities of the Erythrocyte Membrane",
+      "start": 2755,
+      "end": 2802,
+      "pages": 48
+    },
+    {
+      "n": 30,
+      "slug": "wintrobe-ch30",
+      "title": "Wintrobe Ch30 · Hereditary Hemolytic Anemias Due to Red Blood Cell Enzyme Disorders",
+      "chapter": "Hereditary Hemolytic Anemias Due to Red Blood Cell Enzyme Disorders",
+      "start": 2803,
+      "end": 2856,
+      "pages": 54
+    },
+    {
+      "n": 31,
+      "slug": "wintrobe-ch31",
+      "title": "Wintrobe Ch31 · Autoimmune Hemolytic Anemia",
+      "chapter": "Autoimmune Hemolytic Anemia",
+      "start": 2857,
+      "end": 2904,
+      "pages": 48
+    },
+    {
+      "n": 32,
+      "slug": "wintrobe-ch32",
+      "title": "Wintrobe Ch32 · Paroxysmal Nocturnal Hemoglobinuria",
+      "chapter": "Paroxysmal Nocturnal Hemoglobinuria",
+      "start": 2905,
+      "end": 3016,
+      "pages": 112
+    },
+    {
+      "n": 33,
+      "slug": "wintrobe-ch33",
+      "title": "Wintrobe Ch33 · Acquired Nonimmune Hemolytic Disorders",
+      "chapter": "Acquired Nonimmune Hemolytic Disorders",
+      "start": 3017,
+      "end": 3067,
+      "pages": 51
+    },
+    {
+      "n": 34,
+      "slug": "wintrobe-ch34",
+      "title": "Wintrobe Ch34 · Sickle Cell Anemia and Other Sickling Syndromes",
+      "chapter": "Sickle Cell Anemia and Other Sickling Syndromes",
+      "start": 3068,
+      "end": 3256,
+      "pages": 189
+    },
+    {
+      "n": 35,
+      "slug": "wintrobe-ch35",
+      "title": "Wintrobe Ch35 · Thalassemia Syndromes: Quantitative Disorders of Globin Chain Synthesis",
+      "chapter": "Thalassemia Syndromes: Quantitative Disorders of Globin Chain Synthesis",
+      "start": 3257,
+      "end": 3475,
+      "pages": 219
+    },
+    {
+      "n": 36,
+      "slug": "wintrobe-ch36",
+      "title": "Wintrobe Ch36 · Hemoglobins With Altered Oxygen Affinity, Unstable Hemoglobins, M-Hemoglobins, and Dyshemoglobinemias",
+      "chapter": "Hemoglobins With Altered Oxygen Affinity, Unstable Hemoglobins, M-Hemoglobins, and Dyshemoglobinemias",
+      "start": 3476,
+      "end": 3526,
+      "pages": 51
+    },
+    {
+      "n": 37,
+      "slug": "wintrobe-ch37",
+      "title": "Wintrobe Ch37 · Megaloblastic Anemias: Disorders of Impaired DNA Synthesis",
+      "chapter": "Megaloblastic Anemias: Disorders of Impaired DNA Synthesis",
+      "start": 3527,
+      "end": 3640,
+      "pages": 114
+    },
+    {
+      "n": 38,
+      "slug": "wintrobe-ch38",
+      "title": "Wintrobe Ch38 · Inherited Aplastic Anemia Syndromes Germline",
+      "chapter": "Inherited Aplastic Anemia Syndromes Germline",
+      "start": 3641,
+      "end": 3704,
+      "pages": 64
+    },
+    {
+      "n": 39,
+      "slug": "wintrobe-ch39",
+      "title": "Wintrobe Ch39 · Acquired Aplastic Anemia",
+      "chapter": "Acquired Aplastic Anemia",
+      "start": 3705,
+      "end": 3736,
+      "pages": 32
+    },
+    {
+      "n": 40,
+      "slug": "wintrobe-ch40",
+      "title": "Wintrobe Ch40 · Red Cell Aplasia: Acquired and Congenital Disorders",
+      "chapter": "Red Cell Aplasia: Acquired and Congenital Disorders",
+      "start": 3737,
+      "end": 3791,
+      "pages": 55
+    },
+    {
+      "n": 41,
+      "slug": "wintrobe-ch41",
+      "title": "Wintrobe Ch41 · Congenital Dyserythropoietic Anemias",
+      "chapter": "Congenital Dyserythropoietic Anemias",
+      "start": 3792,
+      "end": 3842,
+      "pages": 51
+    },
+    {
+      "n": 42,
+      "slug": "wintrobe-ch42",
+      "title": "Wintrobe Ch42 · Anemia of Inflammation and of Systemic Disorders",
+      "chapter": "Anemia of Inflammation and of Systemic Disorders",
+      "start": 3843,
+      "end": 3906,
+      "pages": 64
+    },
+    {
+      "n": 43,
+      "slug": "wintrobe-ch43",
+      "title": "Wintrobe Ch43 · Anemias During Pregnancy and the Postpartum Period",
+      "chapter": "Anemias During Pregnancy and the Postpartum Period",
+      "start": 3907,
+      "end": 3932,
+      "pages": 26
+    },
+    {
+      "n": 44,
+      "slug": "wintrobe-ch44",
+      "title": "Wintrobe Ch44 · Anemias Unique to the Fetus and Neonate",
+      "chapter": "Anemias Unique to the Fetus and Neonate",
+      "start": 3933,
+      "end": 3999,
+      "pages": 67
+    },
+    {
+      "n": 45,
+      "slug": "wintrobe-ch45",
+      "title": "Wintrobe Ch45 · Erythrocytosis",
+      "chapter": "Erythrocytosis",
+      "start": 4000,
+      "end": 4044,
+      "pages": 45
+    },
+    {
+      "n": 46,
+      "slug": "wintrobe-ch46",
+      "title": "Wintrobe Ch46 · Diagnostic Approach to the Bleeding Disorders",
+      "chapter": "Diagnostic Approach to the Bleeding Disorders",
+      "start": 4045,
+      "end": 4091,
+      "pages": 47
+    },
+    {
+      "n": 47,
+      "slug": "wintrobe-ch47",
+      "title": "Wintrobe Ch47 · Thrombocytopenia: Pathophysiology and Classification",
+      "chapter": "Thrombocytopenia: Pathophysiology and Classification",
+      "start": 4092,
+      "end": 4100,
+      "pages": 9
+    },
+    {
+      "n": 48,
+      "slug": "wintrobe-ch48",
+      "title": "Wintrobe Ch48 · Thrombocytopenia Caused by Immunologic Platelet Destruction",
+      "chapter": "Thrombocytopenia Caused by Immunologic Platelet Destruction",
+      "start": 4101,
+      "end": 4221,
+      "pages": 121
+    },
+    {
+      "n": 49,
+      "slug": "wintrobe-ch49",
+      "title": "Wintrobe Ch49 · Thrombotic Thrombocytopenic Purpura, Hemolytic-Uremic Syndrome, and Related Disorders",
+      "chapter": "Thrombotic Thrombocytopenic Purpura, Hemolytic-Uremic Syndrome, and Related Disorders",
+      "start": 4222,
+      "end": 4340,
+      "pages": 119
+    },
+    {
+      "n": 50,
+      "slug": "wintrobe-ch50",
+      "title": "Wintrobe Ch50 · Miscellaneous Causes of Thrombocytopenia",
+      "chapter": "Miscellaneous Causes of Thrombocytopenia",
+      "start": 4341,
+      "end": 4374,
+      "pages": 34
+    },
+    {
+      "n": 51,
+      "slug": "wintrobe-ch51",
+      "title": "Wintrobe Ch51 · Bleeding Disorders Caused by Vascular Abnormalities",
+      "chapter": "Bleeding Disorders Caused by Vascular Abnormalities",
+      "start": 4375,
+      "end": 4434,
+      "pages": 60
+    },
+    {
+      "n": 52,
+      "slug": "wintrobe-ch52",
+      "title": "Wintrobe Ch52 · Thrombocytosis and Essential Thrombocythemia",
+      "chapter": "Thrombocytosis and Essential Thrombocythemia",
+      "start": 4435,
+      "end": 4464,
+      "pages": 30
+    },
+    {
+      "n": 53,
+      "slug": "wintrobe-ch53",
+      "title": "Wintrobe Ch53 · Qualitative Disorders of Platelet Function",
+      "chapter": "Qualitative Disorders of Platelet Function",
+      "start": 4465,
+      "end": 4550,
+      "pages": 86
+    },
+    {
+      "n": 54,
+      "slug": "wintrobe-ch54",
+      "title": "Wintrobe Ch54 · Inherited Coagulation Disorders",
+      "chapter": "Inherited Coagulation Disorders",
+      "start": 4551,
+      "end": 4697,
+      "pages": 147
+    },
+    {
+      "n": 55,
+      "slug": "wintrobe-ch55",
+      "title": "Wintrobe Ch55 · Acquired Coagulation Disorders",
+      "chapter": "Acquired Coagulation Disorders",
+      "start": 4698,
+      "end": 4828,
+      "pages": 131
+    },
+    {
+      "n": 56,
+      "slug": "wintrobe-ch56",
+      "title": "Wintrobe Ch56 · Thrombosis and Antithrombotic Therapy",
+      "chapter": "Thrombosis and Antithrombotic Therapy",
+      "start": 4829,
+      "end": 5008,
+      "pages": 180
+    },
+    {
+      "n": 57,
+      "slug": "wintrobe-ch57",
+      "title": "Wintrobe Ch57 · Diagnostic Approach to Tissue Examination and Testing",
+      "chapter": "Diagnostic Approach to Tissue Examination and Testing",
+      "start": 5009,
+      "end": 5051,
+      "pages": 43
+    },
+    {
+      "n": 58,
+      "slug": "wintrobe-ch58",
+      "title": "Wintrobe Ch58 · Neutropenia",
+      "chapter": "Neutropenia",
+      "start": 5052,
+      "end": 5111,
+      "pages": 60
+    },
+    {
+      "n": 59,
+      "slug": "wintrobe-ch59",
+      "title": "Wintrobe Ch59 · Qualitative Disorders of Leukocytes",
+      "chapter": "Qualitative Disorders of Leukocytes",
+      "start": 5112,
+      "end": 5183,
+      "pages": 72
+    },
+    {
+      "n": 60,
+      "slug": "wintrobe-ch60",
+      "title": "Wintrobe Ch60 · Lysosomal Abnormalities of the Monocyte-Macrophage System: Gaucher and Niemann-Pick Diseases",
+      "chapter": "Lysosomal Abnormalities of the Monocyte-Macrophage System: Gaucher and Niemann-Pick Diseases",
+      "start": 5184,
+      "end": 5200,
+      "pages": 17
+    },
+    {
+      "n": 61,
+      "slug": "wintrobe-ch61",
+      "title": "Wintrobe Ch61 · Langerhans Cell Histiocytosis",
+      "chapter": "Langerhans Cell Histiocytosis",
+      "start": 5201,
+      "end": 5242,
+      "pages": 42
+    },
+    {
+      "n": 62,
+      "slug": "wintrobe-ch62",
+      "title": "Wintrobe Ch62 · Pathology of Langerhans Cell Histiocytosis and Other Histiocytic Proliferations",
+      "chapter": "Pathology of Langerhans Cell Histiocytosis and Other Histiocytic Proliferations",
+      "start": 5243,
+      "end": 5265,
+      "pages": 23
+    },
+    {
+      "n": 63,
+      "slug": "wintrobe-ch63",
+      "title": "Wintrobe Ch63 · Infectious Mononucleosis and Other Epstein-Barr Virus–Related Disorders",
+      "chapter": "Infectious Mononucleosis and Other Epstein-Barr Virus–Related Disorders",
+      "start": 5266,
+      "end": 5312,
+      "pages": 47
+    },
+    {
+      "n": 64,
+      "slug": "wintrobe-ch64",
+      "title": "Wintrobe Ch64 · Primary Immunodeficiency Diseases",
+      "chapter": "Primary Immunodeficiency Diseases",
+      "start": 5313,
+      "end": 5377,
+      "pages": 65
+    },
+    {
+      "n": 65,
+      "slug": "wintrobe-ch65",
+      "title": "Wintrobe Ch65 · Human Immunodeficiency Virus Infection",
+      "chapter": "Human Immunodeficiency Virus Infection",
+      "start": 5378,
+      "end": 5440,
+      "pages": 63
+    },
+    {
+      "n": 66,
+      "slug": "wintrobe-ch66",
+      "title": "Wintrobe Ch66 · Disorders of the Spleen",
+      "chapter": "Disorders of the Spleen",
+      "start": 5441,
+      "end": 5504,
+      "pages": 64
+    },
+    {
+      "n": 67,
+      "slug": "wintrobe-ch67",
+      "title": "Wintrobe Ch67 · Tumors of the Spleen",
+      "chapter": "Tumors of the Spleen",
+      "start": 5505,
+      "end": 5536,
+      "pages": 32
+    },
+    {
+      "n": 68,
+      "slug": "wintrobe-ch68",
+      "title": "Wintrobe Ch68 · Hematopoietic Neoplasms: Principles of Pathologic Diagnosis",
+      "chapter": "Hematopoietic Neoplasms: Principles of Pathologic Diagnosis",
+      "start": 5537,
+      "end": 5564,
+      "pages": 28
+    },
+    {
+      "n": 69,
+      "slug": "wintrobe-ch69",
+      "title": "Wintrobe Ch69 · Principles of Targeted Therapies for Hematologic Malignancies",
+      "chapter": "Principles of Targeted Therapies for Hematologic Malignancies",
+      "start": 5565,
+      "end": 5616,
+      "pages": 52
+    },
+    {
+      "n": 70,
+      "slug": "wintrobe-ch70",
+      "title": "Wintrobe Ch70 · Infectious Complications in Hematologic Malignancies",
+      "chapter": "Infectious Complications in Hematologic Malignancies",
+      "start": 5617,
+      "end": 5730,
+      "pages": 114
+    },
+    {
+      "n": 71,
+      "slug": "wintrobe-ch71",
+      "title": "Wintrobe Ch71 · Immunotherapy",
+      "chapter": "Immunotherapy",
+      "start": 5731,
+      "end": 5790,
+      "pages": 60
+    },
+    {
+      "n": 72,
+      "slug": "wintrobe-ch72",
+      "title": "Wintrobe Ch72 · Gene Therapy for Hematopoietic Stem Cell Disorders",
+      "chapter": "Gene Therapy for Hematopoietic Stem Cell Disorders",
+      "start": 5791,
+      "end": 5919,
+      "pages": 129
+    },
+    {
+      "n": 73,
+      "slug": "wintrobe-ch73",
+      "title": "Wintrobe Ch73 · Molecular Genetics of Acute Leukemia",
+      "chapter": "Molecular Genetics of Acute Leukemia",
+      "start": 5920,
+      "end": 6060,
+      "pages": 141
+    },
+    {
+      "n": 74,
+      "slug": "wintrobe-ch74",
+      "title": "Wintrobe Ch74 · Diagnosis and Classification of the Acute Leukemias and Myelodysplastic Syndromes",
+      "chapter": "Diagnosis and Classification of the Acute Leukemias and Myelodysplastic Syndromes",
+      "start": 6061,
+      "end": 6113,
+      "pages": 53
+    },
+    {
+      "n": 75,
+      "slug": "wintrobe-ch75",
+      "title": "Wintrobe Ch75 · Acute Lymphoblastic Leukemia in Adults",
+      "chapter": "Acute Lymphoblastic Leukemia in Adults",
+      "start": 6114,
+      "end": 6177,
+      "pages": 64
+    },
+    {
+      "n": 76,
+      "slug": "wintrobe-ch76",
+      "title": "Wintrobe Ch76 · Acute Myeloid Leukemia in Adults",
+      "chapter": "Acute Myeloid Leukemia in Adults",
+      "start": 6178,
+      "end": 6357,
+      "pages": 180
+    },
+    {
+      "n": 77,
+      "slug": "wintrobe-ch77",
+      "title": "Wintrobe Ch77 · Acute Lymphoblastic Leukemia in Children",
+      "chapter": "Acute Lymphoblastic Leukemia in Children",
+      "start": 6358,
+      "end": 6476,
+      "pages": 119
+    },
+    {
+      "n": 78,
+      "slug": "wintrobe-ch78",
+      "title": "Wintrobe Ch78 · Acute Myeloid Leukemia in Children",
+      "chapter": "Acute Myeloid Leukemia in Children",
+      "start": 6477,
+      "end": 6534,
+      "pages": 58
+    },
+    {
+      "n": 79,
+      "slug": "wintrobe-ch79",
+      "title": "Wintrobe Ch79 · Acute Promyelocytic Leukemia",
+      "chapter": "Acute Promyelocytic Leukemia",
+      "start": 6535,
+      "end": 6564,
+      "pages": 30
+    },
+    {
+      "n": 80,
+      "slug": "wintrobe-ch80",
+      "title": "Wintrobe Ch80 · Myelodysplastic Syndromes",
+      "chapter": "Myelodysplastic Syndromes",
+      "start": 6565,
+      "end": 6641,
+      "pages": 77
+    },
+    {
+      "n": 81,
+      "slug": "wintrobe-ch81",
+      "title": "Wintrobe Ch81 · Clonal Hematopoiesis of Indeterminate Potential and Myeloid Diseases",
+      "chapter": "Clonal Hematopoiesis of Indeterminate Potential and Myeloid Diseases",
+      "start": 6642,
+      "end": 6679,
+      "pages": 38
+    },
+    {
+      "n": 82,
+      "slug": "wintrobe-ch82",
+      "title": "Wintrobe Ch82 · Pathology of the Myeloproliferative Neoplasms",
+      "chapter": "Pathology of the Myeloproliferative Neoplasms",
+      "start": 6680,
+      "end": 6734,
+      "pages": 55
+    },
+    {
+      "n": 83,
+      "slug": "wintrobe-ch83",
+      "title": "Wintrobe Ch83 · Chronic Myeloid Leukemia",
+      "chapter": "Chronic Myeloid Leukemia",
+      "start": 6735,
+      "end": 6830,
+      "pages": 96
+    },
+    {
+      "n": 84,
+      "slug": "wintrobe-ch84",
+      "title": "Wintrobe Ch84 · Polycythemia Vera",
+      "chapter": "Polycythemia Vera",
+      "start": 6831,
+      "end": 6860,
+      "pages": 30
+    },
+    {
+      "n": 85,
+      "slug": "wintrobe-ch85",
+      "title": "Wintrobe Ch85 · Myelofibrosis",
+      "chapter": "Myelofibrosis",
+      "start": 6861,
+      "end": 6916,
+      "pages": 56
+    },
+    {
+      "n": 86,
+      "slug": "wintrobe-ch86",
+      "title": "Wintrobe Ch86 · Eosinophilic Neoplasms and Hypereosinophilic Syndrome",
+      "chapter": "Eosinophilic Neoplasms and Hypereosinophilic Syndrome",
+      "start": 6917,
+      "end": 6971,
+      "pages": 55
+    },
+    {
+      "n": 87,
+      "slug": "wintrobe-ch87",
+      "title": "Wintrobe Ch87 · Systemic Mastocytosis",
+      "chapter": "Systemic Mastocytosis",
+      "start": 6972,
+      "end": 7046,
+      "pages": 75
+    },
+    {
+      "n": 88,
+      "slug": "wintrobe-ch88",
+      "title": "Wintrobe Ch88 · Diagnosis and Classification of Lymphomas",
+      "chapter": "Diagnosis and Classification of Lymphomas",
+      "start": 7047,
+      "end": 7116,
+      "pages": 70
+    },
+    {
+      "n": 89,
+      "slug": "wintrobe-ch89",
+      "title": "Wintrobe Ch89 · Molecular Genetic Aspects of Non-Hodgkin Lymphomas",
+      "chapter": "Molecular Genetic Aspects of Non-Hodgkin Lymphomas",
+      "start": 7117,
+      "end": 7249,
+      "pages": 133
+    },
+    {
+      "n": 90,
+      "slug": "wintrobe-ch90",
+      "title": "Wintrobe Ch90 · Non-Hodgkin Lymphoma in Adults",
+      "chapter": "Non-Hodgkin Lymphoma in Adults",
+      "start": 7250,
+      "end": 7444,
+      "pages": 195
+    },
+    {
+      "n": 91,
+      "slug": "wintrobe-ch91",
+      "title": "Wintrobe Ch91 · Non-Hodgkin Lymphoma in Children",
+      "chapter": "Non-Hodgkin Lymphoma in Children",
+      "start": 7445,
+      "end": 7486,
+      "pages": 42
+    },
+    {
+      "n": 92,
+      "slug": "wintrobe-ch92",
+      "title": "Wintrobe Ch92 · Chronic Lymphocytic Leukemia",
+      "chapter": "Chronic Lymphocytic Leukemia",
+      "start": 7487,
+      "end": 7614,
+      "pages": 128
+    },
+    {
+      "n": 93,
+      "slug": "wintrobe-ch93",
+      "title": "Wintrobe Ch93 · Hairy Cell Leukemia",
+      "chapter": "Hairy Cell Leukemia",
+      "start": 7615,
+      "end": 7713,
+      "pages": 99
+    },
+    {
+      "n": 94,
+      "slug": "wintrobe-ch94",
+      "title": "Wintrobe Ch94 · Cutaneous T-Cell Lymphoma: Mycosis Fungoides and Sézary Syndrome",
+      "chapter": "Cutaneous T-Cell Lymphoma: Mycosis Fungoides and Sézary Syndrome",
+      "start": 7714,
+      "end": 7867,
+      "pages": 154
+    },
+    {
+      "n": 95,
+      "slug": "wintrobe-ch95",
+      "title": "Wintrobe Ch95 · Hodgkin Lymphoma in Adults",
+      "chapter": "Hodgkin Lymphoma in Adults",
+      "start": 7868,
+      "end": 7942,
+      "pages": 75
+    },
+    {
+      "n": 96,
+      "slug": "wintrobe-ch96",
+      "title": "Wintrobe Ch96 · Hodgkin Lymphoma in Children",
+      "chapter": "Hodgkin Lymphoma in Children",
+      "start": 7943,
+      "end": 7991,
+      "pages": 49
+    },
+    {
+      "n": 97,
+      "slug": "wintrobe-ch97",
+      "title": "Wintrobe Ch97 · Practical Approach to the Evaluation of Monoclonal Gammopathies",
+      "chapter": "Practical Approach to the Evaluation of Monoclonal Gammopathies",
+      "start": 7992,
+      "end": 8023,
+      "pages": 32
+    },
+    {
+      "n": 98,
+      "slug": "wintrobe-ch98",
+      "title": "Wintrobe Ch98 · Molecular Genetic Aspects of Plasma Cell Disorders",
+      "chapter": "Molecular Genetic Aspects of Plasma Cell Disorders",
+      "start": 8024,
+      "end": 8059,
+      "pages": 36
+    },
+    {
+      "n": 99,
+      "slug": "wintrobe-ch99",
+      "title": "Wintrobe Ch99 · Monoclonal Gammopathy of Undetermined Significance and Smoldering Multiple Myeloma",
+      "chapter": "Monoclonal Gammopathy of Undetermined Significance and Smoldering Multiple Myeloma",
+      "start": 8060,
+      "end": 8117,
+      "pages": 58
+    },
+    {
+      "n": 100,
+      "slug": "wintrobe-ch100",
+      "title": "Wintrobe Ch100 · Multiple Myeloma",
+      "chapter": "Multiple Myeloma",
+      "start": 8118,
+      "end": 8309,
+      "pages": 192
+    },
+    {
+      "n": 101,
+      "slug": "wintrobe-ch101",
+      "title": "Wintrobe Ch101 · Immunoglobulin Light Chain Amyloidosis",
+      "chapter": "Immunoglobulin Light Chain Amyloidosis",
+      "start": 8310,
+      "end": 8433,
+      "pages": 124
+    },
+    {
+      "n": 102,
+      "slug": "wintrobe-ch102",
+      "title": "Wintrobe Ch102 · Waldenström Macroglobulinemia",
+      "chapter": "Waldenström Macroglobulinemia",
+      "start": 8434,
+      "end": 8464,
+      "pages": 31
+    },
+    {
+      "n": 103,
+      "slug": "wintrobe-ch103",
+      "title": "Wintrobe Ch103 · Monoclonal Gammopathies of Clinical Significance",
+      "chapter": "Monoclonal Gammopathies of Clinical Significance",
+      "start": 8465,
+      "end": 8509,
+      "pages": 45
+    },
+    {
+      "n": 104,
+      "slug": "wintrobe-ch104",
+      "title": "Wintrobe Ch104 · Hematopoietic Cell Transplantation",
+      "chapter": "Hematopoietic Cell Transplantation",
+      "start": 8510,
+      "end": 8583,
+      "pages": 74
+    },
+    {
+      "n": 105,
+      "slug": "wintrobe-ch105",
+      "title": "Wintrobe Ch105 · Hematopoietic Cell Transplantation for Nonmalignant Disorders",
+      "chapter": "Hematopoietic Cell Transplantation for Nonmalignant Disorders",
+      "start": 8584,
+      "end": 8664,
+      "pages": 81
+    },
+    {
+      "n": 106,
+      "slug": "wintrobe-ch106",
+      "title": "Wintrobe Ch106 · Hematopoietic Cell Transplantation for Hematologic Malignancies",
+      "chapter": "Hematopoietic Cell Transplantation for Hematologic Malignancies",
+      "start": 8665,
+      "end": 8748,
+      "pages": 84
+    },
+    {
+      "n": 107,
+      "slug": "wintrobe-ch107",
+      "title": "Wintrobe Ch107 · Graft-vs-Host Disease and Graft-vs-Tumor Response",
+      "chapter": "Graft-vs-Host Disease and Graft-vs-Tumor Response",
+      "start": 8749,
+      "end": 8823,
+      "pages": 75
+    },
+    {
+      "n": 108,
+      "slug": "wintrobe-ch108",
+      "title": "Wintrobe Ch108 · Late Effects After Hematopoietic Cell Transplantation",
+      "chapter": "Late Effects After Hematopoietic Cell Transplantation",
+      "start": 8824,
+      "end": 8858,
+      "pages": 35
+    }
+  ]
+}

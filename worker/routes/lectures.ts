@@ -6,8 +6,10 @@ export const lectureRoutes = new Hono<AppContext>();
 
 // ── Registry ──────────────────────────────────────────────────────────
 
-// List all lecture docs, ordered by sort_order, joined with the caller's
-// own annotation/note counts.
+// List all 複習班講義 docs, ordered by sort_order, joined with the caller's
+// own annotation/note counts. Filtered to kind='lecture' so the textbook
+// chapters (kind='textbook', migration 0033) don't flood this grid — those
+// are reached only via the全站選字 popup → /api/textbook/lookup.
 lectureRoutes.get('/', async (c) => {
   const email = c.var.email;
   const { results } = await c.env.DB
@@ -16,6 +18,7 @@ lectureRoutes.get('/', async (c) => {
         (SELECT COUNT(*) FROM lecture_annotations a WHERE a.slug = d.slug AND a.user_email = ?1) AS anno_count,
         (SELECT COUNT(*) FROM lecture_notes n WHERE n.slug = d.slug AND n.user_email = ?1) AS note_count
        FROM lecture_docs d
+       WHERE d.kind = 'lecture'
        ORDER BY d.sort_order`
     )
     .bind(email)

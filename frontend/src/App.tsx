@@ -38,6 +38,7 @@ import { PomodoroFab } from "./components/PomodoroFab";
 import { UpdatePrompt } from "./components/UpdatePrompt";
 import { ChatProvider } from "./chat/ChatProvider";
 import { ChatToaster } from "./chat/ChatToaster";
+import { TextbookSelectionListener } from "./components/TextbookLookupPopup";
 import { ChatBell } from "./chat/ChatBell";
 import { Home } from "./routes/Home";
 import { Landing } from "./routes/Landing";
@@ -216,6 +217,9 @@ export default function App() {
 					<Route path="*" element={<NotFound />} />
 				</Routes>
 			</main>
+
+			{/* 全站選字 → 「📖 Wintrobe 怎麼說?」教科書引用 popup。 */}
+			<TextbookSelectionListener />
 
 			{/* 番茄鐘 — floats over 複習模式 only (hides itself elsewhere). */}
 			<PomodoroFab />

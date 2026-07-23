@@ -90,6 +90,11 @@ export default function LectureReader() {
 	const notes = useLectureNotes(slug);
 	const annos = useLectureAnnotations(slug);
 
+	// Textbook chapters (kind='textbook', migration 0033) reuse this reader but
+	// are 唯讀參考書: no highlight tool, no notebook panel, no persisting selection
+	// actions. (The annotation/note endpoints return empty for these slugs anyway.)
+	const isTextbook = doc?.kind === "textbook";
+
 	// Fetch lecture metadata (incl. pdf_url).
 	useEffect(() => {
 		let alive = true;
@@ -157,6 +162,7 @@ export default function LectureReader() {
 	const importedRef = useRef(false);
 	useEffect(() => {
 		if (importedRef.current) return;
+		if (isTextbook) return; // 唯讀參考書 — never import/persist annotations
 		if (annos.loading || !doc) return;
 		const v = viewerRef.current;
 		if (!v) return;
@@ -366,6 +372,11 @@ export default function LectureReader() {
 						<span className="inline-block h-5 w-48 max-w-full animate-pulse rounded bg-ink-200/80 align-middle dark:bg-ink-700/60" />
 					)}
 				</h1>
+				{isTextbook && (
+					<span className="shrink-0 rounded-full border border-ink-200 px-2 py-0.5 text-[11px] text-ink-500 dark:border-ink-700 dark:text-ink-400">
+						參考書 · 唯讀
+					</span>
+				)}
 				{slug && (
 					<LectureSearchBox slug={slug} onJumpToPage={goToPage} />
 				)}
@@ -387,6 +398,7 @@ export default function LectureReader() {
 				onToggleHighlight={toggleHighlight}
 				onSnapshot={snapshot}
 				onTogglePanel={() => setPanelOpen((o) => !o)}
+				readOnly={isTextbook}
 			/>
 
 			{/* Body: viewer + panel */}
@@ -416,8 +428,9 @@ export default function LectureReader() {
 				</div>
 
 				{/* Drag handle (desktop only, when panel open). Sits between the
-				    viewer and the panel; dragging left widens the panel. */}
-				{panelOpen && (
+				    viewer and the panel; dragging left widens the panel. Textbooks
+				    have no notebook, so neither handle nor panel is rendered. */}
+				{!isTextbook && panelOpen && (
 					<div
 						onPointerDown={onResizeStart}
 						role="separator"
@@ -427,21 +440,23 @@ export default function LectureReader() {
 					/>
 				)}
 
-				<LecturePanel
-					open={panelOpen}
-					onClose={() => setPanelOpen(false)}
-					width={panelWidth}
-					currentPage={currentPage}
-					pageCount={doc?.page_count ?? 0}
-					notesLoading={notes.loading}
-					noteForPage={notes.noteForPage}
-					onSavePageNote={notes.savePageNote}
-					annotations={annos.annotations}
-					onJumpToAnnotation={jumpToAnnotation}
-					onDeleteAnnotation={deleteAnnotationRow}
-					pendingNote={pendingNote}
-					onConsumePending={() => setPendingNote(null)}
-				/>
+				{!isTextbook && (
+					<LecturePanel
+						open={panelOpen}
+						onClose={() => setPanelOpen(false)}
+						width={panelWidth}
+						currentPage={currentPage}
+						pageCount={doc?.page_count ?? 0}
+						notesLoading={notes.loading}
+						noteForPage={notes.noteForPage}
+						onSavePageNote={notes.savePageNote}
+						annotations={annos.annotations}
+						onJumpToAnnotation={jumpToAnnotation}
+						onDeleteAnnotation={deleteAnnotationRow}
+						pendingNote={pendingNote}
+						onConsumePending={() => setPendingNote(null)}
+					/>
+				)}
 			</div>
 
 			{/* Selection popup */}
@@ -454,6 +469,7 @@ export default function LectureReader() {
 					onCopyToNote={copyToNote}
 					onCopyText={copyText}
 					onDismiss={dismissPopup}
+					readOnly={isTextbook}
 				/>
 			)}
 

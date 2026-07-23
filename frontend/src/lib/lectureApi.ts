@@ -13,6 +13,10 @@ export interface LectureDoc {
 	created_at: number;
 	anno_count: number;
 	note_count: number;
+	// 'lecture' (複習班講義) | 'textbook' (Wintrobe 唯讀參考書章節, migration 0033).
+	// Textbook chapters open in this same reader via /lectures/:slug?page=N but
+	// suppress all write affordances (highlight / notebook).
+	kind?: "lecture" | "textbook";
 	// present only on single-doc GET
 	pdf_url?: string;
 }
