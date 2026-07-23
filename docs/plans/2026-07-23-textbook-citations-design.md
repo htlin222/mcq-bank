@@ -193,22 +193,42 @@ POST /api/textbook/lookup   { text, limit? }
   (避免打字時亂跳)、單一不擾動的小徽章(不是四顆大按鈕),點它才展開。
 - `frontend/src/components/TextbookLookupPopup.tsx`:
   - 動作「📖 Wintrobe 怎麼說?」→ `POST /api/textbook/lookup`。
-  - 結果:inline 顯示 top-1 snippet(`HighlightedSnippet`)+「開啟該頁」→
-    導到 `/lectures/<slug>?page=N`(deep-link 已支援),或 top-3 頁清單。
-  - popup 內嵌 §4 的回饋鈕。
+  - 結果呈現走 §3a 的三層階梯(popover snippet → 抽屜 → 完整閱讀器);
+    top-1 為主、可展開 top-3 頁清單。popup 內嵌 §4 回饋鈕。
 - 掛載點:`App.tsx` 根附近(全站生效);行動版用 bottom-sheet 呈現。
 - **與既有 lecture `SelectionPopup` 的關係**:抽共用的「popup 錨定/dismiss」
   邏輯,教科書 lookup 動作可反向加進 lecture reader 的 popup(讀講義時也能
   「問教科書」),但 v1 以全站件為主,不強制重構既有件。
 
-### 3a. 呈現:兩段式 + 抽屜(不是 dialog、不是整頁跳走)
+### 3a. 呈現:三層漸進階梯(預設停在最輕的一層)
 
-情境是「讀題/讀詳解讀到一半」選字去問,故**不能蓋掉原本的閱讀脈絡**。
+情境是「讀題/讀詳解讀到一半」選字去問,九成是一次 **glance**(瞄一眼),
+不是 reading session。UX 原則:**匹配「投入」與「意圖」**,預設用最輕、
+可秒關、不丟脈絡、且**不觸發 PDF 下載**的呈現。三者是**階梯,不是二選一**:
 
-**兩段式,把「便宜的預覽」與「載入 PDF」分開:**
-1. popup 先顯示 FTS 的 `snippet()` 命中片段 —— **完全不碰 PDF、不啟動
-   pdfium、零載入**,瞬間出結果。沒興趣的選取永遠不會載入大檔。
-2. 使用者點「開啟教科書該頁」才 boot pdfium + 抓該頁。
+**第 1 層｜Snippet popover(預設,零導航、零載入):**
+- 選字 → 小卡就地顯示 FTS 的 `snippet()` 命中片段(`HighlightedSnippet`
+  已高亮關鍵詞)+「第 X 冊 · p.N」+ §4 回饋鈕。
+- **完全不碰 PDF、不啟動 viewer、不下載任何東西**,瞬間出結果。六七成的人
+  看到這段就滿足。同時是最省載入成本的預設(呼應 §1d:開 PDF = 抓整冊)。
+
+**第 2 層｜側邊抽屜 / bottom-sheet(想在頁面脈絡裡看時,一鍵):**
+- popover 一顆「在教科書中查看」→ 桌機右側滑出 / 手機從下拉起,掛同一 viewer
+  跳到該頁;**底下那題仍在,關掉即回原位**。可翻前後頁。
+- **這時才 boot viewer + 下載該冊 3–8MB。**
+
+**第 3 層｜完整閱讀器(久讀,明確 opt-in):**
+- 抽屜角落「開啟完整閱讀器」用**真正的 `<a href="/lectures/:slug?page=N">`**
+  (deep-link 已支援),不是 JS 導航。
+- 好處:想留原題者 **Cmd/Ctrl-click 原生開新分頁**、想沉浸者一般點擊同分頁進
+  (上一頁能回)——**把「新分頁 vs 同分頁」交還使用者手勢**,不替他決定。
+
+**為何三個常見選項都不當預設:** 新分頁(整份載入 + 可能再過 Access + 手機體驗
+差)、同分頁導 `/lectures`(蓋掉當前題、回退有摩擦)、阻斷式 dialog(對 glance
+太重、之後還要再導頁)——都屬第 2/3 層的 opt-in,不該是選字後的第一反應。
+
+> **v1 最小範圍**:第 1 層(popover)+ 第 3 層(`<a>` 進完整閱讀器)即可上線;
+> 第 2 層抽屜是保留脈絡的加分項,可緊接著補。
 
 **呈現用側邊抽屜 / bottom-sheet**,掛同一個 `EmbedPDFViewer` 跳到目標頁:
 
