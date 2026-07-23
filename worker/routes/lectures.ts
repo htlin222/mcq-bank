@@ -118,6 +118,45 @@ lectureRoutes.get('/search', async (c) => {
   return c.json({ results, scope, q: qRaw, slug: hasSlug ? slugFilter : undefined });
 });
 
+// ── 歷屆考題 (past-exam MCQ links) ────────────────────────────────────
+//
+// One page's worth of MCQs, ranked by the offline pipeline
+// (scripts/build-slide-mcq-links.ts, see
+// docs/plans/2026-07-23-slide-mcq-links-design.md §5). Pure indexed D1
+// lookup — no Workers AI / Vectorize at request time (free-tier §7).
+//
+// `page` is 1-based (frontend sends currentPage + 1). The join table may
+// not exist yet on a fresh migration, or may simply have no rows for this
+// (slug, page) — either way this returns [] rather than throwing, so the
+// panel just shows its empty state.
+//
+// Declared BEFORE the /:slug route so it isn't swallowed by the param.
+lectureRoutes.get('/:slug/questions', async (c) => {
+  const slug = c.req.param('slug');
+  const page = parseInt(c.req.query('page') ?? '', 10);
+  if (!Number.isFinite(page)) return c.json([]);
+
+  try {
+    const { results } = await c.env.DB
+      .prepare(
+        `SELECT q.id, q.year, q."group", q.stem, q.options_json, q.answer,
+                lpq.score, lpq.rank,
+                (SELECT GROUP_CONCAT(tag, ' ') FROM question_tags t WHERE t.question_id = q.id) AS tags
+         FROM lecture_page_questions lpq
+         JOIN questions q ON q.id = lpq.question_id
+         WHERE lpq.slug = ?1 AND lpq.page = ?2
+         ORDER BY lpq.rank`
+      )
+      .bind(slug, page)
+      .all();
+
+    return c.json(results ?? []);
+  } catch {
+    // Table missing / not yet backfilled — degrade to empty, never 500.
+    return c.json([]);
+  }
+});
+
 // Single doc metadata + derived /pdf URL.
 lectureRoutes.get('/:slug', async (c) => {
   const slug = c.req.param('slug');
