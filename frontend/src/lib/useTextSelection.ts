@@ -24,6 +24,19 @@ function isInEditable(node: Node | null): boolean {
 const MIN_LEN = 3;
 const MAX_LEN = 400;
 
+// Only offer a lookup for selections with real lexical content. This suppresses
+// the badge on accidental / nonsense selections — pure punctuation ("…"),
+// numbers ("2023"), symbols, or stray whitespace — which would only ever come
+// back empty. (Such queries are already error-safe server-side: each token is a
+// quoted FTS phrase, so they match nothing rather than erroring. This is purely
+// to avoid a pointless badge.) A term needs ≥2 Latin letters (AML, CD20, …) or
+// ≥1 CJK character (白血病) to qualify.
+function hasMeaningfulContent(text: string): boolean {
+	const latin = text.match(/[a-zA-Z]/g)?.length ?? 0;
+	const cjk = text.match(/[㐀-鿿豈-﫿]/g)?.length ?? 0;
+	return latin >= 2 || cjk >= 1;
+}
+
 /**
  * App-wide text-selection watcher for the textbook-lookup popup.
  *
@@ -55,6 +68,10 @@ export function useTextSelection(): {
 			}
 			const text = sel.toString().replace(/\s+/g, " ").trim();
 			if (text.length < MIN_LEN || text.length > MAX_LEN) {
+				setSelection(null);
+				return;
+			}
+			if (!hasMeaningfulContent(text)) {
 				setSelection(null);
 				return;
 			}
