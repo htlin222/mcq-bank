@@ -344,13 +344,13 @@ async function settingsKeyboard(env: Env, u: TgUserRow): Promise<InlineKeyboard>
     { text: u.subscribed ? '🔔 每日推播:開' : '🔕 每日推播:關', callback_data: `set:sub:${u.subscribed ? 0 : 1}` },
   ]);
   rows.push(
-    hours.map((h) => ({ text: `${u.push_hour === h ? '•' : ''}${h}:00`, callback_data: `set:hour:${h}` })),
+    hours.map((h) => ({ text: `${u.push_hour === h ? '☑️ ' : ''}${h}:00`, callback_data: `set:hour:${h}` })),
   );
-  rows.push([{ text: `${u.year_filter == null ? '•' : ''}全部年份`, callback_data: 'set:year:all' }]);
+  rows.push([{ text: `${u.year_filter == null ? '☑️ ' : ''}全部年份`, callback_data: 'set:year:all' }]);
   for (let i = 0; i < years.length; i += 4) {
     rows.push(
       years.slice(i, i + 4).map((y) => ({
-        text: `${u.year_filter === y ? '•' : ''}${y}`,
+        text: `${u.year_filter === y ? '☑️ ' : ''}${y}`,
         callback_data: `set:year:${y}`,
       })),
     );

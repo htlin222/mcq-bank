@@ -83,12 +83,12 @@ test('formatQuestion 跳脫題幹且不含正解字樣', () => {
 test('formatReveal 標出對錯與正解', () => {
   const right = formatReveal(Q, 'A', 'A');
   assert.match(right, /答對了/);
-  assert.match(right, /✅ \(A\)/);
+  assert.match(right, /✅ <b>A\.<\/b>/);
   const wrong = formatReveal(Q, 'B', 'A');
   assert.match(wrong, /答錯/);
   assert.match(wrong, /正解是 <b>A<\/b>/);
-  assert.match(wrong, /❌ \(B\)/);
-  assert.match(wrong, /✅ \(A\)/);
+  assert.match(wrong, /❌ <b>B\.<\/b>/);
+  assert.match(wrong, /✅ <b>A\.<\/b>/);
 });
 
 test('tiptapToText 抽出純文字、清單加項目符號、圖片佔位', () => {

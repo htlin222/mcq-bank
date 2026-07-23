@@ -154,16 +154,19 @@ export type QuestionForBot = {
   options_json: string;
 };
 
-/** 題幹 + 選項的 HTML 文字(答題前,不含正解)。 */
+/**
+ * 題幹 + 選項的 HTML 文字(答題前,不含正解)。視覺層次:題號粗體、題幹用
+ * <blockquote> 縮排成一塊、選項字母粗體,和純文字題幹一眼分得開。
+ */
 export function formatQuestion(q: QuestionForBot, header?: string): string {
   const opts = parseOptions(q.options_json);
   const lines: string[] = [];
   if (header) lines.push(`<b>${escapeHtml(header)}</b>`);
   lines.push(`<b>${escapeHtml(String(q.year))}-${String(q.number).padStart(3, '0')}</b>`);
   lines.push('');
-  lines.push(escapeHtml(q.stem));
+  lines.push(`<blockquote>${escapeHtml(q.stem)}</blockquote>`);
   lines.push('');
-  for (const o of opts) lines.push(`(${escapeHtml(o.key)}) ${escapeHtml(o.text)}`);
+  for (const o of opts) lines.push(`<b>${escapeHtml(o.key)}.</b> ${escapeHtml(o.text)}`);
   return lines.join('\n');
 }
 
@@ -178,11 +181,11 @@ export function formatReveal(
   const lines: string[] = [];
   lines.push(`<b>${escapeHtml(String(q.year))}-${String(q.number).padStart(3, '0')}</b>`);
   lines.push('');
-  lines.push(escapeHtml(q.stem));
+  lines.push(`<blockquote>${escapeHtml(q.stem)}</blockquote>`);
   lines.push('');
   for (const o of opts) {
-    const mark = o.key === answer ? '✅' : o.key === chosen ? '❌' : '　';
-    lines.push(`${mark} (${escapeHtml(o.key)}) ${escapeHtml(o.text)}`);
+    const mark = o.key === answer ? '✅' : o.key === chosen ? '❌' : '▫️';
+    lines.push(`${mark} <b>${escapeHtml(o.key)}.</b> ${escapeHtml(o.text)}`);
   }
   lines.push('');
   lines.push(correct ? '答對了 🎉' : `答錯 —— 正解是 <b>${escapeHtml(answer)}</b>`);
