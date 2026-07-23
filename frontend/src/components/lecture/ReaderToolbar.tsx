@@ -31,6 +31,8 @@ export interface ReaderToolbarProps {
 	onToggleHighlight(): void;
 	onSnapshot(): void;
 	onTogglePanel(): void;
+	/** Textbook (唯讀參考書): hide the highlight tool + notebook panel toggle. */
+	readOnly?: boolean;
 }
 
 export function ReaderToolbar(props: ReaderToolbarProps) {
@@ -78,14 +80,16 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 
 			<Divider />
 
-			{/* Highlight tool toggle */}
-			<TBtn
-				label="螢光筆"
-				onClick={props.onToggleHighlight}
-				active={props.highlightActive}
-			>
-				<Highlighter size={17} />
-			</TBtn>
+			{/* Highlight tool toggle — write affordance, hidden for 唯讀 textbooks */}
+			{!props.readOnly && (
+				<TBtn
+					label="螢光筆"
+					onClick={props.onToggleHighlight}
+					active={props.highlightActive}
+				>
+					<Highlighter size={17} />
+				</TBtn>
+			)}
 
 			{/* Snapshot */}
 			<TBtn label="截圖" onClick={props.onSnapshot}>
@@ -94,14 +98,16 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 
 			<span className="flex-1" />
 
-			{/* Panel toggle */}
-			<TBtn
-				label="筆記面板"
-				onClick={props.onTogglePanel}
-				active={props.panelOpen}
-			>
-				<PanelRight size={17} />
-			</TBtn>
+			{/* Panel toggle — the notebook is meaningless for a 唯讀 reference book */}
+			{!props.readOnly && (
+				<TBtn
+					label="筆記面板"
+					onClick={props.onTogglePanel}
+					active={props.panelOpen}
+				>
+					<PanelRight size={17} />
+				</TBtn>
+			)}
 		</div>
 	);
 }

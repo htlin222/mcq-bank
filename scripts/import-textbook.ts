@@ -223,28 +223,49 @@ async function main() {
     }
 
     // ---------- Upsert lecture_docs (kind='textbook') + replace lecture_pages ----------
-    const now = Date.now();
-    const statements: string[] = [];
-    let totalPages = 0;
-    for (const r of rows) {
-      statements.push(buildUpsert(r, now));
-      statements.push(`DELETE FROM lecture_pages WHERE slug = '${escape(r.slug)}';`);
-      for (let i = 0; i < r.pagesText.length; i++) {
-        const page = i + 1;
-        const text = r.pagesText[i] ?? '';
-        statements.push(
-          `INSERT INTO lecture_pages (slug, page, text) VALUES ('${escape(r.slug)}', ${page}, '${escape(text)}');`,
-        );
-        totalPages++;
-      }
-    }
-    const sqlFile = join(workDir, 'import-textbook.sql');
+    // A full 108-chapter import is ~8,800 lecture_pages rows / ~17 MB of SQL —
+    // too big for one `wrangler d1 execute --file`. Chunk into batches at
+    // CHAPTER boundaries (so a chapter's DELETE + its page INSERTs never split
+    // across batches), keeping each execute well under D1's limits. Each batch
+    // is independently idempotent (upsert + delete-then-insert per slug), so a
+    // failure mid-run is safe to resume by re-running.
     const { writeFile } = await import('node:fs/promises');
-    await writeFile(sqlFile, statements.join('\n'), 'utf-8');
+    const now = Date.now();
+    const MAX_STMTS_PER_BATCH = 2500;
+
+    const perChapter = rows.map((r) => {
+      const stmts: string[] = [buildUpsert(r, now), `DELETE FROM lecture_pages WHERE slug = '${escape(r.slug)}';`];
+      for (let i = 0; i < r.pagesText.length; i++) {
+        stmts.push(
+          `INSERT INTO lecture_pages (slug, page, text) VALUES ('${escape(r.slug)}', ${i + 1}, '${escape(r.pagesText[i] ?? '')}');`,
+        );
+      }
+      return { slug: r.slug, stmts };
+    });
+    const totalPages = perChapter.reduce((n, c) => n + c.stmts.length - 2, 0);
+
+    // Pack chapters into batches without exceeding MAX_STMTS_PER_BATCH (a single
+    // chapter larger than the cap still goes out as its own batch).
+    const batches: string[][] = [];
+    let cur: string[] = [];
+    for (const ch of perChapter) {
+      if (cur.length > 0 && cur.length + ch.stmts.length > MAX_STMTS_PER_BATCH) {
+        batches.push(cur);
+        cur = [];
+      }
+      cur.push(...ch.stmts);
+    }
+    if (cur.length > 0) batches.push(cur);
+
     console.log(
-      `\n  D1 upsert ${rows.length} lecture_docs row(s) + ${totalPages} lecture_pages row(s) (${mode})`,
+      `\n  D1 upsert ${rows.length} lecture_docs row(s) + ${totalPages} lecture_pages row(s) in ${batches.length} batch(es) (${mode})`,
     );
-    await sh('wrangler', ['d1', 'execute', D1_DB, mode, '--file', sqlFile]);
+    for (let b = 0; b < batches.length; b++) {
+      const sqlFile = join(workDir, `import-textbook-${b}.sql`);
+      await writeFile(sqlFile, batches[b].join('\n'), 'utf-8');
+      console.log(`    batch ${b + 1}/${batches.length}  (${batches[b].length} statements)`);
+      await sh('wrangler', ['d1', 'execute', D1_DB, mode, '--file', sqlFile]);
+    }
 
     // ---------- Summary ----------
     console.log('\n✅ Textbook import complete.\n');

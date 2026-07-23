@@ -29,6 +29,8 @@ export interface SelectionPopupProps {
 	/** Yank the raw selected text to the clipboard. */
 	onCopyText(text: string): void;
 	onDismiss(): void;
+	/** Textbook (唯讀): hide 螢光標記 + 複製到筆記 (persisting write actions). */
+	readOnly?: boolean;
 }
 
 const POPUP_W = 288; // matches w-72
@@ -41,6 +43,7 @@ export function SelectionPopup({
 	onCopyToNote,
 	onCopyText,
 	onDismiss,
+	readOnly,
 }: SelectionPopupProps) {
 	const ref = useRef<HTMLDivElement>(null);
 	const [aiBusy, setAiBusy] = useState(false);
@@ -128,7 +131,9 @@ export function SelectionPopup({
 					label="複製"
 					onClick={() => onCopyText(selection.text)}
 				/>
-				<Action icon={<Highlighter size={14} />} label="螢光標記" onClick={onHighlight} />
+				{!readOnly && (
+					<Action icon={<Highlighter size={14} />} label="螢光標記" onClick={onHighlight} />
+				)}
 				<Action
 					icon={<Sparkles size={14} />}
 					label={aiBusy ? "解釋中…" : "AI 解釋"}
@@ -140,11 +145,13 @@ export function SelectionPopup({
 					label="OpenEvidence"
 					onClick={openOpenEvidence}
 				/>
-				<Action
-					icon={<NotebookPen size={14} />}
-					label="複製到筆記"
-					onClick={() => onCopyToNote(selection.text, currentPage)}
-				/>
+				{!readOnly && (
+					<Action
+						icon={<NotebookPen size={14} />}
+						label="複製到筆記"
+						onClick={() => onCopyToNote(selection.text, currentPage)}
+					/>
+				)}
 			</div>
 
 			{(aiBusy || aiText || aiError) && (
