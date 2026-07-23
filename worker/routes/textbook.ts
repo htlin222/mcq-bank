@@ -1,0 +1,100 @@
+import { Hono } from 'hono';
+import type { AppContext } from '../types';
+
+// ── 教科書引用 lookup ────────────────────────────────────────────────
+//
+// 「選字問 Wintrobe」:App 任何地方選取一段文字 → 這個端點在教科書逐頁
+// 全文索引(lecture_pages_fts,WHERE kind='textbook',migration 0033)裡
+// 找最相關的頁,回 (slug, page) + snippet,前端據此跳到 /lectures/:slug?page=N。
+//
+// 查詢策略(見 docs/plans/2026-07-23-textbook-citations-design.md §2,
+// 並經 pilot 實測校準):
+//   1. 連字符家族(U+00AD 軟連字符等)正規化成 ASCII '-',與匯入端一致,
+//      使 "T-cell" 兩側分詞相同(unicode61 以 '-' 為邊界)。
+//   2. 去英文停用詞 + 過短 token。
+//   3. **以 OR 串接** token(不是 AND):意圖是「跳到最相關的一頁」,
+//      bm25 會把命中最多 / 最罕見詞的頁排前面。實測顯示 OR 嚴格優於 AND —
+//      AND 對 "Auer rods"(頁面作 "Auer rod" 單數)、長句選取、"CRAB criteria"
+//      皆回空,OR 都能回正確頁且 top-1 命中。
+//
+// Phase 1 = 純 FTS,零 Workers AI / 零 Vectorize,亞毫秒級。回饋加權 re-rank
+// 與語意層是 Phase 2/3(設計 §4/§5),由回饋數據決定是否需要。
+export const textbookRoutes = new Hono<AppContext>();
+
+// 英文停用詞 — 讓常見虛詞不主導 bm25。醫學術語(疾病/藥物/基因)一律保留。
+const STOPWORDS = new Set(
+  (
+    'a an the of to in on at for and or but with without within from by as is are was ' +
+    'were be been being this that these those it its into due requiring required develop ' +
+    'developed developing patient patients using use used can may might will would should ' +
+    'their there here about over under between among across per via not no nor more most ' +
+    'less least than then also such other others another which who whom whose what when ' +
+    'where why how any all some each both either neither one two we they he she you i ' +
+    'have has had do does did done get got make made give given show shown case cases'
+  ).split(' '),
+);
+
+// Selected text → FTS5 MATCH expression. Returns '' when nothing usable remains.
+function buildFtsQuery(raw: string): string {
+  const seen = new Set<string>();
+  const toks: string[] = [];
+  for (const t of raw
+    .replace(/[­‐‑‒–—−]/g, '-') // hyphen/dash family → '-'
+    .toLowerCase()
+    .replace(/["()*:]/g, ' ') // strip FTS operator chars
+    .split(/\s+/)) {
+    const tok = t.trim();
+    if (tok.length < 2 || STOPWORDS.has(tok)) continue;
+    if (seen.has(tok)) continue;
+    seen.add(tok);
+    toks.push(tok);
+    if (toks.length >= 40) break; // bound query size for pathological long selections
+  }
+  // Each token as a quoted phrase (so a token like "bcr-abl" is tokenised
+  // internally but can't inject FTS operators); OR between them.
+  return toks.map((t) => '"' + t + '"').join(' OR ');
+}
+
+// POST /api/textbook/lookup  { text, limit? } → { hits: [{ slug, page, title, snippet, score }] }
+//
+// POST (not GET) because selected text can be long. Read-only; caller identity
+// is c.var.email (Access-verified upstream) though this endpoint returns only
+// shared textbook content, nothing per-user.
+textbookRoutes.post('/lookup', async (c) => {
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    body = {};
+  }
+  const rec = (body ?? {}) as Record<string, unknown>;
+  const text = typeof rec.text === 'string' ? rec.text.trim() : '';
+  const limit = Math.min(
+    10,
+    Math.max(1, parseInt(String(rec.limit ?? 5), 10) || 5),
+  );
+
+  if (text.length < 2) return c.json({ hits: [] });
+
+  const ftsQuery = buildFtsQuery(text);
+  if (ftsQuery.length === 0) return c.json({ hits: [] });
+
+  // snippet() column index 2 = text (slug=0, page=1, text=2), same as the
+  // lecture pdf search. char(1)/char(2) markers → HighlightedSnippet renders
+  // them as React <mark> elements (never dangerouslySetInnerHTML).
+  const sql = `SELECT
+      p.slug AS slug,
+      CAST(p.page AS INTEGER) AS page,
+      d.title AS title,
+      bm25(lecture_pages_fts) AS score,
+      snippet(lecture_pages_fts, 2, char(1), char(2), '…', 18) AS snippet
+    FROM lecture_pages_fts p
+    JOIN lecture_docs d ON d.slug = p.slug
+    WHERE lecture_pages_fts MATCH ?1
+      AND d.kind = 'textbook'
+    ORDER BY bm25(lecture_pages_fts)
+    LIMIT ?2`;
+
+  const { results } = await c.env.DB.prepare(sql).bind(ftsQuery, limit).all();
+  return c.json({ hits: results ?? [] });
+});
