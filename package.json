@@ -17,6 +17,7 @@
 		"db:migrate:remote": "wrangler d1 migrations apply $(node scripts/lib/cfg.mjs project.d1_db) --remote",
 		"db:pull": "./scripts/db-pull.sh",
 		"vectors:backfill": "node --experimental-strip-types scripts/backfill-vectors.ts",
+		"lecture-links:build": "node --experimental-strip-types scripts/build-slide-mcq-links.ts",
 		"db:seed:local": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --local --file=migrations/0004_hema_sample.sql",
 		"db:seed:remote": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --remote --file=migrations/0004_hema_sample.sql",
 		"r2:create": "wrangler r2 bucket create $(node scripts/lib/cfg.mjs project.r2_bucket)",
