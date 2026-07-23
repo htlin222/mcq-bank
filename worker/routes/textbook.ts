@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../types';
+import { TEXT_MODEL } from '../lib/ai-models';
 
 // ── 教科書引用 lookup ────────────────────────────────────────────────
 //
@@ -34,8 +35,10 @@ const STOPWORDS = new Set(
   ).split(' '),
 );
 
-// Selected text → FTS5 MATCH expression. Returns '' when nothing usable remains.
-function buildFtsQuery(raw: string): string {
+// Selected text → distinct content tokens (hyphen-normalised, stopwords &
+// too-short dropped, deduped, capped). The building block for both the rule
+// query and the AI-refined query.
+function tokenize(raw: string): string[] {
   const seen = new Set<string>();
   const toks: string[] = [];
   for (const t of raw
@@ -50,8 +53,13 @@ function buildFtsQuery(raw: string): string {
     toks.push(tok);
     if (toks.length >= 40) break; // bound query size for pathological long selections
   }
-  // Each token as a quoted phrase (so a token like "bcr-abl" is tokenised
-  // internally but can't inject FTS operators); OR between them.
+  return toks;
+}
+
+// Tokens → FTS5 MATCH expression. Each token is a quoted phrase (so "bcr-abl"
+// tokenises internally but can't inject FTS operators); OR between them so bm25
+// ranks by coverage/rarity. Returns '' when nothing usable remains.
+function toFtsQuery(toks: string[]): string {
   return toks.map((t) => '"' + t + '"').join(' OR ');
 }
 
@@ -74,23 +82,115 @@ textbookRoutes.post('/lookup', async (c) => {
     Math.max(1, parseInt(String(rec.limit ?? 5), 10) || 5),
   );
 
-  if (text.length < 2) return c.json({ textbook: [], lecture: [] });
+  if (text.length < 2) return c.json({ textbook: [], lecture: [], refined: false });
 
-  const ftsQuery = buildFtsQuery(text);
-  if (ftsQuery.length === 0) return c.json({ textbook: [], lecture: [] });
+  const tokens = tokenize(text);
+  const ftsQuery = toFtsQuery(tokens);
+  if (ftsQuery.length === 0)
+    return c.json({ textbook: [], lecture: [], refined: false });
 
-  // Two independent FTS passes — one per kind — so each corpus is ranked on its
-  // own bm25 scale (the terse Chinese 複習講義 slides and the dense English
-  // Wintrobe pages aren't comparable on one shared score). Both share the same
-  // lecture_pages_fts index; only the kind filter differs. The 複習講義 side is
-  // the same corpus the lecture reader's own search hits.
-  const [textbook, lecture] = await Promise.all([
+  const lecLimit = Math.min(3, limit);
+
+  // ── 1) Rule pass (always) — two independent FTS passes, one per kind, so each
+  // corpus is ranked on its own bm25 scale (the terse Chinese 複習講義 slides and
+  // the dense English Wintrobe pages aren't comparable on one shared score).
+  // Both share lecture_pages_fts; only the kind filter differs. The 複習講義 side
+  // is the same corpus the lecture reader's own search hits.
+  let [textbook, lecture] = await Promise.all([
     queryPages(c.env.DB, ftsQuery, 'textbook', limit),
-    queryPages(c.env.DB, ftsQuery, 'lecture', Math.min(3, limit)),
+    queryPages(c.env.DB, ftsQuery, 'lecture', lecLimit),
   ]);
 
-  return c.json({ textbook, lecture });
+  // ── 2) AI補一手 — only when the rule pass looks weak: a LONG selection (OR of
+  // many tokens is noisy) or a LOW-confidence textbook result (no hits, or the
+  // best bm25 is barely negative). Distil the selection to a few canonical
+  // medical terms and re-run the SAME rule pipeline with them. Never let AI
+  // errors surface — fall back to the rule results.
+  const LONG_TOKENS = 12;
+  const WEAK_TOP_SCORE = -2.0; // bm25: more negative = better; > this ≈ marginal
+  const top = textbook[0] as { score?: number } | undefined;
+  const isLong = tokens.length >= LONG_TOKENS;
+  const isWeak =
+    textbook.length === 0 ||
+    (typeof top?.score === 'number' && top.score > WEAK_TOP_SCORE);
+
+  let refined = false;
+  if (c.env.AI && (isLong || isWeak)) {
+    try {
+      const terms = await refineTerms(c.env.AI, text);
+      const refinedQuery = toFtsQuery(tokenize(terms.join(' ')));
+      if (refinedQuery && refinedQuery !== ftsQuery) {
+        const [tb2, lec2] = await Promise.all([
+          queryPages(c.env.DB, refinedQuery, 'textbook', limit),
+          queryPages(c.env.DB, refinedQuery, 'lecture', lecLimit),
+        ]);
+        // Prefer the AI-refined results when non-empty. We only get here because
+        // the rule pass was weak/long, so the distilled query is the more
+        // trustworthy one — and bm25 is NOT comparable across two different
+        // queries (the many-term rule query always scores "more negative"), so
+        // we must not score-compare rule vs AI. Fall back to rule per-group only
+        // where AI found nothing.
+        const usedTb = tb2.length > 0;
+        const usedLec = lec2.length > 0;
+        if (usedTb) textbook = tb2;
+        if (usedLec) lecture = lec2;
+        refined = usedTb || usedLec;
+      }
+    } catch {
+      // AI unavailable / model error / bad JSON — silently keep rule results.
+    }
+  }
+
+  return c.json({ textbook, lecture, refined });
 });
+
+// Distil a (possibly long / messy) selection into a few canonical hematology
+// search terms via Workers AI. Returns [] on any failure so the caller falls
+// back to the rule query. Kept tight (few tokens, temperature 0) for speed.
+async function refineTerms(ai: Ai, text: string): Promise<string[]> {
+  const out = await ai.run(TEXT_MODEL, {
+    max_tokens: 120,
+    temperature: 0,
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        type: 'object',
+        properties: {
+          terms: {
+            type: 'array',
+            minItems: 1,
+            maxItems: 6,
+            items: { type: 'string' },
+          },
+        },
+        required: ['terms'],
+        additionalProperties: false,
+      },
+    },
+    messages: [
+      {
+        role: 'system',
+        content:
+          'You extract search keywords for a hematology textbook full-text index. ' +
+          'Given a passage or phrase, return the 2–5 most salient, specific medical ' +
+          'search terms: disease names, drug names, gene/protein names, lab findings, ' +
+          'classifications. Prefer canonical terms and well-known abbreviations ' +
+          "(e.g. 'chronic myeloid leukemia' → also 'BCR-ABL'). Drop generic filler " +
+          'words. Output strictly as JSON {"terms": string[]}.',
+      },
+      { role: 'user', content: text.slice(0, 2000) },
+    ],
+  });
+  const raw = (out as { response?: unknown }).response;
+  let parsed: unknown = raw;
+  if (typeof raw === 'string') {
+    const m = raw.match(/\{[\s\S]*\}/);
+    parsed = m ? JSON.parse(m[0]) : {};
+  }
+  const terms = (parsed as { terms?: unknown })?.terms;
+  if (!Array.isArray(terms)) return [];
+  return terms.filter((t): t is string => typeof t === 'string').slice(0, 6);
+}
 
 // One FTS pass over lecture_pages_fts scoped to a single doc kind.
 // snippet() column index 2 = text (slug=0, page=1, text=2). char(1)/char(2)

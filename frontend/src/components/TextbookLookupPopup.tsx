@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Loader2 } from "lucide-react";
+import { BookOpen, GraduationCap, Loader2, Sparkles } from "lucide-react";
 import {
 	useTextSelection,
 	type TextSelection,
@@ -155,6 +155,12 @@ function TextbookLookupPopup({
 
 					{!loading && !error && result && !empty && (
 						<div className="divide-y divide-ink-100 dark:divide-ink-700">
+							{result.refined && (
+								<div className="flex items-center gap-1 px-3 py-1.5 text-[11px] text-ink-400 dark:text-ink-500">
+									<Sparkles size={11} />
+									已用 AI 精煉查詢
+								</div>
+							)}
 							{result.textbook.length > 0 && (
 								<ReferenceGroup
 									icon={<BookOpen size={13} />}
