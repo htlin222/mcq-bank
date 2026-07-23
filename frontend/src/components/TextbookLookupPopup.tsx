@@ -1,18 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { BookOpen, Loader2 } from "lucide-react";
+import { BookOpen, GraduationCap, Loader2 } from "lucide-react";
 import {
 	useTextSelection,
 	type TextSelection,
 } from "../lib/useTextSelection";
-import { lookupTextbook, type TextbookHit } from "../lib/textbookApi";
+import {
+	lookupReference,
+	type ReferenceHit,
+	type ReferenceResult,
+} from "../lib/textbookApi";
 import { HighlightedSnippet } from "./lecture/HighlightedSnippet";
 
-const POPUP_W = 320;
+const POPUP_W = 340;
 
 // App-wide mount point (see App.tsx). Watches text selections everywhere and
-// offers「📖 Wintrobe 怎麼說?」. `key` remounts the popup fresh for each new
+// offers「📖 查參考資料」— the top Wintrobe textbook page AND the top 複習講義
+// slides for the selection. `key` remounts the popup fresh for each new
 // selection so the badge always starts collapsed.
 export function TextbookSelectionListener() {
 	const { selection, clear } = useTextSelection();
@@ -26,8 +31,7 @@ export function TextbookSelectionListener() {
 	);
 }
 
-// Strip the redundant "Wintrobe " prefix from the stored title for compact
-// display (title is "Wintrobe Ch92 · Chronic Lymphocytic Leukemia").
+// "Wintrobe Ch92 · Chronic Lymphocytic Leukemia" → "Ch92 · Chronic …"
 function chapterLabel(title: string): string {
 	return title.replace(/^Wintrobe\s+/, "");
 }
@@ -42,7 +46,7 @@ function TextbookLookupPopup({
 	const [expanded, setExpanded] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(false);
-	const [hits, setHits] = useState<TextbookHit[] | null>(null);
+	const [result, setResult] = useState<ReferenceResult | null>(null);
 	const rootRef = useRef<HTMLDivElement>(null);
 
 	// Dismiss on Esc, on scroll/resize (the anchor rect goes stale), and on
@@ -81,8 +85,8 @@ function TextbookLookupPopup({
 		setLoading(true);
 		setError(false);
 		try {
-			const { hits } = await lookupTextbook(selection.text, 5);
-			setHits(hits);
+			const r = await lookupReference(selection.text, 5);
+			setResult(r);
 		} catch {
 			setError(true);
 		} finally {
@@ -98,7 +102,7 @@ function TextbookLookupPopup({
 		Math.max(8, window.innerWidth - POPUP_W - 8),
 	);
 	const openUp =
-		expanded && rect.bottom + 280 > window.innerHeight && rect.top > 300;
+		expanded && rect.bottom + 300 > window.innerHeight && rect.top > 320;
 	const style: React.CSSProperties = {
 		position: "fixed",
 		left,
@@ -109,7 +113,8 @@ function TextbookLookupPopup({
 			: { top: rect.bottom + 8 }),
 	};
 
-	const top = hits && hits.length > 0 ? hits[0] : null;
+	const empty =
+		result && result.textbook.length === 0 && result.lecture.length === 0;
 
 	return createPortal(
 		<div
@@ -125,19 +130,14 @@ function TextbookLookupPopup({
 					className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ink-900 text-white dark:bg-ink-100 dark:text-ink-900 text-sm font-medium shadow-lg hover:opacity-90 transition whitespace-nowrap"
 				>
 					<BookOpen size={14} />
-					Wintrobe 怎麼說?
+					查參考資料
 				</button>
 			) : (
-				<div className="rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl overflow-hidden">
-					<div className="flex items-center gap-1.5 px-3 py-2 border-b border-ink-100 dark:border-ink-700 text-xs font-medium text-ink-500 dark:text-ink-400">
-						<BookOpen size={13} />
-						Wintrobe’s Clinical Hematology
-					</div>
-
+				<div className="rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl overflow-hidden max-h-[70vh] overflow-y-auto">
 					{loading && (
 						<div className="flex items-center gap-2 px-3 py-4 text-sm text-ink-500">
 							<Loader2 size={15} className="animate-spin" />
-							搜尋教科書…
+							搜尋教科書與講義…
 						</div>
 					)}
 
@@ -147,42 +147,85 @@ function TextbookLookupPopup({
 						</div>
 					)}
 
-					{!loading && !error && hits && hits.length === 0 && (
+					{!loading && !error && empty && (
 						<div className="px-3 py-4 text-sm text-ink-500 dark:text-ink-400">
-							教科書中找不到相關段落。
+							教科書與講義中找不到相關段落。
 						</div>
 					)}
 
-					{!loading && !error && top && hits && (
-						<div className="px-3 py-2.5">
-							{/* Layer 1 — snippet glance, zero navigation / zero PDF load */}
-							<div className="text-[13px] leading-relaxed text-ink-800 dark:text-ink-200">
-								<HighlightedSnippet text={top.snippet} />
-							</div>
-
-							{/* Layer 3 — real <a> deep-links (Cmd/Ctrl-click = new tab) */}
-							<div className="mt-2.5 pt-2 border-t border-ink-100 dark:border-ink-700 space-y-1">
-								{hits.slice(0, 3).map((h) => (
-									<Link
-										key={`${h.slug}:${h.page}`}
-										to={`/lectures/${h.slug}?page=${h.page}`}
-										onClick={(e) => {
-											if (!e.metaKey && !e.ctrlKey) onDismiss();
-										}}
-										className="flex items-center justify-between gap-2 px-1.5 py-1 rounded text-xs text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-700/60 transition"
-									>
-										<span className="truncate">{chapterLabel(h.title)}</span>
-										<span className="shrink-0 tabular-nums text-ink-400">
-											p.{h.page}
-										</span>
-									</Link>
-								))}
-							</div>
+					{!loading && !error && result && !empty && (
+						<div className="divide-y divide-ink-100 dark:divide-ink-700">
+							{result.textbook.length > 0 && (
+								<ReferenceGroup
+									icon={<BookOpen size={13} />}
+									label="Wintrobe 教科書"
+									hits={result.textbook}
+									labelOf={(h) => chapterLabel(h.title)}
+									onNavigate={onDismiss}
+								/>
+							)}
+							{result.lecture.length > 0 && (
+								<ReferenceGroup
+									icon={<GraduationCap size={13} />}
+									label="複習班講義"
+									hits={result.lecture}
+									labelOf={(h) => h.title}
+									onNavigate={onDismiss}
+								/>
+							)}
 						</div>
 					)}
 				</div>
 			)}
 		</div>,
 		document.body,
+	);
+}
+
+function ReferenceGroup({
+	icon,
+	label,
+	hits,
+	labelOf,
+	onNavigate,
+}: {
+	icon: React.ReactNode;
+	label: string;
+	hits: ReferenceHit[];
+	labelOf: (h: ReferenceHit) => string;
+	onNavigate: () => void;
+}) {
+	const top = hits[0];
+	return (
+		<div className="px-3 py-2.5">
+			<div className="flex items-center gap-1.5 mb-1.5 text-xs font-medium text-ink-500 dark:text-ink-400">
+				{icon}
+				{label}
+			</div>
+
+			{/* Layer 1 — snippet glance of the top hit, zero navigation / zero load */}
+			<div className="text-[13px] leading-relaxed text-ink-800 dark:text-ink-200">
+				<HighlightedSnippet text={top.snippet} />
+			</div>
+
+			{/* Layer 3 — real <a> deep-links (Cmd/Ctrl-click = new tab) */}
+			<div className="mt-2 space-y-0.5">
+				{hits.slice(0, 3).map((h) => (
+					<Link
+						key={`${h.slug}:${h.page}`}
+						to={`/lectures/${h.slug}?page=${h.page}`}
+						onClick={(e) => {
+							if (!e.metaKey && !e.ctrlKey) onNavigate();
+						}}
+						className="flex items-center justify-between gap-2 px-1.5 py-1 rounded text-xs text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-700/60 transition"
+					>
+						<span className="truncate">{labelOf(h)}</span>
+						<span className="shrink-0 tabular-nums text-ink-400">
+							p.{h.page}
+						</span>
+					</Link>
+				))}
+			</div>
+		</div>
 	);
 }

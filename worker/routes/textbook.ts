@@ -74,27 +74,50 @@ textbookRoutes.post('/lookup', async (c) => {
     Math.max(1, parseInt(String(rec.limit ?? 5), 10) || 5),
   );
 
-  if (text.length < 2) return c.json({ hits: [] });
+  if (text.length < 2) return c.json({ textbook: [], lecture: [] });
 
   const ftsQuery = buildFtsQuery(text);
-  if (ftsQuery.length === 0) return c.json({ hits: [] });
+  if (ftsQuery.length === 0) return c.json({ textbook: [], lecture: [] });
 
-  // snippet() column index 2 = text (slug=0, page=1, text=2), same as the
-  // lecture pdf search. char(1)/char(2) markers → HighlightedSnippet renders
-  // them as React <mark> elements (never dangerouslySetInnerHTML).
+  // Two independent FTS passes — one per kind — so each corpus is ranked on its
+  // own bm25 scale (the terse Chinese 複習講義 slides and the dense English
+  // Wintrobe pages aren't comparable on one shared score). Both share the same
+  // lecture_pages_fts index; only the kind filter differs. The 複習講義 side is
+  // the same corpus the lecture reader's own search hits.
+  const [textbook, lecture] = await Promise.all([
+    queryPages(c.env.DB, ftsQuery, 'textbook', limit),
+    queryPages(c.env.DB, ftsQuery, 'lecture', Math.min(3, limit)),
+  ]);
+
+  return c.json({ textbook, lecture });
+});
+
+// One FTS pass over lecture_pages_fts scoped to a single doc kind.
+// snippet() column index 2 = text (slug=0, page=1, text=2). char(1)/char(2)
+// markers → HighlightedSnippet renders them as React <mark> (never
+// dangerouslySetInnerHTML).
+function queryPages(
+  db: D1Database,
+  ftsQuery: string,
+  kind: 'textbook' | 'lecture',
+  limit: number,
+) {
   const sql = `SELECT
       p.slug AS slug,
       CAST(p.page AS INTEGER) AS page,
       d.title AS title,
+      d.instructor AS instructor,
       bm25(lecture_pages_fts) AS score,
       snippet(lecture_pages_fts, 2, char(1), char(2), '…', 18) AS snippet
     FROM lecture_pages_fts p
     JOIN lecture_docs d ON d.slug = p.slug
     WHERE lecture_pages_fts MATCH ?1
-      AND d.kind = 'textbook'
+      AND d.kind = ?2
     ORDER BY bm25(lecture_pages_fts)
-    LIMIT ?2`;
-
-  const { results } = await c.env.DB.prepare(sql).bind(ftsQuery, limit).all();
-  return c.json({ hits: results ?? [] });
-});
+    LIMIT ?3`;
+  return db
+    .prepare(sql)
+    .bind(ftsQuery, kind, limit)
+    .all()
+    .then((r) => r.results ?? []);
+}
