@@ -79,6 +79,40 @@ qpdf --linearize wintrobe.pdf wintrobe.linear.pdf   # 或 mutool clean -l
 - D1:100 MB PDF 抽文字約 5–30 MB / 5 GB。✅ FTS5 吃得下。
 - **零 Workers AI、零 Vectorize**(Phase 1 匯入純文字抽取)。
 
+### 1d. 大檔載入策略:先驗 Range,不行就拆章節冊
+
+「不要一次載入 100 MB」拆成兩個層次:
+
+- **層次 A — 渲染虛擬化(已具備):** `EmbedPDFViewer` 已註冊 `ScrollPlugin`
+  + `TilingPlugin`,只 rasterize 視窗附近幾頁,不會把 2000 頁全畫成 canvas。
+  講義與教科書都已享有,與檔案大小無關。
+- **層次 B — 網路下載(需驗證):** `worker/routes/pdf.ts` 的 Range/`206`
+  已就緒,**但 Worker 支援 Range ≠ client(pdfium)一定走 range**。
+
+**Phase 1 前置檢查(30 秒,列為第一項工作):** 開任一現有講義 →
+DevTools → Network → 觀察對 `/pdf/...` 的請求:
+
+- 多個 `206 Partial Content` → client 走 range 漸進載入 → 100 MB 單檔照抓
+  幾百 KB 即可,**維持單檔**(跨章連續捲動更順、匯入單純)。搭配
+  `qpdf --linearize` 讓首開更快。
+- 單一 `200` 拉完整份 → client 整份載入 → **改走拆冊**(下)。
+
+**拆冊 fallback(range 無效時的穩健解):**
+
+- **按章節拆**(讀 PDF 內建 outline/TOC 在章界切,用 `mutool` / `pdfcpu` /
+  `pdf-lib`),非固定頁數。100 MB / ~2000 頁 → 20–40 冊、各 3–8 MB;
+  嫌多可粗切 ~10 part。
+- 每冊一列 `lecture_docs`,`kind='textbook'`,命名慣例 `wintrobe-ch03`,
+  title「Wintrobe · Ch3 CLL」。離線一次性,匯入迴圈把各冊當獨立 doc。
+- **拆檔不搞碎任何功能:**
+  1. **頁碼**:每冊 page 從 1 重數;citation 存 `(slug, local_page)`,
+     FTS 的 `(slug, page)` 鍵天然對上,跳頁 = 該冊本地頁。零額外邏輯。
+  2. **搜尋不切碎**:`lecture_pages_fts` 同一張表,lookup `WHERE slug IN
+     (kind='textbook')` 跨所有冊一起 `bm25()` 排序,回最佳 `(slug, page)`。
+  3. **印刷頁碼**(書上「p.1423」)≠ PDF 內頁 index:如需顯示書本頁碼,
+     每冊存 `page_label_offset`(選配)。
+- 7 份講義單份 ~10 MB,無論層次 B 結果如何都秒開,**不需拆**。
+
 ---
 
 ## 2. 搜尋端點(泛化既有的 lecture FTS 搜尋)
@@ -125,6 +159,22 @@ transformation`),BM25 命中很強。**先上線,用 §4 的回饋按鈕蒐證**
 - **與既有 lecture `SelectionPopup` 的關係**:抽共用的「popup 錨定/dismiss」
   邏輯,教科書 lookup 動作可反向加進 lecture reader 的 popup(讀講義時也能
   「問教科書」),但 v1 以全站件為主,不強制重構既有件。
+
+### 3a. 呈現:兩段式 + 抽屜(不是 dialog、不是整頁跳走)
+
+情境是「讀題/讀詳解讀到一半」選字去問,故**不能蓋掉原本的閱讀脈絡**。
+
+**兩段式,把「便宜的預覽」與「載入 PDF」分開:**
+1. popup 先顯示 FTS 的 `snippet()` 命中片段 —— **完全不碰 PDF、不啟動
+   pdfium、零載入**,瞬間出結果。沒興趣的選取永遠不會載入大檔。
+2. 使用者點「開啟教科書該頁」才 boot pdfium + 抓該頁。
+
+**呈現用側邊抽屜 / bottom-sheet**,掛同一個 `EmbedPDFViewer` 跳到目標頁:
+
+- 桌機右側滑出、手機從下方拉起;底下那題仍在,關掉即回原位。
+- 抽屜內可翻前後頁(真正的 PDF 瀏覽器體驗),角落再給「在完整閱讀器開啟」
+  → `/lectures/:slug?page=N`(deep-link 已支援),供久讀。
+- **不用小 dialog**(翻頁太擠)、**不用整頁路由**(蓋掉原題、關掉回不去)。
 
 ---
 
@@ -190,8 +240,12 @@ CREATE INDEX idx_citfb_page ON citation_feedback(slug, page, verdict);
 
 ## 7. 分階段落地
 
-1. **Phase 1(純 FTS,零 AI)**:`kind` migration → 教科書匯入(線性化 + 逐頁文字)
-   → 泛化 `POST /api/textbook/lookup` → 全站選字 popup → 跳頁 + snippet 高亮。
+1. **Phase 1(純 FTS,零 AI)**:
+   0. **前置**:DevTools 驗 `/pdf` 是否回 `206`(§1d)→ 決定單檔或拆冊。
+   1. `kind` migration → 教科書匯入(線性化 / 依驗證結果拆章節冊 + 逐頁文字)。
+   2. 泛化 `POST /api/textbook/lookup`(FTS BM25)。
+   3. 全站選字 popup(§3)+ 兩段式抽屜呈現(§3a)→ 跳頁 + snippet 高亮。
+
    **這一階段就滿足核心需求。**
 2. **Phase 2**:`citation_feedback` 表 + popup 回饋鈕 + 夜間聚合 re-rank。
 3. **Phase 3(選配)**:Vectorize 逐頁語意層,只在回饋顯示 FTS 召回不足時補位。
