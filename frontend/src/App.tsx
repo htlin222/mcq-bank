@@ -122,7 +122,7 @@ export default function App() {
 			<ChatToaster />
 			<OfflineBanner />
 			{/* Top bar */}
-			<header className="sticky top-0 z-20 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
+			<header className="sticky top-0 z-30 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
 					<Link
 						to="/"

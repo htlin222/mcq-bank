@@ -67,6 +67,7 @@ export default function LectureReader() {
 
 	const [currentPage, setCurrentPage] = useState(0);
 	const [highlightActive, setHighlightActive] = useState(false);
+	const [panActive, setPanActive] = useState(false);
 	const [panelOpen, setPanelOpen] = useState(true);
 	const [thumbsOpen, setThumbsOpen] = useState(true);
 	// Desktop panel width (px). Persisted as a UI layout pref (not app state).
@@ -253,9 +254,83 @@ export default function LectureReader() {
 		setHighlightActive((active) => {
 			const nextActive = !active;
 			viewerRef.current?.setActiveTool(nextActive ? "highlight" : null);
+			// Highlighting and panning both claim the pointer — turning one on
+			// turns the other off.
+			if (nextActive) {
+				setPanActive(false);
+				viewerRef.current?.setPanMode(false);
+			}
 			return nextActive;
 		});
 	}, []);
+
+	// Hand/pan tool. Mutually exclusive with the highlight (text-selection) tool.
+	const togglePan = useCallback(() => {
+		setPanActive((active) => {
+			const nextActive = !active;
+			viewerRef.current?.setPanMode(nextActive);
+			if (nextActive) {
+				setHighlightActive(false);
+				viewerRef.current?.setActiveTool(null);
+			}
+			return nextActive;
+		});
+	}, []);
+
+	// Reader-wide keyboard shortcuts. Skipped while typing in an input/textarea/
+	// contenteditable or with a modifier held, so page-number entry, the lecture
+	// search box and note editing aren't hijacked.
+	//   h        toggle hand/pan tool
+	//   = / +    zoom in      -        zoom out
+	//   u / ←    prev page    d / →    next page
+	//   k / ↑    scroll up 30%    j / ↓    scroll down 30%
+	useEffect(() => {
+		function onKey(e: KeyboardEvent) {
+			if (e.metaKey || e.ctrlKey || e.altKey) return;
+			const t = e.target as HTMLElement | null;
+			if (
+				t &&
+				(t.tagName === "INPUT" ||
+					t.tagName === "TEXTAREA" ||
+					t.tagName === "SELECT" ||
+					t.isContentEditable)
+			)
+				return;
+			switch (e.key) {
+				case "h":
+					togglePan();
+					break;
+				case "=":
+				case "+":
+					zoomIn();
+					break;
+				case "-":
+					zoomOut();
+					break;
+				case "u":
+				case "ArrowLeft":
+					prev();
+					break;
+				case "d":
+				case "ArrowRight":
+					next();
+					break;
+				case "k":
+				case "ArrowUp":
+					viewerRef.current?.scrollByFraction(-0.3);
+					break;
+				case "j":
+				case "ArrowDown":
+					viewerRef.current?.scrollByFraction(0.3);
+					break;
+				default:
+					return;
+			}
+			e.preventDefault();
+		}
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [togglePan, zoomIn, zoomOut, prev, next]);
 
 	// Render the current page (with annotations baked in) to a PNG via pdfium and
 	// put it on the clipboard (download fallback).
@@ -386,6 +461,7 @@ export default function LectureReader() {
 				currentPage={currentPage}
 				pageCount={doc?.page_count ?? 0}
 				highlightActive={highlightActive}
+				panActive={panActive}
 				panelOpen={panelOpen}
 				thumbnailsOpen={thumbsOpen}
 				onToggleThumbnails={() => setThumbsOpen((o) => !o)}
@@ -395,6 +471,7 @@ export default function LectureReader() {
 				onZoomIn={zoomIn}
 				onZoomOut={zoomOut}
 				onZoomFit={zoomFit}
+				onTogglePan={togglePan}
 				onToggleHighlight={toggleHighlight}
 				onSnapshot={snapshot}
 				onTogglePanel={() => setPanelOpen((o) => !o)}
