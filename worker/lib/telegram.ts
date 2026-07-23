@@ -132,18 +132,17 @@ function isPosInt(s: string | undefined): boolean {
   return !!s && /^\d{1,3}$/.test(s) && Number(s) > 0;
 }
 
-/** 作答用的選項鍵盤:每列最多 2 顆,callback_data = ans:<qid>:<key>。 */
+/**
+ * 作答用的選項鍵盤:一列一顆(單欄),按鈕文字直接包完整選項「(A) 內容」,
+ * 點按鈕即作答,不必再回題幹對照字母。按鈕文字是純文字(非 HTML),不需跳脫。
+ * callback_data = ans:<qid>:<key>(僅字母,≤ 64 bytes)。
+ */
 export function buildAnswerKeyboard(qid: string, options: QuestionOption[]): InlineKeyboard {
-  const rows: InlineButton[][] = [];
-  for (let i = 0; i < options.length; i += 2) {
-    rows.push(
-      options.slice(i, i + 2).map((o) => ({
-        text: o.key,
-        callback_data: `ans:${qid}:${o.key}`,
-      })),
-    );
-  }
-  return { inline_keyboard: rows };
+  return {
+    inline_keyboard: options.map((o) => [
+      { text: `(${o.key}) ${o.text}`, callback_data: `ans:${qid}:${o.key}` },
+    ]),
+  };
 }
 
 export type QuestionForBot = {
@@ -155,18 +154,15 @@ export type QuestionForBot = {
 };
 
 /**
- * 題幹 + 選項的 HTML 文字(答題前,不含正解)。視覺層次:題號粗體、題幹用
- * <blockquote> 縮排成一塊、選項字母粗體,和純文字題幹一眼分得開。
+ * 題幹的 HTML 文字(答題前,不含正解)。題號粗體、題幹用 <blockquote> 縮排成塊。
+ * 選項不列在文字裡 —— 由 buildAnswerKeyboard 以單欄整段按鈕呈現,避免重複。
  */
 export function formatQuestion(q: QuestionForBot, header?: string): string {
-  const opts = parseOptions(q.options_json);
   const lines: string[] = [];
   if (header) lines.push(`<b>${escapeHtml(header)}</b>`);
   lines.push(`<b>${escapeHtml(String(q.year))}-${String(q.number).padStart(3, '0')}</b>`);
   lines.push('');
   lines.push(`<blockquote>${escapeHtml(q.stem)}</blockquote>`);
-  lines.push('');
-  for (const o of opts) lines.push(`<b>${escapeHtml(o.key)}.</b> ${escapeHtml(o.text)}`);
   return lines.join('\n');
 }
 
