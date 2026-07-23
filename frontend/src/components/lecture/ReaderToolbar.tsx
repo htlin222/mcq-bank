@@ -8,6 +8,7 @@ import {
 	ZoomIn,
 	ZoomOut,
 	Maximize,
+	Hand,
 	Highlighter,
 	Camera,
 	PanelRight,
@@ -18,6 +19,8 @@ export interface ReaderToolbarProps {
 	currentPage: number; // 0-based
 	pageCount: number;
 	highlightActive: boolean;
+	/** Hand/pan (drag-to-scroll) tool active. */
+	panActive: boolean;
 	panelOpen: boolean;
 	thumbnailsOpen: boolean;
 	onToggleThumbnails(): void;
@@ -28,6 +31,7 @@ export interface ReaderToolbarProps {
 	onZoomIn(): void;
 	onZoomOut(): void;
 	onZoomFit(): void;
+	onTogglePan(): void;
 	onToggleHighlight(): void;
 	onSnapshot(): void;
 	onTogglePanel(): void;
@@ -53,7 +57,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 			<Divider />
 
 			{/* Page nav */}
-			<TBtn label="上一頁" onClick={props.onPrev} disabled={atStart}>
+			<TBtn label="上一頁 (U / ←)" onClick={props.onPrev} disabled={atStart}>
 				<ChevronLeft size={18} />
 			</TBtn>
 			<PageIndicator
@@ -61,17 +65,17 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 				pageCount={props.pageCount}
 				onGoToPage={props.onGoToPage}
 			/>
-			<TBtn label="下一頁" onClick={props.onNext} disabled={atEnd}>
+			<TBtn label="下一頁 (D / →)" onClick={props.onNext} disabled={atEnd}>
 				<ChevronRight size={18} />
 			</TBtn>
 
 			<Divider />
 
 			{/* Zoom */}
-			<TBtn label="縮小" onClick={props.onZoomOut}>
+			<TBtn label="縮小 (-)" onClick={props.onZoomOut}>
 				<ZoomOut size={17} />
 			</TBtn>
-			<TBtn label="放大" onClick={props.onZoomIn}>
+			<TBtn label="放大 (+)" onClick={props.onZoomIn}>
 				<ZoomIn size={17} />
 			</TBtn>
 			<TBtn label="符合寬度" onClick={props.onZoomFit}>
@@ -79,6 +83,12 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 			</TBtn>
 
 			<Divider />
+
+			{/* Hand / pan tool — drag to scroll. Navigation only, so it stays
+			    available even for 唯讀 textbooks. */}
+			<TBtn label="手掌工具 (H)" onClick={props.onTogglePan} active={props.panActive}>
+				<Hand size={17} />
+			</TBtn>
 
 			{/* Highlight tool toggle — write affordance, hidden for 唯讀 textbooks */}
 			{!props.readOnly && (

@@ -124,6 +124,19 @@ export interface EmbedPDFViewerHandle {
 	/** Fit the page to the viewport width. */
 	zoomFit(): void;
 	/**
+	 * Scroll the viewport vertically by a fraction of its visible height
+	 * (positive = down, negative = up). Backs the keyboard paging shortcuts
+	 * (k/↑, j/↓) — the `<Viewport>` owns the overflow-auto DOM, so pixel-level
+	 * scrolling has to happen inside the viewer.
+	 */
+	scrollByFraction(fraction: number): void;
+	/**
+	 * Toggle the hand/pan (drag-to-scroll) tool. While active, dragging inside
+	 * the viewport pans the page instead of selecting text (pointerdown is
+	 * intercepted in the capture phase before the selection handlers see it).
+	 */
+	setPanMode(active: boolean): void;
+	/**
 	 * Activate an annotation tool by id (e.g. `'highlight'`), or `null` to
 	 * deactivate. See @embedpdf/plugin-annotation default tool ids.
 	 */
@@ -242,7 +255,77 @@ function ViewerInner({
 	// highlight action can read it synchronously.
 	const selectionRef = useRef<ViewerSelection | null>(null);
 
+	// Wraps the thumbnail rail + <Viewport>. <Viewport> doesn't expose a DOM
+	// ref, so we tag its scroll element with a sentinel class and query for it
+	// here — that node is what pixel-scrolling (k/j) and the hand/pan tool drive.
+	const wrapperRef = useRef<HTMLDivElement>(null);
+	const getScrollEl = useCallback(
+		(): HTMLElement | null =>
+			wrapperRef.current?.querySelector<HTMLElement>(".pdf-scroll-viewport") ??
+			null,
+		[],
+	);
+	// Hand/pan tool. Kept as viewer-local state (toggled via the imperative
+	// handle) so the drag effect can attach/detach its listeners.
+	const [panMode, setPanModeState] = useState(false);
+
 	const docId = activeDocumentId ?? "";
+
+	// Hand tool: drag inside the viewport to scroll. Listeners live in the
+	// capture phase so a pan drag is intercepted before the page's selection
+	// pointer handlers start a text selection.
+	useEffect(() => {
+		const el = getScrollEl();
+		if (!el || !panMode) return;
+		el.style.cursor = "grab";
+		el.style.userSelect = "none";
+		let dragging = false;
+		let startX = 0;
+		let startY = 0;
+		let startLeft = 0;
+		let startTop = 0;
+		const onDown = (e: PointerEvent) => {
+			if (e.button !== 0) return;
+			dragging = true;
+			startX = e.clientX;
+			startY = e.clientY;
+			startLeft = el.scrollLeft;
+			startTop = el.scrollTop;
+			el.style.cursor = "grabbing";
+			el.setPointerCapture?.(e.pointerId);
+			e.preventDefault();
+			e.stopPropagation();
+		};
+		const onMove = (e: PointerEvent) => {
+			if (!dragging) return;
+			el.scrollLeft = startLeft - (e.clientX - startX);
+			el.scrollTop = startTop - (e.clientY - startY);
+			e.preventDefault();
+			e.stopPropagation();
+		};
+		const onUp = (e: PointerEvent) => {
+			if (!dragging) return;
+			dragging = false;
+			el.style.cursor = "grab";
+			try {
+				el.releasePointerCapture?.(e.pointerId);
+			} catch {
+				/* pointer already released */
+			}
+		};
+		el.addEventListener("pointerdown", onDown, true);
+		el.addEventListener("pointermove", onMove, true);
+		el.addEventListener("pointerup", onUp, true);
+		el.addEventListener("pointercancel", onUp, true);
+		return () => {
+			el.removeEventListener("pointerdown", onDown, true);
+			el.removeEventListener("pointermove", onMove, true);
+			el.removeEventListener("pointerup", onUp, true);
+			el.removeEventListener("pointercancel", onUp, true);
+			el.style.cursor = "";
+			el.style.userSelect = "";
+		};
+	}, [panMode, getScrollEl]);
 
 	// Convert a page-space Rect into the popup-anchor shape.
 	const toRect = useCallback(
@@ -386,6 +469,14 @@ function ViewerInner({
 				if (!zoom || !docId) return;
 				zoom.forDocument(docId).requestZoom(ZoomMode.FitWidth);
 			},
+			scrollByFraction(fraction: number) {
+				const el = getScrollEl();
+				if (!el) return;
+				el.scrollBy({ top: fraction * el.clientHeight, behavior: "smooth" });
+			},
+			setPanMode(active: boolean) {
+				setPanModeState(active);
+			},
 			setActiveTool(tool: string | null) {
 				if (!annotation || !docId) return;
 				annotation.forDocument(docId).setActiveTool(tool);
@@ -428,7 +519,7 @@ function ViewerInner({
 				});
 			},
 		}),
-		[scroll, zoom, annotation, render, docId, createHighlightFromSelection],
+		[scroll, zoom, annotation, render, docId, createHighlightFromSelection, getScrollEl],
 	);
 
 	if (!activeDocumentId) {
@@ -436,7 +527,7 @@ function ViewerInner({
 	}
 
 	return (
-		<div className="flex h-full w-full">
+		<div ref={wrapperRef} className="flex h-full w-full">
 			{showThumbnails && (
 				<ThumbnailRail
 					documentId={activeDocumentId}
@@ -450,7 +541,7 @@ function ViewerInner({
 			)}
 			<Viewport
 				documentId={activeDocumentId}
-				className="h-full min-w-0 flex-1 overflow-auto bg-ink-100 dark:bg-ink-900"
+				className="pdf-scroll-viewport h-full min-w-0 flex-1 overflow-auto bg-ink-100 dark:bg-ink-900"
 			>
 			<Scroller
 				documentId={activeDocumentId}
