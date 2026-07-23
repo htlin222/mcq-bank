@@ -42,8 +42,13 @@ export interface LectureNote {
 
 // ── Registry ──────────────────────────────────────────────────────────
 
-export function listLectures(): Promise<LectureDoc[]> {
-	return api.get<LectureDoc[]>("/api/lectures");
+// kind='lecture' (複習班講義, default) or 'textbook' (Wintrobe 章節). The grid
+// on /lectures switches between the two via a tab.
+export function listLectures(
+	kind: "lecture" | "textbook" = "lecture",
+): Promise<LectureDoc[]> {
+	const q = kind === "textbook" ? "?kind=textbook" : "";
+	return api.get<LectureDoc[]>(`/api/lectures${q}`);
 }
 
 export function getLecture(slug: string): Promise<LectureDoc> {

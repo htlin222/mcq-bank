@@ -9,6 +9,7 @@ import {
 	type LectureSearchScope,
 } from "../lib/lectureApi";
 import { HighlightedSnippet } from "../components/lecture/HighlightedSnippet";
+import { TextbookToc } from "../components/lecture/TextbookToc";
 import {
 	LectureCardSkeletonGrid,
 	LectureSearchResultSkeleton,
@@ -17,7 +18,11 @@ import {
 // Wait this long after the last keystroke before firing the search request.
 const SEARCH_DEBOUNCE_MS = 250;
 
+// Which registry the grid is showing: 複習班講義 vs. the Wintrobe textbook.
+type LectureView = "lecture" | "textbook";
+
 export default function Lectures() {
+	const [view, setView] = useState<LectureView>("lecture");
 	const [docs, setDocs] = useState<LectureDoc[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
@@ -31,10 +36,13 @@ export default function Lectures() {
 	const trimmed = query.trim();
 	const searchMode = trimmed.length > 0;
 
-	// Initial registry load — unchanged from the pre-search version.
+	// Registry load — refetches when the view tab changes. Reset docs to null
+	// first so the skeleton shows instead of the previous tab's cards.
 	useEffect(() => {
 		let alive = true;
-		listLectures()
+		setDocs(null);
+		setError(null);
+		listLectures(view)
 			.then((d) => {
 				if (alive) setDocs(d);
 			})
@@ -44,7 +52,7 @@ export default function Lectures() {
 		return () => {
 			alive = false;
 		};
-	}, []);
+	}, [view]);
 
 	// Debounced search. The cleanup races a stale request: if the query
 	// changes while a fetch is in flight, we ignore its result.
@@ -79,9 +87,12 @@ export default function Lectures() {
 
 	return (
 		<div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 py-8">
-			<h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-6">
-				複習班講義
-			</h1>
+			<div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-3">
+				<h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100">
+					{view === "textbook" ? "Wintrobe 教科書" : "複習班講義"}
+				</h1>
+				<ViewTabs view={view} onView={setView} />
+			</div>
 
 			<SearchBar
 				query={query}
@@ -99,14 +110,18 @@ export default function Lectures() {
 				/>
 			) : error ? (
 				<p className="text-rose-600 dark:text-rose-400 text-sm">
-					無法載入講義:{error}
+					無法載入{view === "textbook" ? "教科書" : "講義"}:{error}
 				</p>
 			) : docs === null ? (
 				<LectureCardSkeletonGrid count={6} />
 			) : docs.length === 0 ? (
 				<p className="text-ink-400 dark:text-ink-500 text-sm">
-					目前還沒有任何講義。
+					{view === "textbook"
+						? "目前還沒有匯入教科書章節。"
+						: "目前還沒有任何講義。"}
 				</p>
+			) : view === "textbook" ? (
+				<TextbookToc docs={docs} />
 			) : (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{docs.map((d) => (
@@ -115,6 +130,62 @@ export default function Lectures() {
 				</div>
 			)}
 		</div>
+	);
+}
+
+// ── View tabs (講義 / 教科書) ──────────────────────────────────────────
+
+function ViewTabs({
+	view,
+	onView,
+}: {
+	view: "lecture" | "textbook";
+	onView: (v: "lecture" | "textbook") => void;
+}) {
+	return (
+		<div
+			className="inline-flex rounded border border-ink-200 dark:border-ink-700 overflow-hidden"
+			role="tablist"
+			aria-label="講義類別"
+		>
+			<ViewTab
+				active={view === "lecture"}
+				onClick={() => onView("lecture")}
+				label="複習班講義"
+			/>
+			<ViewTab
+				active={view === "textbook"}
+				onClick={() => onView("textbook")}
+				label="Wintrobe 教科書"
+			/>
+		</div>
+	);
+}
+
+function ViewTab({
+	active,
+	onClick,
+	label,
+}: {
+	active: boolean;
+	onClick: () => void;
+	label: string;
+}) {
+	return (
+		<button
+			type="button"
+			role="tab"
+			onClick={onClick}
+			aria-selected={active}
+			className={
+				"px-3 py-1.5 text-sm transition " +
+				(active
+					? "bg-accent text-white"
+					: "bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700")
+			}
+		>
+			{label}
+		</button>
 	);
 }
 
