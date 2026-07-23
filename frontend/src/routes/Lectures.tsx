@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Highlighter, NotebookPen, Search } from "lucide-react";
 import {
 	listLectures,
@@ -22,7 +22,21 @@ const SEARCH_DEBOUNCE_MS = 250;
 type LectureView = "lecture" | "textbook";
 
 export default function Lectures() {
-	const [view, setView] = useState<LectureView>("lecture");
+	// The active tab lives in the URL (?tab=textbook) so the reader's back link
+	// can return here to the right tab and the choice is shareable/bookmarkable.
+	const [searchParams, setSearchParams] = useSearchParams();
+	const view: LectureView =
+		searchParams.get("tab") === "textbook" ? "textbook" : "lecture";
+	const setView = (v: LectureView) =>
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				if (v === "textbook") next.set("tab", "textbook");
+				else next.delete("tab");
+				return next;
+			},
+			{ replace: true },
+		);
 	const [docs, setDocs] = useState<LectureDoc[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 

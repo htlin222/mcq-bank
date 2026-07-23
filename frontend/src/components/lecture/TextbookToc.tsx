@@ -12,7 +12,17 @@ import {
 // structure (see wintrobeToc.ts), as a nested accordion. Chapters missing from
 // `docs` (not imported) are simply skipped so counts reflect what's readable.
 
-export function TextbookToc({ docs }: { docs: LectureDoc[] }) {
+export function TextbookToc({
+	docs,
+	currentChapter,
+	onNavigate,
+}: {
+	docs: LectureDoc[];
+	/** Highlight this chapter and default-open the part that contains it. */
+	currentChapter?: number;
+	/** Called when a chapter link is clicked — lets a popover host close itself. */
+	onNavigate?: () => void;
+}) {
 	// chapter number → its lecture_docs row, for O(1) lookup while grouping.
 	const byNum = useMemo(() => {
 		const m = new Map<number, LectureDoc>();
@@ -23,8 +33,20 @@ export function TextbookToc({ docs }: { docs: LectureDoc[] }) {
 		return m;
 	}, [docs]);
 
-	// Open the first part by default so the view isn't a wall of closed rows.
-	const [openParts, setOpenParts] = useState<Set<number>>(() => new Set([1]));
+	// The part that owns `currentChapter` (or Part 1) opens by default, so the
+	// view isn't a wall of closed rows and the current chapter is in sight.
+	const initialOpenPart = useMemo(() => {
+		if (currentChapter != null) {
+			const p = WINTROBE_TOC.find((part) =>
+				part.sections.some((s) => s.chapters.includes(currentChapter)),
+			);
+			if (p) return p.n;
+		}
+		return 1;
+	}, [currentChapter]);
+	const [openParts, setOpenParts] = useState<Set<number>>(
+		() => new Set([initialOpenPart]),
+	);
 
 	const toggle = (n: number) =>
 		setOpenParts((prev) => {
@@ -42,6 +64,8 @@ export function TextbookToc({ docs }: { docs: LectureDoc[] }) {
 					byNum={byNum}
 					open={openParts.has(part.n)}
 					onToggle={() => toggle(part.n)}
+					currentChapter={currentChapter}
+					onNavigate={onNavigate}
 				/>
 			))}
 		</div>
@@ -60,11 +84,15 @@ function PartRow({
 	byNum,
 	open,
 	onToggle,
+	currentChapter,
+	onNavigate,
 }: {
 	part: WintrobePart;
 	byNum: Map<number, LectureDoc>;
 	open: boolean;
 	onToggle: () => void;
+	currentChapter?: number;
+	onNavigate?: () => void;
 }) {
 	const total = countPresent(part, byNum);
 	return (
@@ -102,6 +130,8 @@ function PartRow({
 							title={s.title}
 							chapters={s.chapters}
 							byNum={byNum}
+							currentChapter={currentChapter}
+							onNavigate={onNavigate}
 						/>
 					))}
 				</div>
@@ -114,10 +144,14 @@ function SectionBlock({
 	title,
 	chapters,
 	byNum,
+	currentChapter,
+	onNavigate,
 }: {
 	title: string;
 	chapters: number[];
 	byNum: Map<number, LectureDoc>;
+	currentChapter?: number;
+	onNavigate?: () => void;
 }) {
 	const present = chapters.filter((c) => byNum.has(c));
 	if (present.length === 0) return null;
@@ -130,24 +164,54 @@ function SectionBlock({
 			)}
 			<ul className="grid gap-1.5 sm:grid-cols-2">
 				{present.map((c) => (
-					<ChapterRow key={c} n={c} doc={byNum.get(c)!} />
+					<ChapterRow
+						key={c}
+						n={c}
+						doc={byNum.get(c)!}
+						current={c === currentChapter}
+						onNavigate={onNavigate}
+					/>
 				))}
 			</ul>
 		</div>
 	);
 }
 
-function ChapterRow({ n, doc }: { n: number; doc: LectureDoc }) {
+function ChapterRow({
+	n,
+	doc,
+	current,
+	onNavigate,
+}: {
+	n: number;
+	doc: LectureDoc;
+	current?: boolean;
+	onNavigate?: () => void;
+}) {
 	// doc.title is "Wintrobe Ch76 · <chapter title>" — drop the "Wintrobe " prefix
 	// (the Part context already makes the book clear) so "Ch76 · …" leads.
 	const label = doc.title.replace(/^Wintrobe\s+/, "");
 	return (
 		<li>
 			<Link
+				onClick={onNavigate}
+				aria-current={current ? "page" : undefined}
 				to={`/lectures/${doc.slug}`}
-				className="group flex items-baseline gap-2 rounded px-2 py-1.5 hover:bg-ink-50 dark:hover:bg-ink-700/50 transition"
+				className={
+					"group flex items-baseline gap-2 rounded px-2 py-1.5 transition " +
+					(current
+						? "bg-accent/10 ring-1 ring-accent/40"
+						: "hover:bg-ink-50 dark:hover:bg-ink-700/50")
+				}
 			>
-				<span className="font-mono text-xs text-ink-400 dark:text-ink-500 shrink-0 w-10">
+				<span
+					className={
+						"font-mono text-xs shrink-0 w-10 " +
+						(current
+							? "text-accent"
+							: "text-ink-400 dark:text-ink-500")
+					}
+				>
 					Ch{n}
 				</span>
 				<span className="text-sm text-ink-800 dark:text-ink-200 group-hover:text-accent transition leading-snug">

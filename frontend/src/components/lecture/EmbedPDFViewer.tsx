@@ -271,61 +271,62 @@ function ViewerInner({
 
 	const docId = activeDocumentId ?? "";
 
-	// Hand tool: drag inside the viewport to scroll. Listeners live in the
-	// capture phase so a pan drag is intercepted before the page's selection
-	// pointer handlers start a text selection.
-	useEffect(() => {
-		const el = getScrollEl();
-		if (!el || !panMode) return;
-		el.style.cursor = "grab";
-		el.style.userSelect = "none";
-		let dragging = false;
-		let startX = 0;
-		let startY = 0;
-		let startLeft = 0;
-		let startTop = 0;
-		const onDown = (e: PointerEvent) => {
+	// Hand tool: while panMode is on, a transparent overlay is rendered over the
+	// viewport (see JSX below). It owns the pointer stream itself, so a pan drag
+	// never competes with EmbedPDF's per-page selection/annotation pointer
+	// handlers — dragging the overlay just scrolls the underlying viewport. An
+	// earlier attempt attached capture-phase listeners to the scroll element and
+	// raced those per-page handlers unreliably; the overlay sidesteps that
+	// entirely. Wheel is forwarded so scrolling still works with the tool active.
+	const panDrag = useRef({
+		active: false,
+		x: 0,
+		y: 0,
+		left: 0,
+		top: 0,
+	});
+	const onPanDown = useCallback(
+		(e: React.PointerEvent<HTMLDivElement>) => {
 			if (e.button !== 0) return;
-			dragging = true;
-			startX = e.clientX;
-			startY = e.clientY;
-			startLeft = el.scrollLeft;
-			startTop = el.scrollTop;
-			el.style.cursor = "grabbing";
-			el.setPointerCapture?.(e.pointerId);
-			e.preventDefault();
-			e.stopPropagation();
-		};
-		const onMove = (e: PointerEvent) => {
-			if (!dragging) return;
-			el.scrollLeft = startLeft - (e.clientX - startX);
-			el.scrollTop = startTop - (e.clientY - startY);
-			e.preventDefault();
-			e.stopPropagation();
-		};
-		const onUp = (e: PointerEvent) => {
-			if (!dragging) return;
-			dragging = false;
-			el.style.cursor = "grab";
-			try {
-				el.releasePointerCapture?.(e.pointerId);
-			} catch {
-				/* pointer already released */
-			}
-		};
-		el.addEventListener("pointerdown", onDown, true);
-		el.addEventListener("pointermove", onMove, true);
-		el.addEventListener("pointerup", onUp, true);
-		el.addEventListener("pointercancel", onUp, true);
-		return () => {
-			el.removeEventListener("pointerdown", onDown, true);
-			el.removeEventListener("pointermove", onMove, true);
-			el.removeEventListener("pointerup", onUp, true);
-			el.removeEventListener("pointercancel", onUp, true);
-			el.style.cursor = "";
-			el.style.userSelect = "";
-		};
-	}, [panMode, getScrollEl]);
+			const el = getScrollEl();
+			if (!el) return;
+			panDrag.current = {
+				active: true,
+				x: e.clientX,
+				y: e.clientY,
+				left: el.scrollLeft,
+				top: el.scrollTop,
+			};
+			e.currentTarget.setPointerCapture(e.pointerId);
+		},
+		[getScrollEl],
+	);
+	const onPanMove = useCallback(
+		(e: React.PointerEvent<HTMLDivElement>) => {
+			const d = panDrag.current;
+			if (!d.active) return;
+			const el = getScrollEl();
+			if (!el) return;
+			el.scrollLeft = d.left - (e.clientX - d.x);
+			el.scrollTop = d.top - (e.clientY - d.y);
+		},
+		[getScrollEl],
+	);
+	const onPanUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+		panDrag.current.active = false;
+		try {
+			e.currentTarget.releasePointerCapture(e.pointerId);
+		} catch {
+			/* pointer already released */
+		}
+	}, []);
+	const onPanWheel = useCallback(
+		(e: React.WheelEvent<HTMLDivElement>) => {
+			const el = getScrollEl();
+			if (el) el.scrollBy({ top: e.deltaY, left: e.deltaX });
+		},
+		[getScrollEl],
+	);
 
 	// Convert a page-space Rect into the popup-anchor shape.
 	const toRect = useCallback(
@@ -539,9 +540,10 @@ function ViewerInner({
 					}
 				/>
 			)}
+			<div className="relative h-full min-w-0 flex-1">
 			<Viewport
 				documentId={activeDocumentId}
-				className="pdf-scroll-viewport h-full min-w-0 flex-1 overflow-auto bg-ink-100 dark:bg-ink-900"
+				className="pdf-scroll-viewport h-full w-full overflow-auto bg-ink-100 dark:bg-ink-900"
 			>
 			<Scroller
 				documentId={activeDocumentId}
@@ -599,6 +601,22 @@ function ViewerInner({
 				)}
 			/>
 			</Viewport>
+			{/* Hand/pan overlay — only present while the tool is active. Owns its
+			    own pointer stream (no race with EmbedPDF's page handlers) and
+			    forwards wheel so scrolling keeps working. */}
+			{panMode && (
+				<div
+					className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing"
+					style={{ touchAction: "none" }}
+					onPointerDown={onPanDown}
+					onPointerMove={onPanMove}
+					onPointerUp={onPanUp}
+					onPointerCancel={onPanUp}
+					onWheel={onPanWheel}
+					aria-hidden="true"
+				/>
+			)}
+			</div>
 		</div>
 	);
 }
@@ -648,7 +666,15 @@ function ThumbnailRail({
 							<ThumbImg
 								documentId={documentId}
 								meta={m}
-								style={{ display: "block" }}
+								// meta.width/height are the INTENDED display size (CSS px).
+								// The bitmap itself is rendered at devicePixelRatio for
+								// sharpness, so without an explicit size the <img> shows at
+								// ~2× and the fixed-height wrapper + overflow-hidden crops it.
+								style={{
+									display: "block",
+									width: m.width,
+									height: m.height,
+								}}
 							/>
 						</button>
 						<span

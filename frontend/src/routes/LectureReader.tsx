@@ -16,6 +16,7 @@ import {
 	type AnnotationTransferItem,
 } from "../components/lecture/EmbedPDFViewer";
 import { ReaderToolbar } from "../components/lecture/ReaderToolbar";
+import { TextbookChapterNav } from "../components/lecture/TextbookChapterNav";
 import { SelectionPopup } from "../components/lecture/SelectionPopup";
 import { LecturePanel } from "../components/lecture/LecturePanel";
 import { LectureSearchBox } from "../components/lecture/LectureSearchBox";
@@ -70,6 +71,33 @@ export default function LectureReader() {
 	const [panActive, setPanActive] = useState(false);
 	const [panelOpen, setPanelOpen] = useState(true);
 	const [thumbsOpen, setThumbsOpen] = useState(true);
+
+	// Fullscreen reading. In fullscreen the title bar is gone and the toolbar
+	// auto-hides — a thin hover strip at the top slides it back down (toolbarPeek).
+	const readerRef = useRef<HTMLDivElement>(null);
+	const [fullscreen, setFullscreen] = useState(false);
+	const [toolbarPeek, setToolbarPeek] = useState(false);
+
+	const toggleFullscreen = useCallback(() => {
+		const el = readerRef.current;
+		if (!el) return;
+		if (!document.fullscreenElement) {
+			el.requestFullscreen?.().catch(() => {});
+		} else {
+			document.exitFullscreen?.().catch(() => {});
+		}
+	}, []);
+
+	// Mirror the actual fullscreen state (covers Esc / OS-driven exits too).
+	useEffect(() => {
+		const onChange = () => {
+			const on = document.fullscreenElement === readerRef.current;
+			setFullscreen(on);
+			if (!on) setToolbarPeek(false);
+		};
+		document.addEventListener("fullscreenchange", onChange);
+		return () => document.removeEventListener("fullscreenchange", onChange);
+	}, []);
 	// Desktop panel width (px). Persisted as a UI layout pref (not app state).
 	const [panelWidth, setPanelWidth] = useState<number>(() => {
 		const raw =
@@ -297,6 +325,9 @@ export default function LectureReader() {
 			)
 				return;
 			switch (e.key) {
+				case "f":
+					toggleFullscreen();
+					break;
 				case "h":
 					togglePan();
 					break;
@@ -330,7 +361,7 @@ export default function LectureReader() {
 		}
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
-	}, [togglePan, zoomIn, zoomOut, prev, next]);
+	}, [togglePan, zoomIn, zoomOut, prev, next, toggleFullscreen]);
 
 	// Render the current page (with annotations baked in) to a PNG via pdfium and
 	// put it on the clipboard (download fallback).
@@ -432,51 +463,96 @@ export default function LectureReader() {
 		);
 	}
 
-	return (
-		<div className="flex h-[calc(100vh-3.5rem)] flex-col md:h-[calc(100vh-4rem)]">
-			{/* Title bar */}
-			<div className="flex items-center gap-3 border-b border-ink-200 px-3 py-2 dark:border-ink-700">
-				<Link
-					to="/lectures"
-					className="inline-flex shrink-0 items-center gap-1 text-sm text-ink-500 hover:text-accent dark:text-ink-400"
-				>
-					<ChevronLeft size={16} /> 講義
-				</Link>
-				<h1 className="truncate font-serif text-lg text-ink-900 dark:text-ink-100 shrink min-w-0">
-					{doc?.title ?? (
-						<span className="inline-block h-5 w-48 max-w-full animate-pulse rounded bg-ink-200/80 align-middle dark:bg-ink-700/60" />
-					)}
-				</h1>
-				{isTextbook && (
-					<span className="shrink-0 rounded-full border border-ink-200 px-2 py-0.5 text-[11px] text-ink-500 dark:border-ink-700 dark:text-ink-400">
-						參考書 · 唯讀
-					</span>
-				)}
-				{slug && (
-					<LectureSearchBox slug={slug} onJumpToPage={goToPage} />
-				)}
-			</div>
+	const toolbarEl = (
+		<ReaderToolbar
+			currentPage={currentPage}
+			pageCount={doc?.page_count ?? 0}
+			highlightActive={highlightActive}
+			panActive={panActive}
+			panelOpen={panelOpen}
+			thumbnailsOpen={thumbsOpen}
+			onToggleThumbnails={() => setThumbsOpen((o) => !o)}
+			onPrev={prev}
+			onNext={next}
+			onGoToPage={goToPage}
+			onZoomIn={zoomIn}
+			onZoomOut={zoomOut}
+			onZoomFit={zoomFit}
+			onTogglePan={togglePan}
+			onToggleHighlight={toggleHighlight}
+			onSnapshot={snapshot}
+			fullscreen={fullscreen}
+			onToggleFullscreen={toggleFullscreen}
+			onTogglePanel={() => setPanelOpen((o) => !o)}
+			readOnly={isTextbook}
+		/>
+	);
 
-			<ReaderToolbar
-				currentPage={currentPage}
-				pageCount={doc?.page_count ?? 0}
-				highlightActive={highlightActive}
-				panActive={panActive}
-				panelOpen={panelOpen}
-				thumbnailsOpen={thumbsOpen}
-				onToggleThumbnails={() => setThumbsOpen((o) => !o)}
-				onPrev={prev}
-				onNext={next}
-				onGoToPage={goToPage}
-				onZoomIn={zoomIn}
-				onZoomOut={zoomOut}
-				onZoomFit={zoomFit}
-				onTogglePan={togglePan}
-				onToggleHighlight={toggleHighlight}
-				onSnapshot={snapshot}
-				onTogglePanel={() => setPanelOpen((o) => !o)}
-				readOnly={isTextbook}
-			/>
+	return (
+		<div
+			ref={readerRef}
+			className={
+				"relative flex flex-col bg-white dark:bg-ink-900 " +
+				(fullscreen
+					? "h-screen"
+					: "h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)]")
+			}
+		>
+			{/* Title bar — hidden in fullscreen (the toolbar carries the exit btn) */}
+			{!fullscreen && (
+				<div className="flex items-center gap-3 border-b border-ink-200 px-3 py-2 dark:border-ink-700">
+					<Link
+						to={isTextbook ? "/lectures?tab=textbook" : "/lectures"}
+						className="inline-flex shrink-0 items-center gap-1 text-sm text-ink-500 hover:text-accent dark:text-ink-400"
+					>
+						<ChevronLeft size={16} /> {isTextbook ? "教科書" : "講義"}
+					</Link>
+					{isTextbook && doc ? (
+						<TextbookChapterNav title={doc.title} slug={slug} />
+					) : (
+						<h1 className="truncate font-serif text-lg text-ink-900 dark:text-ink-100 shrink min-w-0">
+							{doc?.title ?? (
+								<span className="inline-block h-5 w-48 max-w-full animate-pulse rounded bg-ink-200/80 align-middle dark:bg-ink-700/60" />
+							)}
+						</h1>
+					)}
+					{isTextbook && (
+						<span className="shrink-0 rounded-full border border-ink-200 px-2 py-0.5 text-[11px] text-ink-500 dark:border-ink-700 dark:text-ink-400">
+							參考書 · 唯讀
+						</span>
+					)}
+					{slug && (
+						<LectureSearchBox slug={slug} onJumpToPage={goToPage} />
+					)}
+				</div>
+			)}
+
+			{/* Toolbar: normal flow, or an auto-hiding overlay in fullscreen. A thin
+			    strip at the very top reveals it (slides down) on hover. */}
+			{fullscreen ? (
+				<>
+					{/* Reveal strip — only while the toolbar is hidden, so it never
+					    overlaps the shown toolbar and cause hover flicker. */}
+					{!toolbarPeek && (
+						<div
+							className="absolute inset-x-0 top-0 z-40 h-5"
+							onMouseEnter={() => setToolbarPeek(true)}
+							aria-hidden="true"
+						/>
+					)}
+					<div
+						className={
+							"absolute inset-x-0 top-0 z-30 shadow-paper transition-transform duration-200 " +
+							(toolbarPeek ? "translate-y-0" : "-translate-y-full")
+						}
+						onMouseLeave={() => setToolbarPeek(false)}
+					>
+						{toolbarEl}
+					</div>
+				</>
+			) : (
+				toolbarEl
+			)}
 
 			{/* Body: viewer + panel */}
 			<div className="flex min-h-0 flex-1">

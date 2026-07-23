@@ -7,10 +7,12 @@ import {
 	ChevronRight,
 	ZoomIn,
 	ZoomOut,
-	Maximize,
+	RulerDimensionLine,
 	Hand,
 	Highlighter,
 	Camera,
+	Expand,
+	Minimize,
 	PanelRight,
 	PanelLeft,
 } from "lucide-react";
@@ -34,6 +36,9 @@ export interface ReaderToolbarProps {
 	onTogglePan(): void;
 	onToggleHighlight(): void;
 	onSnapshot(): void;
+	/** Whole-reader fullscreen (header + toolbar auto-hide). */
+	fullscreen: boolean;
+	onToggleFullscreen(): void;
 	onTogglePanel(): void;
 	/** Textbook (唯讀參考書): hide the highlight tool + notebook panel toggle. */
 	readOnly?: boolean;
@@ -79,7 +84,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 				<ZoomIn size={17} />
 			</TBtn>
 			<TBtn label="符合寬度" onClick={props.onZoomFit}>
-				<Maximize size={16} />
+				<RulerDimensionLine size={17} />
 			</TBtn>
 
 			<Divider />
@@ -104,6 +109,16 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 			{/* Snapshot */}
 			<TBtn label="截圖" onClick={props.onSnapshot}>
 				<Camera size={17} />
+			</TBtn>
+
+			{/* Fullscreen — hides header + toolbar; toolbar slides back down when
+			    the pointer nears the top edge. */}
+			<TBtn
+				label={props.fullscreen ? "離開全螢幕 (F / Esc)" : "全螢幕 (F)"}
+				onClick={props.onToggleFullscreen}
+				active={props.fullscreen}
+			>
+				{props.fullscreen ? <Minimize size={17} /> : <Expand size={17} />}
 			</TBtn>
 
 			<span className="flex-1" />
