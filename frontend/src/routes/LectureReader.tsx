@@ -598,6 +598,7 @@ export default function LectureReader() {
 						open={panelOpen}
 						onClose={() => setPanelOpen(false)}
 						width={panelWidth}
+						slug={slug}
 						currentPage={currentPage}
 						pageCount={doc?.page_count ?? 0}
 						notesLoading={notes.loading}
