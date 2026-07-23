@@ -57,15 +57,10 @@ ALTER TABLE lecture_docs ADD COLUMN kind TEXT NOT NULL DEFAULT 'lecture';
 `lecture_pages` / `lecture_pages_fts` **不動** —— 教科書逐頁文字直接沿用,
 FTS 觸發器自動 fan-out。這是重用既有 schema 的關鍵。
 
-### 1b. 匯入前置:PDF 線性化(100 MB 唯一注意事項)
+### 1b. 匯入前置:拆章節冊(見 §1d,EmbedPDF 一律整份下載)
 
-100 MB 非線性化 PDF,EmbedPDF 首開可能要抓一個大 xref。匯入前跑一次:
-
-```bash
-qpdf --linearize wintrobe.pdf wintrobe.linear.pdf   # 或 mutool clean -l
-```
-
-若首開仍偏慢,備案是**按章節拆冊**(每冊當一個 `lecture_docs` 列,同 kind)。
+因 EmbedPDF 目前不發 range 請求(§1d 查證),100 MB 單檔會整份下載,故
+匯入前**按章節拆冊**、每冊 `qpdf --linearize`(或改走 §1d 路線 2 的 pdf.js)。
 逐頁文字抽取沿用 `scripts/import-lectures.ts` / `backfill-lecture-pages.ts`
 (pdfjs-dist 逐頁 `getTextContent`)。
 
@@ -79,31 +74,35 @@ qpdf --linearize wintrobe.pdf wintrobe.linear.pdf   # 或 mutool clean -l
 - D1:100 MB PDF 抽文字約 5–30 MB / 5 GB。✅ FTS5 吃得下。
 - **零 Workers AI、零 Vectorize**(Phase 1 匯入純文字抽取)。
 
-### 1d. 大檔載入策略:先驗 Range,不行就拆章節冊
+### 1d. 大檔載入策略:EmbedPDF 一律整份下載 → 教科書**必須拆冊**
 
 「不要一次載入 100 MB」拆成兩個層次:
 
 - **層次 A — 渲染虛擬化(已具備):** `EmbedPDFViewer` 已註冊 `ScrollPlugin`
   + `TilingPlugin`,只 rasterize 視窗附近幾頁,不會把 2000 頁全畫成 canvas。
   講義與教科書都已享有,與檔案大小無關。
-- **層次 B — 網路下載(需驗證):** `worker/routes/pdf.ts` 的 Range/`206`
-  已就緒,**但 Worker 支援 Range ≠ client(pdfium)一定走 range**。
+- **層次 B — 網路下載(已查證,結論確定):** `worker/routes/pdf.ts` 的
+  Range/`206` 已就緒,**但 EmbedPDF 目前不發 range 請求**。官方文件明載:
 
-**Phase 1 前置檢查(30 秒,列為第一項工作):** 開任一現有講義 →
-DevTools → Network → 觀察對 `/pdf/...` 的請求:
+  > *"Currently, this function **always** downloads the entire PDF file."*
+  > `mode:'range-request'` *"is reserved for future use. Currently, only the
+  > 'full-fetch' behavior is implemented regardless of the selected mode."*
+  > — [EmbedPDF · Open Document from URL](https://www.embedpdf.com/docs/engines/document-lifecycle/open-document-url)
 
-- 多個 `206 Partial Content` → client 走 range 漸進載入 → 100 MB 單檔照抓
-  幾百 KB 即可,**維持單檔**(跨章連續捲動更順、匯入單純)。搭配
-  `qpdf --linearize` 讓首開更快。
-- 單一 `200` 拉完整份 → client 整份載入 → **改走拆冊**(下)。
+  → 100 MB 單檔在 EmbedPDF **會實打實抓 100 MB**。原本「DevTools 驗 206」
+  的前置檢查**已無必要**(結論就是整份下載)。
 
-**拆冊 fallback(range 無效時的穩健解):**
+**兩條解法(擇一):**
+
+**路線 1(推薦)— 拆章節冊 + 續用 EmbedPDF:**
 
 - **按章節拆**(讀 PDF 內建 outline/TOC 在章界切,用 `mutool` / `pdfcpu` /
   `pdf-lib`),非固定頁數。100 MB / ~2000 頁 → 20–40 冊、各 3–8 MB;
-  嫌多可粗切 ~10 part。
+  嫌多可粗切 ~10 part。每冊 `qpdf --linearize`。
 - 每冊一列 `lecture_docs`,`kind='textbook'`,命名慣例 `wintrobe-ch03`,
   title「Wintrobe · Ch3 CLL」。離線一次性,匯入迴圈把各冊當獨立 doc。
+- 每次開一冊 3–8 MB,首開後被瀏覽器快取,再開瞬間。續用既有 viewer /
+  SelectionPopup / 截圖 / `?page=N` 全部零改。
 - **拆檔不搞碎任何功能:**
   1. **頁碼**:每冊 page 從 1 重數;citation 存 `(slug, local_page)`,
      FTS 的 `(slug, page)` 鍵天然對上,跳頁 = 該冊本地頁。零額外邏輯。
@@ -111,33 +110,75 @@ DevTools → Network → 觀察對 `/pdf/...` 的請求:
      (kind='textbook')` 跨所有冊一起 `bm25()` 排序,回最佳 `(slug, page)`。
   3. **印刷頁碼**(書上「p.1423」)≠ PDF 內頁 index:如需顯示書本頁碼,
      每冊存 `page_label_offset`(選配)。
-- 7 份講義單份 ~10 MB,無論層次 B 結果如何都秒開,**不需拆**。
+
+**路線 2(替代)— 單檔 + pdf.js 唯讀閱讀器:**
+
+- pdf.js **原生支援 HTTP range / byte-serving**,配上你已就緒的 `/pdf`
+  Range route,能真正只抓視窗前後幾頁,**單檔 100 MB 不用拆**。
+- 代價:教科書多一套 PDF 引擎(pdf.js 與 pdfium 並存)。但教科書**唯讀、
+  不需標註**,pdf.js 的 render + scroll + 跳頁 + snippet 高亮已足夠,選字
+  lookup 本來就在 app-wide popup(§3)不依賴 viewer 引擎。
+- 適合「打死不拆單檔、要真串流」的取捨。
+
+**7 份講義**單份 ~10 MB,整份下載也秒開,**不需動**。
 
 ---
 
-## 2. 搜尋端點(泛化既有的 lecture FTS 搜尋)
+## 2. 檢索:「細粒度命中、頁面交付」(small-to-big)
 
-現有 `lectures.ts` 的 `scope=pdf` 搜尋已回傳 `{ slug, page, snippet }` 按
-`bm25()` 排序。只需**泛化成可指定 kind/slug**,或新增一個語意清楚的端點:
+### 研究定論(為什麼這樣切最準)
+
+- **考試型 / 事實型查詢偏好小 chunk**:準確度約在 128 token 觸頂,chunk 越大
+  越糊([chunking 研究](https://www.firecrawl.dev/blog/best-chunking-strategies-rag))。
+  本功能的查詢正是短、term-rich 的事實選取。
+- **但「頁面級」交付最穩健**:NVIDIA 基準中 page-level 檢索 0.648 準確度、
+  跨文件型別變異最低;而「跳到那一頁」本來就是我們要的交付單位。
+
+→ **把「檢索單位」與「交付單位」拆開**(業界 small-to-big / parent-page):
+
+1. **檢索用段落級 passage**(~128–256 token)建一張細粒度 FTS,每列標
+   `(slug, page)`。細粒度 → 事實查詢準度;**FTS5 無向量數上限 → 免費、無限段落**。
+2. **交付用頁面**:最佳 passage → 回它的 `page` 去跳。
+
+```sql
+-- migration:教科書段落級檢索表(逐頁文字仍存 lecture_pages 供 reader/回填)
+CREATE TABLE textbook_passages (
+  slug TEXT NOT NULL, page INTEGER NOT NULL, ord INTEGER NOT NULL, text TEXT NOT NULL,
+  PRIMARY KEY (slug, page, ord)
+);
+CREATE VIRTUAL TABLE textbook_passages_fts USING fts5(
+  slug UNINDEXED, page UNINDEXED, text,
+  tokenize = 'unicode61 remove_diacritics 2'          -- 同 0016 慣例
+);
+-- 觸發器同步(比照 0016 的 lecture_pages_ai/ad/au)
+```
+
+> 亦可先偷懶:v0 直接用既有 `lecture_pages_fts`(逐頁)驗證流程,量測後再引入
+> 段落級表換取準度。逐頁是「大 chunk」,對敘述段召回較差,故正式版建議段落級。
+
+### 端點
 
 ```
 POST /api/textbook/lookup   { text, limit? }
  → { hits: [{ slug, page, snippet, score }] }
 ```
 
-- 伺服器把選取文字 `text` 正規化成 FTS query(沿用現有 `ftsQuery` 清洗:
-  去標點、term 化、必要時 `OR` 串接關鍵術語),對 `lecture_pages_fts`
-  `WHERE ... MATCH ?` 且 `slug IN (kind='textbook' 的 slug)`,
-  `ORDER BY bm25(...)` 取 top-N,`snippet()` 回傳命中片段。
+- 伺服器把選取文字 `text` 正規化成 FTS query(沿用現有 `ftsQuery` 清洗;
+  長選取先用 `note-terms.ts` 受控詞表抽藥名/基因/疾病做加權,避免雜訊)。
+  對 `textbook_passages_fts` `MATCH` → `ORDER BY bm25(...)` → 取 top-N passage,
+  收斂到 distinct `(slug, page)`,`snippet()` 回命中片段。
 - **Phase 1 = 純 FTS,零神經元、零 Vectorize、亞毫秒級。**
 - 身分一律 `c.var.email`;端點只讀不寫。
 
-### 為什麼英文教科書仍建議 FTS 先行
+### 為什麼英文教科書仍建議 FTS 先行(而非一上來就上向量)
 
-本領域選取多為 term-rich(藥名 `venetoclax`、基因 `TP53`、疾病 `Richter
-transformation`),BM25 命中很強。**先上線,用 §4 的回饋按鈕蒐證**;
-若回饋顯示「換句話說」的敘述段召回不足,再進 Phase 2 疊 Vectorize —— 這正是
-`similar.ts` 已在用的三路合併範式,且回饋數據本身就是要不要做 B 的證據。
+- 本領域選取多為 term-rich(`venetoclax` / `TP53` / `Richter transformation`),
+  BM25 對這類**精確識別詞**命中極強,dense 反而常漏。
+- **混合檢索**證據雖硬(BM25+dense **91% recall@10** vs dense 78% / BM25 65%,
+  [hybrid 2026](https://www.digitalapplied.com/blog/hybrid-search-bm25-vector-reranking-reference-2026)),
+  但有反直覺 caveat:BM25+embedding 主要幫**小模型**,對**強 embedding
+  (如 Stella)反而可能扣分** —— bge-m3 偏強,混合邊際增益未必如帳面。
+- 結論:**先上純細粒度 FTS,用 §4 回饋量測**;真的漏召回敘述段再進 §5。
 
 ---
 
@@ -206,20 +247,30 @@ CREATE INDEX idx_citfb_page ON citation_feedback(slug, page, verdict);
 
 ---
 
-## 5. Vectorge 語意層(Phase 2,選配,由回饋觸發)
+## 5. 混合檢索 + reranking(Phase 2/3,選配,由回饋觸發)
 
-只有當 §4 回饋顯示 FTS 漏召回敘述性段落時才做:
+只有當 §4 回饋顯示細粒度 FTS 漏召回敘述性段落時才做。
 
-- 逐頁 embedding(**逐頁,非逐段** —— 控制向量數)。
-  Wintrobe ~2,000 頁 → ~2,000 向量;bge-m3 1024 維 → 2.05 M 維
-  < **免費 500 萬儲存維度**上限。✅([Vectorize pricing](https://developers.cloudflare.com/vectorize/platform/pricing/))
-- 一次性回填:~2,000 次 embedding,免費 **10,000 neurons/日 ≈ 12,500 embeddings/日**,
-  一天做得完。([Workers AI pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/))
-- 查詢期:選取文字 embed(1 次 call,~cheap)→ Vectorize cosine → 併入
-  `mergeSimilar()` 風格的合併(vec → fts)。你**已在 production 用 Vectorize
-  跑相似題**,查詢範式相同。
-- 查詢維度免費 30 M/月;identical 選取用既有 KV 快取即可壓低用量。
-- **若 Phase 1 回饋良好,這一階段可以永遠不做。**
+**Phase 2 — 加 dense 第二路(逐頁,fits 免費上限):**
+
+- **逐頁 embedding**(頁面級,非段落級 —— 這裡刻意用大 chunk **控制向量數**;
+  細粒度留給零成本的 FTS)。Wintrobe ~2,000 頁 → ~2,000 向量;bge-m3 1024 維
+  → 2.05 M 維 < **免費 500 萬儲存維度**。✅([Vectorize pricing](https://developers.cloudflare.com/vectorize/platform/pricing/))
+- 一次性回填 ~2,000 embed,免費 **10,000 neurons/日 ≈ 12,500 embed/日**,
+  一天做完。([Workers AI pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/))
+- 查詢期:選取 embed(1 call)→ Vectorize cosine 取頁 → 與細粒度 FTS 的頁
+  用 `mergeSimilar()` 範式合併(vec + fts)。你**已在 production 用 Vectorize
+  跑相似題**,查詢範式相同。查詢維度免費 30 M/月;identical 選取走 KV 快取。
+- 混合證據:BM25+dense **91% recall@10** vs dense 78% / BM25 65%。
+
+**Phase 3 — reranking(只有「對的頁常排第 2–3 名」才加):**
+
+- Cloudflare `@cf/baai/bge-reranker-base` = **283 neurons / M input token**
+  ([bge-reranker-base](https://developers.cloudflare.com/workers-ai/models/bge-reranker-base/));
+  一次查詢重排幾個候選 × 幾百 token ≈ 免費額度的零頭。
+- **但每次 +100–300 ms 延遲**,對即時 popup 不划算 → v1/v2 不做。要做的話
+  rerank **混合後**的候選(研究顯示對混合候選增益最大),不是對單路。
+- **若 Phase 1 純 FTS 回饋良好,§5 整段可永遠不做。**
 
 ---
 
@@ -241,9 +292,9 @@ CREATE INDEX idx_citfb_page ON citation_feedback(slug, page, verdict);
 ## 7. 分階段落地
 
 1. **Phase 1(純 FTS,零 AI)**:
-   0. **前置**:DevTools 驗 `/pdf` 是否回 `206`(§1d)→ 決定單檔或拆冊。
-   1. `kind` migration → 教科書匯入(線性化 / 依驗證結果拆章節冊 + 逐頁文字)。
-   2. 泛化 `POST /api/textbook/lookup`(FTS BM25)。
+   1. 教科書**拆章節冊**(§1d 路線 1,已定論 EmbedPDF 整份下載)+ `kind`
+      migration + 逐頁文字 + **段落級 `textbook_passages_fts`**(§2)。
+   2. `POST /api/textbook/lookup`(細粒度 BM25 → 收斂到頁)。
    3. 全站選字 popup(§3)+ 兩段式抽屜呈現(§3a)→ 跳頁 + snippet 高亮。
 
    **這一階段就滿足核心需求。**
