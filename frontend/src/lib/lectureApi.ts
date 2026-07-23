@@ -50,6 +50,23 @@ export function getLecture(slug: string): Promise<LectureDoc> {
 	return api.get<LectureDoc>(`/api/lectures/${slug}`);
 }
 
+// ── Textbook (Wintrobe) chapters ──────────────────────────────────────
+//
+// Flat, sort_order-ordered chapter list for the「Wintrobe's」分頁. Grouped
+// into Parts client-side. Each chapter opens read-only in the same reader
+// via /lectures/:slug (kind='textbook' suppresses write affordances).
+
+export interface TextbookChapter {
+	slug: string;
+	title: string; // "Wintrobe Ch1 · Examination of the Blood and Bone Marrow"
+	sort_order: number; // = chapter number
+	page_count: number;
+}
+
+export function listTextbookChapters(): Promise<TextbookChapter[]> {
+	return api.get<TextbookChapter[]>("/api/textbook/chapters");
+}
+
 // ── Search ───────────────────────────────────────────────────────────
 //
 // Snippet is the FTS5 snippet() output with `` / `` as the
