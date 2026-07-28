@@ -2,8 +2,11 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { Highlighter, X as XIcon } from 'lucide-react';
 import { buildExtensions } from '../lib/tiptap-extensions';
+import {
+  useAnnotationRegistry,
+  type AnnotationTarget,
+} from './AnnotationRegistry';
 import { normalizeTiptapDoc } from '../lib/tiptap-doc';
 import { readLocal, saveHighlight, reconcileHighlight } from '../lib/highlightStore';
 import {
@@ -28,6 +31,11 @@ import {
 // like fill-in-the-blanks and a click reveals one blank. The AI layer only
 // renders while 防劇透 is on — turn it off and you are looking at clean text
 // with only your own highlights, exactly as if 自動挖空 had never been pressed.
+//
+// 這個元件**不再自帶浮層**。「螢光標記 / 清除標記」按鈕住在全站唯一的
+// SelectionToolbar 裡;這裡只把畫記能力註冊到 AnnotationRegistry,並在使用者
+// 點到既有 <mark> 時推一個請求過去。原本詳解裡會同時冒出兩個浮層的問題,
+// 就是這樣消掉的。
 
 type Props = {
   content: any;
@@ -55,11 +63,6 @@ export function hashContent(content: any): string {
 // which of them the reader has already revealed.
 type AutoClozeState = { ranges: Range[]; revealed: number[] };
 
-type Popup =
-  | { kind: 'add'; x: number; y: number; from: number; to: number }
-  | { kind: 'clear'; x: number; y: number; from: number; to: number }
-  | null;
-
 export function AnnotatableContent({
   content,
   storeKey,
@@ -83,8 +86,8 @@ export function AnnotatableContent({
     editorProps: { attributes: { class: 'tiptap' } },
   });
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [popup, setPopup] = useState<Popup>(null);
   const baseHash = hashContent(base);
+  const registry = useAnnotationRegistry();
 
   // Bumped whenever something replaces the document wholesale (initial load,
   // cross-device reconcile). The decoration/reveal effects key off it so their
@@ -275,43 +278,46 @@ export function AnnotatableContent({
     marks.forEach((m, i) => m.classList.toggle('cloze-revealed', cloze && revealed.has(i)));
   }, [editor, cloze, revealed, docRev]);
 
-  // Selection → "add highlight" popup. Runs on pointer release inside the view.
+  // ── registry 接線 ──
+  // 註冊的是一個**身分穩定、欄位可變**的物件:身分穩定,register/unregister
+  // 才不會在每次 render 抖動;欄位可變,工具列才讀得到當下的 cloze 與最新的
+  // editor,而不是註冊那一刻的快照。
+  const targetRef = useRef<AnnotationTarget | null>(null);
+  if (!targetRef.current) {
+    targetRef.current = {
+      dom: document.createElement('div'), // 佔位,editor 就緒後換掉
+      cloze: false,
+      applyHighlight: () => {},
+      clearHighlight: () => {},
+      posAt: () => null,
+    };
+  }
+  const target = targetRef.current;
+  if (editor) {
+    target.dom = editor.view.dom as HTMLElement;
+    target.cloze = cloze;
+    target.applyHighlight = (from, to) => {
+      editor.chain().setTextSelection({ from, to }).setHighlight().run();
+      persist();
+    };
+    target.clearHighlight = (from, to) => {
+      editor.chain().setTextSelection({ from, to }).unsetHighlight().run();
+      persist();
+    };
+    target.posAt = (node, offset) => {
+      try {
+        return editor.view.posAtDOM(node, offset);
+      } catch {
+        // 選取跨出了這個編輯器 —— 沒有對應的 ProseMirror 位置,不畫記。
+        return null;
+      }
+    };
+  }
+
   useEffect(() => {
     if (!editor) return;
-    const dom = editor.view.dom as HTMLElement;
-    const onUp = () => {
-      if (cloze) return; // no highlighting while self-testing
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
-      if (!dom.contains(sel.anchorNode) || !dom.contains(sel.focusNode)) return;
-      let from: number, to: number;
-      try {
-        const a = editor.view.posAtDOM(sel.anchorNode!, sel.anchorOffset);
-        const b = editor.view.posAtDOM(sel.focusNode!, sel.focusOffset);
-        from = Math.min(a, b);
-        to = Math.max(a, b);
-      } catch {
-        return;
-      }
-      if (to - from < 1) return;
-      const rect = sel.getRangeAt(0).getBoundingClientRect();
-      const box = wrapRef.current?.getBoundingClientRect();
-      if (!box) return;
-      setPopup({
-        kind: 'add',
-        x: rect.left - box.left + rect.width / 2,
-        y: rect.bottom - box.top + 6,
-        from,
-        to,
-      });
-    };
-    dom.addEventListener('mouseup', onUp);
-    dom.addEventListener('touchend', onUp);
-    return () => {
-      dom.removeEventListener('mouseup', onUp);
-      dom.removeEventListener('touchend', onUp);
-    };
-  }, [editor, cloze]);
+    return registry.register(target);
+  }, [editor, registry, target]);
 
   // Click inside the view. In cloze mode a click reveals exactly one blank —
   // an AI blank if the click landed in one (checked first, since an AI term can
@@ -343,7 +349,8 @@ export function AnnotatableContent({
         if (idx >= 0) toggleRevealed(idx);
         return;
       }
-      // Map the clicked <mark> element to its ProseMirror range.
+      // Map the clicked <mark> element to its ProseMirror range, then hand it
+      // to the global toolbar — this component no longer renders its own popup.
       let from: number, to: number;
       try {
         from = editor.view.posAtDOM(mark, 0);
@@ -351,85 +358,22 @@ export function AnnotatableContent({
       } catch {
         return;
       }
-      const box = wrapRef.current?.getBoundingClientRect();
-      if (!box) return;
-      const rect = mark.getBoundingClientRect();
-      setPopup({
-        kind: 'clear',
-        x: rect.left - box.left + rect.width / 2,
-        y: rect.bottom - box.top + 6,
+      registry.emitMark({
+        target,
+        rect: mark.getBoundingClientRect(),
         from: Math.min(from, to),
         to: Math.max(from, to),
+        text: mark.textContent ?? '',
       });
     };
     dom.addEventListener('click', onClick);
     return () => dom.removeEventListener('click', onClick);
-  }, [editor, cloze, toggleRevealed, toggleAutoRevealed]);
-
-  // Dismiss the popup on outside click / scroll / Escape.
-  useEffect(() => {
-    if (!popup) return;
-    const close = (e: Event) => {
-      if (
-        e instanceof MouseEvent &&
-        wrapRef.current?.contains(e.target as Node) &&
-        (e.target as HTMLElement).closest('[data-anno-popup]')
-      )
-        return;
-      setPopup(null);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setPopup(null);
-    document.addEventListener('mousedown', close);
-    window.addEventListener('scroll', () => setPopup(null), { once: true });
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', close);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [popup]);
-
-  function applyHighlight() {
-    if (!editor || popup?.kind !== 'add') return;
-    editor.chain().setTextSelection({ from: popup.from, to: popup.to }).setHighlight().run();
-    window.getSelection()?.removeAllRanges();
-    persist();
-    setPopup(null);
-  }
-
-  function clearHighlight() {
-    if (!editor || popup?.kind !== 'clear') return;
-    editor.chain().setTextSelection({ from: popup.from, to: popup.to }).unsetHighlight().run();
-    persist();
-    setPopup(null);
-  }
+  }, [editor, cloze, toggleRevealed, toggleAutoRevealed, registry, target]);
 
   if (!editor) return null;
   return (
     <div ref={wrapRef} className={'relative' + (cloze ? ' cloze-active' : '')}>
       <EditorContent editor={editor} />
-      {popup && (
-        <div
-          data-anno-popup
-          className="absolute z-30 -translate-x-1/2 flex items-center gap-1 rounded-md border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-paper px-1 py-1"
-          style={{ left: popup.x, top: popup.y }}
-        >
-          {popup.kind === 'add' ? (
-            <button
-              onClick={applyHighlight}
-              className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded text-ink-700 dark:text-ink-200 hover:bg-yellow-100 dark:hover:bg-yellow-400/20"
-            >
-              <Highlighter size={13} /> 螢光標記
-            </button>
-          ) : (
-            <button
-              onClick={clearHighlight}
-              className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded text-ink-700 dark:text-ink-200 hover:bg-rose-100 dark:hover:bg-rose-500/20"
-            >
-              <XIcon size={13} /> 清除標記
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }

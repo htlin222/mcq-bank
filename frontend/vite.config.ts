@@ -203,13 +203,18 @@ function pwaPlugin(): Plugin[] {
   });
 }
 
+// wrangler dev 預設 8787,但那個 port 常被其他本機服務佔走(例如
+// OpenEvidence MCP 的 relay daemon)。撞到時用
+// `WORKER_PORT=8788 pnpm dev -- --port 8788` 起 wrangler,前端這邊就跟著轉。
+const WORKER_ORIGIN = `http://localhost:${process.env.WORKER_PORT || 8787}`;
+
 export default defineConfig({
   plugins: [react(), appConfigPlugin(), pwaPlugin()],
   server: {
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8787',
+        target: WORKER_ORIGIN,
         changeOrigin: true,
         // 聊天大廳 WebSocket (/api/chat/ws) rides the same proxy entry;
         // http-proxy applies `headers` to upgrade requests too.
@@ -219,12 +224,12 @@ export default defineConfig({
         headers: { 'X-Dev-Email': bootConfig.dev.dev_email },
       },
       '/img': {
-        target: 'http://localhost:8787',
+        target: WORKER_ORIGIN,
         changeOrigin: true,
         headers: { 'X-Dev-Email': bootConfig.dev.dev_email },
       },
       '/pdf': {
-        target: 'http://localhost:8787',
+        target: WORKER_ORIGIN,
         changeOrigin: true,
         headers: { 'X-Dev-Email': bootConfig.dev.dev_email },
       },

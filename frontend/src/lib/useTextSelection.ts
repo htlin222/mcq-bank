@@ -4,11 +4,19 @@ export type TextSelection = {
 	text: string;
 	// Anchoring rect of the selection range, in client (viewport) coords.
 	rect: DOMRect;
+	// 選取的共同祖先節點。工具列用它反查選取落在哪個 AnnotatableContent 裡
+	// (決定要不要亮「螢光標記」),以及往上找最近的區塊當作 AI 的 {{context}}。
+	node: Node | null;
+	// 選取兩端。畫記需要把它們換算成 ProseMirror 位置。
+	anchorNode: Node | null;
+	anchorOffset: number;
+	focusNode: Node | null;
+	focusOffset: number;
 };
 
 // Walk up from a node to decide whether the selection lives inside an editable
 // surface (input / textarea / contenteditable — e.g. the TipTap editor). We
-// never want the "問 Wintrobe" badge popping up while the user is typing.
+// never want the toolbar popping up while the user is typing.
 function isInEditable(node: Node | null): boolean {
 	let el: Element | null =
 		node instanceof Element ? node : (node?.parentElement ?? null);
@@ -21,33 +29,29 @@ function isInEditable(node: Node | null): boolean {
 	return false;
 }
 
-const MIN_LEN = 3;
+// 一個字就夠 —— 中文兩字詞(貧血、溶血)是畫記的日常。更嚴的門檻由各動作
+// 自己把關(見 lib/selectionActions.ts:「查參考資料」仍要求 ≥3 字且含實詞)。
+const MIN_LEN = 1;
 const MAX_LEN = 400;
 
-// Only offer a lookup for selections with real lexical content. This suppresses
-// the badge on accidental / nonsense selections — pure punctuation ("…"),
-// numbers ("2023"), symbols, or stray whitespace — which would only ever come
-// back empty. (Such queries are already error-safe server-side: each token is a
-// quoted FTS phrase, so they match nothing rather than erroring. This is purely
-// to avoid a pointless badge.) A term needs ≥2 Latin letters (AML, CD20, …) or
-// ≥1 CJK character (白血病) to qualify.
-function hasMeaningfulContent(text: string): boolean {
-	const latin = text.match(/[a-zA-Z]/g)?.length ?? 0;
-	const cjk = text.match(/[㐀-鿿豈-﫿]/g)?.length ?? 0;
-	return latin >= 2 || cjk >= 1;
+// 只擋掉完全沒有字詞內容的選取(純標點、純空白、純符號)—— 那種選取三個動作
+// 沒有一個做得了事,彈出工具列只是噪音。數字算字詞:選到「1p36」是合理的。
+function hasWordChar(text: string): boolean {
+	return /[\p{L}\p{N}]/u.test(text);
 }
 
 /**
- * App-wide text-selection watcher for the textbook-lookup popup.
+ * App-wide text-selection watcher for the unified selection toolbar.
  *
- * Produces a *snapshot* (text + anchor rect) only when a selection settles on
- * mouseup / touchend and passes the guardrails (length 3–400, not inside an
- * editable field). The snapshot is deliberately independent of the live DOM
- * Selection afterwards: clicking the popup collapses the window selection, but
- * the popup keeps rendering from the snapshot. Dismissal is the caller's job
- * via `clear()` (Esc / outside-click / navigation) — see TextbookLookupPopup.
+ * Produces a *snapshot* (text + anchor rect + the nodes involved) only when a
+ * selection settles on mouseup / touchend and passes the guardrails (length
+ * 1–400, has a word character, not inside an editable field). The snapshot is
+ * deliberately independent of the live DOM Selection afterwards: clicking the
+ * toolbar collapses the window selection, but the toolbar keeps rendering from
+ * the snapshot. Dismissal is the caller's job via `clear()` (Esc /
+ * outside-click / navigation) — see SelectionToolbar.
  *
- * A plain click that selects nothing collapses to null here, which the popup
+ * A plain click that selects nothing collapses to null here, which the toolbar
  * uses as implicit outside-click-to-dismiss.
  */
 export function useTextSelection(): {
@@ -71,7 +75,7 @@ export function useTextSelection(): {
 				setSelection(null);
 				return;
 			}
-			if (!hasMeaningfulContent(text)) {
+			if (!hasWordChar(text)) {
 				setSelection(null);
 				return;
 			}
@@ -88,14 +92,22 @@ export function useTextSelection(): {
 				setSelection(null);
 				return;
 			}
-			setSelection({ text, rect });
+			setSelection({
+				text,
+				rect,
+				node: range.commonAncestorContainer,
+				anchorNode: sel.anchorNode,
+				anchorOffset: sel.anchorOffset,
+				focusNode: sel.focusNode,
+				focusOffset: sel.focusOffset,
+			});
 		}
 
 		function onSettle(e: Event) {
-			// Selections that end inside the popup itself must not re-trigger /
-			// clear it (clicking a result would otherwise collapse the badge).
+			// Selections that end inside the toolbar itself must not re-trigger /
+			// clear it (clicking a result would otherwise collapse the toolbar).
 			const target = e.target as Element | null;
-			if (target && target.closest("[data-textbook-popup]")) return;
+			if (target && target.closest("[data-selection-toolbar]")) return;
 			cancelAnimationFrame(raf);
 			// rAF so window.getSelection() reflects the finished selection.
 			raf = requestAnimationFrame(evaluate);

@@ -17,6 +17,7 @@ import { pdfRoutes } from './routes/pdf';
 import { examRoutes } from './routes/exam';
 import { reviewRoutes } from './routes/review';
 import { aiRoutes } from './routes/ai';
+import { aiPromptRoutes } from './routes/ai-prompts';
 import { notificationsRoutes } from './routes/notifications';
 import { usersRoutes } from './routes/users';
 import { searchRoutes } from './routes/search';
@@ -101,6 +102,8 @@ app.route('/img', imagesRoutes);
 app.route('/pdf', pdfRoutes);
 app.route('/api/exam', examRoutes);
 app.route('/api/review', reviewRoutes);
+// 掛在 /api/ai 之前:更長的前綴先比對,BYOK 提示詞才不會被 aiRoutes 攔下。
+app.route('/api/ai/prompts', aiPromptRoutes);
 app.route('/api/ai', aiRoutes);
 app.route('/api/drill', drillRoutes);
 app.route('/api/highlights', highlightsRoutes);

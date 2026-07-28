@@ -3,6 +3,7 @@ import { LogOut, RefreshCw, Send } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useMe, type Me } from '../hooks/useMe';
 import { Avatar } from '../components/Avatar';
+import { AiKeyCard } from '../components/profile/AiKeyCard';
 import { api } from '../lib/api';
 import { signOut, reloadFresh } from '../lib/signOut';
 
@@ -123,6 +124,7 @@ export function Profile() {
       </div>
 
       <TelegramCard />
+      <AiKeyCard />
       <McqKeyCard me={me} />
       <AccountCard email={me.email} />
     </div>
