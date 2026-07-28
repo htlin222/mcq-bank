@@ -7,6 +7,8 @@
 #   script-src 'wasm-unsafe-eval'     pdfium WASM (EmbedPDF lecture reader)
 #   worker-src blob:                  EmbedPDF engine worker
 #   connect-src cdn.jsdelivr.net      pdfium.wasm + CJK font packs at runtime
+#   connect-src api.groq.com          BYOK AI 助手 —— 瀏覽器直連,金鑰只存本機
+#                                     (見 frontend/src/lib/groq.ts)
 #   img-src data: blob:               TipTap pasted images, PDF tile rendering
 
 /*
@@ -15,4 +17,4 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net https://api.groq.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'

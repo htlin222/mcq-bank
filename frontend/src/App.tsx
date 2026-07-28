@@ -38,7 +38,8 @@ import { PomodoroFab } from "./components/PomodoroFab";
 import { UpdatePrompt } from "./components/UpdatePrompt";
 import { ChatProvider } from "./chat/ChatProvider";
 import { ChatToaster } from "./chat/ChatToaster";
-import { TextbookSelectionListener } from "./components/TextbookLookupPopup";
+import { AnnotationRegistryProvider } from "./components/AnnotationRegistry";
+import { SelectionToolbar } from "./components/SelectionToolbar";
 import { ChatBell } from "./chat/ChatBell";
 import { Home } from "./routes/Home";
 import { Landing } from "./routes/Landing";
@@ -117,6 +118,7 @@ export default function App() {
 
 	return (
 		<ChatProvider>
+		<AnnotationRegistryProvider>
 		<div className="min-h-screen bg-ink-50 dark:bg-ink-900 text-ink-800 dark:text-ink-200 flex flex-col">
 			<LastPathTracker />
 			<ChatToaster />
@@ -218,8 +220,8 @@ export default function App() {
 				</Routes>
 			</main>
 
-			{/* 全站選字 → 「📖 Wintrobe 怎麼說?」教科書引用 popup。 */}
-			<TextbookSelectionListener />
+			{/* 全站唯一的選字工具列:螢光標記 / 查參考資料 / AI 同在一列。 */}
+			<SelectionToolbar />
 
 			{/* 番茄鐘 — floats over 複習模式 only (hides itself elsewhere). */}
 			<PomodoroFab />
@@ -236,6 +238,7 @@ export default function App() {
 				<BottomItem to="/bookmarks" Icon={Bookmark} label="收藏" />
 			</nav>
 		</div>
+		</AnnotationRegistryProvider>
 		</ChatProvider>
 	);
 }
