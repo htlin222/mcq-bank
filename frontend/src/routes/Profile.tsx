@@ -4,8 +4,19 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useMe, type Me } from '../hooks/useMe';
 import { Avatar } from '../components/Avatar';
 import { AiKeyCard } from '../components/profile/AiKeyCard';
+import { ProfileToc, type TocItem } from '../components/profile/ProfileToc';
 import { api } from '../lib/api';
 import { signOut, reloadFresh } from '../lib/signOut';
+
+// 側欄導覽的項目。id 對應各卡片外層的 id + scroll-mt-20;順序就是頁面順序,
+// 兩邊要一起改。AiKeyCard 的 id 在它自己的檔案裡。
+const SECTIONS: TocItem[] = [
+  { id: 'profile-basic', label: '基本資料' },
+  { id: 'profile-telegram', label: 'Telegram 推播' },
+  { id: 'profile-ai', label: 'AI 助手' },
+  { id: 'profile-mcq', label: 'MCQ 金鑰' },
+  { id: 'profile-account', label: '帳號' },
+];
 
 export function Profile() {
   const { me, loading, update } = useMe();
@@ -49,84 +60,92 @@ export function Profile() {
   }
 
   return (
-    <div className="max-w-2xl md:max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    // lg 以上讓出左欄給 TOC,所以容器要比原本的 max-w-3xl 寬;lg 以下維持
+    // 原本的單欄閱讀寬度不變。
+    <div className="max-w-2xl md:max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-8">個人資料</h1>
 
-      <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper">
-        <div className="flex items-center gap-5 mb-8">
-          <Avatar
-            email={me.email}
-            avatarKey={me.avatar_key}
-            name={me.display_name}
-            size={72}
-          />
-          <div>
-            <label className="inline-block bg-ink-900 hover:bg-ink-700 dark:bg-ink-700 dark:hover:bg-ink-600 text-white px-4 py-2 rounded text-sm cursor-pointer transition">
-              {uploading ? '上傳中…' : '更換頭像'}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={uploading}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) uploadAvatar(f);
-                  e.target.value = '';
-                }}
+      <div className="lg:flex lg:items-start lg:gap-10">
+        <ProfileToc items={SECTIONS} />
+
+        <div className="min-w-0 flex-1">
+          <div id="profile-basic" className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper">
+            <div className="flex items-center gap-5 mb-8">
+              <Avatar
+                email={me.email}
+                avatarKey={me.avatar_key}
+                name={me.display_name}
+                size={72}
               />
-            </label>
-            <p className="text-xs text-ink-400 dark:text-ink-500 mt-2">最大 2 MB,自動裁切</p>
+              <div>
+                <label className="inline-block bg-ink-900 hover:bg-ink-700 dark:bg-ink-700 dark:hover:bg-ink-600 text-white px-4 py-2 rounded text-sm cursor-pointer transition">
+                  {uploading ? '上傳中…' : '更換頭像'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) uploadAvatar(f);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+                <p className="text-xs text-ink-400 dark:text-ink-500 mt-2">最大 2 MB,自動裁切</p>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              <Field label="Email">
+                <input
+                  value={me.email}
+                  disabled
+                  className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 rounded bg-ink-50 dark:bg-ink-900 text-ink-500 dark:text-ink-400"
+                />
+              </Field>
+
+              <Field label="顯示名稱">
+                <input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
+                />
+              </Field>
+
+              <Field label="個人簡介">
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent font-serif resize-y text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
+                  placeholder="e.g. Fellow 1, 2, 3, 某某醫院"
+                />
+              </Field>
+            </div>
+
+            <div className="mt-6 flex items-center gap-3 justify-end">
+              {savedAt && (
+                <span className="text-xs text-emerald-700 dark:text-emerald-400">
+                  ✓ 已儲存 ({new Date(savedAt).toLocaleTimeString('zh-TW')})
+                </span>
+              )}
+              <button
+                onClick={save}
+                disabled={saving}
+                className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium disabled:opacity-40"
+              >
+                {saving ? '儲存中…' : '儲存'}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-5">
-          <Field label="Email">
-            <input
-              value={me.email}
-              disabled
-              className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 rounded bg-ink-50 dark:bg-ink-900 text-ink-500 dark:text-ink-400"
-            />
-          </Field>
-
-          <Field label="顯示名稱">
-            <input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
-            />
-          </Field>
-
-          <Field label="個人簡介">
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-ink-200 dark:border-ink-600 dark:bg-ink-900 rounded focus:outline-none focus:border-accent font-serif resize-y text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
-              placeholder="e.g. Fellow 1, 2, 3, 某某醫院"
-            />
-          </Field>
-        </div>
-
-        <div className="mt-6 flex items-center gap-3 justify-end">
-          {savedAt && (
-            <span className="text-xs text-emerald-700 dark:text-emerald-400">
-              ✓ 已儲存 ({new Date(savedAt).toLocaleTimeString('zh-TW')})
-            </span>
-          )}
-          <button
-            onClick={save}
-            disabled={saving}
-            className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded font-medium disabled:opacity-40"
-          >
-            {saving ? '儲存中…' : '儲存'}
-          </button>
+          <TelegramCard />
+          <AiKeyCard />
+          <McqKeyCard me={me} />
+          <AccountCard email={me.email} />
         </div>
       </div>
-
-      <TelegramCard />
-      <AiKeyCard />
-      <McqKeyCard me={me} />
-      <AccountCard email={me.email} />
     </div>
   );
 }
@@ -137,7 +156,7 @@ function AccountCard({ email }: { email: string }) {
   const [busy, setBusy] = useState<null | 'cache' | 'signout'>(null);
 
   return (
-    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
+    <div id="profile-account" className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
       <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">帳號</h2>
       <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-5">
         目前登入身分 <span className="font-mono text-[0.9em]">{email}</span>。
@@ -224,7 +243,7 @@ function TelegramCard() {
   }
 
   return (
-    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
+    <div id="profile-telegram" className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
       <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">Telegram 推播</h2>
       <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-5">
         綁定 Telegram 後,機器人會在你設定的時段每天推一題(優先複習到期題),
@@ -346,7 +365,7 @@ function McqKeyCard({ me }: { me: Me }) {
   }
 
   return (
-    <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
+    <div id="profile-mcq" className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
       <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">MCQ 小測驗金鑰</h2>
       <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-1">
         下載你的專屬 <code className="font-mono text-[0.85em]">.skill</code>,上傳到 Claude 或 ChatGPT 後即可用
