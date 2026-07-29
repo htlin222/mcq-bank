@@ -60,6 +60,7 @@ import { WrongQuestions } from "./routes/Lists";
 import { Bookmarks } from "./routes/Bookmarks";
 import { Search } from "./routes/Search";
 import { Challenges } from "./routes/Challenges";
+import Videos from "./routes/Videos";
 
 // Lazy — keeps EmbedPDF's pdfium-wasm bundle off every other route.
 const Lectures = lazy(() => import("./routes/Lectures"));
@@ -214,6 +215,8 @@ export default function App() {
 							</Suspense>
 						}
 					/>
+					<Route path="/videos" element={<Videos />} />
+					<Route path="/videos/:slug" element={<Videos />} />
 					<Route path="/profile" element={<Profile />} />
 					<Route path="/login" element={<Navigate to="/" replace />} />
 					<Route path="*" element={<NotFound />} />
@@ -326,6 +329,7 @@ function NavMore() {
 					<NavLink to="/bookmarks" className={(s) => `md:hidden ${itemCls(s)}`}>收藏</NavLink>
 					<NavLink to="/wrong" className={(s) => `md:hidden ${itemCls(s)}`}>錯題</NavLink>
 					<NavLink to="/lectures" className={itemCls}>講義</NavLink>
+					<NavLink to="/videos" className={itemCls}>影片</NavLink>
 					<NavLink to="/challenges" className={itemCls}>答案挑戰</NavLink>
 				</div>
 			)}

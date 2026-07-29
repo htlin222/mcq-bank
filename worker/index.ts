@@ -36,6 +36,7 @@ import { exportRoutes } from './routes/export';
 import { drillRoutes } from './routes/drill';
 import { highlightsRoutes } from './routes/highlights';
 import { webhookRoutes, telegramApiRoutes } from './routes/telegram';
+import { videosRoutes, questionVideoRoutes } from './routes/videos';
 import { runPushTick } from './lib/tg-push';
 
 // Durable Object classes must be exported from the Worker entrypoint.
@@ -95,6 +96,7 @@ app.route('/api/questions', explanationsRoutes); // /:id/explanation/*
 app.route('/api/questions', notesRoutes);        // /:id/note
 app.route('/api/questions', commentsRoutes);     // /:id/comments
 app.route('/api/questions', questionChallengeRoutes); // /:id/challenges*
+app.route('/api/questions', questionVideoRoutes);     // /:id/videos
 app.route('/api/challenges', challengesRoutes);  // /:cid/votes etc.
 app.route('/api/comments', helpfulRoutes);       // /:cid/helpful
 app.route('/api/upload', uploadRoutes);
@@ -119,6 +121,7 @@ app.route('/api/oe', oeRoutes);
 app.route('/api/state', stateRoutes);
 app.route('/api/export', exportRoutes);
 app.route('/api/telegram', telegramApiRoutes);
+app.route('/api/videos', videosRoutes);
 
 app.notFound((c) => c.json({ error: 'not found' }, 404));
 

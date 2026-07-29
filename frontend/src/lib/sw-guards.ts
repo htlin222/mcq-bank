@@ -83,8 +83,11 @@ const CACHEABLE_API: RegExp[] = [
   /^\/api\/questions(\?|$)/, // list + filters
   /^\/api\/questions\/_meta\/[^/]+$/, // years / groups / tags / lookup
   /^\/api\/questions\/[^/?]+(\?|$)/, // single question (includes 詳解 payload)
-  /^\/api\/questions\/[^/?]+\/(comments|note)(\?|$)/,
+  /^\/api\/questions\/[^/?]+\/(comments|note|videos)(\?|$)/,
   /^\/api\/lectures(\?|$)/,
+  // 策展影片:離線腳本才會改動,一天內重跑一次都算頻繁。快取的是清單
+  // metadata,播放本身仍需連線。
+  /^\/api\/videos\/topics(\/[^/?]+)?(\?|$)/,
 ];
 
 /** @param pathAndSearch e.g. `/api/questions?year=114` (url.pathname + url.search) */
