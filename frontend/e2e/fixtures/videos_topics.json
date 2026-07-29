@@ -1,0 +1,19 @@
+{
+  "topics": [
+    {
+      "slug": "blood-group",
+      "label": "血型與紅血球抗原",
+      "kind": "mechanism",
+      "video_count": 8,
+      "cover_key": "video-thumbs/smokeTestA1.jpg"
+    },
+    {
+      "slug": "cml-treatment",
+      "label": "CML 治療與 TKI",
+      "kind": "treatment",
+      "video_count": 6,
+      "cover_key": null
+    }
+  ],
+  "total_videos": 14
+}

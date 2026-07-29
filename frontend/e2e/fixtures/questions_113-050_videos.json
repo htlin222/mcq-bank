@@ -1,0 +1,34 @@
+{
+  "topics": [
+    {
+      "slug": "blood-group",
+      "label": "血型與紅血球抗原",
+      "kind": "mechanism",
+      "videos": [
+        {
+          "id": "smokeTestA1",
+          "title": "ABO Blood Group System | Antigens, Antibodies and Typing",
+          "channel": "Smoke Test Medicine",
+          "duration_s": 742,
+          "view_count": 265676,
+          "upload_date": "20190217",
+          "thumb_key": "video-thumbs/smokeTestA1.jpg",
+          "ai_score": 9,
+          "ai_reason": "圖解 ABO 抗原與血清學判讀"
+        },
+        {
+          "id": "smokeTestB2",
+          "title": "Bombay and Para-Bombay Phenotype Explained",
+          "channel": "Smoke Test Medicine",
+          "duration_s": 1204,
+          "view_count": 41238,
+          "upload_date": "20220908",
+          "thumb_key": null,
+          "ai_score": 8,
+          "ai_reason": "孟買/亞孟買血型的 H 抗原機轉"
+        }
+      ]
+    }
+  ],
+  "total": 2
+}

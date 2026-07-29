@@ -96,6 +96,22 @@ jobs:
           pnpm --dir frontend install --frozen-lockfile
           pnpm --dir frontend build
 
+      # 部署前的閘門。2026-07-29 之前，所有 iOS 使用者的題目頁都是整頁白屏，
+      # 而 364 個單元測試全綠、Chromium 上完全正常 —— 成因是只在 WebKit 命中的
+      # 時序競賽（見 wiki 的 Gotchas 十四）。iOS 強制所有瀏覽器使用 WebKit，
+      # 所以少了這一關，同一類「整個平台完全不能用」的失敗沒有任何防線。
+      #
+      # E2E_REQUIRE=1：瀏覽器沒裝好時要讓 job 失敗，不能靜靜跳過 —— 跳過的
+      # 測試看起來跟通過一模一樣，那正是這個閘門要防的事。
+      - name: Smoke test on WebKit (iPhone)
+        if: steps.guard.outputs.pages_only == 'true'
+        env:
+          E2E_REQUIRE: '1'
+        run: |
+          set -euo pipefail
+          pnpm --dir frontend exec playwright install --with-deps webkit
+          node --test frontend/e2e/smoke.test.mjs
+
       - name: Deploy to Cloudflare Pages
         if: steps.guard.outputs.pages_only == 'true'
         uses: cloudflare/wrangler-action@v3

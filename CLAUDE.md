@@ -461,6 +461,34 @@ When extending the UI, preserve this voice. It's a serious study tool — looks 
 - Wrangler tail prod logs: `wrangler tail`
 - Pages logs: dashboard → Pages → project → Functions tab
 
+### Frontend changes must be verified on WebKit, not just Chromium
+
+`pnpm test` covers pure functions only. For anything touching React lifecycle,
+TipTap, or rendering, run:
+
+```bash
+pnpm test:webkit        # builds frontend, then WebKit + iPhone 13 smoke test
+```
+
+This exists because of a real outage: until 2026-07-29 **every iOS user got a
+blank question page**, while 364 unit tests passed and Chromium was fine. The
+cause was a timing race that WebKit hits deterministically and Chromium never
+does — `useEditor` hands back an already-destroyed Editor, writing to it throws
+during React's commit phase, and React 18 responds by unmounting the whole tree.
+iOS forces every browser onto WebKit, so "works in Chrome" is not evidence here.
+
+The test (`frontend/e2e/`) asserts only two things per route — renders something,
+no uncaught `pageerror`. It runs against the **production build** (the dev
+server's StrictMode double-mount produces different, misleading symptoms) and
+serves canned API fixtures rather than a live Worker, so it needs no D1 or
+Cloudflare credentials.
+
+It also gates the Pages deploy workflow with `E2E_REQUIRE=1`, which turns "browser
+not installed" into a failure instead of a silent skip. Adding a route means
+adding a fixture: hit the real endpoint under `wrangler dev` and save the response
+to `frontend/e2e/fixtures/<path-with-slashes-as-underscores>.json`. Endpoints with
+no fixture get `{}` and are listed at the end of the run.
+
 ## Cost Awareness
 
 This is designed to fit in **free tier indefinitely** for 20 users. If a feature would push past free tier, call it out explicitly. Don't silently add paid services. Note: SQLite-backed Durable Objects (`new_sqlite_classes`) ARE available on the free plan (the chat lobby uses one) — only KV-backed DO storage requires Workers Paid.
