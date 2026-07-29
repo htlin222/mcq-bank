@@ -43,6 +43,10 @@ DATA = ROOT / "scripts" / "data"
 TOPICS_FILE = ROOT / "scripts" / "video-topics.json"
 CANDIDATES_FILE = DATA / "video-candidates.json"
 SCORES_FILE = DATA / "video-scores.json"
+# 搜尋與 metadata 各自落地。調門檻是常態(第一版 treatment 設 5 年,
+# 結果 28 個主題整個空掉),沒有快取就要為了改一個數字重跑 30 分鐘。
+SEARCH_CACHE = DATA / "video-search-cache.json"
+META_CACHE = DATA / "video-meta-cache.json"
 
 with (ROOT / "config.toml").open("rb") as _f:
     _CFG = tomllib.load(_f)
@@ -56,8 +60,15 @@ MIN_DURATION = 300     # 5 分鐘 —— 排掉 Shorts 與預告
 MAX_DURATION = 2400    # 40 分鐘 —— 排掉整場研討會錄影
 MIN_SCORE = 6          # Haiku 相關性門檻
 
-# 年限依主題類別分開:治療會過時,機轉不太會
+# 年限依主題類別分開:治療會過時,機轉不太會。
+#
+# 但這是「偏好」不是「硬牆」。第一版把 treatment 當硬牆設 5 年,結果 28 個
+# 主題一支都不剩 —— YouTube 上的醫學教學影片絕大多數比這老。所以改成:
+# 先收 MAX_AGE_YEARS 以內的,不足 MIN_PER_TOPIC 支才從較舊的池子依觀看數
+# 回填,到 HARD_AGE_YEARS 為止。卡片上會顯示年份,舊的自己看得出來。
 MAX_AGE_YEARS = {"treatment": 5, "mechanism": 12}
+HARD_AGE_YEARS = {"treatment": 10, "mechanism": 18}
+MIN_PER_TOPIC = 5
 
 THREADS = 4            # yt-dlp 併發數,再高容易被 YouTube 擋
 THUMB_PREFIX = "video-thumbs"
@@ -108,6 +119,10 @@ def age_years(upload_date: str | None) -> float | None:
 
 # ---------- search ------------------------------------------------------------
 
+def _load(p: Path) -> dict:
+    return json.load(p.open()) if p.exists() else {}
+
+
 def cmd_search(args):
     topics = json.load(TOPICS_FILE.open())["topics"]
     if args.topic:
@@ -116,19 +131,24 @@ def cmd_search(args):
             sys.exit(f"找不到主題:{', '.join(args.topic)}")
 
     DATA.mkdir(parents=True, exist_ok=True)
-    existing = json.load(CANDIDATES_FILE.open()) if CANDIDATES_FILE.exists() else {}
+    existing = _load(CANDIDATES_FILE)
+    search_cache = _load(SEARCH_CACHE)
+    meta_cache = _load(META_CACHE)
 
     todo = [t for t in topics if args.force or t["slug"] not in existing]
-    print(f"主題 {len(topics)} 個,待搜 {len(todo)} 個"
-          f"({len(topics) - len(todo)} 個已有候選,--force 可重搜)")
-
-    meta_cache: dict[str, dict | None] = {}
+    print(f"主題 {len(topics)} 個,待處理 {len(todo)} 個"
+          f"(快取:{len(search_cache)} 組搜尋、{len(meta_cache)} 支 metadata)")
 
     for i, topic in enumerate(todo, 1):
         slug, kind = topic["slug"], topic["kind"]
-        max_age = MAX_AGE_YEARS[kind]
 
-        hits = search_topic(topic["query"])
+        hits = search_cache.get(slug)
+        if hits is None or args.refetch:
+            hits = search_topic(topic["query"])
+            search_cache[slug] = hits
+            SEARCH_CACHE.write_text(json.dumps(search_cache, ensure_ascii=False),
+                                    encoding="utf-8")
+
         # 先用 flat 結果篩時長、排觀看數 —— 補 metadata 很貴,少補一支省 1.5 秒
         pool = [
             h for h in hits
@@ -138,21 +158,24 @@ def cmd_search(args):
         pool.sort(key=lambda h: h.get("view_count") or 0, reverse=True)
         pool = pool[:CANDIDATE_N]
 
-        need = [h["id"] for h in pool if h["id"] not in meta_cache]
+        need = [h["id"] for h in pool
+                if h["id"] not in meta_cache or args.refetch]
         if need:
             with ThreadPoolExecutor(max_workers=THREADS) as ex:
                 for vid, meta in zip(need, ex.map(fetch_meta, need)):
                     meta_cache[vid] = meta
+            META_CACHE.write_text(json.dumps(meta_cache, ensure_ascii=False),
+                                  encoding="utf-8")
 
-        kept = []
+        fresh, stale = [], []
         for h in pool:
             m = meta_cache.get(h["id"])
             if not m or m.get("availability") not in (None, "public"):
                 continue
             yrs = age_years(m.get("upload_date"))
-            if yrs is not None and yrs > max_age:
+            if yrs is not None and yrs > HARD_AGE_YEARS[kind]:
                 continue
-            kept.append({
+            row = {
                 "id": m["id"],
                 "title": m.get("title") or "",
                 "channel": m.get("channel") or m.get("uploader") or "",
@@ -163,14 +186,20 @@ def cmd_search(args):
                 "subscribers": m.get("channel_follower_count"),
                 # 描述截斷:評分只看得到前面這段,存全文只是讓 JSON 變胖
                 "desc": (m.get("description") or "")[:500],
-            })
+            }
+            (fresh if yrs is None or yrs <= MAX_AGE_YEARS[kind] else stale).append(row)
+
+        # 回填按觀看數 —— 既然已經比偏好年限舊了,至少挑多數人看過的那幾支
+        stale.sort(key=lambda r: r["view_count"], reverse=True)
+        kept = fresh + stale[: max(0, MIN_PER_TOPIC - len(fresh))]
 
         existing[slug] = kept
         CANDIDATES_FILE.write_text(
             json.dumps(existing, ensure_ascii=False, indent=1), encoding="utf-8"
         )
         print(f"[{i}/{len(todo)}] {slug:26s} 搜到 {len(hits):2d} → "
-              f"候選 {len(pool):2d} → 過年限/下架後 {len(kept):2d}")
+              f"候選 {len(pool):2d} → 留 {len(kept):2d}"
+              f"(新 {len(fresh)} + 回填 {len(kept) - len(fresh)})")
 
     total = sum(len(v) for v in existing.values())
     print(f"\n候選共 {total} 支(去重後 "
@@ -386,7 +415,10 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("search", help="搜尋 + 過濾,產出候選")
-    s.add_argument("--force", action="store_true", help="已有候選的主題也重搜")
+    s.add_argument("--force", action="store_true",
+                   help="已有候選的主題也重算(有快取時很快,適合調門檻)")
+    s.add_argument("--refetch", action="store_true",
+                   help="連快取一起重抓 —— 真的重打 YouTube,慢")
     s.add_argument("--topic", nargs="*", help="只跑指定主題 slug")
     s.set_defaults(func=cmd_search)
 
