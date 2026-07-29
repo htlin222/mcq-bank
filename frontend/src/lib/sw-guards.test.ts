@@ -104,6 +104,14 @@ test('question read endpoints are cacheable', () => {
   assert.equal(isCacheableApiPath('/api/lectures'), true);
 });
 
+test('curated video listings are cacheable, but the mutable ones are not', () => {
+  assert.equal(isCacheableApiPath('/api/questions/114-001/videos'), true);
+  assert.equal(isCacheableApiPath('/api/videos/topics'), true);
+  assert.equal(isCacheableApiPath('/api/videos/topics/cml'), true);
+  // 「已移除」是刪除動作的鏡子 —— 快取它,還原後畫面就不會更新。
+  assert.equal(isCacheableApiPath('/api/videos/removed'), false);
+});
+
 test('identity, notifications and chat are never cacheable', () => {
   assert.equal(isCacheableApiPath('/api/me'), false);
   assert.equal(isCacheableApiPath('/api/notifications'), false);

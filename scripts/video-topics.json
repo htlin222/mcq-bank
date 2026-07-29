@@ -1,0 +1,671 @@
+{
+  "_comment": [
+    "策展主題表。由 question_tags 的 853 個自由標籤正規化合併而來(2026-07-29)。",
+    "",
+    "kind 決定影片的年限門檻,因為兩類內容的半衰期差很多:",
+    "  treatment  藥物/方案/指引  → 5 年內",
+    "  mechanism  病生理/細胞遺傳/實驗室判讀 → 12 年內",
+    "",
+    "大病種刻意拆成機轉與治療兩個主題:一來年限不同,二來",
+    "「CML 的 BCR-ABL 融合基因」跟「CML 該用哪支 TKI」本來就不是同一支影片。",
+    "",
+    "tags 是會命中此主題的 question_tags 值。刻意不收的標籤:",
+    "  工作流標記  低信心需覆核 / 待補選項 / 待補題幹 / 答案待確認",
+    "  面向非主題  治療 / treatment / 診斷 / 預後 / prognosis / 預後因子 / 化療 / 風險分層",
+    "  斷詞碎片    21) / t(8 / 14) / 17) / 18) / 5)",
+    "  無檢索價值  Taiwan / Asian / FDA / ESMO"
+  ],
+  "topics": [
+    {
+      "slug": "leukemia-overview",
+      "label": "白血病總論",
+      "kind": "mechanism",
+      "query": "leukemia overview acute chronic classification lecture",
+      "tags": ["白血病", "leukemia"]
+    },
+    {
+      "slug": "aml",
+      "label": "AML 急性骨髓性白血病",
+      "kind": "mechanism",
+      "query": "acute myeloid leukemia pathophysiology lecture",
+      "tags": ["AML", "APML", "Auer rods", "CBF", "CBF leukemia", "Down syndrome"]
+    },
+    {
+      "slug": "aml-classification",
+      "label": "AML 分類與風險分層",
+      "kind": "mechanism",
+      "query": "AML WHO classification ELN risk stratification NPM1 FLT3",
+      "tags": ["ELN", "ELN 2013", "ELN 2017", "ELN2022", "ELN response", "WHO classification", "WHO 2016", "ICC 2022", "NPM1", "CEBPA", "RUNX1", "ASXL1", "BCOR", "KIT"]
+    },
+    {
+      "slug": "aml-treatment",
+      "label": "AML 治療",
+      "kind": "treatment",
+      "query": "AML treatment induction 7+3 venetoclax azacitidine",
+      "tags": ["venetoclax", "CPX-351", "GO", "BCL-2抑制劑", "BCL-2", "BCL2"]
+    },
+    {
+      "slug": "flt3",
+      "label": "FLT3 突變與抑制劑",
+      "kind": "treatment",
+      "query": "FLT3 mutation AML midostaurin gilteritinib",
+      "tags": ["FLT3", "FLT3-ITD", "FLT3i", "midostaurin"]
+    },
+    {
+      "slug": "apl",
+      "label": "APL 急性前骨髓性白血病",
+      "kind": "treatment",
+      "query": "acute promyelocytic leukemia ATRA arsenic trioxide",
+      "tags": ["APL", "ATRA", "ATO", "APL0406"]
+    },
+    {
+      "slug": "mds",
+      "label": "MDS 骨髓化生不良症候群",
+      "kind": "mechanism",
+      "query": "myelodysplastic syndrome pathophysiology classification IPSS",
+      "tags": ["MDS", "MDS-RS", "SF3B1", "del(5q)", "5q-"]
+    },
+    {
+      "slug": "mds-treatment",
+      "label": "MDS 治療",
+      "kind": "treatment",
+      "query": "MDS treatment azacitidine luspatercept lenalidomide",
+      "tags": ["luspatercept", "EPO resistance"]
+    },
+    {
+      "slug": "cmml",
+      "label": "CMML 慢性骨髓單核球白血病",
+      "kind": "mechanism",
+      "query": "chronic myelomonocytic leukemia CMML",
+      "tags": ["CMML", "CMMoL", "CSF3R"]
+    },
+    {
+      "slug": "cml",
+      "label": "CML 慢性骨髓性白血病",
+      "kind": "mechanism",
+      "query": "chronic myeloid leukemia philadelphia chromosome BCR-ABL pathophysiology",
+      "tags": ["CML", "BCR-ABL", "BCR-ABL1", "BCR::ABL1", "BCR", "Ph chromosome"]
+    },
+    {
+      "slug": "cml-treatment",
+      "label": "CML 治療與 TKI",
+      "kind": "treatment",
+      "query": "CML treatment tyrosine kinase inhibitor imatinib dasatinib asciminib",
+      "tags": ["TKI", "asciminib", "ASC4FIRST", "CHR", "hydroxyurea"]
+    },
+    {
+      "slug": "mpn",
+      "label": "MPN 骨髓增生性腫瘤",
+      "kind": "mechanism",
+      "query": "myeloproliferative neoplasm JAK2 CALR MPL pathophysiology",
+      "tags": ["MPN", "JAK2", "CALR"]
+    },
+    {
+      "slug": "pv",
+      "label": "PV 真性紅血球增多症",
+      "kind": "mechanism",
+      "query": "polycythemia vera diagnosis pathophysiology",
+      "tags": ["PV"]
+    },
+    {
+      "slug": "et",
+      "label": "ET 原發性血小板增多症",
+      "kind": "mechanism",
+      "query": "essential thrombocythemia diagnosis",
+      "tags": ["ET"]
+    },
+    {
+      "slug": "myelofibrosis",
+      "label": "骨髓纖維化",
+      "kind": "mechanism",
+      "query": "primary myelofibrosis pathophysiology diagnosis",
+      "tags": ["MF", "PMF"]
+    },
+    {
+      "slug": "mpn-treatment",
+      "label": "MPN 治療",
+      "kind": "treatment",
+      "query": "myelofibrosis ruxolitinib polycythemia vera treatment",
+      "tags": ["ruxolitinib", "Budd-Chiari"]
+    },
+    {
+      "slug": "tp53",
+      "label": "TP53 突變",
+      "kind": "mechanism",
+      "query": "TP53 mutation hematologic malignancy prognosis",
+      "tags": ["TP53"]
+    },
+    {
+      "slug": "chip",
+      "label": "CHIP 純系造血",
+      "kind": "mechanism",
+      "query": "clonal hematopoiesis of indeterminate potential CHIP",
+      "tags": ["CHIP", "DNMT3A"]
+    },
+    {
+      "slug": "all",
+      "label": "ALL 急性淋巴性白血病",
+      "kind": "mechanism",
+      "query": "acute lymphoblastic leukemia pathophysiology classification",
+      "tags": ["ALL", "B-ALL", "ETP", "ETP-ALL", "ETV6-RUNX1", "ETV6::RUNX1", "IKZF1", "CRLF2", "Ph-like ALL", "BCR-ABL1-like", "CNS leukemia"]
+    },
+    {
+      "slug": "all-treatment",
+      "label": "ALL 治療",
+      "kind": "treatment",
+      "query": "ALL treatment chemotherapy blinatumomab inotuzumab",
+      "tags": ["blinatumomab", "asparaginase", "6-MP", "Ph+ ALL", "BiTE"]
+    },
+    {
+      "slug": "cll",
+      "label": "CLL 慢性淋巴性白血病",
+      "kind": "mechanism",
+      "query": "chronic lymphocytic leukemia diagnosis prognosis",
+      "tags": ["CLL", "CLL-IPI", "IGHV", "NOTCH1", "CD23"]
+    },
+    {
+      "slug": "cll-treatment",
+      "label": "CLL 治療",
+      "kind": "treatment",
+      "query": "CLL treatment BTK inhibitor ibrutinib venetoclax",
+      "tags": ["CLL therapy", "BTK inhibitor", "ibrutinib"]
+    },
+    {
+      "slug": "lymphoma-overview",
+      "label": "淋巴瘤總論與分類",
+      "kind": "mechanism",
+      "query": "lymphoma classification WHO overview lecture",
+      "tags": ["lymphoma", "淋巴瘤", "NHL", "B-cell lymphoma"]
+    },
+    {
+      "slug": "dlbcl",
+      "label": "DLBCL 瀰漫性大 B 細胞淋巴瘤",
+      "kind": "mechanism",
+      "query": "diffuse large B cell lymphoma pathology GCB ABC",
+      "tags": ["DLBCL", "HGBL"]
+    },
+    {
+      "slug": "dlbcl-treatment",
+      "label": "DLBCL 治療",
+      "kind": "treatment",
+      "query": "DLBCL treatment R-CHOP polatuzumab",
+      "tags": ["R-CHOP", "DA-EPOCH-R"]
+    },
+    {
+      "slug": "hodgkin",
+      "label": "何杰金氏淋巴瘤",
+      "kind": "mechanism",
+      "query": "hodgkin lymphoma pathology Reed-Sternberg cell",
+      "tags": ["HL", "Hodgkin", "Hodgkin lymphoma", "霍奇金淋巴瘤", "NLPHL", "CD30"]
+    },
+    {
+      "slug": "hodgkin-treatment",
+      "label": "何杰金氏淋巴瘤治療",
+      "kind": "treatment",
+      "query": "hodgkin lymphoma treatment ABVD brentuximab",
+      "tags": ["ABVD", "AVD", "BOVEN", "Deauville"]
+    },
+    {
+      "slug": "follicular-lymphoma",
+      "label": "濾泡型淋巴瘤",
+      "kind": "mechanism",
+      "query": "follicular lymphoma pathology BCL2 translocation",
+      "tags": ["FL", "follicular lymphoma", "Follicular lymphoma", "Follicular Lymphoma", "FLIPI"]
+    },
+    {
+      "slug": "mantle-cell-lymphoma",
+      "label": "被套細胞淋巴瘤",
+      "kind": "mechanism",
+      "query": "mantle cell lymphoma cyclin D1 pathology",
+      "tags": ["MCL"]
+    },
+    {
+      "slug": "marginal-zone-lymphoma",
+      "label": "邊緣區淋巴瘤與 MALT",
+      "kind": "mechanism",
+      "query": "marginal zone lymphoma MALT helicobacter",
+      "tags": ["MZL", "H. pylori"]
+    },
+    {
+      "slug": "burkitt",
+      "label": "Burkitt 淋巴瘤",
+      "kind": "mechanism",
+      "query": "burkitt lymphoma MYC pathology",
+      "tags": ["Burkitt", "Burkitt lymphoma", "FAB L3"]
+    },
+    {
+      "slug": "t-cell-lymphoma",
+      "label": "T 細胞淋巴瘤",
+      "kind": "mechanism",
+      "query": "peripheral T cell lymphoma classification pathology",
+      "tags": ["AITL", "ALCL", "ALK", "ATLL", "NK/T cell lymphoma", "mycosis fungoides", "CD56"]
+    },
+    {
+      "slug": "hairy-cell-leukemia",
+      "label": "毛細胞白血病",
+      "kind": "mechanism",
+      "query": "hairy cell leukemia BRAF V600E",
+      "tags": ["HCL", "BRAF V600E", "BRAF"]
+    },
+    {
+      "slug": "waldenstrom",
+      "label": "Waldenström 巨球蛋白血症",
+      "kind": "mechanism",
+      "query": "waldenstrom macroglobulinemia MYD88",
+      "tags": ["WM", "MYD88", "IgM"]
+    },
+    {
+      "slug": "rituximab",
+      "label": "Rituximab 與抗 CD20",
+      "kind": "treatment",
+      "query": "rituximab mechanism of action anti-CD20 therapy",
+      "tags": ["rituximab", "CD20", "Bendamustine"]
+    },
+    {
+      "slug": "car-t",
+      "label": "CAR-T 細胞治療",
+      "kind": "treatment",
+      "query": "CAR-T cell therapy leukemia lymphoma mechanism",
+      "tags": ["CAR-T", "CAR", "CRS", "IL-6"]
+    },
+    {
+      "slug": "ptld",
+      "label": "移植後淋巴增生疾病與 EBV",
+      "kind": "mechanism",
+      "query": "post transplant lymphoproliferative disorder EBV",
+      "tags": ["PTLD", "EBV"]
+    },
+    {
+      "slug": "castleman",
+      "label": "Castleman 氏病",
+      "kind": "mechanism",
+      "query": "castleman disease HHV-8 pathology",
+      "tags": ["Castleman", "Castleman disease", "HHV-8"]
+    },
+    {
+      "slug": "multiple-myeloma",
+      "label": "多發性骨髓瘤",
+      "kind": "mechanism",
+      "query": "multiple myeloma pathophysiology CRAB diagnosis",
+      "tags": ["MM", "Multiple myeloma", "MGUS", "Bone Disease"]
+    },
+    {
+      "slug": "mm-treatment",
+      "label": "多發性骨髓瘤治療",
+      "kind": "treatment",
+      "query": "multiple myeloma treatment daratumumab bortezomib lenalidomide",
+      "tags": ["lenalidomide", "ASCT", "Denosumab"]
+    },
+    {
+      "slug": "amyloidosis",
+      "label": "AL 類澱粉沉積症",
+      "kind": "mechanism",
+      "query": "AL amyloidosis diagnosis pathophysiology",
+      "tags": ["amyloidosis", "AL amyloidosis", "AL-amyloidosis"]
+    },
+    {
+      "slug": "anemia-approach",
+      "label": "貧血診斷路徑",
+      "kind": "mechanism",
+      "query": "approach to anemia MCV reticulocyte classification lecture",
+      "tags": ["貧血", "ACD", "CBC"]
+    },
+    {
+      "slug": "iron-deficiency",
+      "label": "缺鐵性貧血與鐵代謝",
+      "kind": "mechanism",
+      "query": "iron deficiency anemia iron metabolism hepcidin",
+      "tags": ["IDA", "iron deficiency", "鐵代謝", "hepcidin", "Fe2+", "Fe3+"]
+    },
+    {
+      "slug": "iron-overload",
+      "label": "鐵質過載與排鐵",
+      "kind": "treatment",
+      "query": "iron overload chelation therapy hemochromatosis",
+      "tags": ["iron overload", "iron chelation", "hemochromatosis"]
+    },
+    {
+      "slug": "megaloblastic",
+      "label": "巨母紅血球性貧血(B12/葉酸)",
+      "kind": "mechanism",
+      "query": "megaloblastic anemia vitamin B12 folate deficiency",
+      "tags": ["B12", "B12 deficiency", "B12/葉酸", "B12吸收", "folate", "megaloblastic anemia"]
+    },
+    {
+      "slug": "thalassemia",
+      "label": "地中海型貧血",
+      "kind": "mechanism",
+      "query": "thalassemia alpha beta pathophysiology diagnosis",
+      "tags": ["thalassemia", "地中海貧血", "β-thalassemia", "HbE", "HbF", "HPLC", "TDT"]
+    },
+    {
+      "slug": "hemolytic-anemia",
+      "label": "溶血性貧血總論",
+      "kind": "mechanism",
+      "query": "hemolytic anemia approach intravascular extravascular lecture",
+      "tags": ["溶血", "hemolytic", "hemolysis", "溶血性貧血"]
+    },
+    {
+      "slug": "g6pd",
+      "label": "G6PD 缺乏症",
+      "kind": "mechanism",
+      "query": "G6PD deficiency pathophysiology hemolysis",
+      "tags": ["G6PD", "Canton variant"]
+    },
+    {
+      "slug": "spherocytosis",
+      "label": "遺傳性球形紅血球症",
+      "kind": "mechanism",
+      "query": "hereditary spherocytosis pathophysiology EMA test",
+      "tags": ["spherocytosis", "HS", "EMA test"]
+    },
+    {
+      "slug": "aiha",
+      "label": "自體免疫溶血性貧血",
+      "kind": "mechanism",
+      "query": "autoimmune hemolytic anemia warm cold Coombs test",
+      "tags": ["AIHA", "warm AIHA", "Coombs", "Coombs test", "DAT", "Evans syndrome"]
+    },
+    {
+      "slug": "cold-agglutinin",
+      "label": "冷凝集素病",
+      "kind": "mechanism",
+      "query": "cold agglutinin disease pathophysiology",
+      "tags": ["CAD", "cold agglutinin", "cold-agglutinin-disease", "冷凝集素病", "冷凝集素", "PCH"]
+    },
+    {
+      "slug": "pnh",
+      "label": "PNH 陣發性夜間血紅素尿",
+      "kind": "mechanism",
+      "query": "paroxysmal nocturnal hemoglobinuria pathophysiology PIGA",
+      "tags": ["PNH", "PIGA", "CD55", "CD59", "FLAER"]
+    },
+    {
+      "slug": "pnh-treatment",
+      "label": "PNH 治療與補體抑制劑",
+      "kind": "treatment",
+      "query": "PNH treatment eculizumab ravulizumab complement inhibitor",
+      "tags": ["eculizumab", "C5 inhibitor", "C5抑制劑", "C5", "補體抑制劑", "complement inhibitor", "Crovalimab", "C3 inhibitor"]
+    },
+    {
+      "slug": "complement",
+      "label": "補體系統",
+      "kind": "mechanism",
+      "query": "complement system pathway classical alternative lecture",
+      "tags": ["補體", "complement", "C3", "C3d", "C3沈積", "Factor B", "CFH"]
+    },
+    {
+      "slug": "aplastic-anemia",
+      "label": "再生不良性貧血",
+      "kind": "mechanism",
+      "query": "aplastic anemia pathophysiology diagnosis",
+      "tags": ["aplastic anemia", "Aplastic Anemia", "AA", "SAA", "Camitta criteria", "ATG"]
+    },
+    {
+      "slug": "prca",
+      "label": "純紅血球再生不良",
+      "kind": "mechanism",
+      "query": "pure red cell aplasia parvovirus B19",
+      "tags": ["PRCA", "parvovirus B19"]
+    },
+    {
+      "slug": "hemoglobin",
+      "label": "血紅素結構與氧解離曲線",
+      "kind": "mechanism",
+      "query": "hemoglobin structure oxygen dissociation curve physiology",
+      "tags": ["hemoglobin", "RBC", "methemoglobinemia"]
+    },
+    {
+      "slug": "thrombocytopenia",
+      "label": "血小板低下診斷路徑",
+      "kind": "mechanism",
+      "query": "approach to thrombocytopenia differential diagnosis",
+      "tags": ["platelet", "thrombocytopenia", "血小板減少症"]
+    },
+    {
+      "slug": "itp",
+      "label": "免疫性血小板低下紫斑症",
+      "kind": "mechanism",
+      "query": "immune thrombocytopenia ITP pathophysiology",
+      "tags": ["ITP"]
+    },
+    {
+      "slug": "itp-treatment",
+      "label": "ITP 治療",
+      "kind": "treatment",
+      "query": "ITP treatment steroid IVIG eltrombopag romiplostim",
+      "tags": ["eltrombopag", "TPO", "splenectomy", "steroid", "corticosteroid"]
+    },
+    {
+      "slug": "ttp",
+      "label": "TTP 血栓性血小板低下紫斑症",
+      "kind": "mechanism",
+      "query": "thrombotic thrombocytopenic purpura ADAMTS13 pathophysiology",
+      "tags": ["TTP", "ADAMTS13", "TMA"]
+    },
+    {
+      "slug": "ahus",
+      "label": "非典型溶血性尿毒症候群",
+      "kind": "mechanism",
+      "query": "atypical hemolytic uremic syndrome complement",
+      "tags": ["aHUS"]
+    },
+    {
+      "slug": "hit",
+      "label": "肝素引起的血小板低下",
+      "kind": "mechanism",
+      "query": "heparin induced thrombocytopenia HIT 4T score PF4",
+      "tags": ["HIT", "PF4", "4T score"]
+    },
+    {
+      "slug": "vitt",
+      "label": "疫苗引起的血栓合併血小板低下",
+      "kind": "mechanism",
+      "query": "vaccine induced immune thrombotic thrombocytopenia VITT",
+      "tags": ["VITT"]
+    },
+    {
+      "slug": "platelet-function",
+      "label": "血小板功能異常",
+      "kind": "mechanism",
+      "query": "platelet function disorders Glanzmann Bernard-Soulier",
+      "tags": ["platelet function", "BSS", "Bernard-Soulier", "Bernard-Soulier syndrome", "Glanzmann thrombasthenia", "GPIIb/IIIa", "GPIb", "PFA", "PFA-100", "RIPA"]
+    },
+    {
+      "slug": "vwd",
+      "label": "von Willebrand 病",
+      "kind": "mechanism",
+      "query": "von Willebrand disease types diagnosis pathophysiology",
+      "tags": ["vWD", "VWD", "VWF", "vWF", "von Willebrand disease", "type 1", "type 2B", "DDAVP", "D1472H"]
+    },
+    {
+      "slug": "hemophilia",
+      "label": "血友病",
+      "kind": "mechanism",
+      "query": "hemophilia A B factor VIII IX pathophysiology",
+      "tags": ["hemophilia", "血友病", "hemophilia A", "FVIII", "intron 22 inversion", "XIII", "FXIII", "FXI deficiency"]
+    },
+    {
+      "slug": "hemophilia-treatment",
+      "label": "血友病治療",
+      "kind": "treatment",
+      "query": "hemophilia treatment emicizumab factor replacement gene therapy",
+      "tags": ["emicizumab", "fitusiran", "FVIII inhibitor", "HAVEN 1"]
+    },
+    {
+      "slug": "coagulation-cascade",
+      "label": "凝血級聯與 PT/aPTT 判讀",
+      "kind": "mechanism",
+      "query": "coagulation cascade PT aPTT interpretation lecture",
+      "tags": ["coagulation"]
+    },
+    {
+      "slug": "dic",
+      "label": "瀰漫性血管內凝血",
+      "kind": "mechanism",
+      "query": "disseminated intravascular coagulation pathophysiology",
+      "tags": ["DIC"]
+    },
+    {
+      "slug": "hlh",
+      "label": "噬血細胞症候群",
+      "kind": "mechanism",
+      "query": "hemophagocytic lymphohistiocytosis HLH diagnosis",
+      "tags": ["HLH"]
+    },
+    {
+      "slug": "thrombosis",
+      "label": "靜脈血栓栓塞",
+      "kind": "mechanism",
+      "query": "venous thromboembolism pathophysiology virchow triad",
+      "tags": ["thrombosis", "血栓", "VTE", "DVT", "PE"]
+    },
+    {
+      "slug": "thrombophilia",
+      "label": "血栓體質與抗磷脂質症候群",
+      "kind": "mechanism",
+      "query": "inherited thrombophilia antiphospholipid syndrome",
+      "tags": ["APS"]
+    },
+    {
+      "slug": "anticoagulation",
+      "label": "抗凝治療",
+      "kind": "treatment",
+      "query": "anticoagulation DOAC warfarin heparin management",
+      "tags": ["anticoagulant", "warfarin", "heparin", "DOAC", "LMWH", "aspirin", "DVT/PE治療", "EINSTEIN CHOICE"]
+    },
+    {
+      "slug": "transfusion-basics",
+      "label": "輸血總論與血品",
+      "kind": "mechanism",
+      "query": "blood transfusion components indications lecture",
+      "tags": ["輸血", "transfusion", "blood transfusion", "RBC transfusion", "cryoprecipitate", "leukoreduction"]
+    },
+    {
+      "slug": "blood-group",
+      "label": "血型與紅血球抗原",
+      "kind": "mechanism",
+      "query": "ABO Rh blood group antigens immunohematology",
+      "tags": ["ABO", "blood group", "H antigen", "Bombay phenotype"]
+    },
+    {
+      "slug": "transfusion-reaction",
+      "label": "輸血反應",
+      "kind": "mechanism",
+      "query": "transfusion reactions TRALI TACO febrile hemolytic",
+      "tags": ["transfusion reaction", "TRALI", "FNHTR", "AHTR", "TA-GVHD", "HLA-alloimmunization", "HLA antibody", "PTP"]
+    },
+    {
+      "slug": "platelet-transfusion",
+      "label": "血小板輸注與難治性",
+      "kind": "treatment",
+      "query": "platelet transfusion refractoriness HLA matched",
+      "tags": ["HLA-matched platelet"]
+    },
+    {
+      "slug": "hdfn",
+      "label": "新生兒溶血病與同種免疫",
+      "kind": "mechanism",
+      "query": "hemolytic disease of the fetus and newborn alloimmunization",
+      "tags": ["HDFN", "NAIT", "HPA-1b"]
+    },
+    {
+      "slug": "apheresis",
+      "label": "血漿置換與血球分離術",
+      "kind": "treatment",
+      "query": "therapeutic plasma exchange apheresis indications",
+      "tags": ["ASFA category"]
+    },
+    {
+      "slug": "hsct",
+      "label": "造血幹細胞移植",
+      "kind": "treatment",
+      "query": "hematopoietic stem cell transplantation overview lecture",
+      "tags": ["HSCT", "alloHSCT", "transplant"]
+    },
+    {
+      "slug": "hla",
+      "label": "HLA 配對",
+      "kind": "mechanism",
+      "query": "HLA typing matching transplantation immunology",
+      "tags": ["HLA", "HLA-A", "HLA-B", "6p UPD", "6pUPD"]
+    },
+    {
+      "slug": "gvhd",
+      "label": "移植物抗宿主病",
+      "kind": "treatment",
+      "query": "graft versus host disease acute chronic management",
+      "tags": ["GVHD", "immunosuppression"]
+    },
+    {
+      "slug": "febrile-neutropenia",
+      "label": "發燒性嗜中性球低下",
+      "kind": "treatment",
+      "query": "febrile neutropenia management MASCC risk",
+      "tags": ["febrile neutropenia", "FN", "neutropenia", "MASCC", "GNB"]
+    },
+    {
+      "slug": "tls",
+      "label": "腫瘤溶解症候群",
+      "kind": "treatment",
+      "query": "tumor lysis syndrome prevention rasburicase",
+      "tags": ["TLS", "rasburicase"]
+    },
+    {
+      "slug": "leukostasis",
+      "label": "高白血球與白血球滯留",
+      "kind": "treatment",
+      "query": "hyperleukocytosis leukostasis leukapheresis management",
+      "tags": ["leukostasis", "hyperleukocytosis", "WBC"]
+    },
+    {
+      "slug": "cinv",
+      "label": "化療引起的噁心嘔吐",
+      "kind": "treatment",
+      "query": "chemotherapy induced nausea vomiting antiemetic guideline",
+      "tags": ["CINV", "5-HT3"]
+    },
+    {
+      "slug": "infection-in-heme",
+      "label": "血液病人的感染",
+      "kind": "treatment",
+      "query": "invasive fungal infection neutropenic patient management",
+      "tags": ["aspergillosis", "CMV", "HIV", "COVID-19", "HCV"]
+    },
+    {
+      "slug": "flow-cytometry",
+      "label": "流式細胞術與免疫表型",
+      "kind": "mechanism",
+      "query": "flow cytometry immunophenotyping hematology lecture",
+      "tags": ["flow cytometry", "immunophenotype", "CD45", "CD markers", "CD13"]
+    },
+    {
+      "slug": "cytogenetics",
+      "label": "細胞遺傳與分子診斷",
+      "kind": "mechanism",
+      "query": "cytogenetics FISH karyotype leukemia molecular diagnosis",
+      "tags": ["cytogenetics", "細胞遺傳", "FISH", "molecular genetics"]
+    },
+    {
+      "slug": "mrd",
+      "label": "微量殘存疾病 MRD",
+      "kind": "mechanism",
+      "query": "measurable residual disease MRD leukemia monitoring",
+      "tags": ["MRD"]
+    },
+    {
+      "slug": "pet-ct",
+      "label": "PET-CT 與治療反應評估",
+      "kind": "mechanism",
+      "query": "FDG PET CT lymphoma response assessment Deauville",
+      "tags": ["FDG-PET", "CT"]
+    },
+    {
+      "slug": "heme-in-pregnancy",
+      "label": "懷孕期的血液疾病",
+      "kind": "mechanism",
+      "query": "hematologic disorders in pregnancy anemia thrombocytopenia",
+      "tags": ["pregnancy", "HELLP", "HELLP syndrome"]
+    }
+  ]
+}

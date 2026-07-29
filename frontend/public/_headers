@@ -10,6 +10,10 @@
 #   connect-src api.groq.com          BYOK AI 助手 —— 瀏覽器直連,金鑰只存本機
 #                                     (見 frontend/src/lib/groq.ts)
 #   img-src data: blob:               TipTap pasted images, PDF tile rendering
+#   frame-src youtube-nocookie.com    策展影片的嵌入播放器。沒有這條就會
+#                                     fallback 到 default-src 'self' 而被擋掉。
+#                                     縮圖不在這裡 —— 走 R2 + /img/ 代理,
+#                                     所以 img-src 'self' 就夠,不必開 i.ytimg.com
 
 /*
   X-Content-Type-Options: nosniff
@@ -17,4 +21,4 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net https://api.groq.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net https://api.groq.com; frame-src https://www.youtube-nocookie.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'

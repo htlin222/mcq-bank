@@ -32,6 +32,10 @@ import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
 import { searchNeighbors } from "../lib/searchCache";
 import { rememberAutoCloze, wasAutoCloze } from "../lib/clozePref";
+import {
+	VideoTopicSection,
+	type VideoTopicGroup,
+} from "../components/VideoList";
 
 // Resizable two-pane split (≥md). `splitPct` is the left pane's share of the
 // row width; the rest goes to the right pane. Persisted as a UI layout pref.
@@ -50,9 +54,15 @@ function clampSplit(p: number) {
 // only affect large screens.
 type LayoutMode = "columns" | "tabs";
 const LAYOUT_KEY = "review-layout-mode";
-type MainTab = "question" | "explanation" | "note" | "discussion" | "similar";
+type MainTab =
+	| "question"
+	| "explanation"
+	| "note"
+	| "discussion"
+	| "similar"
+	| "video";
 
-type Tab = "explanation" | "note" | "discussion" | "similar";
+type Tab = "explanation" | "note" | "discussion" | "similar" | "video";
 
 // Why 自動挖空 came back empty, in the reader's words.
 const AUTO_CLOZE_REASON: Record<string, string> = {
@@ -417,6 +427,45 @@ export function Question() {
 		};
 	}, [data?.id]);
 
+	// 策展影片 — 走 question_tags → tag_topics → topic_videos,依主題分組。
+	// 跟 similar 一樣延後載入:多數人開題目是為了看詳解,不該讓影片擋路。
+	const [videoTopics, setVideoTopics] = useState<VideoTopicGroup[]>([]);
+	useEffect(() => {
+		if (!data?.id) return;
+		let cancelled = false;
+		api
+			.get<{ topics: VideoTopicGroup[] }>(`/api/questions/${data.id}/videos`)
+			.then((r) => {
+				if (!cancelled) setVideoTopics(r.topics ?? []);
+			})
+			.catch(() => {
+				if (!cancelled) setVideoTopics([]);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [data?.id]);
+
+	const videoCount = videoTopics.reduce((n, t) => n + t.videos.length, 0);
+	const hasVideos = videoCount > 0;
+
+	// 影片 tab 只在有影片時渲染。切到下一題若沒影片,別把人留在一個
+	// 已經不存在的 tab 上盯著空白。
+	useEffect(() => {
+		if (hasVideos) return;
+		setTab((t) => (t === "video" ? "explanation" : t));
+		setMainTab((t) => (t === "video" ? "explanation" : t));
+	}, [hasVideos]);
+
+	// 移除是全域的,所以本地也要從每個主題裡拿掉,不能只改當前這組。
+	function dropVideo(id: string) {
+		setVideoTopics((groups) =>
+			groups
+				.map((g) => ({ ...g, videos: g.videos.filter((v) => v.id !== id) }))
+				.filter((g) => g.videos.length > 0),
+		);
+	}
+
 	// 你可能想連結 — 依筆記命中的受控關鍵字建議相關題目 / 你自己的其他筆記。
 	// 伺服端惰性計算(零 Workers AI 神經元)。僅在有筆記時抓;存檔後
 	// (updated_at 變) 會重抓,伺服端會重算。
@@ -628,12 +677,14 @@ export function Question() {
 			e.preventDefault();
 			const dir = k === "l" ? 1 : -1;
 			if (md && tabsMode) {
+				// 影片 tab 只在有影片時存在,循環順序也要跟著少一格。
 				const order: MainTab[] = [
 					"question",
 					"explanation",
 					"note",
 					"discussion",
 					"similar",
+					...(hasVideos ? (["video"] as MainTab[]) : []),
 				];
 				setMainTab(
 					(cur) =>
@@ -641,8 +692,14 @@ export function Question() {
 				);
 			} else {
 				const order: Tab[] = md
-					? ["explanation", "note", "discussion", "similar"]
-					: ["explanation", "note"];
+					? [
+							"explanation",
+							"note",
+							"discussion",
+							"similar",
+							...(hasVideos ? (["video"] as Tab[]) : []),
+						]
+					: ["explanation", "note", ...(hasVideos ? (["video"] as Tab[]) : [])];
 				const i = order.indexOf(tab);
 				const base = i < 0 ? 0 : i;
 				setTab(order[(base + dir + order.length) % order.length]);
@@ -822,6 +879,17 @@ export function Question() {
 							({similar.length})
 						</span>
 					</TabButton>
+					{hasVideos && (
+						<TabButton
+							active={mainTab === "video"}
+							onClick={() => setMainTab("video")}
+						>
+							影片
+							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
+								({videoCount})
+							</span>
+						</TabButton>
+					)}
 				</div>
 			)}
 			<div
@@ -883,7 +951,9 @@ export function Question() {
 			<section
 				className={
 					"mt-0" +
-					(tabsMode && mainTab === "similar" ? " md:hidden" : "")
+					(tabsMode && (mainTab === "similar" || mainTab === "video")
+						? " md:hidden"
+						: "")
 				}
 			>
 				<div ref={innerStripRef} className="sticky top-14 z-10 flex items-center justify-between gap-3 bg-ink-50/95 dark:bg-ink-900/95 backdrop-blur pt-1 pb-3 md:top-0">
@@ -930,6 +1000,19 @@ export function Question() {
 								({similar.length})
 							</span>
 						</TabButton>
+						{/* 影片跟 討論串/相似題目 不同,在窄螢幕也留著 —— 卡片本身
+						    就是單欄的,不需要寬版面才讀得下去。 */}
+						{hasVideos && (
+							<TabButton
+								active={tab === "video"}
+								onClick={() => setTab("video")}
+							>
+								影片
+								<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
+									({videoCount})
+								</span>
+							</TabButton>
+						)}
 					</div>
 					{tab === "explanation" && !editing && (
 						<a
@@ -1312,6 +1395,40 @@ export function Question() {
 					</div>
 				)}
 			</section>
+
+			{/* 策展影片 — 依主題分組。跟 討論串/相似題目 不同,窄螢幕也走 tab
+			    (不落在頁面流的底部):影片卡本來就是單欄的,不需要寬版面。
+			    基準 class 用 tab(<md 只有內層 strip 生效),md: 再依模式覆寫。 */}
+			{hasVideos && (
+				<section
+					className={
+						(tab === "video" ? "block" : "hidden") +
+						" mt-8 " +
+						((tabsMode ? mainTab === "video" : tab === "video")
+							? "md:block"
+							: "md:hidden")
+					}
+				>
+					<div className="mb-4 flex items-baseline justify-between gap-3">
+						<h2 className="font-serif text-lg text-ink-800 dark:text-ink-100">
+							教學影片
+						</h2>
+						<Link
+							to="/videos"
+							className="text-xs text-ink-500 hover:text-accent dark:text-ink-400"
+						>
+							影片庫 →
+						</Link>
+					</div>
+					<p className="mb-4 text-xs text-ink-400 dark:text-ink-500">
+						依這題的標籤對到的主題。覺得哪支不好,滑過卡片右上角可以移除
+						——移除是全站生效的。
+					</p>
+					{videoTopics.map((g) => (
+						<VideoTopicSection key={g.slug} group={g} onRemoved={dropVideo} />
+					))}
+				</section>
+			)}
 
 			{/* 相似題目 — tag-overlap with BM25 fallback. Hidden when empty, except
 			    on the tabs-mode 相似題目 tab, which shows an empty state instead.
