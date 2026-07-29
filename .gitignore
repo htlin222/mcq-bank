@@ -80,3 +80,6 @@ slides/
 
 # Anki deck exports (生成物)
 anki-deck/
+
+# 策展中間產物 —— 可由 scripts/curate-videos.py 重新產生,D1 才是真相來源
+scripts/data/
