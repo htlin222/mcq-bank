@@ -53,8 +53,7 @@ with (ROOT / "config.toml").open("rb") as _f:
 D1_DB = _CFG["project"]["d1_db"]
 R2_BUCKET = _CFG["project"]["r2_bucket"]
 
-SEARCH_N = 25          # 每主題向 YouTube 要幾筆
-CANDIDATE_N = 12       # 補完整 metadata 的候選數(補一支 ~1.5s,別太貪)
+SEARCH_N = 20          # 每主題向 YouTube 要幾筆(非 flat,約 1 秒/支)
 KEEP_N = 8             # 最終每主題留幾支
 MIN_DURATION = 300     # 5 分鐘 —— 排掉 Shorts 與預告
 MAX_DURATION = 2400    # 40 分鐘 —— 排掉整場研討會錄影
@@ -97,8 +96,16 @@ def _ytdlp(args: list[str]) -> list[dict]:
 
 
 def search_topic(query: str) -> list[dict]:
-    """flat 搜尋。快(~2s)但沒有上傳日期,所以只拿來初篩。"""
-    return _ytdlp([f"ytsearch{SEARCH_N}:{query}", "--flat-playlist"])
+    """一次搜尋就拿完整 metadata(含 upload_date)。
+
+    先前做的是 flat 搜尋(快,但沒有上傳日期)再逐支補 metadata。那條路
+    每支影片開一個 yt-dlp process,93 個主題打下來被 YouTube 節流,
+    82% 的補抓回空 —— 主題大量變空,看起來像門檻太嚴,其實是被擋。
+
+    非 flat 搜尋在同一個 process 內解析 N 支,約 1 秒/支,而且不會觸發
+    節流。慢一點但拿得到東西。
+    """
+    return _ytdlp([f"ytsearch{SEARCH_N}:{query}"])
 
 
 def fetch_meta(video_id: str) -> dict | None:
@@ -133,73 +140,68 @@ def cmd_search(args):
     DATA.mkdir(parents=True, exist_ok=True)
     existing = _load(CANDIDATES_FILE)
     search_cache = _load(SEARCH_CACHE)
-    meta_cache = _load(META_CACHE)
 
     todo = [t for t in topics if args.force or t["slug"] not in existing]
     print(f"主題 {len(topics)} 個,待處理 {len(todo)} 個"
-          f"(快取:{len(search_cache)} 組搜尋、{len(meta_cache)} 支 metadata)")
+          f"(搜尋快取 {len(search_cache)} 組)")
 
-    for i, topic in enumerate(todo, 1):
-        slug, kind = topic["slug"], topic["kind"]
+    # 搜尋跨主題平行,單一主題內是一個 yt-dlp process 循序解析 —— 這個
+    # 併發度是節流與速度的折衷,調高很容易又被擋。
+    def ensure(topic: dict) -> list[dict]:
+        slug = topic["slug"]
+        if slug in search_cache and not args.refetch:
+            return search_cache[slug]
+        return search_topic(topic["query"])
 
-        hits = search_cache.get(slug)
-        if hits is None or args.refetch:
-            hits = search_topic(topic["query"])
+    done = 0
+    with ThreadPoolExecutor(max_workers=THREADS) as ex:
+        for topic, hits in zip(todo, ex.map(ensure, todo)):
+            done += 1
+            slug, kind = topic["slug"], topic["kind"]
             search_cache[slug] = hits
+
+            fresh, stale, rejected = [], [], 0
+            for m in hits:
+                dur = m.get("duration") or 0
+                if not m.get("id") or not (MIN_DURATION <= dur <= MAX_DURATION):
+                    rejected += 1
+                    continue
+                if m.get("availability") not in (None, "public"):
+                    rejected += 1
+                    continue
+                yrs = age_years(m.get("upload_date"))
+                if yrs is not None and yrs > HARD_AGE_YEARS[kind]:
+                    rejected += 1
+                    continue
+                row = {
+                    "id": m["id"],
+                    "title": m.get("title") or "",
+                    "channel": m.get("channel") or m.get("uploader") or "",
+                    "channel_id": m.get("channel_id"),
+                    "duration_s": int(dur),
+                    "view_count": int(m.get("view_count") or 0),
+                    "upload_date": m.get("upload_date"),
+                    "subscribers": m.get("channel_follower_count"),
+                    # 描述截斷:評分只看得到前面這段,存全文只是讓 JSON 變胖
+                    "desc": (m.get("description") or "")[:500],
+                }
+                (fresh if yrs is None or yrs <= MAX_AGE_YEARS[kind]
+                 else stale).append(row)
+
+            fresh.sort(key=lambda r: r["view_count"], reverse=True)
+            # 回填按觀看數 —— 既然已經比偏好年限舊了,至少挑多數人看過的
+            stale.sort(key=lambda r: r["view_count"], reverse=True)
+            kept = fresh + stale[: max(0, MIN_PER_TOPIC - len(fresh))]
+
+            existing[slug] = kept
+            CANDIDATES_FILE.write_text(
+                json.dumps(existing, ensure_ascii=False, indent=1), encoding="utf-8"
+            )
             SEARCH_CACHE.write_text(json.dumps(search_cache, ensure_ascii=False),
                                     encoding="utf-8")
-
-        # 先用 flat 結果篩時長、排觀看數 —— 補 metadata 很貴,少補一支省 1.5 秒
-        pool = [
-            h for h in hits
-            if h.get("id") and h.get("duration")
-            and MIN_DURATION <= h["duration"] <= MAX_DURATION
-        ]
-        pool.sort(key=lambda h: h.get("view_count") or 0, reverse=True)
-        pool = pool[:CANDIDATE_N]
-
-        need = [h["id"] for h in pool
-                if h["id"] not in meta_cache or args.refetch]
-        if need:
-            with ThreadPoolExecutor(max_workers=THREADS) as ex:
-                for vid, meta in zip(need, ex.map(fetch_meta, need)):
-                    meta_cache[vid] = meta
-            META_CACHE.write_text(json.dumps(meta_cache, ensure_ascii=False),
-                                  encoding="utf-8")
-
-        fresh, stale = [], []
-        for h in pool:
-            m = meta_cache.get(h["id"])
-            if not m or m.get("availability") not in (None, "public"):
-                continue
-            yrs = age_years(m.get("upload_date"))
-            if yrs is not None and yrs > HARD_AGE_YEARS[kind]:
-                continue
-            row = {
-                "id": m["id"],
-                "title": m.get("title") or "",
-                "channel": m.get("channel") or m.get("uploader") or "",
-                "channel_id": m.get("channel_id"),
-                "duration_s": int(m.get("duration") or 0),
-                "view_count": int(m.get("view_count") or 0),
-                "upload_date": m.get("upload_date"),
-                "subscribers": m.get("channel_follower_count"),
-                # 描述截斷:評分只看得到前面這段,存全文只是讓 JSON 變胖
-                "desc": (m.get("description") or "")[:500],
-            }
-            (fresh if yrs is None or yrs <= MAX_AGE_YEARS[kind] else stale).append(row)
-
-        # 回填按觀看數 —— 既然已經比偏好年限舊了,至少挑多數人看過的那幾支
-        stale.sort(key=lambda r: r["view_count"], reverse=True)
-        kept = fresh + stale[: max(0, MIN_PER_TOPIC - len(fresh))]
-
-        existing[slug] = kept
-        CANDIDATES_FILE.write_text(
-            json.dumps(existing, ensure_ascii=False, indent=1), encoding="utf-8"
-        )
-        print(f"[{i}/{len(todo)}] {slug:26s} 搜到 {len(hits):2d} → "
-              f"候選 {len(pool):2d} → 留 {len(kept):2d}"
-              f"(新 {len(fresh)} + 回填 {len(kept) - len(fresh)})")
+            print(f"[{done}/{len(todo)}] {slug:26s} 搜到 {len(hits):2d} → "
+                  f"刷掉 {rejected:2d} → 留 {len(kept):2d}"
+                  f"(新 {len(fresh)} + 回填 {len(kept) - len(fresh)})")
 
     total = sum(len(v) for v in existing.values())
     print(f"\n候選共 {total} 支(去重後 "
