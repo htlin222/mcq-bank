@@ -304,13 +304,19 @@ def cmd_publish(args):
     print(f"選中 {len(chosen)} 支影片、{len(links)} 組主題關聯"
           f"(相關性刷掉 {dropped} 支)")
 
-    print("上傳縮圖到 R2…")
     ids = list(chosen)
-    with ThreadPoolExecutor(max_workers=THREADS) as ex:
-        keys = list(ex.map(lambda v: upload_thumb(v, args.remote), ids))
-    for vid, key in zip(ids, keys):
-        chosen[vid]["thumb_key"] = key
-    print(f"  {sum(1 for k in keys if k)}/{len(ids)} 支有縮圖")
+    if args.dry_run:
+        print("--dry-run:跳過縮圖上傳")
+    else:
+        print("上傳縮圖到 R2…")
+        # 本機 R2 是 workerd 的 SQLite,多個 wrangler process 同時寫會撞鎖
+        # (「database is locked」),所以只有 remote 才平行。
+        workers = THREADS if args.remote else 1
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            keys = list(ex.map(lambda v: upload_thumb(v, args.remote), ids))
+        for vid, key in zip(ids, keys):
+            chosen[vid]["thumb_key"] = key
+        print(f"  {sum(1 for k in keys if k)}/{len(ids)} 支有縮圖")
 
     stmts: list[str] = []
     for t in topics:

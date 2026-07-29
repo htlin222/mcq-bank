@@ -175,7 +175,9 @@ export function VideoTopicSection({
 					({group.videos.length})
 				</span>
 			</h3>
-			<ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+			{/* 欄數跟著「容器」走而不是視窗:分欄模式下右欄只有約 45% 寬,
+			    用 lg:grid-cols-3 這種視窗斷點會讓卡片撐破欄位、整頁橫向捲動。 */}
+			<ul className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
 				{shown.map((v) => (
 					<VideoCard key={v.id} video={v} onRemoved={onRemoved} />
 				))}

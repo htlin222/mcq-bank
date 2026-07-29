@@ -99,7 +99,14 @@ videosRoutes.get('/topics', async (c) => {
       HAVING video_count > 0
       ORDER BY vt.label`
   ).all();
-  return c.json({ topics: results ?? [] });
+
+  // 各主題的 video_count 加總 ≠ 影片數:一支影片可掛多個主題,加起來會
+  // 重複計算(實測 539 支影片產生 592 組關聯)。去重數另外查。
+  const distinct = await c.env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM videos WHERE status = 'ok'"
+  ).first<{ n: number }>();
+
+  return c.json({ topics: results ?? [], total_videos: distinct?.n ?? 0 });
 });
 
 // GET /api/videos/topics/:slug

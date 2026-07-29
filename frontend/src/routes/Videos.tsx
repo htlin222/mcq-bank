@@ -37,13 +37,19 @@ export default function Videos() {
 
 function TopicIndex() {
 	const [topics, setTopics] = useState<TopicSummary[] | null>(null);
+	const [totalVideos, setTotalVideos] = useState(0);
 	const [q, setQ] = useState("");
 	const [showRemoved, setShowRemoved] = useState(false);
 
 	useEffect(() => {
 		api
-			.get<{ topics: TopicSummary[] }>("/api/videos/topics")
-			.then((r) => setTopics(r.topics ?? []))
+			.get<{ topics: TopicSummary[]; total_videos: number }>(
+				"/api/videos/topics",
+			)
+			.then((r) => {
+				setTopics(r.topics ?? []);
+				setTotalVideos(r.total_videos ?? 0);
+			})
 			.catch(() => setTopics([]));
 	}, []);
 
@@ -58,7 +64,7 @@ function TopicIndex() {
 		);
 	}, [topics, q]);
 
-	const total = topics?.reduce((n, t) => n + t.video_count, 0) ?? 0;
+	// 刻意不用 sum(video_count):一支影片可掛多個主題,加總會重複計算。
 
 	return (
 		<div className="mx-auto max-w-5xl px-4 py-8">
@@ -69,7 +75,7 @@ function TopicIndex() {
 				<p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
 					{topics === null
 						? "載入中…"
-						: `${topics.length} 個主題 · ${total} 支影片。題目頁的「影片」tab 就是從這裡依標籤取出來的。`}
+						: `${topics.length} 個主題 · ${totalVideos} 支影片。題目頁的「影片」tab 就是從這裡依標籤取出來的。`}
 				</p>
 			</header>
 
@@ -103,7 +109,7 @@ function TopicIndex() {
 			{showRemoved ? (
 				<RemovedList />
 			) : (
-				<ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+				<ul className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(170px,1fr))]">
 					{filtered.map((t) => (
 						<li key={t.slug}>
 							<Link
@@ -254,7 +260,7 @@ function TopicDetail({ slug }: { slug: string }) {
 						{KIND_LABEL[data.topic.kind] ?? data.topic.kind} ·{" "}
 						{data.videos.length} 支
 					</p>
-					<ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+					<ul className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
 						{data.videos.map((v) => (
 							<VideoCard key={v.id} video={v} onRemoved={drop} />
 						))}

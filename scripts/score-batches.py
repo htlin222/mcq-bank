@@ -56,9 +56,27 @@ def cmd_split(args):
     print(f"{len(items)} 支候選(去重後)→ {n} 個批次 @ {args.size} → {IN_DIR}")
 
 
+def _zh_tw():
+    """繁化器。
+
+    提示詞寫明要繁體中文,但評分模型仍會零星吐出簡體(「地中海贫血的遗传」)。
+    reason 會直接顯示在站上,所以在這裡統一收斂,而不是指望模型每次都聽話。
+    沒裝 opencc 就原樣通過並提醒 —— 不值得為了字形讓整個流程掛掉。
+    """
+    try:
+        from opencc import OpenCC  # pip install opencc-python-reimplemented
+    except ImportError:
+        print("! 沒有 opencc,簡體字不會被轉成繁體 "
+              "(uv pip install opencc-python-reimplemented)", file=sys.stderr)
+        return lambda s: s
+    cc = OpenCC("s2twp")
+    return cc.convert
+
+
 def cmd_merge(args):
     if not OUT_DIR.exists():
         sys.exit(f"沒有 {OUT_DIR}")
+    to_tw = _zh_tw()
     merged: dict[str, dict] = {}
     bad = 0
     for f in sorted(OUT_DIR.glob("*.json")):
@@ -78,7 +96,7 @@ def cmd_merge(args):
             merged[vid] = {
                 "score": int(r.get("score") or 0),
                 "is_teaching": bool(r.get("is_teaching", True)),
-                "reason": (r.get("reason") or "").strip()[:120],
+                "reason": to_tw((r.get("reason") or "").strip()[:120]),
             }
 
     SCORES.write_text(json.dumps(merged, ensure_ascii=False, indent=1),
