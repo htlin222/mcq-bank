@@ -26,6 +26,8 @@ export type MarkRequest = {
 	target: AnnotationTarget;
 	/** 該 mark 的 client rect,工具列拿來定位。 */
 	rect: DOMRect;
+	/** 同一個 `<mark>` 元素。`rect` 捲動後就過期,工具列靠它重新量測。 */
+	el: HTMLElement;
 	from: number;
 	to: number;
 	/** 該 mark 的文字,讓使用者可以直接對它查參考資料 / 問 AI。 */

@@ -4,6 +4,10 @@ export type TextSelection = {
 	text: string;
 	// Anchoring rect of the selection range, in client (viewport) coords.
 	rect: DOMRect;
+	// 同一段選取的 Range 拷貝。`rect` 只是快照,捲動後就過期;工具列靠這個
+	// 重新量測,才能跟著選取一起移動(見 SelectionToolbar 的 measure)。
+	// 拷貝而非原件:使用者點工具列會 collapse 掉 window 的 Selection。
+	range: Range;
 	// 選取的共同祖先節點。工具列用它反查選取落在哪個 AnnotatableContent 裡
 	// (決定要不要亮「螢光標記」),以及往上找最近的區塊當作 AI 的 {{context}}。
 	node: Node | null;
@@ -95,6 +99,7 @@ export function useTextSelection(): {
 			setSelection({
 				text,
 				rect,
+				range: range.cloneRange(),
 				node: range.commonAncestorContainer,
 				anchorNode: sel.anchorNode,
 				anchorOffset: sel.anchorOffset,

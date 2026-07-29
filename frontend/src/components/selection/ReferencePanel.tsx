@@ -46,7 +46,8 @@ export function ReferencePanel({
 		result && result.textbook.length === 0 && result.lecture.length === 0;
 
 	return (
-		<div className="max-h-[46vh] overflow-y-auto">
+		// 高度由工具列依「選取上/下方還剩多少視窗」給,這裡只負責在裡面捲。
+		<div className="min-h-0 overflow-y-auto">
 			{loading && (
 				<div className="flex items-center gap-2 px-3 py-4 text-sm text-ink-500">
 					<Loader2 size={15} className="animate-spin" />

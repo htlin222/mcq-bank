@@ -22,17 +22,30 @@ import { AiPanel } from "./selection/AiPanel";
 // 已註冊的 AnnotatableContent 裡,靠 AnnotationRegistry 反查。
 
 const PANEL_W = 360;
+/** 卡片與選取之間、以及卡片與視窗邊緣之間的留白。 */
+const GAP = 8;
+/** 展開時偏好往下開所需的最小空間;不足才考慮翻上去。 */
+const PREFER_BELOW = 280;
 
 // 工具列的來源:一段新選取,或是點擊了既有的黃色標記。
 type Anchor = {
 	text: string;
 	rect: DOMRect;
+	/**
+	 * 重新量測錨點在視窗中的位置。捲動時工具列靠它跟著選取一起走 ——
+	 * `rect` 只是產生當下的快照。錨點已從 DOM 消失時回 null。
+	 */
+	measure: () => DOMRect | null;
 	/** AI 的 {{context}} 從這個節點往上找最近的區塊。mark 來源時為 null。 */
 	contextNode: Node | null;
 	highlight:
 		| { kind: "add" | "clear"; target: AnnotationTarget; from: number; to: number }
 		| null;
 };
+
+function usable(r: DOMRect | null): DOMRect | null {
+	return r && (r.width > 0 || r.height > 0) ? r : null;
+}
 
 export function SelectionToolbar() {
 	const { selection, clear } = useTextSelection();
@@ -54,6 +67,8 @@ export function SelectionToolbar() {
 			return {
 				text: mark.text,
 				rect: mark.rect,
+				measure: () =>
+					mark.el.isConnected ? mark.el.getBoundingClientRect() : null,
 				contextNode: null,
 				highlight: {
 					kind: "clear",
@@ -105,6 +120,9 @@ function anchorFromSelection(
 	return {
 		text: sel.text,
 		rect: sel.rect,
+		// Range 在文件裡的節點被換掉時會退化成寬高 0(例如詳解重新 render),
+		// usable() 會把那種結果當成「量不到」,工具列就收起來。
+		measure: () => sel.range.getBoundingClientRect(),
 		contextNode: sel.node,
 		highlight,
 	};
@@ -141,14 +159,28 @@ function Toolbar({
 	});
 	const clearing = anchor.highlight?.kind === "clear";
 
-	// Esc 關閉;外點關閉。捲動只在收合狀態關閉 —— 展開時使用者正在讀結果,
-	// 捲一下就消失會讓長回答根本讀不完。
+	// 錨點在視窗中的當下位置。捲動時重新量測,卡片才會跟著被選取的那段文字走
+	// —— 從前這裡是一次性的快照,展開狀態捲一下卡片就跟正文脫節了。
+	const [rect, setRect] = useState<DOMRect>(anchor.rect);
+
+	// Esc 關閉;外點關閉;捲動跟著走,錨點捲出視窗才關。
 	useEffect(() => {
 		function onKey(e: KeyboardEvent) {
 			if (e.key === "Escape") onDismiss();
 		}
-		function onScroll() {
-			if (!expanded) onDismiss();
+		let raf = 0;
+		function reposition() {
+			cancelAnimationFrame(raf);
+			raf = requestAnimationFrame(() => {
+				const r = usable(anchor.measure());
+				// 量不到(節點沒了)或整段被捲出視窗 —— 留著只會是一張漂在
+				// 無關內容上的孤兒卡片。
+				if (!r || r.bottom < 0 || r.top > window.innerHeight) {
+					onDismiss();
+					return;
+				}
+				setRect(r);
+			});
 		}
 		function onDown(e: MouseEvent) {
 			if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
@@ -156,8 +188,9 @@ function Toolbar({
 			}
 		}
 		document.addEventListener("keydown", onKey);
-		window.addEventListener("scroll", onScroll, true);
-		window.addEventListener("resize", onScroll);
+		// capture:內層捲動容器(欄位模式的詳解 pane)的 scroll 不會冒泡。
+		window.addEventListener("scroll", reposition, true);
+		window.addEventListener("resize", reposition);
 		// 下一個 tick 才掛:製造這次選取的那個 mouseup 不該立刻把卡片關掉。
 		const t = window.setTimeout(
 			() => document.addEventListener("mousedown", onDown),
@@ -165,12 +198,13 @@ function Toolbar({
 		);
 		return () => {
 			window.clearTimeout(t);
+			cancelAnimationFrame(raf);
 			document.removeEventListener("keydown", onKey);
-			window.removeEventListener("scroll", onScroll, true);
-			window.removeEventListener("resize", onScroll);
+			window.removeEventListener("scroll", reposition, true);
+			window.removeEventListener("resize", reposition);
 			document.removeEventListener("mousedown", onDown);
 		};
-	}, [onDismiss, expanded]);
+	}, [onDismiss, anchor]);
 
 	function doHighlight() {
 		const h = anchor.highlight;
@@ -181,22 +215,27 @@ function Toolbar({
 		onDismiss();
 	}
 
-	// 定位:固定座標,預設在選取下方;展開後若下方塞不下就翻到上方。
-	const rect = anchor.rect;
+	// 定位:固定座標,預設在選取下方;下方塞不下且上方更寬敞才翻上去。
+	//
+	// 高度上限一律由「那一側實際剩下多少」決定,不用固定的 vh —— LLM 的回答
+	// 長度沒有上限,寫死高度時卡片會從視窗底部長出去,而 fixed 定位的元素沒有
+	// 頁面捲動可以救,尾巴就永遠讀不到。上限傳給卡片,內容自己捲。
 	const width = expanded ? PANEL_W : undefined;
 	const left = Math.min(
-		Math.max(8, rect.left),
-		Math.max(8, window.innerWidth - (width ?? 240) - 8),
+		Math.max(GAP, rect.left),
+		Math.max(GAP, window.innerWidth - (width ?? 240) - GAP),
 	);
-	const openUp = expanded && rect.bottom + 320 > window.innerHeight && rect.top > 340;
+	const below = window.innerHeight - rect.bottom - GAP * 2;
+	const above = rect.top - GAP * 2;
+	const openUp = expanded && below < Math.min(PREFER_BELOW, above);
 	const style: React.CSSProperties = {
 		position: "fixed",
 		left,
 		zIndex: 60,
 		...(width ? { width } : {}),
 		...(openUp
-			? { bottom: window.innerHeight - rect.top + 8 }
-			: { top: rect.bottom + 8 }),
+			? { bottom: window.innerHeight - rect.top + GAP }
+			: { top: rect.bottom + GAP }),
 	};
 
 	return createPortal(
@@ -206,9 +245,17 @@ function Toolbar({
 			style={style}
 			onMouseDown={(e) => e.stopPropagation()}
 		>
-			<div className="rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl overflow-hidden">
+			<div
+				className="flex flex-col rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl overflow-hidden"
+				// 收合狀態只有一列按鈕,不需要上限(也不該被裁掉)。
+				style={
+					expanded
+						? { maxHeight: Math.max(140, openUp ? above : below) }
+						: undefined
+				}
+			>
 				{/* 動作列 —— 一列,分隔線,同一個外框 */}
-				<div className="flex items-stretch divide-x divide-ink-100 dark:divide-ink-700">
+				<div className="shrink-0 flex items-stretch divide-x divide-ink-100 dark:divide-ink-700">
 					{actions.highlight && (
 						<ToolButton
 							active={false}
@@ -246,14 +293,16 @@ function Toolbar({
 					)}
 				</div>
 
-				{/* 展開區 —— 在同一張卡片裡往下長,不是第二個浮層 */}
+				{/* 展開區 —— 在同一張卡片裡往下長,不是第二個浮層。
+				    min-h-0 是讓面板吃得到 flex 剩餘高度的關鍵(否則內容會把
+				    flex item 撐開,maxHeight 形同虛設)。 */}
 				{mode === "reference" && (
-					<div className="border-t border-ink-100 dark:border-ink-700">
+					<div className="min-h-0 flex flex-col border-t border-ink-100 dark:border-ink-700">
 						<ReferencePanel text={anchor.text} onNavigate={onDismiss} />
 					</div>
 				)}
 				{mode === "ai" && (
-					<div className="border-t border-ink-100 dark:border-ink-700">
+					<div className="min-h-0 flex flex-col border-t border-ink-100 dark:border-ink-700">
 						<AiPanel
 							selection={anchor.text}
 							context={blockContext(anchor.contextNode, anchor.text)}

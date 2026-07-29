@@ -103,7 +103,7 @@ export function AiPanel({ selection, context, questionId }: Props) {
 	// 尚未挑提示詞 —— 列出可選的。
 	if (!chosen) {
 		return (
-			<div className="py-1.5">
+			<div className="min-h-0 overflow-y-auto py-1.5">
 				<PromptGroup label="內建" prompts={BUILTIN_PROMPTS} onPick={run} />
 				{custom.length > 0 && (
 					<PromptGroup label="我的" prompts={custom} onPick={run} />
@@ -120,8 +120,10 @@ export function AiPanel({ selection, context, questionId }: Props) {
 	}
 
 	return (
-		<div>
-			<div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-ink-100 dark:border-ink-700">
+		// 標題列固定,回答自己捲 —— LLM 的輸出長度沒有上限,不能讓它把卡片
+		// 撐出視窗外(工具列已依剩餘空間給了 maxHeight)。
+		<div className="flex flex-col min-h-0">
+			<div className="shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 border-b border-ink-100 dark:border-ink-700">
 				<span className="text-xs font-medium text-ink-500 dark:text-ink-400">
 					{chosen.title}
 				</span>
@@ -157,7 +159,10 @@ export function AiPanel({ selection, context, questionId }: Props) {
 				</div>
 			</div>
 
-			<div ref={bodyRef} className="px-3 py-2.5 max-h-[46vh] overflow-y-auto">
+			<div
+				ref={bodyRef}
+				className="flex-1 min-h-0 px-3 py-2.5 overflow-y-auto"
+			>
 				{error && (
 					<p className="text-sm text-red-600 dark:text-red-400">{error}</p>
 				)}

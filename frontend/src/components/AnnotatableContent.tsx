@@ -361,6 +361,7 @@ export function AnnotatableContent({
       registry.emitMark({
         target,
         rect: mark.getBoundingClientRect(),
+        el: mark,
         from: Math.min(from, to),
         to: Math.max(from, to),
         text: mark.textContent ?? '',
