@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
@@ -57,6 +57,21 @@ export function hashContent(content: any): string {
   let h = 5381;
   for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
   return String(h >>> 0);
+}
+
+// `useEditor` 可能先回一個**已經被銷毀的** Editor,下一次 render 才換成活的。
+// 在 WebKit(Safari / 全部 iOS 瀏覽器)上這是穩定發生的:題目頁第一次
+// commit 時 editor.isDestroyed === true,而 editor.view.docView 已是 null。
+// 任何往裡面寫的動作 —— registerPlugin / dispatch / setContent —— 都會踩到
+// `null is not an object (evaluating 'this.docView.matchesNode')`,那個例外
+// 在 commit 階段丟出來,React 直接卸載整棵樹,使用者看到的就是白畫面。
+//
+// Chromium 上量不到這個中間狀態,所以桌機開發完全看不出問題。
+//
+// 守衛而不是重試:第二次 render 會帶著活的 editor 再跑一次同樣的 effect
+// (deps 含 editor),該做的事那時候會做完。
+function live(editor: Editor | null): editor is Editor {
+  return !!editor && !editor.isDestroyed;
 }
 
 // Plugin state for the AI cloze decoration layer: where the blanks are, and
@@ -162,7 +177,7 @@ export function AnnotatableContent({
   const dirtyRef = useRef(false);
 
   const persist = useCallback(() => {
-    if (!editor) return;
+    if (!live(editor)) return;
     dirtyRef.current = true;
     // Writes localStorage immediately + syncs to the server (fire-and-forget).
     saveHighlight(storeKey, baseHash, editor.getJSON());
@@ -171,7 +186,7 @@ export function AnnotatableContent({
   // Load base content, then re-apply saved highlights if they match this text.
   // localStorage is read synchronously for an instant, flash-free paint.
   useEffect(() => {
-    if (!editor) return;
+    if (!live(editor)) return;
     dirtyRef.current = false;
     const saved = readLocal(storeKey);
     const doc = saved && saved.h === baseHash && saved.doc ? saved.doc : base;
@@ -191,11 +206,13 @@ export function AnnotatableContent({
   // Only applies a doc when the server holds a NEWER copy (another device);
   // skips if the user already highlighted here (dirty).
   useEffect(() => {
-    if (!editor) return;
+    if (!live(editor)) return;
     let cancelled = false;
     reconcileHighlight(storeKey, baseHash).then((serverDoc) => {
       if (cancelled || serverDoc == null) return;
       if (dirtyRef.current) return;
+      // 請求在飛的期間 editor 可能已被銷毀 —— 進入這裡的守衛只擋得住當時。
+      if (!live(editor)) return;
       editor.commands.setContent(serverDoc, false);
       const root = editor.view.dom as HTMLElement;
       wrapTables(root);
@@ -217,7 +234,7 @@ export function AnnotatableContent({
   if (!keyRef.current) keyRef.current = new PluginKey<AutoClozeState>('autoCloze');
 
   useEffect(() => {
-    if (!editor) return;
+    if (!live(editor)) return;
     const key = keyRef.current!;
     const plugin = new Plugin({
       key,
@@ -245,7 +262,7 @@ export function AnnotatableContent({
     });
     editor.registerPlugin(plugin);
     return () => {
-      editor.unregisterPlugin(key);
+      if (live(editor)) editor.unregisterPlugin(key);
     };
   }, [editor]);
 
@@ -256,7 +273,7 @@ export function AnnotatableContent({
   const onCountsRef = useRef(onCounts);
   onCountsRef.current = onCounts;
   useEffect(() => {
-    if (!editor) return;
+    if (!live(editor)) return;
     const active = cloze && !!autoTerms && autoTerms.length > 0;
     const ranges = active ? termRanges(collectRuns(editor.state.doc), autoTerms!) : [];
     const tr = editor.state.tr.setMeta(keyRef.current!, {
@@ -273,7 +290,7 @@ export function AnnotatableContent({
   // Runs after content loads and on every reveal/cloze toggle, so a repaint
   // can't strand a stale class. When cloze is off, no mark is revealed-styled.
   useEffect(() => {
-    if (!editor) return;
+    if (!live(editor)) return;
     const marks = (editor.view.dom as HTMLElement).querySelectorAll('mark');
     marks.forEach((m, i) => m.classList.toggle('cloze-revealed', cloze && revealed.has(i)));
   }, [editor, cloze, revealed, docRev]);
@@ -315,7 +332,7 @@ export function AnnotatableContent({
   }
 
   useEffect(() => {
-    if (!editor) return;
+    if (!live(editor)) return;
     return registry.register(target);
   }, [editor, registry, target]);
 
@@ -324,7 +341,7 @@ export function AnnotatableContent({
   // sit inside a highlighted span), otherwise the reader's own mark. Outside
   // cloze mode, clicking a mark offers to clear it.
   useEffect(() => {
-    if (!editor) return;
+    if (!live(editor)) return;
     const dom = editor.view.dom as HTMLElement;
     const onClick = (e: MouseEvent) => {
       const t = e.target as Node;
