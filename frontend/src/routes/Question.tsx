@@ -689,7 +689,24 @@ export function Question() {
 
 	return (
 		<div className="max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 md:px-4 py-6 sm:py-8 pb-32 md:pb-0">
-			<header className="flex items-center justify-between mb-6 text-sm gap-3">
+			{/* In tabs mode the header (回年度 / 上下題 / 檢視切換) rides along with
+			    the tab strip in one sticky block, so navigation stays reachable
+			    while a long 詳解 scrolls. Columns mode doesn't scroll the page, so
+			    the header stays in normal flow there. The bg + edge-bleed keep
+			    scrolled content from showing through the blur. */}
+			<div
+				className={
+					tabsMode
+						? "md:sticky md:top-14 md:z-20 md:-mx-4 md:px-4 md:pt-3 md:mb-6 md:bg-ink-50/95 md:dark:bg-ink-900/95 md:backdrop-blur"
+						: ""
+				}
+			>
+			<header
+				className={
+					"flex items-center justify-between mb-6 text-sm gap-3" +
+					(tabsMode ? " md:mb-2" : "")
+				}
+			>
 				<div className="flex items-center gap-3 flex-wrap">
 					{fromSearch && (
 						<Link
@@ -780,7 +797,7 @@ export function Question() {
 			      strip, with normal page scrolling and a comfortable reading width.
 			    Below md both modes collapse to the same single stacked column. */}
 			{tabsMode && (
-				<div className="hidden md:flex flex-wrap border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto sticky top-14 z-10 bg-ink-50/95 dark:bg-ink-900/95 backdrop-blur pt-1 pb-0 mb-6">
+				<div className="hidden md:flex flex-wrap border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto pt-1 pb-0">
 					<TabButton
 						active={mainTab === "question"}
 						onClick={() => setMainTab("question")}
@@ -824,6 +841,7 @@ export function Question() {
 					</TabButton>
 				</div>
 			)}
+			</div>
 			<div
 				ref={splitRowRef}
 				className={tabsMode ? "" : "md:flex md:h-[calc(100vh-9.5rem)]"}
@@ -886,7 +904,16 @@ export function Question() {
 					(tabsMode && mainTab === "similar" ? " md:hidden" : "")
 				}
 			>
-				<div ref={innerStripRef} className="sticky top-14 z-10 flex items-center justify-between gap-3 bg-ink-50/95 dark:bg-ink-900/95 backdrop-blur pt-1 pb-3 md:top-0">
+				{/* Columns mode pins this under the pane's own scroll top (md:top-0).
+				    Tabs mode has no pane scroller and its own sticky header above,
+				    so let this strip (only the OpenEvidence link at ≥md) flow. */}
+				<div
+					ref={innerStripRef}
+					className={
+						"sticky top-14 z-10 flex items-center justify-between gap-3 bg-ink-50/95 dark:bg-ink-900/95 backdrop-blur pt-1 pb-3 " +
+						(tabsMode ? "md:static" : "md:top-0")
+					}
+				>
 					<div
 						className={
 							"flex flex-wrap border-b border-ink-200 dark:border-ink-700" +
