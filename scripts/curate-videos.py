@@ -75,6 +75,23 @@ THUMB_PREFIX = "video-thumbs"
 
 # ---------- yt-dlp ------------------------------------------------------------
 
+# yt-dlp 的完整 JSON 每支約 600 KB —— automatic_captions 一項就佔 500 KB,
+# formats 再 70 KB。整包存進快取的第一版讓 video-search-cache.json 長到 942 MB,
+# 而且每次 search 都要 parse 一次。只留下面這幾個真正會讀的欄位,同一份快取
+# 掉到 1 MB 以下。
+KEEP_FIELDS = (
+    "id", "title", "channel", "uploader", "channel_id", "duration",
+    "view_count", "upload_date", "availability", "channel_follower_count",
+)
+
+
+def slim(m: dict) -> dict:
+    out = {k: m.get(k) for k in KEEP_FIELDS}
+    # 描述只有評分用得到,而且只看前 500 字
+    out["description"] = (m.get("description") or "")[:500]
+    return out
+
+
 def _ytdlp(args: list[str]) -> list[dict]:
     """跑 yt-dlp 並解析 NDJSON。失敗回空 list —— 單一主題掛掉不該中斷整批。"""
     try:
@@ -89,7 +106,7 @@ def _ytdlp(args: list[str]) -> list[dict]:
         line = line.strip()
         if line.startswith("{"):
             try:
-                rows.append(json.loads(line))
+                rows.append(slim(json.loads(line)))
             except json.JSONDecodeError:
                 pass
     return rows
