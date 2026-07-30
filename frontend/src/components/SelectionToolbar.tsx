@@ -1,9 +1,25 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
-import { BookOpen, Highlighter, Sparkles, X as XIcon } from "lucide-react";
+import {
+	BookOpen,
+	Check,
+	Highlighter,
+	Loader2,
+	Send,
+	Sparkles,
+	X as XIcon,
+} from "lucide-react";
 import { useTextSelection, type TextSelection } from "../lib/useTextSelection";
 import { blockContext, selectionActions } from "../lib/selectionActions";
+import { sendSelectionToTelegram, useTgLinked } from "../lib/telegramApi";
 import {
 	useAnnotationRegistry,
 	type AnnotationTarget,
@@ -18,8 +34,9 @@ import { AiPanel } from "./selection/AiPanel";
 // 和 App 層的「查參考資料」badge。選字落在詳解裡時兩個會同時冒出來。現在是一
 // 張卡片、一列按鈕,展開區往下長。
 //
-// 三顆按鈕按情境亮(見 lib/selectionActions.ts)——「螢光標記」需要選取落在某個
-// 已註冊的 AnnotatableContent 裡,靠 AnnotationRegistry 反查。
+// 四顆按鈕按情境亮(見 lib/selectionActions.ts)——「螢光標記」需要選取落在某個
+// 已註冊的 AnnotatableContent 裡,靠 AnnotationRegistry 反查;「存到 Telegram」
+// 需要已綁定帳號且在題目頁(訊息要帶題目出處)。
 
 const PANEL_W = 360;
 /** 卡片與選取之間、以及卡片與視窗邊緣之間的留白。 */
@@ -51,6 +68,10 @@ export function SelectionToolbar() {
 	const { selection, clear } = useTextSelection();
 	const registry = useAnnotationRegistry();
 	const [mark, setMark] = useState<MarkRequest | null>(null);
+	// 綁定狀態在這裡查(整個 app 只掛一個 SelectionToolbar),而不是在每次選取
+	// 重建的 Toolbar 裡 —— 否則按鈕會在卡片已經畫出來之後才冒出來,把游標正要
+	// 按的那顆按鈕推走。
+	const tgLinked = useTgLinked();
 
 	// 點 mark 與拉選取是互斥的兩種來源:後到的取代先到的。
 	useEffect(
@@ -94,6 +115,7 @@ export function SelectionToolbar() {
 			// (串到一半的 AI 回答)會被下一段選取繼承。
 			key={`${anchor.rect.top}:${anchor.rect.left}:${anchor.text.slice(0, 24)}`}
 			anchor={anchor}
+			tgLinked={tgLinked}
 			onDismiss={dismiss}
 		/>
 	);
@@ -132,9 +154,11 @@ type Mode = "idle" | "reference" | "ai";
 
 function Toolbar({
 	anchor,
+	tgLinked,
 	onDismiss,
 }: {
 	anchor: Anchor;
+	tgLinked: boolean;
 	onDismiss: () => void;
 }) {
 	const [mode, setMode] = useState<Mode>("idle");
@@ -156,12 +180,27 @@ function Toolbar({
 		// cloze 已在 anchorFromSelection 判掉(cloze 時不產生 highlight),
 		// 這裡傳 false 即可。
 		cloze: false,
+		onQuestionPage: questionId != null,
+		telegramLinked: tgLinked,
 	});
 	const clearing = anchor.highlight?.kind === "clear";
 
 	// 錨點在視窗中的當下位置。捲動時重新量測,卡片才會跟著被選取的那段文字走
 	// —— 從前這裡是一次性的快照,展開狀態捲一下卡片就跟正文脫節了。
 	const [rect, setRect] = useState<DOMRect>(anchor.rect);
+
+	const [tg, setTg] = useState<"idle" | "sending" | "done" | "error">("idle");
+	const doneTimer = useRef<number | undefined>(undefined);
+	useEffect(() => () => window.clearTimeout(doneTimer.current), []);
+
+	// 收合時的實際寬度。按鈕數會變(四顆全亮時比兩顆寬一倍),所以量出來再拿去
+	// 夾 left —— 沿用寫死的估計值時,靠視窗右緣的選取會把卡片推出畫面外。
+	const [collapsedW, setCollapsedW] = useState(240);
+	useLayoutEffect(() => {
+		if (expanded) return;
+		const w = rootRef.current?.offsetWidth;
+		if (w) setCollapsedW(w);
+	}, [expanded, actions.highlight, actions.lookup, actions.telegram]);
 
 	// Esc 關閉;外點關閉;捲動跟著走,錨點捲出視窗才關。
 	useEffect(() => {
@@ -215,6 +254,21 @@ function Toolbar({
 		onDismiss();
 	}
 
+	// 「存到 Telegram」是一鍵動作(不展開面板),所以成敗只能靠按鈕自己的文字
+	// 回報;成功後停一下讓人看到「已送出」再收卡片。失敗後可以再按一次 ——
+	// 常見的失敗是連線斷了,重試就好。
+	async function doSendTelegram() {
+		if (!questionId || tg === "sending" || tg === "done") return;
+		setTg("sending");
+		try {
+			await sendSelectionToTelegram(anchor.text, questionId);
+			setTg("done");
+			doneTimer.current = window.setTimeout(onDismiss, 1200);
+		} catch {
+			setTg("error");
+		}
+	}
+
 	// 定位:固定座標,預設在選取下方;下方塞不下且上方更寬敞才翻上去。
 	//
 	// 高度上限一律由「那一側實際剩下多少」決定,不用固定的 vh —— LLM 的回答
@@ -223,7 +277,7 @@ function Toolbar({
 	const width = expanded ? PANEL_W : undefined;
 	const left = Math.min(
 		Math.max(GAP, rect.left),
-		Math.max(GAP, window.innerWidth - (width ?? 240) - GAP),
+		Math.max(GAP, window.innerWidth - (width ?? collapsedW) - GAP),
 	);
 	const below = window.innerHeight - rect.bottom - GAP * 2;
 	const above = rect.top - GAP * 2;
@@ -247,15 +301,16 @@ function Toolbar({
 		>
 			<div
 				className="flex flex-col rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl overflow-hidden"
-				// 收合狀態只有一列按鈕,不需要上限(也不該被裁掉)。
+				// 收合狀態只有一列按鈕,不需要高度上限(也不該被裁掉);但寬度要吃
+				// 得住視窗 —— 四顆按鈕在手機上放不進一列,靠 flex-wrap 折成兩列。
 				style={
 					expanded
 						? { maxHeight: Math.max(140, openUp ? above : below) }
-						: undefined
+						: { maxWidth: window.innerWidth - GAP * 2 }
 				}
 			>
 				{/* 動作列 —— 一列,分隔線,同一個外框 */}
-				<div className="shrink-0 flex items-stretch divide-x divide-ink-100 dark:divide-ink-700">
+				<div className="shrink-0 flex flex-wrap items-stretch divide-x divide-ink-100 dark:divide-ink-700">
 					{actions.highlight && (
 						<ToolButton
 							active={false}
@@ -289,6 +344,29 @@ function Toolbar({
 							icon={<Sparkles size={13} />}
 							label="AI"
 							hover="hover:bg-violet-50 dark:hover:bg-violet-400/15"
+						/>
+					)}
+					{actions.telegram && (
+						<ToolButton
+							active={false}
+							onClick={doSendTelegram}
+							icon={
+								tg === "sending" ? (
+									<Loader2 size={13} className="animate-spin" />
+								) : tg === "done" ? (
+									<Check size={13} />
+								) : (
+									<Send size={13} />
+								)
+							}
+							label={
+								tg === "done"
+									? "已送出"
+									: tg === "error"
+										? "傳送失敗"
+										: "存到 Telegram"
+							}
+							hover="hover:bg-cyan-50 dark:hover:bg-cyan-400/15"
 						/>
 					)}
 				</div>

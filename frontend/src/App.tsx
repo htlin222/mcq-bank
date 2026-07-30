@@ -223,7 +223,8 @@ export default function App() {
 				</Routes>
 			</main>
 
-			{/* 全站唯一的選字工具列:螢光標記 / 查參考資料 / AI 同在一列。 */}
+			{/* 全站唯一的選字工具列:螢光標記 / 查參考資料 / AI / 存到 Telegram
+			    同在一列(後兩顆按情境亮)。 */}
 			<SelectionToolbar />
 
 			{/* 番茄鐘 — floats over 複習模式 only (hides itself elsewhere). */}
