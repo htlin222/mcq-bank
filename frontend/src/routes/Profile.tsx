@@ -6,6 +6,7 @@ import { Avatar } from '../components/Avatar';
 import { AiKeyCard } from '../components/profile/AiKeyCard';
 import { ProfileToc, type TocItem } from '../components/profile/ProfileToc';
 import { api } from '../lib/api';
+import { invalidateTgStatus, tgStatus, type TgStatus } from '../lib/telegramApi';
 import { signOut, reloadFresh } from '../lib/signOut';
 
 // 側欄導覽的項目。id 對應各卡片外層的 id + scroll-mt-20;順序就是頁面順序,
@@ -198,22 +199,28 @@ function AccountCard({ email }: { email: string }) {
 
 // Telegram 出題機器人綁定。產生一次性 deep link,使用者在 Telegram 開啟即可
 // 把該裝置的 chat 綁到目前登入的 email;之後每日推題與作答都計入同一份進度。
-type TgStatus = {
-  configured: boolean;
-  bot_username: string | null;
-  linked: boolean;
-  subscribed: boolean;
-  username: string | null;
-};
-
+// 狀態型別與快取在 lib/telegramApi.ts —— 選字工具列的「存到 Telegram」共用同
+// 一份,所以這裡綁定/解綁後要記得作廢快取。
 function TelegramCard() {
   const [status, setStatus] = useState<TgStatus | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    api.get<TgStatus>('/api/telegram/status').then(setStatus).catch(() => setStatus(null));
+    tgStatus().then(setStatus);
   }, []);
+
+  // 綁定的最後一步發生在 Telegram 裡(按 START),app 這頭收不到通知 —— 產生
+  // 連結後就開始輪詢,卡片才會自己翻成「已綁定」,選字工具列的按鈕也才會在
+  // 不重整的情況下出現。
+  useEffect(() => {
+    if (!link || status?.linked) return;
+    const t = window.setInterval(async () => {
+      const s = await tgStatus(true);
+      if (s) setStatus(s);
+    }, 3000);
+    return () => window.clearInterval(t);
+  }, [link, status?.linked]);
 
   // bot 未設定(無 token / username)時整張卡片不顯示。
   if (!status || !status.configured) return null;
@@ -236,6 +243,7 @@ function TelegramCard() {
     try {
       await api.post('/api/telegram/unlink');
       setStatus((s) => (s ? { ...s, linked: false, subscribed: false } : s));
+      invalidateTgStatus();
       setLink(null);
     } finally {
       setBusy(false);

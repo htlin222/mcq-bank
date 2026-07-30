@@ -21,12 +21,17 @@ export type ActionContext = {
 	inAnnotatable: boolean;
 	/** 防劇透(cloze)模式中不開放畫記 —— 那時點擊是用來揭曉空格的。 */
 	cloze: boolean;
+	/** 目前在某題的頁面上(訊息要帶「$year 第 $q 題」與該題連結)。 */
+	onQuestionPage: boolean;
+	/** 這個帳號已綁 Telegram。沒綁時整顆按鈕不存在。 */
+	telegramLinked: boolean;
 };
 
 export type Actions = {
 	highlight: boolean;
 	lookup: boolean;
 	ai: boolean;
+	telegram: boolean;
 };
 
 /**
@@ -37,13 +42,18 @@ export type Actions = {
  */
 export function selectionActions(ctx: ActionContext): Actions {
 	const text = ctx.text.trim();
-	if (!text) return { highlight: false, lookup: false, ai: false };
+	if (!text)
+		return { highlight: false, lookup: false, ai: false, telegram: false };
 	return {
 		highlight: ctx.inAnnotatable && !ctx.cloze,
 		lookup: text.length >= LOOKUP_MIN_LEN && hasMeaningfulContent(text),
 		// AI 永遠可按 —— 沒設金鑰時由工具列引導去設定,而不是把按鈕藏起來
 		// 讓使用者永遠不知道有這個功能。
 		ai: true,
+		// 「存到 Telegram」與 AI 相反,沒綁定就整顆藏起來:綁定流程在別的頁
+		// (個人 → Telegram 推播),在浮動工具列上引導不了,留著只會是一顆
+		// 按下去必定失敗的按鈕。訊息要帶題目出處,所以也只在題目頁出現。
+		telegram: ctx.telegramLinked && ctx.onQuestionPage,
 	};
 }
 

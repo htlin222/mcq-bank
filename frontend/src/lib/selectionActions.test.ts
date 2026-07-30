@@ -2,8 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { selectionActions, hasMeaningfulContent } from './selectionActions.ts';
 
-const IN = { inAnnotatable: true, cloze: false };
-const OUT = { inAnnotatable: false, cloze: false };
+const TG = { onQuestionPage: false, telegramLinked: false };
+const IN = { inAnnotatable: true, cloze: false, ...TG };
+const OUT = { inAnnotatable: false, cloze: false, ...TG };
 
 // 統一工具列之前,「螢光標記」的門檻是 1 字,「查參考資料」是 3 字。合併時若
 // 沿用 3,就等於偷偷砍掉中文兩字詞的畫記能力 —— 這組測試釘住的就是那件事。
@@ -29,7 +30,7 @@ test('不在 AnnotatableContent 內就沒有螢光標記', () => {
 });
 
 test('防劇透模式中不開放畫記', () => {
-  const a = selectionActions({ text: '溶血性貧血', inAnnotatable: true, cloze: true });
+  const a = selectionActions({ text: '溶血性貧血', inAnnotatable: true, cloze: true, ...TG });
   assert.equal(a.highlight, false);
   assert.equal(a.lookup, true);
 });
@@ -41,9 +42,28 @@ test('AI 在任何有內容的選取上都可按', () => {
   assert.equal(selectionActions({ text: '溶血性貧血', ...IN }).ai, true);
 });
 
-test('空白選取三個動作全滅', () => {
-  const a = selectionActions({ text: '   ', ...IN });
-  assert.deepEqual(a, { highlight: false, lookup: false, ai: false });
+// 「存到 Telegram」的訊息帶「$year 第 $q 題 + 連結」,兩個條件缺一不可:沒綁
+// 定按了必定失敗(綁定流程在個人頁,浮動工具列引導不了),不在題目頁則湊不出
+// 出處。
+test('存到 Telegram 要同時已綁定且在題目頁', () => {
+  const base = { text: '溶血性貧血', inAnnotatable: true, cloze: false };
+  assert.equal(
+    selectionActions({ ...base, telegramLinked: true, onQuestionPage: true }).telegram,
+    true,
+  );
+  assert.equal(
+    selectionActions({ ...base, telegramLinked: false, onQuestionPage: true }).telegram,
+    false,
+  );
+  assert.equal(
+    selectionActions({ ...base, telegramLinked: true, onQuestionPage: false }).telegram,
+    false,
+  );
+});
+
+test('空白選取所有動作全滅', () => {
+  const a = selectionActions({ text: '   ', ...IN, telegramLinked: true, onQuestionPage: true });
+  assert.deepEqual(a, { highlight: false, lookup: false, ai: false, telegram: false });
 });
 
 test('純標點/純數字不算實詞,查不了參考資料', () => {

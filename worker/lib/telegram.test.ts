@@ -11,6 +11,7 @@ import {
   localParts,
   tiptapToText,
   appendExplanation,
+  formatSelectionNote,
   TG_TEXT_LIMIT,
 } from './telegram.ts';
 
@@ -130,6 +131,49 @@ test('appendExplanation:超長詳解截斷且不超過 Telegram 上限', () => {
   assert.ok(out.length <= TG_TEXT_LIMIT);
   assert.match(out, /…/);
   assert.match(out, /點下方看全文/);
+});
+
+// 「存到 Telegram」的訊息。題號一律取 id 尾碼:114 共同區有 18 題的
+// questions.number 與 id 尾碼錯位,用 number 會標到別題。
+test('formatSelectionNote 帶出處與連結,題號取自 id 尾碼', () => {
+  const out = formatSelectionNote({
+    text: 'JAK2 V617F',
+    questionId: '114-073',
+    origin: 'https://example.com',
+  });
+  assert.match(out, /<blockquote>JAK2 V617F<\/blockquote>/);
+  assert.match(out, /— from 114 第 73 題/);
+  assert.match(out, /https:\/\/example\.com\/q\/114-073/);
+});
+
+test('formatSelectionNote 跳脫選取原文裡的 HTML 字元', () => {
+  const out = formatSelectionNote({
+    text: 'a < b & c',
+    questionId: '113-001',
+    origin: 'https://example.com',
+  });
+  assert.match(out, /a &lt; b &amp; c/);
+});
+
+test('formatSelectionNote 遇非「年-題」形狀的 id 只放連結', () => {
+  const out = formatSelectionNote({
+    text: '選取',
+    questionId: 'custom-abc',
+    origin: 'https://example.com',
+  });
+  assert.doesNotMatch(out, /第 .* 題/);
+  assert.match(out, /https:\/\/example\.com\/q\/custom-abc/);
+});
+
+test('formatSelectionNote 超長選取截斷且不超過 Telegram 上限', () => {
+  // 全是 & 的話跳脫後會膨脹 5 倍 —— 預算若按原文長度算就會爆掉。
+  const out = formatSelectionNote({
+    text: '&'.repeat(5000),
+    questionId: '114-001',
+    origin: 'https://example.com',
+  });
+  assert.ok(out.length <= TG_TEXT_LIMIT, `長度 ${out.length}`);
+  assert.match(out, /…/);
 });
 
 test('localParts 以偏移平移計算本地時與日期', () => {

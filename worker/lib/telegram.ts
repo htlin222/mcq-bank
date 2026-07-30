@@ -243,6 +243,42 @@ export function appendExplanation(reveal: string, explanation: string): string {
   return reveal + header + shown + (truncated ? '\n（點下方看全文）' : '');
 }
 
+/** 選字送到 Telegram 時,原文最多留幾個字(超過就 … 截斷)。 */
+const NOTE_TEXT_CAP = 2800;
+
+/**
+ * 「存到 Telegram」的訊息:選取原文 + 出處 + 回站連結。
+ *
+ * 年份與題號一律從 question id 的兩段推,不查 questions.number —— 114 共同區
+ * 有 18 題的 number 與 id 尾碼錯位,拿 number 顯示會標到別題(見 CLAUDE.md)。
+ * id 不是 `年-題` 形狀時只放連結,不亂編題號。
+ */
+export function formatSelectionNote(opts: {
+  text: string;
+  questionId: string;
+  origin: string;
+}): string {
+  const url = `${opts.origin}/q/${encodeURIComponent(opts.questionId)}`;
+  const m = /^(\d{2,4})-(\d{1,4})$/.exec(opts.questionId);
+  const from = m ? `— from ${m[1]} 第 ${String(Number(m[2]))} 題` : '—';
+  const tail = `\n${from}\n${url}`;
+  // 預算以「跳脫後」的長度計:& < > 會膨脹成 5 個字,先截原文再跳脫才不會把
+  // 實體切成半個 &am。
+  const budget = TG_TEXT_LIMIT - tail.length - '<blockquote></blockquote>'.length;
+  const body = fitEscaped(opts.text.trim(), Math.min(NOTE_TEXT_CAP, budget));
+  return `<blockquote>${body}</blockquote>${tail}`;
+}
+
+/** 把 raw 截到「跳脫後不超過 budget」,截過的話補 …。回傳已跳脫的 HTML。 */
+function fitEscaped(raw: string, budget: number): string {
+  let s = raw;
+  while (s.length > 1 && escapeHtml(s).length > budget) {
+    const ratio = budget / escapeHtml(s).length;
+    s = s.slice(0, Math.max(1, Math.floor(s.length * ratio) - 1));
+  }
+  return s === raw ? escapeHtml(s) : `${escapeHtml(s.trimEnd())}…`;
+}
+
 /**
  * 由 UTC 毫秒 + 時區偏移(分鐘,UTC 以東為正)算出本地「時」與「YYYY-MM-DD」。
  * 用 getUTC* 於平移後的時間戳,避免依賴執行環境時區。

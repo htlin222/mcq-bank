@@ -12,6 +12,7 @@ import {
   editMessageText,
   formatQuestion,
   formatReveal,
+  formatSelectionNote,
   parseCallback,
   parseOptions,
   sendMessage,
@@ -38,6 +39,7 @@ import {
   type TgUserRow,
 } from '../lib/tg-store.ts';
 import { getQuestion, listYears, pickDailyQuestion, pickQuizIds } from '../lib/tg-select.ts';
+import { originOf } from './export.ts';
 
 const LINK_TTL_MS = 15 * 60_000;
 
@@ -412,6 +414,35 @@ telegramApiRoutes.get('/status', async (c) => {
     subscribed: row ? !!row.subscribed : false,
     username: row?.username ?? null,
   });
+});
+
+// 選字工具列的「存到 Telegram」:把一段選取連同出處推到使用者自己的聊天室。
+// { text, question_id } → { ok: true }
+//
+// 未綁定回 409(前端本來就只在已綁定時顯示按鈕,這裡是第二道防線);Bot API
+// 失敗(例如使用者把 bot 封鎖了)回 502,讓按鈕顯示「傳送失敗」而不是假成功。
+telegramApiRoutes.post('/send-note', async (c) => {
+  const token = c.env.TG_BOT_TOKEN;
+  if (!token) return c.json({ error: 'telegram not configured' }, 501);
+
+  const body = await c.req
+    .json<{ text?: unknown; question_id?: unknown }>()
+    .catch(() => ({}) as { text?: unknown; question_id?: unknown });
+  const text = typeof body.text === 'string' ? body.text.trim() : '';
+  const questionId = typeof body.question_id === 'string' ? body.question_id.trim() : '';
+  if (!text) return c.json({ error: 'empty text' }, 400);
+  if (!/^[\w.-]{1,64}$/.test(questionId)) return c.json({ error: 'bad question_id' }, 400);
+
+  const row = await getUserByEmail(c.env.DB, c.var.email);
+  if (!row) return c.json({ error: 'not_linked' }, 409);
+
+  try {
+    await sendMessage(token, row.chat_id, formatSelectionNote({ text, questionId, origin: originOf(c) }));
+  } catch (e) {
+    console.error('[tg send-note] failed', e);
+    return c.json({ error: 'send_failed' }, 502);
+  }
+  return c.json({ ok: true });
 });
 
 // 產生一次性綁定碼 + deep link
