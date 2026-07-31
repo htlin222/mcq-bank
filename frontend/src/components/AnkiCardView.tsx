@@ -147,7 +147,11 @@ export function AnkiCardView({
               <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
                 {L}
               </span>
-              <span className="leading-relaxed text-ink-800 dark:text-ink-200">{text}</span>
+              {/* min-w-0 + break-words:同 QuestionCard —— 長基因命名不斷行時
+                  會把「✓ 正解」擠出卡片。 */}
+              <span className="min-w-0 break-words leading-relaxed text-ink-800 dark:text-ink-200">
+                {text}
+              </span>
               {revealed && isCorrect && (
                 <span className="ml-auto inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 text-sm font-medium shrink-0">
                   <Check size={16} /> 正解

@@ -625,7 +625,11 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
                       <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
                         {L}
                       </span>
-                      <span className="leading-relaxed text-ink-800 dark:text-ink-200">{q.options[L]}</span>
+                      {/* min-w-0 + break-words:同 QuestionCard —— 長基因命名
+                          不斷行時會撐破選項的框。 */}
+                      <span className="min-w-0 break-words leading-relaxed text-ink-800 dark:text-ink-200">
+                        {q.options[L]}
+                      </span>
                     </li>
                   );
                 })}

@@ -364,7 +364,13 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
               <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
                 {L}
               </span>
-              <span className="relative leading-relaxed text-ink-800 dark:text-ink-200">{text}</span>
+              {/* min-w-0 + break-words:flex 子項的最小尺寸預設是 min-content,
+                  而選項裡的 (p23.3;q34.1)/DEK::NUP214 這種基因命名整串不可斷,
+                  手機上就把右邊的「✓ 正解」擠出 li 外、被 overflow-hidden 切掉。
+                  兩個一起才有用 —— break-words 不會改變 min-content 寬度。 */}
+              <span className="relative min-w-0 break-words leading-relaxed text-ink-800 dark:text-ink-200">
+                {text}
+              </span>
               {(revealed || pct !== null) && (
                 <span className="relative ml-auto self-center inline-flex flex-col items-end gap-1 shrink-0">
                   {revealed && isCorrect && (
