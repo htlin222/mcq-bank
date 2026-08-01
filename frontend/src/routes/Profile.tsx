@@ -465,7 +465,13 @@ function McqKeyCard({ me }: { me: Me }) {
                 /mcq 114-001 answer
               </code>
             </dt>
-            <dd>直接看答案:一次給出正解、共筆詳解,以及你自己在網站寫過的個人筆記。</dd>
+            <dd>
+              直接看答案:一次給出正解、共筆詳解,以及你自己在網站寫過的個人筆記
+              <span className="text-ink-500 dark:text-ink-400">
+                {' '}(一題有好幾則的話會全部列出,各自標上編號)
+              </span>
+              。
+            </dd>
           </div>
           <div className="sm:flex sm:gap-3">
             <dt className="shrink-0 sm:w-56 mb-0.5 sm:mb-0">
@@ -487,6 +493,22 @@ function McqKeyCard({ me }: { me: Me }) {
               </code>
             </dt>
             <dd>把「內容」附加到這題的個人筆記(接在既有筆記後面,只有你看得到)。</dd>
+          </div>
+          <div className="sm:flex sm:gap-3">
+            <dt className="shrink-0 sm:w-56 mb-0.5 sm:mb-0">
+              <code className="font-mono text-[0.85em] bg-ink-50 dark:bg-ink-900 border border-ink-200 dark:border-ink-700 rounded px-1.5 py-0.5">
+                /mcq note 114-001 #2: 內容
+              </code>
+            </dt>
+            <dd>
+              一題可以有好幾則筆記,這樣寫進指定的那一則(編號看
+              <code className="font-mono text-[0.85em] mx-1">answer</code>
+              的輸出);
+              <code className="font-mono text-[0.85em] mx-1">#2</code>
+              換成
+              <code className="font-mono text-[0.85em] mx-1">new</code>
+              就另開一則。不指定就是第一則。
+            </dd>
           </div>
         </dl>
         <p className="text-xs text-ink-400 dark:text-ink-500 mt-3">

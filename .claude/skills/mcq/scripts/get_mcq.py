@@ -106,14 +106,40 @@ def render(d: dict, with_answer: bool = False) -> str:
     else:
         out.append("")
         out.append("(尚無共筆詳解)")
-    # Personal note is the caller's own — only shown after answering, so quiz
+    # Personal notes are the caller's own — only shown after answering, so quiz
     # mode can't spoil the answer via the user's past notes.
-    note = d.get("personal_note")
-    if note and note.get("markdown"):
-        out.append("")
-        out.append("## 個人筆記")
-        out.append(note["markdown"])
+    out.extend(render_notes(d))
     return "\n".join(out)
+
+
+def render_notes(d: dict) -> list[str]:
+    """一題可以有多則筆記(網頁上用左上下拉切換),全部印出來並標上編號。
+
+    `personal_notes` 是 0.8.0 的欄位;對著舊版 Worker 就只有單則的
+    `personal_note`,退回去用它,免得升級順序反過來時什麼都印不出來。
+    """
+    notes = d.get("personal_notes")
+    if notes is None:
+        one = d.get("personal_note")
+        notes = [one] if one else []
+    notes = [n for n in notes if n and n.get("markdown")]
+    if not notes:
+        return []
+
+    out = [""]
+    if len(notes) == 1:
+        out.append("## 個人筆記")
+        out.append(notes[0]["markdown"])
+        return out
+
+    out.append(f"## 個人筆記({len(notes)} 則)")
+    for n in notes:
+        out.append("")
+        out.append(f"### #{n.get('slot', 0)} {n.get('title') or ''}".rstrip())
+        out.append(n["markdown"])
+    out.append("")
+    out.append("(要寫進某一則加 --slot <編號>;要另開一則加 --new)")
+    return out
 
 
 def main() -> None:
@@ -124,6 +150,8 @@ def main() -> None:
     oe_url = None
     turn = None
     replace = False
+    slot = None
+    new_note = False
     search_query = None
     year_filter = None
     limit = 20
@@ -155,6 +183,13 @@ def main() -> None:
             turn = int(args[i])
         elif a == "--replace":
             replace = True
+        elif a == "--slot":
+            i += 1
+            if i >= len(args) or not args[i].lstrip("#").isdigit():
+                sys.exit("--slot 需要筆記編號(先跑 answer 看有哪些),例如 --slot 1")
+            slot = int(args[i].lstrip("#"))
+        elif a in ("--new", "--new-note"):
+            new_note = True
         elif a in ("--search", "-s"):
             i += 1
             if i >= len(args):
@@ -176,7 +211,8 @@ def main() -> None:
     if not positional and search_query is None:
         sys.exit(
             "用法:get_mcq.py <題號> [--answer]"
-            " [--note <內容|->|--html <HTML|->|--oe-url <URL> [--turn N]] [--replace]"
+            " [--note <內容|->|--html <HTML|->|--oe-url <URL> [--turn N]]"
+            " [--slot N|--new] [--replace]"
             " | get_mcq.py --search <關鍵字> [--year YYY] [--limit N],"
             "例如 get_mcq.py 114-001 或 get_mcq.py --search CML"
         )
@@ -185,6 +221,15 @@ def main() -> None:
         sys.exit(f"{' 與 '.join(content_flags)} 不能同時使用")
     if replace and not content_flags:
         sys.exit("--replace 只能搭配 --note / --html / --oe-url 使用")
+    if slot is not None and new_note:
+        sys.exit("--slot 與 --new 不能同時使用:一個是寫進既有的那則,一個是另開一則")
+    if new_note and replace:
+        sys.exit("--new 是另開一則,沒有舊內容可覆寫 —— 拿掉 --replace")
+    if (slot is not None or new_note) and not content_flags:
+        sys.exit(
+            "--slot / --new 是寫入用的,要搭配 --note / --html / --oe-url。"
+            "只是想看有哪些筆記就跑 --answer"
+        )
     if turn is not None and oe_url is None:
         sys.exit("--turn 只能搭配 --oe-url 使用")
     cfg = load_env()
@@ -228,10 +273,12 @@ def main() -> None:
 
     if content_flags:
         mode = "replace" if replace else "append"
+        # 不帶 slot 就是第一則 —— 與 0.7.x 的 .skill 行為相同。
+        slot_field = {"slot": "new"} if new_note else ({"slot": slot} if slot is not None else {})
         if note_text is not None:
             if not note_text.strip():
                 sys.exit("筆記內容是空的,未送出")
-            payload_obj = {"markdown": note_text, "mode": mode}
+            payload_obj = {"markdown": note_text, "mode": mode, **slot_field}
         else:
             # --html / --oe-url both convert to a TipTap doc locally
             # (scripts/oe_import.py); the Worker sanitizes the node set and
@@ -254,7 +301,7 @@ def main() -> None:
                     )
                 print(f"🔎 已解析 OpenEvidence 對話「{convo['title']}」,共 {len(convo['turns'])} 輪")
                 doc = oe_import.oe_conversation_to_doc(convo, final_url, turn)
-            payload_obj = {"doc": doc, "mode": mode}
+            payload_obj = {"doc": doc, "mode": mode, **slot_field}
         payload = json.dumps(payload_obj).encode("utf-8")
         req = urllib.request.Request(
             f"{base}/api/mcq/{qid}/note",
@@ -267,11 +314,23 @@ def main() -> None:
             with urllib.request.urlopen(req, timeout=60) as resp:
                 d = json.load(resp)
         except urllib.error.HTTPError as e:
-            sys.exit(f"API {e.code}: {e.read().decode('utf-8', 'replace')}")
+            body = e.read().decode("utf-8", "replace")
+            hints = {
+                404: "題號或筆記編號不存在 → 先跑 answer 看這題有哪些筆記,或用 --new 另開一則",
+                409: "這一題的筆記則數已達上限 → 寫進既有的某一則(--slot N)",
+                401: "金鑰錯誤/已重新產生 → 回 /profile 重新下載 .skill",
+            }
+            sys.exit(f"API {e.code}: {body}\n提示:{hints.get(e.code, '')}")
         except urllib.error.URLError as e:
             sys.exit(f"連線失敗:{e.reason} — 檢查 MCQ_API_BASE 是否正確")
         verb = {"create": "已建立", "append": "已附加到", "replace": "已覆寫"}[d["mode"]]
-        print(f"📝 {verb} {qid} 的個人筆記")
+        # slot / title 是 0.8.0 才有的;對舊版 Worker 就退回原本的說法。
+        where = ""
+        if d.get("slot") is not None and (d.get("notes_count") or 1) > 1:
+            where = f" #{d['slot']}「{d.get('title') or ''}」"
+        elif d.get("slot"):
+            where = f" #{d['slot']}"
+        print(f"📝 {verb} {qid} 的個人筆記{where}")
         for w in d.get("warnings") or []:
             print(f"⚠️  {w}")
         if d.get("previous_markdown"):

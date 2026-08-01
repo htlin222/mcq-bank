@@ -1,7 +1,7 @@
 ---
 name: mcq
-version: 0.7.0
-description: 血液腫瘤考古題(單題測驗/看答案/關鍵字搜尋/個人筆記,筆記可讀可寫,可從 HTML 或 OpenEvidence 公開對話匯入圖文)。前綴決定動作,由 mcq_cmd.py 確定性 dispatch。當使用者輸入 /mcq 開頭的指令時使用,例如 /mcq 114-001、/mcq 114-001 answer、/mcq search: CML、/mcq note 114-001: 內容。
+version: 0.8.0
+description: 血液腫瘤考古題(單題測驗/看答案/關鍵字搜尋/個人筆記,一題可有多則筆記、可讀可寫,可從 HTML 或 OpenEvidence 公開對話匯入圖文)。前綴決定動作,由 mcq_cmd.py 確定性 dispatch。當使用者輸入 /mcq 開頭的指令時使用,例如 /mcq 114-001、/mcq 114-001 answer、/mcq search: CML、/mcq note 114-001: 內容、/mcq note 114-001 #2: 內容。
 ---
 
 # mcq — 考古題測驗 / 搜尋 / 筆記
@@ -23,7 +23,9 @@ description: 血液腫瘤考古題(單題測驗/看答案/關鍵字搜尋/個人
 | `/mcq 114-011` | `mcq_cmd.py '114-011'` | 出題,**不含答案**(測驗模式) |
 | `/mcq 114-011 answer` | `mcq_cmd.py '114-011 answer'` | 揭曉答案 + 共筆詳解 + 個人筆記 |
 | `/mcq search: CML` | `mcq_cmd.py 'search: CML'` | 關鍵字搜尋題目 |
-| `/mcq note 114-011: 內容` | `mcq_cmd.py 'note 114-011: 內容'` | 附加個人筆記(append) |
+| `/mcq note 114-011: 內容` | `mcq_cmd.py 'note 114-011: 內容'` | 附加個人筆記(append,第一則) |
+| `/mcq note 114-011 #2: 內容` | `mcq_cmd.py 'note 114-011 #2: 內容'` | 附加到第 2 則筆記 |
+| `/mcq note 114-011 new: 內容` | `mcq_cmd.py 'note 114-011 new: 內容'` | 另開一則筆記 |
 
 `answer` 也接受 `ans` / `答案` / `看答案` / `揭曉`。題號 `114-1`、`114 1` 也可。參數格式錯誤時 router / get_mcq.py 會印明確錯誤,照訊息處理。
 
@@ -35,7 +37,7 @@ description: 血液腫瘤考古題(單題測驗/看答案/關鍵字搜尋/個人
 - `mcq_cmd.py` 印出「格式…」之類的錯誤,而你判斷使用者其實想做別的動作。
 - 筆記內容含單引號、很長或多行且帶特殊字元,不適合塞進 `'<args>'` → 改用 `get_mcq.py 114-011 --note -` 走 stdin。
 
-`get_mcq.py` 支援的完整旗標:`--answer`、`--search`(+`--year`/`--limit`)、`--note`、`--html`、`--oe-url`(+`--turn`)、`--replace`,見下方「進階」。換句話說 router 是為了少讓你判斷,但你隨時可以繞過它、直接用底層腳本。
+`get_mcq.py` 支援的完整旗標:`--answer`、`--search`(+`--year`/`--limit`)、`--note`、`--html`、`--oe-url`(+`--turn`)、`--slot`/`--new`、`--replace`,見下方「進階」。換句話說 router 是為了少讓你判斷,但你隨時可以繞過它、直接用底層腳本。
 
 ## 唯一需要你「跨兩回合」的:測驗兩段式
 
@@ -55,6 +57,22 @@ description: 血液腫瘤考古題(單題測驗/看答案/關鍵字搜尋/個人
 
 沒結果就換別的縮寫,而不是改打全名。中文詞(例:`血栓`)可直接打。搜尋輸出是 `年-題號 [group] snippet`(命中字用【】標),**不含答案**;把清單給使用者挑一題,再走測驗/看答案流程。可加 `--year` / `--limit`(這兩個要直接用 `get_mcq.py --search 關鍵字 --year 113`)。
 
+## 一題可以有多則個人筆記
+
+網頁上一題的筆記可以有好幾則(筆記面板左上的下拉切換),終端這邊看得到全部:`answer` 的輸出會把每一則都印出來,標成 `### #<編號> <標題>` —— 標題就是該則的第一行(網頁的下拉也是這樣取名的)。只有一則時維持原樣,只印一段「## 個人筆記」。
+
+寫入時**不指定就是第一則**,與舊版行為相同:
+
+| 要寫到哪 | 前綴寫法 | 底層旗標 |
+| --- | --- | --- |
+| 第一則(預設) | `note 114-011: 內容` | (不帶) |
+| 第 N 則 | `note 114-011 #2: 內容` | `--slot 2` |
+| 另開一則 | `note 114-011 new: 內容` | `--new` |
+
+編號**不要猜**:先跑一次 `answer` 看這題現在有哪幾則。指定不存在的編號會回 404 並列出現有編號(不會默默寫進別則)。一題最多 20 則,滿了會回 409。`--new` 不能配 `--replace`(新的一則沒有舊內容可覆寫)。
+
+`--slot` / `--new` 對 `--html` / `--oe-url` 同樣有效 —— 想把一段 OpenEvidence 對話單獨放一則、不要混進既有筆記時特別好用。
+
 ## 進階:直接用 get_mcq.py(router 不覆蓋這些)
 
 日常三種前綴走 `mcq_cmd.py` 就好;下面是它不處理的進階流程,直接叫 `get_mcq.py`:
@@ -63,6 +81,9 @@ description: 血液腫瘤考古題(單題測驗/看答案/關鍵字搜尋/個人
 `mcq_cmd.py 'note …'` 一律 append。要**整筆覆寫**用 `--replace`,且**覆寫前必須先用 `answer` 讓使用者看過現有筆記並明確同意**(網頁端筆記若含圖片或 @mention,覆寫後會遺失且無法復原;輸出會回印舊內容,終端還救得回來):
 
     echo "新內容" | python3 "$SKILL/scripts/get_mcq.py" 114-011 --note - --replace
+    echo "新內容" | python3 "$SKILL/scripts/get_mcq.py" 114-011 --note - --slot 2 --replace
+
+覆寫只動**那一則**(不帶 `--slot` 就是第一則),同題的其他筆記不受影響 —— 但那一則的內容一樣是整份換掉。
 
 支援的 markdown:段落、`#` 標題、`-`/`1.` 清單、`>` 引用、``` 圍欄程式碼、`**粗體**`、`*斜體*`。
 
@@ -71,6 +92,7 @@ description: 血液腫瘤考古題(單題測驗/看答案/關鍵字搜尋/個人
 
     echo "$HTML" | python3 "$SKILL/scripts/get_mcq.py" 114-011 --html -
     python3 "$SKILL/scripts/get_mcq.py" 114-011 --oe-url "https://www.openevidence.com/ask/<id>"
+    python3 "$SKILL/scripts/get_mcq.py" 114-011 --oe-url "…" --new   # 單獨放一則
 
 OpenEvidence 連結必須是已 Make public 的 `/ask/<id>`;多輪對話會全部匯入並各自加問題標題,只要其中一輪用 `--turn N`(1 起算)。旗標別名:`--openevidence-url` / `--oe`。支援節點:標題、段落、清單、表格、引用、程式碼、圖片,以及粗體/斜體/`code`/刪除線/highlight/連結;不支援的丟棄(印 `⚠️`),@mention 降級純文字。圖片上限 12 張;抓不到的外部圖保留原 hotlink 並警告。
 

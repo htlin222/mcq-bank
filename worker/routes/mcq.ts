@@ -3,6 +3,7 @@ import type { AppContext } from '../types';
 import { apiKeyMiddleware } from '../lib/apikey';
 import { sanitizeNoteDoc, externalImages } from '../lib/note-doc';
 import { sideloadImageToR2 } from '../lib/sideload';
+import { MAX_NOTES_PER_QUESTION, resolveNoteSlot } from '../lib/notes';
 import { ftsQuery } from './search';
 
 export const mcqRoutes = new Hono<AppContext>();
@@ -87,17 +88,29 @@ mcqRoutes.get('/:id', async (c) => {
       updated_at: number;
     }>();
 
-  // Personal note of the *authenticated* caller only — the email comes from
+  // Personal notes of the *authenticated* caller only — the email comes from
   // apiKeyMiddleware (HMAC-verified), never straight from the header, so one
   // member can never read another member's notes through this endpoint.
-  // 一題可以有多則筆記(migration 0036),但這支 API 的呼叫端(/mcq skill、
-  // enrich-note 批次腳本)只認得一則 —— 一律對到第一則,行為與從前相同。
-  const note = await c.env.DB.prepare(
-    `SELECT content_json, updated_at
-       FROM personal_notes WHERE user_email = ? AND question_id = ? AND slot = 0`
+  // 一題可以有多則筆記(migration 0036),全部回傳並各自附上 slot,終端才看得
+  // 到使用者在網頁上分則寫的東西。`personal_note` 保留成第一則:0.7.x 以前
+  // 下載的 .skill 還在使用者機器上跑,它只認得那一個欄位。
+  const { results: noteRows } = await c.env.DB.prepare(
+    `SELECT slot, content_json, created_at, updated_at
+       FROM personal_notes WHERE user_email = ? AND question_id = ? ORDER BY slot`
   )
     .bind(c.get('email'), id)
-    .first<{ content_json: string; updated_at: number }>();
+    .all<{ slot: number; content_json: string; created_at: number; updated_at: number }>();
+
+  const notes = (noteRows ?? []).map((n) => {
+    const markdown = tiptapToMarkdown(JSON.parse(n.content_json));
+    return {
+      slot: n.slot,
+      title: noteTitle(markdown),
+      markdown,
+      created_at: n.created_at,
+      updated_at: n.updated_at,
+    };
+  });
 
   return c.json({
     id: q.id,
@@ -117,12 +130,8 @@ mcqRoutes.get('/:id', async (c) => {
           updated_at: exp.updated_at,
         }
       : null,
-    personal_note: note
-      ? {
-          markdown: tiptapToMarkdown(JSON.parse(note.content_json)),
-          updated_at: note.updated_at,
-        }
-      : null,
+    personal_note: notes[0] ?? null,
+    personal_notes: notes,
   });
 });
 
@@ -130,6 +139,13 @@ mcqRoutes.get('/:id', async (c) => {
 // append (existing rich content from the web editor is preserved verbatim,
 // new blocks go after a horizontal rule); `mode: "replace"` swaps the whole
 // doc and echoes the previous content back so it survives in the terminal.
+//
+// `slot` picks which of the question's notes to write:
+//   • 省略      — 第一則(最小的既存 slot);一則都沒有就建 slot 0。這是
+//                0.7.x 的 .skill 與 enrich-note 批次腳本的行為,不能變。
+//   • 數字      — 指定那一則,必須已經存在。不存在就回 404 並附上現有號碼,
+//                而不是在中間開一個洞 —— 畫記與挖空快取都以 slot 定位。
+//   • "new"     — 新開一則(號碼取現有最大值 +1,不重用刪掉的號碼)。
 //
 // Content comes as ONE of:
 //   • `markdown` — plain markdown, converted with markdownToTiptap below
@@ -145,7 +161,7 @@ mcqRoutes.put('/:id/note', async (c) => {
   const id = c.req.param('id');
   const email = c.get('email');
 
-  let body: { markdown?: unknown; doc?: unknown; mode?: unknown };
+  let body: { markdown?: unknown; doc?: unknown; mode?: unknown; slot?: unknown };
   try {
     body = await c.req.json();
   } catch {
@@ -153,6 +169,21 @@ mcqRoutes.put('/:id/note', async (c) => {
   }
   const markdown = typeof body.markdown === 'string' ? body.markdown.trim() : '';
   const mode = body.mode === 'replace' ? 'replace' : 'append';
+
+  // 這裡不用 lib/notes 的 parseSlot():它把看不懂的值收斂成 0,對網頁那種
+  // 「使用者按下拉選單」的來源是對的,但終端是手打的 —— 打錯號碼就把內容
+  // 靜靜灌進別則筆記,比直接報錯糟糕得多。
+  const wantsNew = body.slot === 'new';
+  let askedSlot: number | null = null;
+  if (!wantsNew && body.slot !== undefined && body.slot !== null) {
+    const n = typeof body.slot === 'number' ? body.slot : Number(body.slot);
+    if (!Number.isInteger(n) || n < 0 || n >= MAX_NOTES_PER_QUESTION)
+      return c.json(
+        { error: `slot must be an integer 0–${MAX_NOTES_PER_QUESTION - 1}, or "new"` },
+        400
+      );
+    askedSlot = n;
+  }
   if (!markdown && !body.doc)
     return c.json({ error: 'markdown or doc required' }, 400);
   if (markdown.length > NOTE_MAX_CHARS)
@@ -190,12 +221,30 @@ mcqRoutes.put('/:id/note', async (c) => {
     .first();
   if (!exists) return c.json({ error: 'question not found', id }, 404);
 
-  // 同上:寫入一律落在第一則。
-  const prev = await c.env.DB.prepare(
-    `SELECT content_json FROM personal_notes WHERE user_email = ? AND question_id = ? AND slot = 0`
+  const { results: existing } = await c.env.DB.prepare(
+    `SELECT slot, content_json FROM personal_notes
+      WHERE user_email = ? AND question_id = ? ORDER BY slot`
   )
     .bind(email, id)
-    .first<{ content_json: string }>();
+    .all<{ slot: number; content_json: string }>();
+  const rows = existing ?? [];
+  const pick = resolveNoteSlot(
+    rows.map((r) => r.slot),
+    wantsNew ? 'new' : askedSlot
+  );
+  if (!pick.ok)
+    return c.json(
+      {
+        error: pick.error,
+        slots: pick.slots,
+        max: MAX_NOTES_PER_QUESTION,
+        ...(pick.status === 404 ? { hint: 'use slot:"new" to add one' } : {}),
+      },
+      pick.status
+    );
+  const slot = pick.slot;
+
+  const prev = pick.isNew ? undefined : rows.find((r) => r.slot === slot);
   let doc: PMNode;
   if (mode === 'append' && prev) {
     const prevDoc = JSON.parse(prev.content_json) as PMNode;
@@ -210,25 +259,52 @@ mcqRoutes.put('/:id/note', async (c) => {
   const now = Date.now();
   await c.env.DB.prepare(
     `INSERT INTO personal_notes (user_email, question_id, slot, content_json, created_at, updated_at, needs_relink)
-     VALUES (?, ?, 0, ?, ?, ?, 1)
+     VALUES (?, ?, ?, ?, ?, ?, 1)
      ON CONFLICT(user_email, question_id, slot) DO UPDATE SET
        content_json = excluded.content_json,
        updated_at   = excluded.updated_at,
        needs_relink = 1`
   )
-    .bind(email, id, JSON.stringify(doc), now, now)
+    .bind(email, id, slot, JSON.stringify(doc), now, now)
     .run();
 
+  const note_markdown = tiptapToMarkdown(doc);
   return c.json({
     ok: true,
     mode: prev ? mode : 'create',
+    slot,
+    title: noteTitle(note_markdown),
+    notes_count: prev ? rows.length : rows.length + 1,
     updated_at: now,
-    note_markdown: tiptapToMarkdown(doc),
+    note_markdown,
     previous_markdown:
       mode === 'replace' && prev ? tiptapToMarkdown(JSON.parse(prev.content_json)) : null,
     ...(warnings.length ? { warnings } : {}),
   });
 });
+
+// 筆記的名字就是內文第一行 —— 沒有 title 欄位,網頁的切換下拉也是這樣取名的
+// (frontend/src/lib/noteTitle.ts)。這裡從已經轉好的 markdown 取,省得再走一次
+// TipTap 樹;結果對齊網頁,使用者在終端看到的名字就是他在下拉裡選的那個。
+const NOTE_TITLE_MAX = 40;
+
+function noteTitle(markdown: string, fallback = '未命名筆記'): string {
+  const line = markdown
+    .split('\n')
+    .map((s) => s.trim())
+    .find(Boolean);
+  if (!line) return fallback;
+  if (/^!\[/.test(line)) return '［圖片］';
+  const plain = line
+    .replace(/^#{1,6}\s*/, '')
+    .replace(/^[-*+]\s+/, '')
+    .replace(/^>\s*/, '')
+    .replace(/[*`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!plain) return fallback;
+  return plain.length > NOTE_TITLE_MAX ? `${plain.slice(0, NOTE_TITLE_MAX)}…` : plain;
+}
 
 // --- TipTap / ProseMirror JSON → markdown-ish plain text -------------------
 type PMNode = {
