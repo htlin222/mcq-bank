@@ -39,6 +39,7 @@ import { NoteContent } from "../components/NoteContent";
 import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
+import { BackToTopFab } from "../components/BackToTopFab";
 import { searchNeighbors } from "../lib/searchCache";
 import { rememberAutoCloze, wasAutoCloze } from "../lib/clozePref";
 import {
@@ -147,6 +148,22 @@ export function Question() {
 		// `data` is a dep because the strip only mounts once the question loads
 		// (the component returns a skeleton while `!data`), so the ref is null on
 		// the first run and we must re-attach the observer once it exists.
+	}, [tabsMode, data]);
+
+	// 手機上 回年度/上一題/下一題 那一列也是 sticky(見下面的 navBarClass),所以
+	// 它底下那兩層 sticky —— 詳解共筆 tab 條、每欄的工具列 —— 得再往下讓出它的
+	// 高度,否則會疊在一起。量法跟 --strip-h 同一套,值透過 --nav-h 往下傳。
+	// ≥md 用不到:那裡 columns 模式各欄自己捲,tabs 模式的 tab 條是 md:static。
+	const navBarRef = useRef<HTMLDivElement>(null);
+	const [navH, setNavH] = useState(0);
+	useEffect(() => {
+		const el = navBarRef.current;
+		if (!el) return;
+		const update = () => setNavH(el.offsetHeight);
+		update();
+		const ro = new ResizeObserver(update);
+		ro.observe(el);
+		return () => ro.disconnect();
 	}, [tabsMode, data]);
 
 	useEffect(() => {
@@ -858,22 +875,28 @@ export function Question() {
 		);
 
 	return (
-		<div className="max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 md:px-4 py-6 sm:py-8 pb-32 md:pb-0">
-			{/* In tabs mode the header (回年度 / 上下題 / 檢視切換) rides along with
-			    the tab strip in one sticky block, so navigation stays reachable
-			    while a long 詳解 scrolls. Columns mode doesn't scroll the page, so
-			    the header stays in normal flow there. The bg + edge-bleed keep
+		<div
+			className="max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 md:px-4 py-6 sm:py-8 pb-32 md:pb-0"
+			style={{ "--nav-h": `${navH}px` } as CSSProperties}
+		>
+			{/* The header (回年度 / 上下題 / 檢視切換) is sticky on mobile — the page
+			    is one long scroll there, and 上一題/下一題 shouldn't scroll away. At
+			    ≥md it only stays sticky in tabs mode (riding along with the tab
+			    strip in one block); columns mode doesn't scroll the page, so the
+			    header drops back into normal flow. The bg + edge-bleed keep
 			    scrolled content from showing through the blur. */}
 			<div
+				ref={navBarRef}
 				className={
-					tabsMode
-						? "md:sticky md:top-14 md:z-20 md:-mx-4 md:px-4 md:pt-3 md:mb-6 md:bg-ink-50/95 md:dark:bg-ink-900/95 md:backdrop-blur"
-						: ""
+					"sticky top-14 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-3 pb-2 bg-ink-50 dark:bg-ink-900 " +
+					(tabsMode
+						? "md:-mx-4 md:px-4 md:pb-0 md:mb-6 md:bg-ink-50/95 md:dark:bg-ink-900/95 md:backdrop-blur"
+						: "md:static md:mx-0 md:px-0 md:pt-0 md:pb-0 md:bg-transparent md:dark:bg-transparent")
 				}
 			>
 				<header
 					className={
-						"flex items-center justify-between mb-6 text-sm gap-3" +
+						"flex items-center justify-between mb-4 md:mb-6 text-sm gap-3" +
 						(tabsMode ? " md:mb-2" : "")
 					}
 				>
@@ -1087,13 +1110,15 @@ export function Question() {
 								: "")
 						}
 					>
-						{/* Columns mode pins this under the pane's own scroll top (md:top-0).
-				    Tabs mode has no pane scroller and its own sticky header above,
-				    so let this strip (only the OpenEvidence link at ≥md) flow. */}
+						{/* On mobile this pins right under the sticky 年度/上下題 列 (hence
+				    the --nav-h offset on top of the h-14 app bar). Columns mode pins
+				    it under the pane's own scroll top (md:top-0). Tabs mode has no
+				    pane scroller and its own sticky header above, so let this strip
+				    (only the OpenEvidence link at ≥md) flow. */}
 						<div
 							ref={innerStripRef}
 							className={
-								"sticky top-14 z-10 flex items-center justify-between gap-3 bg-ink-50/95 dark:bg-ink-900/95 backdrop-blur pt-1 pb-3 " +
+								"sticky top-[calc(3.5rem+var(--nav-h,0px))] z-10 flex items-center justify-between gap-3 bg-ink-50 dark:bg-ink-900 md:bg-ink-50/95 md:dark:bg-ink-900/95 md:backdrop-blur pt-1 pb-3 " +
 								(tabsMode ? "md:static" : "md:top-0")
 							}
 						>
@@ -1742,6 +1767,7 @@ export function Question() {
 				{/* /right column */}
 			</div>
 			{/* /two-column grid */}
+			<BackToTopFab />
 		</div>
 	);
 }

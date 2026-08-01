@@ -245,12 +245,13 @@
 
 /* Per-pane toolbar (自動挖空/防劇透/編輯) that pins just under the sticky
    詳解共筆/… tab strip while a long 詳解/筆記 scrolls. `--strip-h` is the
-   measured tab-strip height (set inline from Question.tsx). Below md the page
-   scrolls under the h-14 app header, so the offset adds 3.5rem; at md the
+   measured tab-strip height and `--nav-h` the 年度/上下題 列 above it (both set
+   inline from Question.tsx). Below md the page scrolls under the h-14 app
+   header plus those two sticky rows, so the offset stacks all three; at md the
    right column is its own scroll container and the strip pins at its top. */
 .substick {
   position: sticky;
-  top: calc(3.5rem + var(--strip-h, 0px));
+  top: calc(3.5rem + var(--nav-h, 0px) + var(--strip-h, 0px));
   z-index: 9;
 }
 @media (min-width: 768px) {
