@@ -14,6 +14,7 @@ import {
 } from "../lib/cloze";
 import { EMBED_MODEL, TEXT_MODEL } from "../lib/ai-models";
 import { median, percentile, MIN_COHORT } from "../lib/pacing";
+import { parseSlot } from "../lib/notes";
 import { parseTagList } from "../lib/sql-params";
 import { tallyChoices, type Vote } from "../lib/choiceStats";
 
@@ -113,7 +114,7 @@ questionsRoutes.get("/:id", async (c) => {
 		.bind(id)
 		.all<{ tag: string }>();
 
-	const [progress, bookmark, note, backRefRows, activeChallenges, commentCountRow] = await Promise.all([
+	const [progress, bookmark, noteRows, backRefRows, activeChallenges, commentCountRow] = await Promise.all([
 		c.env.DB.prepare(
 			"SELECT times_seen, times_correct, last_chosen, last_correct FROM review_progress WHERE user_email = ? AND question_id = ?",
 		)
@@ -124,11 +125,13 @@ questionsRoutes.get("/:id", async (c) => {
 		)
 			.bind(email, id)
 			.first<{ folder_id: string | null } | null>(),
+		// 一題可以有多則(migration 0036)。my_note 仍然是最前面那則,舊的
+		// 呼叫端(離線快取、AI 面板取現況)不必同步改。
 		c.env.DB.prepare(
-			"SELECT content_json, updated_at FROM personal_notes WHERE user_email = ? AND question_id = ?",
+			"SELECT slot, content_json, created_at, updated_at FROM personal_notes WHERE user_email = ? AND question_id = ? ORDER BY slot",
 		)
 			.bind(email, id)
-			.first<{ content_json: string; updated_at: number } | null>(),
+			.all<{ slot: number; content_json: string; created_at: number; updated_at: number }>(),
 		c.env.DB.prepare(
 			`SELECT r.source_type, r.source_id, r.by_email, r.created_at,
                 q.year AS source_year, q.number AS source_number, q.stem AS source_stem
@@ -173,6 +176,8 @@ questionsRoutes.get("/:id", async (c) => {
 				}
 			: null;
 
+	const notes = noteRows.results ?? [];
+
 	const back_refs = (backRefRows.results ?? []).map((r) => ({
 		source_type: r.source_type,
 		source_question_id: `${r.source_year}-${String(r.source_number).padStart(3, "0")}`,
@@ -187,7 +192,8 @@ questionsRoutes.get("/:id", async (c) => {
 		tags: tagRows.map((t) => t.tag),
 		explanation: explanation || null,
 		my_progress,
-		my_note: note || null,
+		my_note: notes[0] ?? null,
+		my_notes: notes,
 		back_refs,
 		active_challenges: activeChallenges,
 		comment_count: commentCountRow?.n ?? 0,
@@ -642,11 +648,14 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 	let contentJson: string;
 	let expVersion = ""; // only meaningful (and only written back) for 詳解
 	let noteHash = ""; // ditto, for 個人筆記
+	// 挖空是逐則的:第 2 則筆記有自己的關鍵詞與自己的快取列(migration 0036
+	// 把 slot 放進 note_cloze 的 PK)。沒帶 slot 就是第一則,與從前相同。
+	const noteSlot = parseSlot(c.req.query("slot"));
 	if (source === "note") {
 		const note = await c.env.DB.prepare(
-			"SELECT content_json FROM personal_notes WHERE user_email = ? AND question_id = ?",
+			"SELECT content_json FROM personal_notes WHERE user_email = ? AND question_id = ? AND slot = ?",
 		)
-			.bind(c.var.email, id)
+			.bind(c.var.email, id, noteSlot)
 			.first<{ content_json: string }>();
 		if (!note) return c.json(clozeEmpty("no_content"));
 		contentJson = note.content_json;
@@ -654,9 +663,9 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 
 		// Cache hit — note text unchanged since the last extraction.
 		const cached = await c.env.DB.prepare(
-			"SELECT terms_json, content_hash FROM note_cloze WHERE user_email = ? AND question_id = ?",
+			"SELECT terms_json, content_hash FROM note_cloze WHERE user_email = ? AND question_id = ? AND slot = ?",
 		)
-			.bind(c.var.email, id)
+			.bind(c.var.email, id, noteSlot)
 			.first<{ terms_json: string; content_hash: string }>();
 		if (cached && cached.content_hash === noteHash) {
 			return c.json({ terms: safeParseTerms(cached.terms_json), cached: true });
@@ -770,14 +779,14 @@ questionsRoutes.get("/:id/auto-cloze", async (c) => {
 			.run();
 	} else {
 		await c.env.DB.prepare(
-			`INSERT INTO note_cloze (user_email, question_id, content_hash, terms_json, created_at)
-     VALUES (?, ?, ?, ?, ?)
-     ON CONFLICT(user_email, question_id) DO UPDATE SET
+			`INSERT INTO note_cloze (user_email, question_id, slot, content_hash, terms_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(user_email, question_id, slot) DO UPDATE SET
        content_hash = excluded.content_hash,
        terms_json = excluded.terms_json,
        created_at = excluded.created_at`,
 		)
-			.bind(c.var.email, id, noteHash, JSON.stringify(terms), Date.now())
+			.bind(c.var.email, id, noteSlot, noteHash, JSON.stringify(terms), Date.now())
 			.run();
 	}
 

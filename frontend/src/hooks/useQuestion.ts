@@ -36,10 +36,18 @@ export type QuestionFull = {
     bookmarked: 0 | 1;
     bookmark_folder_id: string | null;
   } | null;
+  /** 第一則筆記(= my_notes[0])。舊欄位,留著給只認一則的呼叫端。 */
   my_note: {
     content_json: string;
     updated_at: number;
   } | null;
+  /** 這一題底下這個人的全部筆記,依 slot 排序(見 migration 0036)。 */
+  my_notes?: Array<{
+    slot: number;
+    content_json: string;
+    created_at: number;
+    updated_at: number;
+  }>;
   back_refs: Array<{
     source_type: 'explanation' | 'comment';
     source_question_id: string;

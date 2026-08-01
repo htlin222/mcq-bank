@@ -17,7 +17,7 @@ import {
 import { listPrompts } from "../../lib/aiPromptsApi";
 import { GroqError, hasKey, streamChat } from "../../lib/groq";
 import { markdownToHtml } from "../../lib/markdown-paste";
-import { appendToNote } from "../../lib/noteAppend";
+import { saveAiNote } from "../../lib/noteAppend";
 
 // 工具列「✨ AI」展開後的內容:先選提示詞,選了就串流結果。
 //
@@ -256,7 +256,7 @@ function SaveToNoteButton({
 			onClick={async () => {
 				setState("saving");
 				try {
-					await appendToNote(questionId, markdown, heading);
+					await saveAiNote(questionId, markdown, heading);
 					setState("done");
 				} catch {
 					setState("error");
@@ -272,7 +272,7 @@ function SaveToNoteButton({
 				<NotebookPen size={11} />
 			)}
 			{state === "done"
-				? "已加到筆記"
+				? "已存成新筆記"
 				: state === "error"
 					? "存檔失敗"
 					: "存到筆記"}

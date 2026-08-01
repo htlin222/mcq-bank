@@ -30,7 +30,8 @@ foldersRoutes.get('/', async (c) => {
       .first<{ n: number }>(),
     c.env.DB
       .prepare(
-        `SELECT COUNT(*) AS n FROM personal_notes WHERE user_email = ?`
+        // 「有筆記的題數」,不是筆記則數(一題可以有多則)。
+        `SELECT COUNT(DISTINCT question_id) AS n FROM personal_notes WHERE user_email = ?`
       )
       .bind(email)
       .first<{ n: number }>(),

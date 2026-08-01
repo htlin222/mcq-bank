@@ -1,0 +1,46 @@
+// 筆記在切換下拉裡的名字 —— 一題可以有多則筆記,但筆記本身沒有標題欄位:
+// 名字就是內文的第一行(所見即所名),改標題等於把第一行改掉。
+//
+// 為什麼不存一個 title 欄位:多一個欄位就多一個「標題和內文對不起來」的狀態,
+// 而且使用者得多學一個「命名」動作。第一行本來就常常是 h1/h2,拿來當名字幾乎
+// 不用做事。
+
+const MAX_LEN = 40;
+
+type AnyNode = { type?: string; text?: string; content?: unknown[] };
+
+/** 走訪節點取出第一段有字的文字。表格/清單裡的第一格也算數。 */
+function firstText(node: unknown): string {
+	if (!node || typeof node !== "object") return "";
+	const n = node as AnyNode;
+	if (typeof n.text === "string" && n.text.trim()) return n.text.trim();
+	if (Array.isArray(n.content)) {
+		for (const child of n.content) {
+			const t = firstText(child);
+			if (t) return t;
+		}
+	}
+	// 沒有文字但有內容的節點(圖片、分隔線)給個看得懂的替代名。
+	if (n.type === "image") return "［圖片］";
+	return "";
+}
+
+/**
+ * 由 TipTap 文件推出筆記名。空筆記回 fallback,而不是空字串 —— 下拉裡出現
+ * 一個沒有標籤的項目就等於點不到。
+ */
+export function noteTitle(doc: unknown, fallback = "未命名筆記"): string {
+	const raw = firstText(doc).replace(/\s+/g, " ").trim();
+	if (!raw) return fallback;
+	return raw.length > MAX_LEN ? `${raw.slice(0, MAX_LEN)}…` : raw;
+}
+
+/** content_json 字串版本。壞掉的 JSON 一樣回 fallback,不丟例外。 */
+export function noteTitleFromJson(json: string | undefined, fallback?: string): string {
+	if (!json) return noteTitle(null, fallback);
+	try {
+		return noteTitle(JSON.parse(json), fallback);
+	} catch {
+		return noteTitle(null, fallback);
+	}
+}

@@ -191,7 +191,8 @@ export function scopeSql(scope: ExportScope, email: string): ScopedSql {
 			};
 		case "notes":
 			return {
-				sql: `SELECT n.question_id AS id
+				// DISTINCT:一題可以有多則筆記,這裡要的是「有筆記的題目」。
+				sql: `SELECT DISTINCT n.question_id AS id
               FROM personal_notes n JOIN questions q ON q.id = n.question_id
               WHERE n.user_email = ?
               ${Q_ORDER}`,

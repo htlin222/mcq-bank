@@ -36,38 +36,23 @@ export function markdownToDoc(markdown: string, heading: string): Doc {
 }
 
 /**
- * 讀回目前的筆記、把新內容接在尾端、寫回去。
+ * 把 AI 的回答存成這一題的一則**新**筆記。
  *
- * 之所以要先 GET 一次:工具列是全站掛載的,手上沒有題目頁的狀態,而且就算有
- * 也可能是舊的。少一次往返換來的是覆寫掉使用者剛剛打的字,不值得。
+ * 從前是接在既有筆記的尾端,那時一題只能有一則(migration 0036 之前)。現在
+ * 開新的一則:機器寫的東西不會插進你自己整理的段落中間,而且下拉選單裡看到的
+ * 就是那段回答的標題(筆記名 = 內文第一行,見 lib/noteTitle.ts)。
+ *
+ * 回傳新筆記的 slot,呼叫端要跳過去看的話用得到。
  */
-export async function appendToNote(
+export async function saveAiNote(
 	questionId: string,
 	markdown: string,
 	heading: string,
-): Promise<void> {
-	const q = await api.get<{ my_note?: { content_json?: string } | null }>(
-		`/api/questions/${encodeURIComponent(questionId)}`,
+): Promise<number> {
+	const doc = normalizeTiptapDoc(markdownToDoc(markdown, heading)) as Doc;
+	const r = await api.post<{ slot: number }>(
+		`/api/questions/${encodeURIComponent(questionId)}/notes`,
+		{ content_json: doc ?? emptyDoc() },
 	);
-
-	let existing: Doc = emptyDoc();
-	const raw = q.my_note?.content_json;
-	if (raw) {
-		try {
-			existing = (normalizeTiptapDoc(JSON.parse(raw)) as Doc) ?? emptyDoc();
-		} catch {
-			// 壞掉的 JSON:當作沒有筆記,把新內容寫成第一段,而不是整個放棄。
-			existing = emptyDoc();
-		}
-	}
-
-	const addition = markdownToDoc(markdown, heading);
-	const merged: Doc = {
-		type: "doc",
-		content: [...(existing.content ?? []), ...addition.content],
-	};
-
-	await api.put(`/api/questions/${encodeURIComponent(questionId)}/note`, {
-		content_json: merged,
-	});
+	return r.slot;
 }
