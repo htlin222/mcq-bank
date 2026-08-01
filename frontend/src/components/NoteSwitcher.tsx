@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Plus, StickyNote, Trash2 } from "lucide-react";
+import {
+	Check,
+	ChevronDown,
+	ChevronLeft,
+	ChevronRight,
+	Plus,
+	StickyNote,
+	Trash2,
+} from "lucide-react";
 import { noteTitleFromJson } from "../lib/noteTitle";
 
 // 個人筆記的切換器 —— 一題可以有多則(見 migration 0036)。
@@ -13,6 +21,34 @@ export type NoteMeta = {
 	created_at: number;
 	updated_at: number;
 };
+
+/** 下拉左右兩側的跳頁鈕。title 帶上目標筆記的名字,不必開選單就知道會去哪。 */
+function StepButton({
+	dir,
+	target,
+	busy,
+	onClick,
+}: {
+	dir: "prev" | "next";
+	target: NoteMeta;
+	busy?: boolean;
+	onClick: () => void;
+}) {
+	const label = dir === "prev" ? "上一則筆記" : "下一則筆記";
+	const Icon = dir === "prev" ? ChevronLeft : ChevronRight;
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			disabled={busy}
+			aria-label={label}
+			title={`${label}:${noteTitleFromJson(target.content_json)}`}
+			className="shrink-0 rounded p-1 text-ink-400 dark:text-ink-500 hover:bg-ink-100 hover:text-accent dark:hover:bg-ink-700 transition disabled:opacity-50"
+		>
+			<Icon size={15} />
+		</button>
+	);
+}
 
 export function NoteSwitcher({
 	notes,
@@ -51,10 +87,23 @@ export function NoteSwitcher({
 	}, [open]);
 
 	const active = notes.find((n) => n.slot === activeSlot) ?? notes[0];
-	const idx = active ? notes.findIndex((n) => n.slot === active.slot) + 1 : 0;
+	const at = active ? notes.findIndex((n) => n.slot === active.slot) : -1;
+	const idx = at + 1;
+	// 左右鍵直接跳上/下一則,省掉「開選單 → 找 → 點」。到頭了就整顆不出現
+	// (而不是變灰):兩三則筆記的情境下,一顆永遠按不動的按鈕只是佔位子。
+	const prev = at > 0 ? notes[at - 1] : null;
+	const next = at >= 0 && at < notes.length - 1 ? notes[at + 1] : null;
 
 	return (
-		<div ref={rootRef} className="relative min-w-0">
+		<div ref={rootRef} className="relative flex min-w-0 items-center">
+			{prev && (
+				<StepButton
+					dir="prev"
+					target={prev}
+					busy={busy}
+					onClick={() => onSelect(prev.slot)}
+				/>
+			)}
 			<button
 				type="button"
 				onClick={() => setOpen((v) => !v)}
@@ -75,6 +124,14 @@ export function NoteSwitcher({
 				)}
 				<ChevronDown size={14} className="shrink-0 text-ink-400 dark:text-ink-500" />
 			</button>
+			{next && (
+				<StepButton
+					dir="next"
+					target={next}
+					busy={busy}
+					onClick={() => onSelect(next.slot)}
+				/>
+			)}
 
 			{open && (
 				<div
