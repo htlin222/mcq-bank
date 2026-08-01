@@ -90,9 +90,11 @@ mcqRoutes.get('/:id', async (c) => {
   // Personal note of the *authenticated* caller only — the email comes from
   // apiKeyMiddleware (HMAC-verified), never straight from the header, so one
   // member can never read another member's notes through this endpoint.
+  // 一題可以有多則筆記(migration 0036),但這支 API 的呼叫端(/mcq skill、
+  // enrich-note 批次腳本)只認得一則 —— 一律對到第一則,行為與從前相同。
   const note = await c.env.DB.prepare(
     `SELECT content_json, updated_at
-       FROM personal_notes WHERE user_email = ? AND question_id = ?`
+       FROM personal_notes WHERE user_email = ? AND question_id = ? AND slot = 0`
   )
     .bind(c.get('email'), id)
     .first<{ content_json: string; updated_at: number }>();
@@ -188,8 +190,9 @@ mcqRoutes.put('/:id/note', async (c) => {
     .first();
   if (!exists) return c.json({ error: 'question not found', id }, 404);
 
+  // 同上:寫入一律落在第一則。
   const prev = await c.env.DB.prepare(
-    `SELECT content_json FROM personal_notes WHERE user_email = ? AND question_id = ?`
+    `SELECT content_json FROM personal_notes WHERE user_email = ? AND question_id = ? AND slot = 0`
   )
     .bind(email, id)
     .first<{ content_json: string }>();
@@ -206,14 +209,14 @@ mcqRoutes.put('/:id/note', async (c) => {
 
   const now = Date.now();
   await c.env.DB.prepare(
-    `INSERT INTO personal_notes (user_email, question_id, content_json, updated_at, needs_relink)
-     VALUES (?, ?, ?, ?, 1)
-     ON CONFLICT(user_email, question_id) DO UPDATE SET
+    `INSERT INTO personal_notes (user_email, question_id, slot, content_json, created_at, updated_at, needs_relink)
+     VALUES (?, ?, 0, ?, ?, ?, 1)
+     ON CONFLICT(user_email, question_id, slot) DO UPDATE SET
        content_json = excluded.content_json,
        updated_at   = excluded.updated_at,
        needs_relink = 1`
   )
-    .bind(email, id, JSON.stringify(doc), now)
+    .bind(email, id, JSON.stringify(doc), now, now)
     .run();
 
   return c.json({

@@ -77,23 +77,30 @@ export async function rebuildVocab(db: D1Database): Promise<number> {
 	return rows.length;
 }
 
-// 針對「單一筆記」重算:抽詞 → 覆寫 note_terms → 依 idf 找候選(題目 +
-// 同使用者自己的筆記)→ 合併取 top-N → 覆寫 note_link_suggestions →
+// 針對「某人在某一題的筆記」重算:抽詞 → 覆寫 note_terms → 依 idf 找候選
+// (題目 + 同使用者自己的筆記)→ 合併取 top-N → 覆寫 note_link_suggestions →
 // 清 needs_relink。整批以 db.batch() 原子寫入。回傳寫入列數供預算計數。
+//
+// 一題可以有多則筆記(migration 0036),所以吃的是一組文件:詞彙取聯集,
+// 建議仍以「一題一組」產出 —— 逐則算會讓同一題的幾則筆記互相推薦,而它們
+// 本來就並排在同一頁上。
 export async function computeNoteSuggestions(
 	db: D1Database,
 	email: string,
 	questionId: string,
-	contentJson: string,
+	contentJson: string | string[],
 	vocab: string[],
 ): Promise<{ suggestions: Candidate[]; writes: number }> {
-	let text = "";
-	try {
-		text = plainTextFromDoc(JSON.parse(contentJson));
-	} catch {
-		text = "";
+	const docs = Array.isArray(contentJson) ? contentJson : [contentJson];
+	const texts: string[] = [];
+	for (const raw of docs) {
+		try {
+			texts.push(plainTextFromDoc(JSON.parse(raw)));
+		} catch {
+			// 壞掉的一則不該讓整題的建議消失 —— 跳過它,其餘照算。
+		}
 	}
-	const terms = extractTerms(text, vocab);
+	const terms = extractTerms(texts.join("\n"), vocab);
 
 	const now = Date.now();
 	const ops: D1PreparedStatement[] = [];
@@ -219,26 +226,35 @@ export async function drainRelinkQueue(
 	const maxWrites = opts.maxWrites ?? DRAIN_MAX_WRITES;
 	const vocab = await loadVocab(db);
 
+	// 一題多則時要整題一起算,所以先取「還沒算的 (人, 題)」,再把那題的全部
+	// 筆記撈齊 —— 逐列跑會讓同一題的幾則筆記彼此覆寫對方的結果。
 	const { results } = await db
 		.prepare(
-			`SELECT user_email, question_id, content_json
+			`SELECT user_email, question_id, MIN(updated_at) AS oldest
          FROM personal_notes
         WHERE needs_relink = 1
-        ORDER BY updated_at ASC
+        GROUP BY user_email, question_id
+        ORDER BY oldest ASC
         LIMIT ?`,
 		)
 		.bind(maxNotes)
-		.all<{ user_email: string; question_id: string; content_json: string }>();
+		.all<{ user_email: string; question_id: string }>();
 
 	let processed = 0;
 	let writes = 0;
 	for (const row of results ?? []) {
 		if (writes >= maxWrites) break;
+		const { results: docs } = await db
+			.prepare(
+				"SELECT content_json FROM personal_notes WHERE user_email = ? AND question_id = ? ORDER BY slot",
+			)
+			.bind(row.user_email, row.question_id)
+			.all<{ content_json: string }>();
 		const r = await computeNoteSuggestions(
 			db,
 			row.user_email,
 			row.question_id,
-			row.content_json,
+			(docs ?? []).map((d) => d.content_json),
 			vocab,
 		);
 		writes += r.writes;

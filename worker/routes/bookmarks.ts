@@ -19,13 +19,15 @@ bookmarksRoutes.get('/', async (c) => {
   if (source === 'notes') {
     const { results } = await c.env.DB
       .prepare(
+        // 一題多則時只出現一次,時間取最近編輯的那則(migration 0036)。
         `SELECT n.question_id AS id, NULL AS folder_id, NULL AS note,
-                n.updated_at AS created_at,
+                MAX(n.updated_at) AS created_at,
                 q.year, q.number, q.stem, q."group"
          FROM personal_notes n
          JOIN questions q ON q.id = n.question_id
          WHERE n.user_email = ?
-         ORDER BY n.updated_at DESC`
+         GROUP BY n.question_id
+         ORDER BY created_at DESC`
       )
       .bind(email)
       .all();

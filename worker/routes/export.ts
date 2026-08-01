@@ -196,8 +196,19 @@ async function loadItems(
 		tagsById.set(t.question_id, list);
 	}
 
+	// 一題可以有多則筆記(migration 0036)。匯出的格式一題只放一份文件,所以
+	// 把它們接成一份,中間用分隔線 —— 少放任何一則都是靜靜地漏資料。
 	const noteById = new Map<string, unknown>();
-	for (const n of nRows) noteById.set(n.question_id, parseJson(n.content_json));
+	for (const n of nRows) {
+		const doc = parseJson(n.content_json) as { content?: unknown[] } | null;
+		const blocks = Array.isArray(doc?.content) ? doc.content : [];
+		const prev = noteById.get(n.question_id) as { content?: unknown[] } | undefined;
+		if (!prev) {
+			noteById.set(n.question_id, { type: "doc", content: blocks });
+		} else {
+			prev.content = [...(prev.content ?? []), { type: "horizontalRule" }, ...blocks];
+		}
+	}
 
 	const wanted = new Set(ids);
 	const hlById = new Map<string, string[]>();
