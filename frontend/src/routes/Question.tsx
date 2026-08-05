@@ -14,6 +14,7 @@ import {
 	Columns2,
 	CornerLeftUp,
 	Pencil,
+	Trash2,
 	LinkIcon,
 	Search as SearchIcon,
 	Eye,
@@ -1539,6 +1540,18 @@ export function Question() {
 											className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-accent hover:bg-accent/10"
 										>
 											<Pencil size={14} /> 編輯
+										</button>
+										{/* 刪除目前這則。平常是灰的、hover 才轉紅 —— 它和「編輯」並排,
+										    而兩者的後果完全不對等,顏色要先講清楚這件事。確認對話框在
+										    removeNote 裡,和切換器下拉的刪除是同一個。 */}
+										<button
+											type="button"
+											onClick={() => removeNote(activeSlot)}
+											disabled={notesBusy}
+											title="刪除這則筆記"
+											className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-ink-400 dark:text-ink-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40 dark:hover:bg-rose-900/20 dark:hover:text-rose-400"
+										>
+											<Trash2 size={14} /> 刪除
 										</button>
 									</div>
 									<NoteContent
