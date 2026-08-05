@@ -6,18 +6,30 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const CONFIG_PATH = path.resolve(__dirname, '..', 'config.toml');
 
-// Build/deploy timestamp, computed once at config load, in the deploy machine's
-// local time (deploy.sh runs on the maintainer's box, in Asia/Taipei). Baked
-// into the bundle as __BUILD_TIME__ and emitted as /version.json so the running
-// tab can show when the latest deploy happened in the "new version" prompt.
-const BUILD_TIME = ((): string => {
-  const d = new Date();
+// Build/deploy timestamp, computed once at config load, and emitted as
+// /version.json so a running tab can show how fresh the waiting version is in
+// the "new version" prompt.
+//
+// Two fields, on purpose:
+//
+//   buildTime     the deploy machine's wall clock, no timezone. Kept only so
+//                 tabs still running an *older* bundle (i.e. everyone who sees
+//                 the update prompt right after a deploy) keep rendering what
+//                 they know how to render.
+//   buildTimeIso  UTC ISO-8601 — a real instant. Every current reader uses this
+//                 one: it survives a deploy box in another timezone, and it's
+//                 the only way to compute "N 小時前". See lib/deployTime.ts.
+const BUILD_DATE = new Date();
+
+const BUILD_TIME = ((d: Date): string => {
   const p = (n: number) => String(n).padStart(2, '0');
   return (
     `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ` +
     `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
   );
-})();
+})(BUILD_DATE);
+
+const BUILD_TIME_ISO = BUILD_DATE.toISOString();
 
 type GroupSpec = { label: string; count: number };
 
@@ -102,6 +114,7 @@ function appConfigPlugin(): Plugin {
         define: {
           __APP_CONFIG__: JSON.stringify(cfg),
           __BUILD_TIME__: JSON.stringify(BUILD_TIME),
+          __BUILD_TIME_ISO__: JSON.stringify(BUILD_TIME_ISO),
         },
       };
     },
@@ -111,7 +124,10 @@ function appConfigPlugin(): Plugin {
       this.emitFile({
         type: 'asset',
         fileName: 'version.json',
-        source: JSON.stringify({ buildTime: BUILD_TIME }),
+        source: JSON.stringify({
+          buildTime: BUILD_TIME,
+          buildTimeIso: BUILD_TIME_ISO,
+        }),
       });
     },
     configureServer(server) {

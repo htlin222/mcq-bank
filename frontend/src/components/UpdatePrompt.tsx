@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { onNeedRefresh, applyUpdate } from '../lib/pwa';
+import { formatDeployedAt } from '../lib/deployTime';
 
 /**
  * Bottom strip offering the reload once a new service worker is waiting.
@@ -12,7 +13,14 @@ import { onNeedRefresh, applyUpdate } from '../lib/pwa';
  */
 export function UpdatePrompt() {
   const [show, setShow] = useState(false);
-  const [deployedAt, setDeployedAt] = useState('');
+  const [version, setVersion] = useState<{
+    buildTime?: string;
+    buildTimeIso?: string;
+  } | null>(null);
+  // 相對時間會走針,而這條提示可以在畫面上掛很久(不按就不會消失)。每分鐘
+  // 推一次 now 讓它重算,免得停在「剛剛」到天荒地老。存的是原始資料、算在
+  // render 裡 —— 綁在 fetch 那個 effect 上會變成每分鐘重打一次 version.json。
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => onNeedRefresh(setShow), []);
 
@@ -29,10 +37,10 @@ export function UpdatePrompt() {
       .then((res) => {
         const ct = res.headers.get('content-type') || '';
         if (!res.ok || res.redirected || !ct.includes('json')) return null;
-        return res.json() as Promise<{ buildTime?: string }>;
+        return res.json() as Promise<{ buildTime?: string; buildTimeIso?: string }>;
       })
       .then((data) => {
-        if (alive && data?.buildTime) setDeployedAt(data.buildTime);
+        if (alive) setVersion(data);
       })
       .catch(() => {
         /* offline or blocked — leave the stamp out */
@@ -42,7 +50,15 @@ export function UpdatePrompt() {
     };
   }, [show]);
 
+  useEffect(() => {
+    if (!show) return;
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, [show]);
+
   if (!show) return null;
+
+  const deployedAt = formatDeployedAt(version, now);
 
   return (
     <div
@@ -53,7 +69,7 @@ export function UpdatePrompt() {
         <span className="text-sm text-ink-700 dark:text-ink-200">有新版本可用</span>
         {deployedAt && (
           <span className="block text-xs text-ink-400 dark:text-ink-500 tabular-nums">
-            {deployedAt} 部署
+            部署於 {deployedAt}
           </span>
         )}
       </div>

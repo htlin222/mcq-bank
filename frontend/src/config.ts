@@ -24,10 +24,16 @@ declare const __APP_CONFIG__: AppConfig;
 
 export const config: AppConfig = __APP_CONFIG__;
 
-// Build/deploy timestamp of *this* bundle (yyyy-mm-dd hh:mm:ss, deploy-machine
-// local time), baked in by the `app-config` plugin. Used as a fallback when the
-// live /version.json fetch (the latest deploy's time) isn't reachable.
+// Build/deploy timestamp of *this* bundle, baked in by the `app-config` plugin.
+// Used as a fallback when the live /version.json fetch (the latest deploy's
+// time) isn't reachable. Two shapes for the same instant — see the comment on
+// BUILD_TIME in vite.config.ts; prefer the ISO one, it's the only one that
+// carries a timezone.
 declare const __BUILD_TIME__: string;
+declare const __BUILD_TIME_ISO__: string;
 
 export const buildTime: string =
   typeof __BUILD_TIME__ === 'string' ? __BUILD_TIME__ : '';
+
+export const buildTimeIso: string =
+  typeof __BUILD_TIME_ISO__ === 'string' ? __BUILD_TIME_ISO__ : '';
