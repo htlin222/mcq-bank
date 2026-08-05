@@ -335,3 +335,27 @@ function dropFollowUps(root: HTMLElement) {
 function normalize(s: string): string {
   return s.replace(/\s+/g, ' ').trim();
 }
+
+/**
+ * 把一則回答的提問插在文件最前面當 `<h3>`,供「一則回答存成一則筆記」使用。
+ *
+ * 筆記沒有標題欄位 —— 名字取自內文第一行(見 lib/noteTitle.ts)。不加這行的
+ * 話,切換器上會列出一排開頭極像的英文長句,根本分不出哪則是哪則。
+ *
+ * 問題是空字串就原樣回傳:TipTap 的 text node 不接受空文字,硬塞會讓整份文件
+ * 判為無效而被丟掉。
+ */
+export function withQuestionHeading<T extends { type?: string; content?: unknown[] }>(
+  doc: T,
+  question: string,
+): T {
+  const text = normalize(question);
+  if (!text) return doc;
+  return {
+    ...doc,
+    content: [
+      { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text }] },
+      ...(doc.content ?? []),
+    ],
+  };
+}

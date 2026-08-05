@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Loader2, Link2, Check } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
-import { parseOeConversation, type OeConversation } from '../lib/oe-import';
+import { parseOeConversation, type OeConversation, type OeTurn } from '../lib/oe-import';
 
 // Import a public OpenEvidence conversation by URL. The Worker proxy
 // (/api/oe/fetch) retrieves the page server-side (browsers can't fetch OE
@@ -10,12 +10,19 @@ import { parseOeConversation, type OeConversation } from '../lib/oe-import';
 // turns here. The user ticks which answers to bring in; each selected answer is
 // handed to onInsert, which runs the same image-sideload + paste-transform
 // pipeline as an OE copy-paste.
+//
+// 一次匯入多則回答時,全部依序插進同一份文件常常不是想要的 —— 一問一答本來
+// 就是各自獨立的段落。呼叫端若能收下「一則一份文件」(目前只有個人筆記面板,
+// 詳解和留言沒有多則的概念),就傳 onInsertSeparate,footer 會多一個切換;
+// 沒傳就維持原本的合併行為。
 export function OeImportDialog({
   onClose,
   onInsert,
+  onInsertSeparate,
 }: {
   onClose: () => void;
   onInsert: (html: string) => Promise<void> | void;
+  onInsertSeparate?: (turns: OeTurn[]) => Promise<void>;
 }) {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,6 +30,8 @@ export function OeImportDialog({
   const [conv, setConv] = useState<OeConversation | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [inserting, setInserting] = useState(false);
+  // 預設關 —— 只有一則回答時分不分開沒差,而舊行為是合併,不該無聲改掉。
+  const [separate, setSeparate] = useState(false);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -84,9 +93,12 @@ export function OeImportDialog({
     if (!conv || inserting || selected.size === 0) return;
     setInserting(true);
     try {
-      // Insert in conversation order.
-      for (let i = 0; i < conv.turns.length; i++) {
-        if (selected.has(i)) await onInsert(conv.turns[i].answerHtml);
+      // Always in conversation order.
+      const picked = conv.turns.filter((_, i) => selected.has(i));
+      if (separate && onInsertSeparate) {
+        await onInsertSeparate(picked);
+      } else {
+        for (const turn of picked) await onInsert(turn.answerHtml);
       }
       onClose();
     } catch (e) {
@@ -195,7 +207,22 @@ export function OeImportDialog({
         </div>
 
         {conv && (
-          <div className="shrink-0 flex gap-3 justify-end px-5 py-3 border-t border-ink-100 dark:border-ink-700">
+          <div className="shrink-0 flex flex-wrap items-center gap-x-3 gap-y-2 justify-end px-5 py-3 border-t border-ink-100 dark:border-ink-700">
+            {onInsertSeparate && (
+              <label
+                className="mr-auto inline-flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300 cursor-pointer select-none"
+                title="勾起來:每則回答各自成為一則獨立筆記(標題用該則的提問),而不是全部接在同一篇裡"
+              >
+                <input
+                  type="checkbox"
+                  checked={separate}
+                  onChange={(e) => setSeparate(e.target.checked)}
+                  disabled={inserting}
+                  className="accent-accent"
+                />
+                一則回答存一則筆記
+              </label>
+            )}
             <button
               onClick={onClose}
               disabled={inserting}
@@ -213,7 +240,11 @@ export function OeImportDialog({
               ) : (
                 <Check size={14} />
               )}
-              {inserting ? '匯入中…' : `匯入所選 (${selected.size})`}
+              {inserting
+                ? '匯入中…'
+                : separate && onInsertSeparate
+                ? `匯入成 ${selected.size} 則筆記`
+                : `匯入所選 (${selected.size})`}
             </button>
           </div>
         )}

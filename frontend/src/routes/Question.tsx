@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
 import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
-import { noteTitleFromJson } from "../lib/noteTitle";
+import { noteTitle, noteTitleFromJson } from "../lib/noteTitle";
 import { NoteSwitcher, type NoteMeta } from "../components/NoteSwitcher";
 import { buildOpenEvidenceUrl } from "../lib/openevidence";
 import { useQuestion } from "../hooks/useQuestion";
@@ -735,6 +735,65 @@ export function Question() {
 		}
 	}
 
+	// OpenEvidence 匯入時勾了「一則回答存一則筆記」:每份文件各佔一則。
+	//
+	// 目前這則是空的(常見流程是「新增筆記 → 馬上匯入」)就讓第一份直接佔用它,
+	// 不白留一則空筆記;有內容就先幫它存起來 —— 匯入完畫面會切到新筆記,把使用者
+	// 手上那份沒送出的草稿丟掉不能接受,而存起來正是他按「儲存」會發生的事。
+	//
+	// 每份都是先 PUT 再 POST 下一則:POST 取的是 MAX(slot)+1,順序顛倒的話兩份會
+	// 搶到同一個號碼。全部直接寫進伺服器,不留「已存好幾則、但手上這則還沒按儲存」
+	// 的半吊子狀態。
+	async function importOeAsNotes(docs: any[]) {
+		if (!data || docs.length === 0) return;
+		const qid = data.id;
+		const reuseActive = noteTitle(noteDraft, "") === "";
+		const written: number[] = [];
+		let failure: string | null = null;
+		setNotesBusy(true);
+		setNoteError(null);
+		try {
+			if (!reuseActive) {
+				await api.put(`/api/questions/${qid}/note`, {
+					content_json: noteDraft,
+					slot: activeSlot,
+				});
+			}
+			for (const doc of docs) {
+				const slot =
+					written.length === 0 && reuseActive
+						? activeSlot
+						: (await api.post<{ slot: number }>(`/api/questions/${qid}/notes`))
+								.slot;
+				await api.put(`/api/questions/${qid}/note`, {
+					content_json: doc,
+					slot,
+				});
+				written.push(slot);
+			}
+		} catch (e) {
+			failure =
+				e instanceof ApiError && e.status === 409
+					? `這一題的筆記數量已達上限,只匯入了 ${written.length} / ${docs.length} 則。`
+					: `匯入到第 ${written.length + 1} 則時失敗:${String(e)}`;
+		} finally {
+			setNotesBusy(false);
+		}
+		await reload();
+		if (failure) {
+			// 半途失敗就把編輯器留著 —— noteError 只畫在編輯畫面上,收掉等於沒說。
+			// 但若第一份已經寫進目前這個 slot,手上那份空草稿就對不上了:不同步的話
+			// 使用者接著按「儲存」會用空文件蓋掉剛匯入的內容。
+			if (reuseActive && written.length > 0) setNoteDraft(docs[0]);
+			setNoteError(failure);
+			return;
+		}
+		clearDraft(noteDraftKey);
+		setNoteEditing(false);
+		setNoteDraft(null);
+		setNoteSlot(written[0]);
+	}
+
 	async function removeNote(slot: number) {
 		if (!data || notesBusy) return;
 		const target = notes.find((n) => n.slot === slot);
@@ -1404,6 +1463,7 @@ export function Question() {
 										}}
 										placeholder="寫下你的私人筆記。可貼圖、@114 引用其他題目。"
 										autofocus
+										onImportAsNotes={importOeAsNotes}
 										toolbarActions={
 											<EditorActions
 												onCancel={cancelNoteEdit}

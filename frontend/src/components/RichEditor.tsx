@@ -29,6 +29,7 @@ import {
 import { sanitizeImportedDoc } from '../lib/sanitize-import';
 import { api } from '../lib/api';
 import { OeImportDialog } from './OeImportDialog';
+import { withQuestionHeading, type OeTurn } from '../lib/oe-import';
 
 type Props = {
   content: any;
@@ -38,6 +39,11 @@ type Props = {
   autofocus?: boolean;
   // Rendered at the right end of the toolbar (e.g. 取消 / 儲存 actions).
   toolbarActions?: ReactNode;
+  // 收下「OpenEvidence 一則回答一則獨立筆記」的結果:每則已經是一份可以直接
+  // 存起來的 TipTap 文件(圖片已 sideload 到 R2、已淨化、第一行是該則的提問)。
+  // 只有支援多則筆記的呼叫端會傳(個人筆記面板);沒傳時匯入對話框連那個切換
+  // 都不會出現。
+  onImportAsNotes?: (docs: any[]) => Promise<void>;
 };
 
 export function RichEditor({
@@ -47,6 +53,7 @@ export function RichEditor({
   editable = true,
   autofocus = false,
   toolbarActions,
+  onImportAsNotes,
 }: Props) {
   // 遺留的 snake_case 節點名稱在 schema 裡不存在,會讓整份文件被丟掉
   // (見 lib/tiptap-doc.ts)。在編輯端也正規化,順帶讓下一次儲存把資料寫回
@@ -160,6 +167,28 @@ export function RichEditor({
     [],
   );
 
+  // 同一份 HTML,但不插進這個編輯器 —— 每則轉成一份完整文件交給呼叫端去開新
+  // 筆記。走的仍是 sideload → transform → sanitize 這條路,所以和貼上、和合併
+  // 匯入的結果逐字相同;差別只在最後是 insertContent 還是回傳。
+  const importOeAsNotes = useCallback(
+    async (turns: OeTurn[]) => {
+      const ed = editorRef.current;
+      if (!ed || !onImportAsNotes) return;
+      setUploading(true);
+      try {
+        const docs: any[] = [];
+        for (const turn of turns) {
+          const fixed = await sideloadImagesInHtml(turn.answerHtml);
+          docs.push(withQuestionHeading(importedHtmlToDoc(ed, fixed), turn.question));
+        }
+        await onImportAsNotes(docs);
+      } finally {
+        setUploading(false);
+      }
+    },
+    [onImportAsNotes],
+  );
+
   // Sync external content changes (e.g. after lock release / version pull)
   useEffect(() => {
     if (editor && doc && !editor.isFocused) {
@@ -190,7 +219,11 @@ export function RichEditor({
         />
       )}
       {oeOpen && (
-        <OeImportDialog onClose={() => setOeOpen(false)} onInsert={insertOeHtml} />
+        <OeImportDialog
+          onClose={() => setOeOpen(false)}
+          onInsert={insertOeHtml}
+          onInsertSeparate={onImportAsNotes ? importOeAsNotes : undefined}
+        />
       )}
       {uploading && (
         <div className="h-0.5 bg-accent/15 overflow-hidden shrink-0" role="progressbar" aria-label="上傳圖片中">
@@ -223,18 +256,22 @@ function insertExternalHtml(
 
 // The single choke point for externally-sourced content: rebuild OE's flat
 // markup, parse it to a doc with the editor's own schema, purge machine
-// residue, then insert. Going through explicit JSON (rather than handing HTML
-// to insertContent) is what makes the sanitize step possible at all — TipTap
+// residue. Going through explicit JSON (rather than handing HTML to
+// insertContent) is what makes the sanitize step possible at all — TipTap
 // otherwise parses internally and there's nothing to intercept.
 //
 // Only imports pass through here. Content the user types is never sanitized.
-function insertSanitized(editor: Editor, html: string): void {
+function importedHtmlToDoc(editor: Editor, html: string): { content?: any[] } {
   const dom = new window.DOMParser().parseFromString(
     transformPastedHTML(html),
     'text/html',
   );
   const parsed = PMDOMParser.fromSchema(editor.schema).parse(dom.body).toJSON();
-  const content = sanitizeImportedDoc(parsed).content;
+  return sanitizeImportedDoc(parsed);
+}
+
+function insertSanitized(editor: Editor, html: string): void {
+  const content = importedHtmlToDoc(editor, html).content;
   if (content?.length) editor.commands.insertContent(content);
 }
 
