@@ -6,6 +6,7 @@ MCQ_USER_EMAIL), sends the per-user key + member email, prints the question.
 The .env comes pre-baked in the .skill downloaded from /profile.
 Standard library only — no pip install needed.
 """
+import hashlib
 import json
 import os
 import sys
@@ -142,6 +143,23 @@ def render_notes(d: dict) -> list[str]:
     return out
 
 
+def idem_key(qid: str, payload_obj: dict) -> str:
+    """
+    寫入請求的去重鍵 —— 同一題、同一份內容、同一個寫法,算出來就是同一個 key,
+    Worker 端(lib/idempotency.ts)會直接 replay 上次的回應而不再寫一次。
+
+    為什麼需要:預設 mode 是 append 不是覆寫,所以重跑一次會在筆記裡多出一份;
+    `--new` 則是多出一則。而這裡沒有自動重試,真正的破口是「urlopen 逾時、
+    Worker 其實已經寫成功」之後由人或 agent 手動重跑 —— 尤其 --oe-url 那條要在
+    請求裡 sideload 最多 12 張圖進 R2,最容易撞到 60 秒。
+
+    整個 payload 都進雜湊(內容、mode、slot 意圖),所以改任何一項都算另一次寫入。
+    真的想把同一份內容再 append 一次,用 --force 不送這個 header。
+    """
+    material = qid + "\n" + json.dumps(payload_obj, sort_keys=True, ensure_ascii=False)
+    return "mcq-note-" + hashlib.sha256(material.encode("utf-8")).hexdigest()[:32]
+
+
 def main() -> None:
     args = sys.argv[1:]
     with_answer = False
@@ -152,6 +170,7 @@ def main() -> None:
     replace = False
     slot = None
     new_note = False
+    force = False
     search_query = None
     year_filter = None
     limit = 20
@@ -190,6 +209,8 @@ def main() -> None:
             slot = int(args[i].lstrip("#"))
         elif a in ("--new", "--new-note"):
             new_note = True
+        elif a == "--force":
+            force = True
         elif a in ("--search", "-s"):
             i += 1
             if i >= len(args):
@@ -212,7 +233,7 @@ def main() -> None:
         sys.exit(
             "用法:get_mcq.py <題號> [--answer]"
             " [--note <內容|->|--html <HTML|->|--oe-url <URL> [--turn N]]"
-            " [--slot N|--new] [--replace]"
+            " [--slot N|--new] [--replace] [--force]"
             " | get_mcq.py --search <關鍵字> [--year YYY] [--limit N],"
             "例如 get_mcq.py 114-001 或 get_mcq.py --search CML"
         )
@@ -232,6 +253,8 @@ def main() -> None:
         )
     if turn is not None and oe_url is None:
         sys.exit("--turn 只能搭配 --oe-url 使用")
+    if force and not content_flags:
+        sys.exit("--force 只和寫入有關,要搭配 --note / --html / --oe-url")
     cfg = load_env()
     base = cfg.get("MCQ_API_BASE", "").rstrip("/")
     key = cfg.get("MCQ_API_KEY", "")
@@ -303,11 +326,14 @@ def main() -> None:
                 doc = oe_import.oe_conversation_to_doc(convo, final_url, turn)
             payload_obj = {"doc": doc, "mode": mode, **slot_field}
         payload = json.dumps(payload_obj).encode("utf-8")
+        write_headers = {**headers, "Content-Type": "application/json"}
+        if not force:
+            write_headers["Idempotency-Key"] = idem_key(qid, payload_obj)
         req = urllib.request.Request(
             f"{base}/api/mcq/{qid}/note",
             data=payload,
             method="PUT",
-            headers={**headers, "Content-Type": "application/json"},
+            headers=write_headers,
         )
         try:
             # Image sideloading happens inside this request — allow more time.
@@ -330,7 +356,13 @@ def main() -> None:
             where = f" #{d['slot']}「{d.get('title') or ''}」"
         elif d.get("slot"):
             where = f" #{d['slot']}"
-        print(f"📝 {verb} {qid} 的個人筆記{where}")
+        if d.get("replayed"):
+            # 同一份內容剛剛已經寫過了(去重命中)。講清楚「沒有再寫一次」——
+            # 一模一樣的成功訊息會讓人以為又多 append 了一份。
+            print(f"♻️  {qid} 的這份內容先前已寫入,本次未重複寫入{where}")
+            print("   (確定要再寫一份就加 --force)")
+        else:
+            print(f"📝 {verb} {qid} 的個人筆記{where}")
         for w in d.get("warnings") or []:
             print(f"⚠️  {w}")
         if d.get("previous_markdown"):

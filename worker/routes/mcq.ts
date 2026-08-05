@@ -4,6 +4,7 @@ import { apiKeyMiddleware } from '../lib/apikey';
 import { sanitizeNoteDoc, externalImages } from '../lib/note-doc';
 import { sideloadImageToR2 } from '../lib/sideload';
 import { MAX_NOTES_PER_QUESTION, resolveNoteSlot } from '../lib/notes';
+import { readIdemKey, idemLookup, idemRecordOp } from '../lib/idempotency';
 import { ftsQuery } from './search';
 
 export const mcqRoutes = new Hono<AppContext>();
@@ -161,6 +162,21 @@ mcqRoutes.put('/:id/note', async (c) => {
   const id = c.req.param('id');
   const email = c.get('email');
 
+  // 冪等:重送同一 key 直接 replay。
+  //
+  // 這是這條路由最需要它的地方 —— 預設 mode 是 append,不是覆寫:同一份內容
+  // 送兩次會在筆記裡多出一份(slot:"new" 則是多出一則)。而終端這端沒有自動
+  // 重試,真正的破口是「client 逾時、Worker 其實寫成功了」之後由人手動重跑。
+  //
+  // 查在 body 解析與圖片 sideload 之前:replay 不該再把 12 張圖重傳一次 R2。
+  const idemKey = readIdemKey(c);
+  if (idemKey) {
+    const hit = await idemLookup(c.env.DB, email, idemKey);
+    // `replayed` 只在回應上加,不進去重表 —— 呼叫端據此說「這次沒有再寫一次」,
+    // 否則一模一樣的成功訊息會讓人以為又append了一份。
+    if (hit) return c.json({ ...(hit.body as object), replayed: true } as any, hit.status as any);
+  }
+
   let body: { markdown?: unknown; doc?: unknown; mode?: unknown; slot?: unknown };
   try {
     body = await c.req.json();
@@ -257,19 +273,9 @@ mcqRoutes.put('/:id/note', async (c) => {
   }
 
   const now = Date.now();
-  await c.env.DB.prepare(
-    `INSERT INTO personal_notes (user_email, question_id, slot, content_json, created_at, updated_at, needs_relink)
-     VALUES (?, ?, ?, ?, ?, ?, 1)
-     ON CONFLICT(user_email, question_id, slot) DO UPDATE SET
-       content_json = excluded.content_json,
-       updated_at   = excluded.updated_at,
-       needs_relink = 1`
-  )
-    .bind(email, id, slot, JSON.stringify(doc), now, now)
-    .run();
-
   const note_markdown = tiptapToMarkdown(doc);
-  return c.json({
+  // Payload 在寫入前就算完,去重列才能和筆記同進同退(同一個 batch)。
+  const payload = {
     ok: true,
     mode: prev ? mode : 'create',
     slot,
@@ -280,7 +286,33 @@ mcqRoutes.put('/:id/note', async (c) => {
     previous_markdown:
       mode === 'replace' && prev ? tiptapToMarkdown(JSON.parse(prev.content_json)) : null,
     ...(warnings.length ? { warnings } : {}),
-  });
+  };
+
+  const ops = [
+    c.env.DB.prepare(
+      `INSERT INTO personal_notes (user_email, question_id, slot, content_json, created_at, updated_at, needs_relink)
+       VALUES (?, ?, ?, ?, ?, ?, 1)
+       ON CONFLICT(user_email, question_id, slot) DO UPDATE SET
+         content_json = excluded.content_json,
+         updated_at   = excluded.updated_at,
+         needs_relink = 1`
+    ).bind(email, id, slot, JSON.stringify(doc), now, now),
+  ];
+  if (idemKey) {
+    ops.push(
+      idemRecordOp(c.env.DB, {
+        email,
+        key: idemKey,
+        endpoint: 'PUT /mcq/:id/note',
+        status: 200,
+        body: payload,
+        now,
+      })
+    );
+  }
+  await c.env.DB.batch(ops);
+
+  return c.json(payload);
 });
 
 // 筆記的名字就是內文第一行 —— 沒有 title 欄位,網頁的切換下拉也是這樣取名的
