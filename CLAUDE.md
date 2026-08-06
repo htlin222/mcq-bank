@@ -390,6 +390,28 @@ Adding an endpoint to the runtime cache means editing `CACHEABLE_API` in
 `sw-guards.ts`. `/api/me`, notifications, chat, exam, review/drill scheduling,
 highlights and `/pdf/*` must stay out — see the comment block there for why.
 
+### 換題延遲: 應用層快取 + 預抓,刻意不動 Service Worker
+
+設計: `docs/plans/2026-08-07-question-nav-latency-design.md`。
+
+「按下一題要等一下」原本是四個成因疊在一起,其中最痛的不是慢:**舊版
+`useQuestion` 的 `data` 不隨 id 清空**,而 `/q/:id` 沒有 `key` 所以元件不重掛
+—— 使用者按下下一題後,會盯著**上一題**的題幹與已揭曉的答案好幾百毫秒。看起來
+像沒點到。現在資料連同「屬於哪一題」一起存,只在 `entry.id === id` 時才算數。
+
+- **`frontend/src/lib/questionStore.ts`** 是一個 LRU + in-flight 去重的 store,
+  存在的理由只有一個:`peek()` 在 **render 當下同步**可讀,所以預抓命中時第一次
+  render 就畫得出完整題目,連 loading 都不進。TTL 60s,過期不丟(先畫舊的再背景
+  重抓)。
+- **不要把 `/api/questions/:id` 在 `sw.ts` 改成 StaleWhileRevalidate。** 它會讓
+  「存完詳解 → `reload()` 看到自己的修改」讀到舊值 —— 比慢更糟。快取因此做在應用
+  層,失效時機由呼叫端掌握(存檔後 `set()`、`reload()` 走 `force`)。SW 那套
+  Access-redirect 防護一行未動。
+- **換題的視覺回饋用 WAAPI (`element.animate`),不要用 `key`/remount。** 重掛整棵
+  子樹會連 TipTap 一起重建,那正是 2026-07 iOS 白屏的成因(見上面 PWA 那節)。
+- 驗證在 `frontend/e2e/nav-prefetch.test.mjs`:fixture 伺服器每個 `/api/` 延遲
+  700ms,把「有沒有預抓到」變成可觀測的時間差。改動預抓邏輯後這支會紅。
+
 ### Images: R2 via Worker proxy (not public bucket)
 
 Uploads: `POST /api/upload` (multipart) → Worker validates size/MIME → R2 put with UUID key → returns `/img/<key>` URL.

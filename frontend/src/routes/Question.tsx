@@ -44,6 +44,11 @@ import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
 import { BackToTopFab } from "../components/BackToTopFab";
 import { searchNeighbors } from "../lib/searchCache";
+import {
+	questionCache,
+	yearListCache,
+	type YearListItem,
+} from "../lib/questionCache";
 import { rememberAutoCloze, wasAutoCloze } from "../lib/clozePref";
 import {
 	VideoTopicSection,
@@ -485,6 +490,42 @@ export function Question() {
 		setRevealedExp(false);
 	}, [data?.id]);
 
+	// 骨架延後出現的計時器。見下方 `if (!data)` 的說明。
+	const [showSkeleton, setShowSkeleton] = useState(false);
+	useEffect(() => {
+		if (data) {
+			setShowSkeleton(false);
+			return;
+		}
+		const t = window.setTimeout(() => setShowSkeleton(true), 120);
+		return () => window.clearTimeout(t);
+	}, [data, id]);
+
+	// 換題時把捲動位置歸零。元件不重掛(同一個 /q/:id 路由),所以捲動不會自己回到
+	// 頂端 —— 在下一題上停在半空中,是先前最容易被誤認成「載入失敗」的症狀之一。
+	// columns 模式的右欄是自己的捲動容器,得另外歸零。
+	const contentRef = useRef<HTMLDivElement>(null);
+	const lastNavigatedId = useRef<string | null>(null);
+	useEffect(() => {
+		if (!data?.id) return;
+		const first = lastNavigatedId.current === null;
+		const changed = lastNavigatedId.current !== data.id;
+		lastNavigatedId.current = data.id;
+		if (!changed || first) return;
+
+		window.scrollTo({ top: 0, behavior: "auto" });
+		if (rightColRef.current) rightColRef.current.scrollTop = 0;
+
+		// 預抓命中時內容是瞬間換掉的,快到眼睛會懷疑「到底有沒有換」。一次 140ms 的
+		// 淡入補回那個「換了」的訊號。用 WAAPI 而不是 key/remount:重掛整棵子樹會
+		// 連 TipTap 一起重建,那正是 2026-07 iOS 白屏的成因(見 CLAUDE.md)。
+		if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+		contentRef.current?.animate?.(
+			[{ opacity: 0.4 }, { opacity: 1 }],
+			{ duration: 140, easing: "ease-out" },
+		);
+	}, [data?.id]);
+
 	// In tabs mode, land on 題目 for every new question — arriving on 詳解區
 	// after prev/next would spoil the answer before the user attempts it.
 	useEffect(() => {
@@ -604,24 +645,41 @@ export function Question() {
 	const fromSearch = (location.state as { fromSearch?: string } | null)
 		?.fromSearch;
 
-	// Prev/next in same year
-	const [neighbors, setNeighbors] = useState<{ prev?: string; next?: string }>(
-		{},
+	// Prev/next in same year. 走 yearListCache,所以在同一年度內換題時清單是現成
+	// 的 —— 上一題/下一題按鈕跟題目同一幀出現,不再慢半拍。
+	const yearKey = data ? String(data.year) : "";
+	// 值一律從 cache 同步讀;這個 state 只負責「背景抓完了,重繪一次」。
+	const [yearListVersion, setYearListVersion] = useState(0);
+	const yearList: YearListItem[] = useMemo(
+		() => (yearKey ? (yearListCache.peek(yearKey) ?? []) : []),
+		// biome-ignore lint/correctness/useExhaustiveDependencies: yearListVersion 是刻意的重繪觸發器
+		[yearKey, yearListVersion],
 	);
 	useEffect(() => {
-		if (!data) return;
-		api
-			.get<{ id: string; number: number }[]>(
-				`/api/questions?year=${data.year}&limit=200`,
-			)
-			.then((all) => {
-				const idx = all.findIndex((q) => q.id === data.id);
-				setNeighbors({
-					prev: idx > 0 ? all[idx - 1].id : undefined,
-					next: idx < all.length - 1 ? all[idx + 1].id : undefined,
-				});
+		if (!yearKey || yearListCache.isFresh(yearKey)) return;
+		let cancelled = false;
+		yearListCache
+			.get(yearKey)
+			.then(() => {
+				if (!cancelled) setYearListVersion((v) => v + 1);
+			})
+			.catch(() => {
+				/* 清單抓不到就沒有 prev/next,不影響閱讀本題 */
 			});
-	}, [data?.id]);
+		return () => {
+			cancelled = true;
+		};
+	}, [yearKey]);
+
+	const neighbors = useMemo<{ prev?: string; next?: string }>(() => {
+		if (!data) return {};
+		const idx = yearList.findIndex((q) => q.id === data.id);
+		if (idx < 0) return {};
+		return {
+			prev: idx > 0 ? yearList[idx - 1].id : undefined,
+			next: idx < yearList.length - 1 ? yearList[idx + 1].id : undefined,
+		};
+	}, [yearList, data?.id]);
 
 	// When arriving from 搜尋 and the result set is still cached, prev/next walk
 	// the *search result* order (across years) rather than same-year neighbours.
@@ -632,6 +690,32 @@ export function Question() {
 	const inSearchNav = searchNav !== null;
 	const navPrev = searchNav ? (searchNav.prev ?? undefined) : neighbors.prev;
 	const navNext = searchNav ? (searchNav.next ?? undefined) : neighbors.next;
+
+	// 這裡是「換題不再有等待」的關鍵:上下題的 id 在按鈕出現時就已知,趁瀏覽器閒
+	// 置先把 payload 抓進 questionCache,真的按下去時 useQuestion 同步就讀得到。
+	// 排在 idle 而不是立刻,是為了不跟本題自己的請求(詳解、留言、相似題)搶頻寬。
+	// 離線時不抓 —— 只會失敗,還白白喚醒 Service Worker。
+	useEffect(() => {
+		if (!online || (!navNext && !navPrev)) return;
+		const run = () => {
+			questionCache.prefetch(navNext);
+			questionCache.prefetch(navPrev);
+		};
+		const ric = window.requestIdleCallback;
+		if (typeof ric === "function") {
+			const handle = ric(run, { timeout: 2000 });
+			return () => window.cancelIdleCallback?.(handle);
+		}
+		// Safari 沒有 requestIdleCallback(至 Safari 18 仍缺),退回一個小延遲。
+		const t = window.setTimeout(run, 400);
+		return () => window.clearTimeout(t);
+	}, [navNext, navPrev, online]);
+
+	// 指標一碰到按鈕就開抓,等於在點擊前偷到 ~100ms。idle 預抓已經命中時
+	// prefetch() 自己會 no-op,所以這只是保險(idle 還沒輪到、或剛好過期)。
+	const warm = useCallback((id: string | undefined) => {
+		questionCache.prefetch(id);
+	}, []);
 
 	// Half-finished edits survive route switches (sessionStorage). The 詳解
 	// key is scoped to the version being edited, so a draft goes stale (and is
@@ -1004,9 +1088,12 @@ export function Question() {
 					載入失敗:{String(error)}
 				</div>
 			);
+		// 骨架延後 120ms 才出現。預抓沒命中但網路很快時,骨架閃一下再被真內容取代
+		// 比直接等更吵 —— 那一下閃爍讀起來像頁面壞掉。撐不過 120ms 的等待,使用者
+		// 根本感覺不到;撐過了才值得給回饋。
 		// First-load skeleton — same outer dimensions as the loaded layout so
 		// the header + question card + tab strip don't jump on hydration.
-		return <QuestionDetailSkeleton />;
+		return showSkeleton ? <QuestionDetailSkeleton /> : null;
 	}
 
 	const hasExplanation =
@@ -1021,6 +1108,7 @@ export function Question() {
 
 	return (
 		<div
+			ref={contentRef}
 			className="max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 md:px-4 py-6 sm:py-8 pb-32 md:pb-0"
 			style={{ "--nav-h": `${navH}px` } as CSSProperties}
 		>
@@ -1107,6 +1195,9 @@ export function Question() {
 								onClick={() =>
 									navigate(`/q/${navPrev}`, { state: location.state })
 								}
+								onPointerEnter={() => warm(navPrev)}
+								onPointerDown={() => warm(navPrev)}
+								onFocus={() => warm(navPrev)}
 								className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 							>
 								<ChevronLeft size={16} />{" "}
@@ -1118,6 +1209,9 @@ export function Question() {
 								onClick={() =>
 									navigate(`/q/${navNext}`, { state: location.state })
 								}
+								onPointerEnter={() => warm(navNext)}
+								onPointerDown={() => warm(navNext)}
+								onFocus={() => warm(navNext)}
 								className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
 							>
 								{inSearchNav ? "下一個結果" : "下一題"}{" "}

@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
-import { api } from '../lib/api';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { questionCache } from '../lib/questionCache';
 
 export type Options = { A: string; B: string; C: string; D: string; E?: string };
 
@@ -60,28 +60,79 @@ export type QuestionFull = {
   comment_count: number;
 };
 
+/**
+ * 換題時的兩件事,這個 hook 各處理一半:
+ *
+ * 1. **命中預抓就別進 loading。** `questionCache.peek()` 是同步的,所以 useState
+ *    的初始值就能是完整資料 —— 第一次 render 直接畫出題目,連一幀骨架都不閃。
+ *
+ * 2. **沒命中就給骨架,而不是留著上一題。** 舊版把 `data` 存成單純的 state,換 id
+ *    時不清空,結果使用者按下「下一題」後會繼續看到**上一題**的題幹與已揭曉的答
+ *    案,幾百毫秒後才整頁跳掉。看起來像沒點到,而且會劇透。這裡把資料連同它屬於
+ *    哪一題一起存,只在 `entry.id === id` 時才當作有資料。
+ *
+ * 同一個 id 的重抓(存完詳解後的 `reload()`)不受影響:id 沒變,畫面不會空白。
+ */
 export function useQuestion(id: string | undefined) {
-  const [data, setData] = useState<QuestionFull | null>(null);
+  const [entry, setEntry] = useState<{ id: string; q: QuestionFull } | null>(() => {
+    const hit = id ? questionCache.peek(id) : undefined;
+    return hit && id ? { id, q: hit } : null;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const reload = useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
-      const q = await api.get<QuestionFull>(`/api/questions/${id}`);
-      setData(q);
-      setError(null);
-    } catch (e) {
-      setError(e as Error);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  // 快速連按下一題時,先發的請求可能後回來。用它擋掉「已經不是當前題目」的寫入,
+  // 否則畫面會被倒退回去,或被 entry.id 不符判成沒資料而閃一下骨架。
+  const currentId = useRef(id);
+  currentId.current = id;
+
+  // 快取命中時常常拿到跟現在完全一樣的物件,包成新的 entry 只會白白多繪一次。
+  const adopt = useCallback((forId: string, q: QuestionFull) => {
+    setEntry((prev) =>
+      prev && prev.id === forId && prev.q === q ? prev : { id: forId, q },
+    );
+  }, []);
+
+  const load = useCallback(
+    async (force: boolean) => {
+      if (!id) return;
+      const cached = questionCache.peek(id);
+      if (cached) adopt(id, cached);
+      if (!force && questionCache.isFresh(id)) return;
+
+      // 手上有(即使過期的)資料就別開 loading —— 背景重抓不該讓畫面變成載入中。
+      if (!cached) setLoading(true);
+      try {
+        const q = await questionCache.get(id, { force });
+        if (currentId.current !== id) return;
+        adopt(id, q);
+        setError(null);
+      } catch (e) {
+        if (currentId.current !== id) return;
+        setError(e as Error);
+      } finally {
+        if (currentId.current === id) setLoading(false);
+      }
+    },
+    [id, adopt],
+  );
+
+  const reload = useCallback(() => load(true), [load]);
 
   useEffect(() => {
-    if (id) reload();
-  }, [id, reload]);
+    setError(null);
+    void load(false);
+  }, [load]);
 
-  return { data, loading, error, reload, setData };
+  const setData = useCallback(
+    (q: QuestionFull) => {
+      if (!id) return;
+      questionCache.set(id, q);
+      adopt(id, q);
+    },
+    [id, adopt],
+  );
+
+  const data = entry && entry.id === id ? entry.q : null;
+  return { data, loading: loading && !data, error, reload, setData };
 }
