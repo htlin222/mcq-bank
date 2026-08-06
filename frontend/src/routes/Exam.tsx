@@ -7,6 +7,9 @@ import { loadSectionPath, clearSectionPath, type LastPath } from '../lib/lastPat
 import { ResumeChip } from '../components/ResumeChip';
 import { flaggedIds, reconcileFlags, setFlag, toServerFlags } from '../lib/examFlagStore';
 import { TutorReveal } from '../components/TutorReveal';
+import { GamepadFab, type GamepadHint } from '../components/GamepadFab';
+import { useGamepad } from '../hooks/useGamepad';
+import { rumble } from '../lib/gamepad';
 import {
   startTimer,
   hide,
@@ -16,6 +19,22 @@ import {
   read,
   type TimerState,
 } from '../lib/questionTimer';
+
+// L1/R1 keep the 上一題/下一題 meaning they have in 複習模式 — someone moving
+// between the two modes shouldn't have to relearn the shoulder buttons. The
+// bindings with no review-mode counterpart go to the buttons that have no job
+// here: 沒有信心度,所以十字左右改成在標記題之間跳。
+const EXAM_HINTS: GamepadHint[] = [
+  { btn: 'DPAD ↑ ↓', label: '選擇選項' },
+  { btn: 'DPAD ← →', label: '上一個 / 下一個標記題' },
+  { btn: 'FACE ▼', label: '確認並前進下一題' },
+  { btn: 'FACE ◀', label: '暫停 / 繼續' },
+  { btn: 'FACE ▲', label: '跳到第一題未作答' },
+  { btn: 'FACE ▶', label: '標記 / 取消標記' },
+  { btn: 'L1 / R1', label: '上一題 / 下一題' },
+  { btn: 'L2 / R2', label: '−10 題 / +10 題' },
+  { btn: 'START', label: '交卷(仍會問未答題數)' },
+];
 
 type YearMeta = { year: number; count: number };
 
@@ -343,6 +362,72 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
     const liveMs = state.elapsed_ms + (now - state.running_since);
     if (liveMs >= state.cap_ms) submit();
   }, [now, state, submitting]);
+
+  // Gamepad. Declared above the early return to keep the hook count stable;
+  // everything it touches is read off `state` rather than the consts below,
+  // which don't exist on the loading render.
+  useGamepad((action) => {
+    if (!state || submitting) return;
+    const qs = state.questions;
+    const cur = qs[activeIdx];
+    if (!cur) return;
+    const paused = state.running_since === null;
+    const go = (i: number) =>
+      setActiveIdx(Math.min(qs.length - 1, Math.max(0, i)));
+    // 在標記題之間跳,繞回頭 —— 回頭檢查的動線就是這個。
+    const jumpMarked = (dir: 1 | -1) => {
+      if (marked.size === 0) return;
+      for (let n = 1; n <= qs.length; n++) {
+        const i = (((activeIdx + dir * n) % qs.length) + qs.length) % qs.length;
+        if (marked.has(qs[i].id)) return setActiveIdx(i);
+      }
+    };
+
+    switch (action) {
+      case 'up':
+      case 'down': {
+        if (paused) return;
+        const letters = (['A', 'B', 'C', 'D', 'E'] as const).filter(
+          (L) => cur.options[L],
+        );
+        if (letters.length === 0) return;
+        const dir = action === 'down' ? 1 : -1;
+        const i = letters.indexOf(answers[cur.id] as (typeof letters)[number]);
+        // 移動即選取,同複習模式;沒選過時 ↓ 落在 A、↑ 落在最後一個。
+        choose(
+          letters[
+            i < 0
+              ? dir === 1
+                ? 0
+                : letters.length - 1
+              : (i + dir + letters.length) % letters.length
+          ],
+        );
+        break;
+      }
+      case 'left': jumpMarked(-1); break;
+      case 'right': jumpMarked(1); break;
+      case 'l1': go(activeIdx - 1); break;
+      case 'r1': go(activeIdx + 1); break;
+      case 'l2': go(activeIdx - 10); break;
+      case 'r2': go(activeIdx + 10); break;
+      case 'faceDown':
+        void rumble('tap');
+        go(activeIdx + 1);
+        break;
+      case 'faceLeft':
+        void (paused ? resume() : pause());
+        break;
+      case 'faceUp': {
+        const i = qs.findIndex((x) => !answers[x.id]);
+        if (i >= 0) go(i);
+        break;
+      }
+      case 'faceRight': toggleMark(cur.id); break;
+      // 不開快速通道:submit() 本來就會在有未答題時問一次。
+      case 'start': void submit(); break;
+    }
+  });
 
   if (!state) {
     return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
@@ -707,6 +792,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
           </details>
         </main>
       )}
+      <GamepadFab hints={EXAM_HINTS} />
     </div>
   );
 }

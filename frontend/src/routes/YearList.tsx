@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, Check, Clock, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { GROUPS, groupBadgeClass } from '../lib/groups';
 import { ResumeChip } from '../components/ResumeChip';
 import { ExportButton } from '../components/ExportDialog';
+import { GamepadFab, type GamepadHint } from '../components/GamepadFab';
+import { useGamepad, useGamepadConnected } from '../hooks/useGamepad';
 import {
   loadYearPosition,
   clearYearPosition,
@@ -50,6 +52,23 @@ function matchesAnswer(q: QListItem, f: AnswerFilter): boolean {
   }
 }
 
+const GROUP_FILTER_KEYS = ['all', ...GROUPS.map((g) => g.label)];
+
+const YEAR_HINTS: GamepadHint[] = [
+  { btn: 'DPAD ↑ ↓', label: '移動游標(可長按)' },
+  { btn: 'DPAD ← →', label: '切換作答狀態篩選' },
+  { btn: 'FACE ▼', label: '進入這一題' },
+  { btn: 'L1 / R1', label: '−10 筆 / +10 筆' },
+  { btn: 'L2 / R2', label: '切換科別篩選' },
+  { btn: 'START', label: '回複習模式首頁' },
+];
+
+// 在一組固定選項裡循環,給篩選列用。
+function cycle<T>(arr: readonly T[], cur: T, dir: 1 | -1): T {
+  const i = arr.indexOf(cur);
+  return arr[((i < 0 ? 0 : i) + dir + arr.length) % arr.length];
+}
+
 type AnkiDeckStats = {
   year: number;
   count: number;
@@ -64,6 +83,7 @@ type AnkiDeckStats = {
 
 export function YearList() {
   const { year } = useParams<{ year: string }>();
+  const navigate = useNavigate();
   const [items, setItems] = useState<QListItem[] | null>(null);
   const [ankiDeck, setAnkiDeck] = useState<AnkiDeckStats | null>(null);
   const [filter, setFilter] = useState('');
@@ -116,20 +136,77 @@ export function YearList() {
     return base;
   }, [items, groupFilter]);
 
+  // Computed above the early return so the gamepad handler below — which is a
+  // hook, and so must run on the loading render too — can see the list.
+  const visible = useMemo(
+    () =>
+      (items ?? []).filter((q) => {
+        if (groupFilter !== 'all' && q.group !== groupFilter) return false;
+        if (!matchesAnswer(q, answerFilter)) return false;
+        if (!filter) return true;
+        return (
+          String(q.number).includes(filter) ||
+          q.stem.includes(filter) ||
+          (q.group ?? '').includes(filter)
+        );
+      }),
+    [items, groupFilter, answerFilter, filter],
+  );
+
+  // Gamepad cursor over the visible rows. Only drawn while a pad is attached —
+  // a stray focus ring on a mouse-driven list is just noise.
+  const { connected: padOn } = useGamepadConnected();
+  const [cursor, setCursor] = useState(0);
+  const cursorRef = useRef<HTMLLIElement>(null);
+  // 篩選一變,原本的索引就指向別題了 —— 歸零比「猜使用者想留在哪」誠實。
+  useEffect(() => {
+    setCursor(0);
+  }, [groupFilter, answerFilter, filter]);
+  useEffect(() => {
+    cursorRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [cursor]);
+
+  useGamepad((action) => {
+    const n = visible.length;
+    switch (action) {
+      case 'up':
+        if (n) setCursor((c) => (c - 1 + n) % n);
+        break;
+      case 'down':
+        if (n) setCursor((c) => (c + 1) % n);
+        break;
+      case 'l1':
+        if (n) setCursor((c) => Math.max(0, c - 10));
+        break;
+      case 'r1':
+        if (n) setCursor((c) => Math.min(n - 1, c + 10));
+        break;
+      case 'left':
+        setAnswerFilter((f) => cycle(ANSWER_FILTERS.map((x) => x.key), f, -1));
+        break;
+      case 'right':
+        setAnswerFilter((f) => cycle(ANSWER_FILTERS.map((x) => x.key), f, 1));
+        break;
+      case 'l2':
+        setGroupFilter((g) => cycle(GROUP_FILTER_KEYS, g, -1));
+        break;
+      case 'r2':
+        setGroupFilter((g) => cycle(GROUP_FILTER_KEYS, g, 1));
+        break;
+      case 'faceDown': {
+        const q = visible[cursor];
+        if (q) navigate(`/q/${q.id}`);
+        break;
+      }
+      case 'start':
+        navigate('/review');
+        break;
+    }
+  });
+
   if (items === null) {
     return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
   }
-
-  const visible = items.filter((q) => {
-    if (groupFilter !== 'all' && q.group !== groupFilter) return false;
-    if (!matchesAnswer(q, answerFilter)) return false;
-    if (!filter) return true;
-    return (
-      String(q.number).includes(filter) ||
-      q.stem.includes(filter) ||
-      (q.group ?? '').includes(filter)
-    );
-  });
 
   const countsSummary = GROUPS.map((g) => `${g.label} ${counts[g.label]}`).join(' · ');
 
@@ -236,15 +313,17 @@ export function YearList() {
       />
 
       <ol className="space-y-2">
-        {visible.map((q) => {
+        {visible.map((q, i) => {
           const answered = (q.times_seen ?? 0) > 0;
           const correct = answered && q.last_correct === 1;
+          const onCursor = padOn && i === cursor;
           return (
-            <li key={q.id}>
+            <li key={q.id} ref={onCursor ? cursorRef : undefined}>
               <Link
                 to={`/q/${q.id}`}
                 className={
                   'flex gap-3 items-start border rounded p-3 hover:border-accent hover:shadow-paper transition ' +
+                  (onCursor ? 'ring-2 ring-accent ring-offset-2 ring-offset-ink-50 dark:ring-offset-ink-900 ' : '') +
                   (!answered
                     ? 'bg-white dark:bg-ink-800 border-ink-200 dark:border-ink-700'
                     : correct
@@ -295,6 +374,7 @@ export function YearList() {
           );
         })}
       </ol>
+      <GamepadFab hints={YEAR_HINTS} />
     </div>
   );
 }

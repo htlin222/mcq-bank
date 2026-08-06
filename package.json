@@ -26,7 +26,7 @@
 		"seed:lecture-notes": "node --experimental-strip-types scripts/seed-lecture-notes.ts",
 		"typecheck": "tsc --noEmit",
 		"test": "node --test 'worker/**/*.test.ts' 'frontend/src/lib/**/*.test.ts'",
-		"test:webkit": "pnpm --dir frontend build && node --test frontend/e2e/smoke.test.mjs"
+		"test:webkit": "pnpm --dir frontend build && node --test frontend/e2e/smoke.test.mjs frontend/e2e/gamepad.test.mjs"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250501.0",
