@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { LogOut, RefreshCw, Send } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useMe, type Me } from '../hooks/useMe';
@@ -533,6 +534,13 @@ function McqKeyCard({ me }: { me: Me }) {
           </button>
         </div>
       )}
+
+      {/* 2048 —— 刻意低調:讀累了才會來找它,不該在導覽列上分心。 */}
+      <p className="mt-10 text-xs text-ink-400 dark:text-ink-500">
+        <Link to="/play" className="hover:text-accent underline underline-offset-2">
+          休息一下
+        </Link>
+      </p>
     </div>
   );
 }
