@@ -7,6 +7,25 @@
 
 export type Phase = 'focus' | 'short' | 'long';
 
+// 番茄鐘 FAB 只在這些路徑「顯示」(元件本身掛在 app 全域,離開這些路徑時鐘
+// 繼續走,只是按鈕隱藏) —— 中途繞去全真或收藏,不該把跑著的計時器弄不見。
+//
+// `/play` 在列表裡是刻意的:休息時段的面板會引導你去玩 2048,而那正是最需要
+// 看到「休息還剩幾分鐘」的時候。少了這一條,點下去人就被丟在一個看不到計時
+// 器、也沒有回頭路的頁面 —— 而且是無聲的,所以這裡有測試守著。
+const VISIBLE_PATHS = [
+  /^\/review\b/,
+  /^\/year\//,
+  /^\/q\//,
+  /^\/drill\//,
+  /^\/anki\//,
+  /^\/play\b/,
+];
+
+export function isTimerPath(pathname: string): boolean {
+  return VISIBLE_PATHS.some((re) => re.test(pathname));
+}
+
 export type PomodoroSettings = {
   /** 專注時長 (minutes) */
   focusMin: number;

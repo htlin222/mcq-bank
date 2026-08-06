@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Timer, Play, Pause, RotateCcw, SkipForward, Settings2, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  Timer,
+  Play,
+  Pause,
+  RotateCcw,
+  SkipForward,
+  Settings2,
+  X,
+  Gamepad2,
+} from 'lucide-react';
 import {
   PHASE_LABEL,
   SETTING_BOUNDS,
   clampSettings,
   fmt,
+  isTimerPath,
   loadSettings,
   nextPhase,
   phaseMs,
@@ -22,18 +32,12 @@ import {
 // decremented per tick — a throttled background tab fires setInterval far less
 // often than every 250ms, and a decrementing timer would drift by minutes.
 
-const REVIEW_PATHS = [/^\/review\b/, /^\/year\//, /^\/q\//, /^\/drill\//, /^\/anki\//];
-
-function isReviewPath(pathname: string): boolean {
-  return REVIEW_PATHS.some((re) => re.test(pathname));
-}
-
 const RING_R = 26;
 const RING_C = 2 * Math.PI * RING_R;
 
 export function PomodoroFab() {
   const { pathname } = useLocation();
-  const visible = isReviewPath(pathname);
+  const visible = isTimerPath(pathname);
 
   const [settings, setSettings] = useState<PomodoroSettings>(() => loadSettings());
   const [phase, setPhase] = useState<Phase>('focus');
@@ -49,6 +53,7 @@ export function PomodoroFab() {
   const panelRef = useRef<HTMLDivElement>(null);
 
   const remaining = running ? Math.max(0, endsAt - now) : leftMs;
+  const onBreak = phase !== 'focus';
   const total = phaseMs(phase, settings);
   const progress = total > 0 ? 1 - Math.min(1, remaining / total) : 0;
 
@@ -257,6 +262,22 @@ export function PomodoroFab() {
               <SkipForward size={16} />
             </button>
           </div>
+
+          {/* 2048 的入口。休息時段給它份量,專注時段收成一行淡字 —— 同一個
+              連結兩種強度,而不是在專注時把它藏起來(藏起來只會讓人以為壞了)。 */}
+          <Link
+            to="/play"
+            onClick={() => setOpen(false)}
+            className={
+              'mt-2 flex items-center justify-center gap-1.5 rounded px-3 py-2 text-sm transition ' +
+              (onBreak
+                ? 'border border-accent/40 text-accent hover:bg-accent/10'
+                : 'text-ink-400 dark:text-ink-500 hover:text-accent hover:bg-accent/10')
+            }
+          >
+            <Gamepad2 size={15} />
+            {onBreak ? '休息一下,玩 2048' : '玩 2048'}
+          </Link>
 
           {showSettings && (
             <div className="mt-4 pt-3 border-t border-ink-100 dark:border-ink-700 space-y-2">

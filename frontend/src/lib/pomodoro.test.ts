@@ -4,6 +4,7 @@ import {
 	DEFAULT_SETTINGS,
 	clampSettings,
 	fmt,
+	isTimerPath,
 	nextPhase,
 	phaseMs,
 } from "./pomodoro.ts";
@@ -65,4 +66,37 @@ test("fmt 無條件進位,負數歸零", () => {
 	assert.equal(fmt(0), "00:00");
 	assert.equal(fmt(-5000), "00:00");
 	assert.equal(fmt(90 * 60_000), "90:00");
+});
+
+// 這幾條看似瑣碎,守的是一個**無聲**的失敗:FAB 掛在 app 全域,只用路徑決定
+// 要不要顯示。少了一條,計時器不會報錯 —— 它只是在那一頁不見了。
+test("isTimerPath 涵蓋複習動線的每一種路徑", () => {
+	for (const p of [
+		"/review",
+		"/review/new-year",
+		"/year/113",
+		"/q/113-050",
+		"/drill/anemia",
+		"/anki/113",
+	]) {
+		assert.equal(isTimerPath(p), true, p);
+	}
+});
+
+test("isTimerPath 涵蓋 /play —— 休息時要看得到還剩幾分鐘", () => {
+	// 2048 的入口就在番茄鐘面板裡。這條掉了,點下去人就被丟在一個看不到
+	// 計時器、也沒有回頭路的頁面。
+	assert.equal(isTimerPath("/play"), true);
+});
+
+test("isTimerPath 不涵蓋讀書動線以外的頁面", () => {
+	for (const p of ["/", "/exam", "/exam/abc", "/bookmarks", "/chat", "/profile"]) {
+		assert.equal(isTimerPath(p), false, p);
+	}
+});
+
+test("isTimerPath 不會被前綴相同的路徑誤中", () => {
+	// \\b 邊界:/playground 不是 /play
+	assert.equal(isTimerPath("/playground"), false);
+	assert.equal(isTimerPath("/reviewer"), false);
 });
