@@ -38,6 +38,10 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from wrangler_json import d1_rows  # noqa: E402
+
+
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "scripts" / "data"
 TOPICS_FILE = ROOT / "scripts" / "video-topics.json"
@@ -53,11 +57,11 @@ with (ROOT / "config.toml").open("rb") as _f:
 D1_DB = _CFG["project"]["d1_db"]
 R2_BUCKET = _CFG["project"]["r2_bucket"]
 
-SEARCH_N = 20          # 每主題向 YouTube 要幾筆(非 flat,約 1 秒/支)
-KEEP_N = 8             # 最終每主題留幾支
-MIN_DURATION = 300     # 5 分鐘 —— 排掉 Shorts 與預告
-MAX_DURATION = 2400    # 40 分鐘 —— 排掉整場研討會錄影
-MIN_SCORE = 6          # Haiku 相關性門檻
+SEARCH_N = 20  # 每主題向 YouTube 要幾筆(非 flat,約 1 秒/支)
+KEEP_N = 8  # 最終每主題留幾支
+MIN_DURATION = 300  # 5 分鐘 —— 排掉 Shorts 與預告
+MAX_DURATION = 2400  # 40 分鐘 —— 排掉整場研討會錄影
+MIN_SCORE = 6  # Haiku 相關性門檻
 
 # 年限依主題類別分開:治療會過時,機轉不太會。
 #
@@ -69,7 +73,7 @@ MAX_AGE_YEARS = {"treatment": 5, "mechanism": 12}
 HARD_AGE_YEARS = {"treatment": 10, "mechanism": 18}
 MIN_PER_TOPIC = 5
 
-THREADS = 4            # yt-dlp 併發數,再高容易被 YouTube 擋
+THREADS = 4  # yt-dlp 併發數,再高容易被 YouTube 擋
 THUMB_PREFIX = "video-thumbs"
 
 
@@ -80,8 +84,16 @@ THUMB_PREFIX = "video-thumbs"
 # 而且每次 search 都要 parse 一次。只留下面這幾個真正會讀的欄位,同一份快取
 # 掉到 1 MB 以下。
 KEEP_FIELDS = (
-    "id", "title", "channel", "uploader", "channel_id", "duration",
-    "view_count", "upload_date", "availability", "channel_follower_count",
+    "id",
+    "title",
+    "channel",
+    "uploader",
+    "channel_id",
+    "duration",
+    "view_count",
+    "upload_date",
+    "availability",
+    "channel_follower_count",
 )
 
 
@@ -97,7 +109,9 @@ def _ytdlp(args: list[str]) -> list[dict]:
     try:
         out = subprocess.run(
             ["yt-dlp", *args, "--dump-json", "--no-warnings", "--ignore-errors"],
-            capture_output=True, text=True, timeout=180,
+            capture_output=True,
+            text=True,
+            timeout=180,
         ).stdout
     except subprocess.TimeoutExpired:
         return []
@@ -143,6 +157,7 @@ def age_years(upload_date: str | None) -> float | None:
 
 # ---------- search ------------------------------------------------------------
 
+
 def _load(p: Path) -> dict:
     return json.load(p.open()) if p.exists() else {}
 
@@ -159,8 +174,9 @@ def cmd_search(args):
     search_cache = _load(SEARCH_CACHE)
 
     todo = [t for t in topics if args.force or t["slug"] not in existing]
-    print(f"主題 {len(topics)} 個,待處理 {len(todo)} 個"
-          f"(搜尋快取 {len(search_cache)} 組)")
+    print(
+        f"主題 {len(topics)} 個,待處理 {len(todo)} 個(搜尋快取 {len(search_cache)} 組)"
+    )
 
     # 搜尋跨主題平行,單一主題內是一個 yt-dlp process 循序解析 —— 這個
     # 併發度是節流與速度的折衷,調高很容易又被擋。
@@ -202,8 +218,9 @@ def cmd_search(args):
                     # 描述截斷:評分只看得到前面這段,存全文只是讓 JSON 變胖
                     "desc": (m.get("description") or "")[:500],
                 }
-                (fresh if yrs is None or yrs <= MAX_AGE_YEARS[kind]
-                 else stale).append(row)
+                (fresh if yrs is None or yrs <= MAX_AGE_YEARS[kind] else stale).append(
+                    row
+                )
 
             fresh.sort(key=lambda r: r["view_count"], reverse=True)
             # 回填按觀看數 —— 既然已經比偏好年限舊了,至少挑多數人看過的
@@ -214,19 +231,25 @@ def cmd_search(args):
             CANDIDATES_FILE.write_text(
                 json.dumps(existing, ensure_ascii=False, indent=1), encoding="utf-8"
             )
-            SEARCH_CACHE.write_text(json.dumps(search_cache, ensure_ascii=False),
-                                    encoding="utf-8")
-            print(f"[{done}/{len(todo)}] {slug:26s} 搜到 {len(hits):2d} → "
-                  f"刷掉 {rejected:2d} → 留 {len(kept):2d}"
-                  f"(新 {len(fresh)} + 回填 {len(kept) - len(fresh)})")
+            SEARCH_CACHE.write_text(
+                json.dumps(search_cache, ensure_ascii=False), encoding="utf-8"
+            )
+            print(
+                f"[{done}/{len(todo)}] {slug:26s} 搜到 {len(hits):2d} → "
+                f"刷掉 {rejected:2d} → 留 {len(kept):2d}"
+                f"(新 {len(fresh)} + 回填 {len(kept) - len(fresh)})"
+            )
 
     total = sum(len(v) for v in existing.values())
-    print(f"\n候選共 {total} 支(去重後 "
-          f"{len({v['id'] for vs in existing.values() for v in vs})} 支)"
-          f" → {CANDIDATES_FILE.relative_to(ROOT)}")
+    print(
+        f"\n候選共 {total} 支(去重後 "
+        f"{len({v['id'] for vs in existing.values() for v in vs})} 支)"
+        f" → {CANDIDATES_FILE.relative_to(ROOT)}"
+    )
 
 
 # ---------- publish -----------------------------------------------------------
+
 
 def sq(v) -> str:
     """SQL 字面值。None → NULL,字串跳脫單引號。"""
@@ -246,14 +269,23 @@ def upload_thumb(video_id: str, remote: bool) -> str | None:
             blob = r.read()
     except Exception:
         return None
-    if len(blob) < 1024:          # YouTube 對不存在的縮圖回一張灰底小圖
+    if len(blob) < 1024:  # YouTube 對不存在的縮圖回一張灰底小圖
         return None
 
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
         tmp.write(blob)
         tmp_path = tmp.name
-    cmd = ["wrangler", "r2", "object", "put", f"{R2_BUCKET}/{key}",
-           "--file", tmp_path, "--content-type", "image/jpeg"]
+    cmd = [
+        "wrangler",
+        "r2",
+        "object",
+        "put",
+        f"{R2_BUCKET}/{key}",
+        "--file",
+        tmp_path,
+        "--content-type",
+        "image/jpeg",
+    ]
     cmd.append("--remote" if remote else "--local")
     r = subprocess.run(cmd, capture_output=True, text=True)
     Path(tmp_path).unlink(missing_ok=True)
@@ -267,14 +299,16 @@ def run_sql(statements: list[str], remote: bool, chunk: int = 40):
     """分批送 —— 單次 wrangler 呼叫塞太多 statement 會超時。"""
     flag = "--remote" if remote else "--local"
     for i in range(0, len(statements), chunk):
-        batch = statements[i:i + chunk]
-        with tempfile.NamedTemporaryFile("w", suffix=".sql", delete=False,
-                                         encoding="utf-8") as f:
+        batch = statements[i : i + chunk]
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".sql", delete=False, encoding="utf-8"
+        ) as f:
             f.write(";\n".join(batch) + ";\n")
             path = f.name
         r = subprocess.run(
             ["wrangler", "d1", "execute", D1_DB, flag, "--file", path, "--yes"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         Path(path).unlink(missing_ok=True)
         if r.returncode != 0:
@@ -292,7 +326,7 @@ def cmd_publish(args):
         print("! 沒有 video-scores.json —— 未經相關性把關,全部照收", file=sys.stderr)
 
     now = int(datetime.now(timezone.utc).timestamp() * 1000)
-    chosen: dict[str, dict] = {}      # video_id → video row
+    chosen: dict[str, dict] = {}  # video_id → video row
     links: list[tuple[str, str, int]] = []
     dropped = 0
 
@@ -314,12 +348,16 @@ def cmd_publish(args):
             prev = chosen.get(v["id"])
             # 同一支影片可能被多個主題選中,保留分數較高的那次評語
             if not prev or (s.get("score") or 0) > (prev["ai_score"] or 0):
-                chosen[v["id"]] = {**v, "ai_score": s.get("score"),
-                                   "ai_reason": s.get("reason")}
+                chosen[v["id"]] = {
+                    **v,
+                    "ai_score": s.get("score"),
+                    "ai_reason": s.get("reason"),
+                }
             links.append((topic["slug"], v["id"], rank))
 
-    print(f"選中 {len(chosen)} 支影片、{len(links)} 組主題關聯"
-          f"(相關性刷掉 {dropped} 支)")
+    print(
+        f"選中 {len(chosen)} 支影片、{len(links)} 組主題關聯(相關性刷掉 {dropped} 支)"
+    )
 
     ids = list(chosen)
     if args.dry_run:
@@ -385,18 +423,17 @@ def cmd_publish(args):
 
 # ---------- refresh -----------------------------------------------------------
 
+
 def d1_query(sql: str, remote: bool) -> list[dict]:
     flag = "--remote" if remote else "--local"
     r = subprocess.run(
         ["wrangler", "d1", "execute", D1_DB, flag, "--command", sql, "--json"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     if r.returncode != 0:
         sys.exit(f"D1 查詢失敗:{r.stderr[-500:]}")
-    m = re.search(r"\[\s*\{", r.stdout)
-    if not m:
-        return []
-    return json.loads(r.stdout[m.start():])[0]["results"]
+    return d1_rows(r.stdout, "curate-videos 讀 D1")
 
 
 def cmd_refresh(args):
@@ -434,16 +471,22 @@ def cmd_refresh(args):
 
 # ---------- main --------------------------------------------------------------
 
+
 def main():
-    ap = argparse.ArgumentParser(description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("search", help="搜尋 + 過濾,產出候選")
-    s.add_argument("--force", action="store_true",
-                   help="已有候選的主題也重算(有快取時很快,適合調門檻)")
-    s.add_argument("--refetch", action="store_true",
-                   help="連快取一起重抓 —— 真的重打 YouTube,慢")
+    s.add_argument(
+        "--force",
+        action="store_true",
+        help="已有候選的主題也重算(有快取時很快,適合調門檻)",
+    )
+    s.add_argument(
+        "--refetch", action="store_true", help="連快取一起重抓 —— 真的重打 YouTube,慢"
+    )
     s.add_argument("--topic", nargs="*", help="只跑指定主題 slug")
     s.set_defaults(func=cmd_search)
 

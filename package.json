@@ -26,7 +26,7 @@
 		"anki:build:mine": "uv run --with genanki scripts/build-anki.py --merge-basic",
 		"seed:lecture-notes": "node --experimental-strip-types scripts/seed-lecture-notes.ts",
 		"typecheck": "tsc --noEmit",
-		"test": "node --test 'worker/**/*.test.ts' 'frontend/src/lib/**/*.test.ts'",
+		"test": "node --test 'worker/**/*.test.ts' 'frontend/src/lib/**/*.test.ts' 'scripts/lib/**/*.test.mjs'",
 		"test:webkit": "pnpm --dir frontend build && node --test frontend/e2e/smoke.test.mjs frontend/e2e/gamepad.test.mjs"
 	},
 	"devDependencies": {

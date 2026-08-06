@@ -26,6 +26,7 @@
 
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
+import { d1Rows } from './lib/wrangler-json.mjs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
@@ -53,8 +54,7 @@ async function main() {
     'd1', 'execute', D1_DB, mode, '--json',
     '--command', 'SELECT slug, r2_key, page_count FROM lecture_docs ORDER BY sort_order;',
   ]);
-  const parsed = JSON.parse(listJson);
-  const rows: LectureRow[] = parsed?.[0]?.results ?? [];
+  const rows: LectureRow[] = d1Rows(listJson, 'backfill-lecture-pages 讀 lecture_docs') as LectureRow[];
   if (rows.length === 0) {
     console.error('❌ No lectures found in lecture_docs. Run import-lectures.ts first.');
     process.exit(2);

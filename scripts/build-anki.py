@@ -39,6 +39,10 @@ import tempfile
 import tomllib
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from wrangler_json import d1_rows  # noqa: E402
+
+
 import genanki
 
 REPO = Path(__file__).resolve().parent.parent
@@ -565,11 +569,7 @@ def export_year(db: str, year: int, remote: bool) -> list[dict]:
     if proc.returncode != 0:
         sys.exit(f"wrangler export failed for {year}:\n{proc.stderr}")
     # wrangler prints a banner before the JSON; slice from the first '['/'{'
-    out = proc.stdout
-    start = min((i for i in (out.find("["), out.find("{")) if i >= 0), default=-1)
-    if start < 0:
-        sys.exit(f"no JSON in wrangler output for {year}")
-    return json.loads(out[start:])[0]["results"]
+    return d1_rows(proc.stdout, f"build-anki 讀 {year} 年題目")
 
 
 def media_name(src: str) -> str:

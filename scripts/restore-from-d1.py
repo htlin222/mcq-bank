@@ -21,7 +21,12 @@ import json
 import subprocess
 import sys
 import tomllib
+
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from wrangler_json import d1_rows  # noqa: E402
+
 
 ROOT = Path(__file__).resolve().parent.parent
 with (ROOT / "config.toml").open("rb") as _f:
@@ -30,6 +35,7 @@ D1_DB = _CFG["project"]["d1_db"]
 YEARS = list(range(104, 114))
 
 # ---------- TipTap → Markdown converter --------------------------------------
+
 
 def inline_to_md(node: dict) -> str:
     """Render a single inline TipTap node (text/hardBreak/image) to markdown."""
@@ -117,12 +123,12 @@ def tiptap_to_md(doc: dict | str) -> str:
 
 # ---------- D1 dump ----------------------------------------------------------
 
+
 def wrangler_query(sql: str) -> list[dict]:
     """Run a SELECT against remote D1, return list of row dicts."""
     cmd = ["wrangler", "d1", "execute", D1_DB, "--remote", "--json", "--command", sql]
     out = subprocess.run(cmd, check=True, capture_output=True)
-    payload = json.loads(out.stdout.decode("utf-8"))
-    return payload[0]["results"]
+    return d1_rows(out.stdout, "restore-from-d1 讀 remote D1")
 
 
 def fetch_all_questions() -> dict[str, dict]:
@@ -139,6 +145,7 @@ def fetch_all_questions() -> dict[str, dict]:
 
 # ---------- Rebuild batch files ---------------------------------------------
 
+
 def group_for_number(num: int) -> str:
     return "內科" if num <= 70 else "共同"
 
@@ -150,7 +157,13 @@ def batch_index(num: int) -> int:
 def restore_year(year: int, db: dict[str, dict], dry_run: bool) -> dict:
     """Restore one year. Returns stats dict."""
     batches_dir = ROOT / "years" / str(year) / "batches"
-    stats = {"year": year, "files": 0, "questions": 0, "year_104_rebuild": False, "kept_fields": 0}
+    stats = {
+        "year": year,
+        "files": 0,
+        "questions": 0,
+        "year_104_rebuild": False,
+        "kept_fields": 0,
+    }
 
     rebuild_from_scratch = not any(batches_dir.glob("batch-*.json"))
     stats["year_104_rebuild"] = rebuild_from_scratch
@@ -191,26 +204,33 @@ def restore_year(year: int, db: dict[str, dict], dry_run: bool) -> dict:
             for r in rows_for_batch:
                 expl_md = tiptap_to_md(r.get("content_json") or "")
                 options = json.loads(r["options_json"])
-                out_questions.append({
-                    "number": r["number"],
-                    "group": group_for_number(r["number"]),
-                    "stem": r["stem"],
-                    "options": options,
-                    "answer": r["answer"],
-                    "tags": [],
-                    "explanation_md": expl_md,
-                    "confidence": None,
-                    "oe_consulted": False,
-                })
+                out_questions.append(
+                    {
+                        "number": r["number"],
+                        "group": group_for_number(r["number"]),
+                        "stem": r["stem"],
+                        "options": options,
+                        "answer": r["answer"],
+                        "tags": [],
+                        "explanation_md": expl_md,
+                        "confidence": None,
+                        "oe_consulted": False,
+                    }
+                )
         else:
             # Years 105-113 healthy file: swap only explanation_md.
             existing_by_num = {q["number"]: q for q in existing}
             for r in rows_for_batch:
                 num = r["number"]
                 if num not in existing_by_num:
-                    print(f"  WARN: year {year} batch-{bi:02d} missing q#{num} in existing file", file=sys.stderr)
+                    print(
+                        f"  WARN: year {year} batch-{bi:02d} missing q#{num} in existing file",
+                        file=sys.stderr,
+                    )
                     continue
-                existing_by_num[num]["explanation_md"] = tiptap_to_md(r.get("content_json") or "")
+                existing_by_num[num]["explanation_md"] = tiptap_to_md(
+                    r.get("content_json") or ""
+                )
                 stats["kept_fields"] += 1
             out_questions = [existing_by_num[n] for n in sorted(existing_by_num)]
 
@@ -246,7 +266,12 @@ def main():
             file=sys.stderr,
         )
 
-    print("\n✅ Restore complete." if not args.dry_run else "\n(dry run — no files written)", file=sys.stderr)
+    print(
+        "\n✅ Restore complete."
+        if not args.dry_run
+        else "\n(dry run — no files written)",
+        file=sys.stderr,
+    )
 
 
 if __name__ == "__main__":

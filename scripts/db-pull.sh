@@ -44,19 +44,15 @@ TABLES="$(wrangler d1 execute "$DB" --remote --json --command "
     AND name NOT LIKE '_cf_%'
     AND name != 'd1_migrations'
   ORDER BY name" \
-  | node -e '
-    // wrangler 會在 --json 的輸出前面夾雜非 JSON 的行(版本更新提示、
-    // "Cloudflare agent skills are available for: …" 之類的推銷文案),
-    // 整段丟給 JSON.parse 會炸在 "Unexpected token C"。從第一行以 [ 開頭
-    // 的地方開始切,才不會每次 wrangler 想說話就壞一次。
-    let s="";
-    process.stdin.on("data",d=>s+=d).on("end",()=>{
-      const lines=s.split("\n");
-      const at=lines.findIndex(l=>l.trimStart().startsWith("["));
-      if(at<0){process.stderr.write("wrangler 沒有輸出 JSON:\n"+s);process.exit(1)}
-      const j=JSON.parse(lines.slice(at).join("\n"));
-      process.stdout.write(j[0].results.map(r=>r.name).join(" "))
-    })')"
+  | node --input-type=module -e '
+    // 剝掉 wrangler 夾在 --json 前面的人類可讀行(版本提示、agent skills
+    // 推銷文案…)。邏輯在 scripts/lib/wrangler-json.mjs,全 repo 共用一份。
+    import { d1Rows } from "./scripts/lib/wrangler-json.mjs";
+    let s = "";
+    process.stdin.on("data", (d) => (s += d)).on("end", () => {
+      process.stdout.write(d1Rows(s, "db-pull 列舉 remote 資料表").map((r) => r.name).join(" "));
+    });
+  ')"
 
 if [ -z "$TABLES" ]; then
   echo "✗ Could not enumerate remote tables. Aborting; local left untouched." >&2
