@@ -1,5 +1,5 @@
 -- ============================================================
--- Migration 0034: 講義投影片 → 歷屆考題關聯 — lecture_page_questions
+-- Migration 0038: 講義投影片 → 歷屆考題關聯 — lecture_page_questions
 --
 -- 一張投影片頁涵蓋到的歷屆 MCQ。離線 pipeline
 -- (scripts/build-slide-mcq-links.ts) 產出，reader 右欄「歷屆考題」面板
@@ -19,4 +19,11 @@ CREATE TABLE lecture_page_questions (
   created_at  INTEGER NOT NULL,
   PRIMARY KEY (slug, page, question_id)
 );
-CREATE INDEX idx_lpq_slug_page ON lecture_page_questions(slug, page);
+
+-- 這裡刻意「不」另建 (slug, page) 的索引。複合 PRIMARY KEY 已經讓 SQLite
+-- 建了 sqlite_autoindex_lecture_page_questions_1 於 (slug, page, question_id),
+-- 而 (slug, page) 是它的前綴 —— 查詢計畫實測兩者相同:
+--
+--   SEARCH ... USING INDEX sqlite_autoindex_..._1 (slug=? AND page=?)
+--
+-- 多一條索引只是多一份寫入成本與空間,換不到任何存取路徑上的差別。

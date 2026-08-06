@@ -154,8 +154,13 @@ lectureRoutes.get('/:slug/questions', async (c) => {
       .all();
 
     return c.json(results ?? []);
-  } catch {
+  } catch (err) {
     // Table missing / not yet backfilled — degrade to empty, never 500.
+    //
+    // 但要留下痕跡:這個 catch 夠寬,連真正的 SQL 錯誤(欄位打錯、join 寫壞)
+    // 都會被它吞成一個安靜的空面板。沒有這行,那種 bug 從前端看起來就只是
+    // 「這頁沒有相關考題」,永遠不會有人回報。`wrangler tail` 看得到。
+    console.error('lecture page questions', c.req.param('slug'), page, err);
     return c.json([]);
   }
 });
