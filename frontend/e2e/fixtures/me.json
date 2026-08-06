@@ -1,1 +1,1 @@
-{"email":"dev@example.com","display_name":"admin","avatar_key":null,"bio":"","created_at":1779553904546,"updated_at":1783708061688,"last_seen_at":1785341156948,"mcq_key_version":1,"lecture_defaults_seeded":1780159129000,"chat_notify":"mention"}
+{"email": "dev@example.com", "display_name": "admin", "avatar_key": null, "bio": "", "created_at": 1779553904546, "updated_at": 1783708061688, "last_seen_at": 1785341156948, "mcq_key_version": 1, "lecture_defaults_seeded": 1780159129000, "chat_notify": "mention", "is_admin": true}

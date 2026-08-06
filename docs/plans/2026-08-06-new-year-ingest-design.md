@@ -248,20 +248,55 @@ notifications 同一類。快取一個「12 秒前」會讓整個心跳機制變
 - `/review/new-year` 依 CLAUDE.md 規定補 e2e fixture，過 WebKit smoke。
 - `sw-guards` 新增排除項的測試。
 
+## 實作後的修正
+
+設計付諸實作時有四處與上面不同,以實際行為為準:
+
+1. **路由分成兩組掛在 Access 兩側。** 原本寫成同一個 `/api/admin/import-year`
+   前綴,行不通:`bnkk_` 那幾支的呼叫端是筆電上的 python,沒有 Access session,
+   必須註冊在 `authMiddleware` 之前並在邊緣 bypass。最後是
+   `/api/bank-ingest/*`(skill 寫入,已加進 `setup-public-bypass.sh`)與
+   `/api/admin/import-year/*`(Access + admin,發布)。**後者不可以被加進
+   bypass 清單。**
+
+2. **作廢是直接刪列,不是一個 stage。** 作廢掉的暫存資料沒有人要看,留一個
+   `discarded` 狀態只是多一個永遠沒人查詢的列。partial unique index 因此改成
+   `WHERE stage <> 'published'`。
+
+3. **skill 拆成 parse.py / push.py 兩支,中間留一份 `parsed.json`。** 原本想
+   把「詳解三選一」做成 python 的互動提問,但這個 skill 本來就跑在 Claude Code
+   裡 —— 讓 Claude 用 AskUserQuestion 問、需要補寫時直接編輯那份 JSON,比在
+   python 裡重造一套互動與 AI 呼叫乾淨得多,也不必再要一把 AI 金鑰。
+
+4. **新增 `GET /api/bank-ingest/config`。** skill 需要題組組成才能把每份 PDF
+   的 1..N 對應到全域題號。寫死在 skill 裡會讓任何題型不同的 fork 靜默壞掉,
+   所以從伺服器讀,`config.toml` 維持單一真相。
+
 ## 檔案
 
 ```
-migrations/00NN_bank_ingest.sql
+migrations/0037_bank_ingest.sql
 worker/lib/bank-key.ts              # bnkk_ 派生 + middleware
-worker/lib/import-validate.ts       # 前置檢查(純函式)
-worker/routes/admin-import.ts       # heartbeat/progress/push/status/publish/discard
-worker/routes/me.ts                 # + bank-key, bank-skill 下載
+worker/lib/import-validate.ts       # 兩道驗證閘(純函式,21 個測試)
+worker/routes/bank-ingest.ts        # 兩組路由,見上面第 1 點
+worker/routes/me.ts                 # + bank-key rotate, bank-skill 下載, is_admin
 scripts/gen-bank-bundle.mjs         # skill → worker/generated/bank-bundle.ts
 .claude/skills/bank-ingest/
-  SKILL.md
-  pyproject.toml
-  scripts/{doctor,ingest,parse,answers,explain,push}.py
+  SKILL.md  pyproject.toml
+  scripts/{api,doctor,parse_exam,parse,push,tiptap}.py
 frontend/src/routes/NewYear.tsx     # 五步精靈
-frontend/src/routes/YearList.tsx    # + 加入新年份 按鈕
+frontend/src/routes/ReviewIndex.tsx # + 加入新年份 按鈕(admin only)
 frontend/src/lib/sw-guards.ts       # 排除新端點
+scripts/setup-public-bypass.sh      # /api/bank-ingest/* bypass
 ```
+
+## 部署
+
+```bash
+openssl rand -base64 48 | tr -d '\n' | wrangler secret put BANK_KEY_SECRET
+wrangler d1 migrations apply <db> --remote
+./scripts/setup-public-bypass.sh      # 讓 /api/bank-ingest/* 繞過 Access
+```
+
+未設 `BANK_KEY_SECRET` 時整個功能安全地停用:精靈頁顯示提示、下載鈕反灰、
+`/api/bank-ingest/*` 一律 503。

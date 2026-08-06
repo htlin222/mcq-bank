@@ -44,6 +44,14 @@ const ROUTES = [
   },
   { path: '/videos', name: '影片庫' },
   { path: '/review', name: '複習首頁' },
+  {
+    path: '/review/new-year',
+    name: '加入新年份精靈(輪詢 + 暫存區審閱)',
+    // 這條路徑掛的是別處沒有的型態:setInterval 輪詢驅動的多步流程,加上
+    // 由伺服器資料長出來的逐題審閱清單。fixture 給的是「已推送、有待確認題」
+    // 的狀態,所以第五步的審閱面板會真的被渲染出來,而不是停在提示文字。
+    expectText: '待確認',
+  },
 ];
 
 // fixture 是從真實 API 抓下來的，而這個 repo 是公開的 —— 第一版就差點把 18 位
