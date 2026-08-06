@@ -9,6 +9,8 @@ export type Me = {
   mcq_key_version: number;
   chat_notify: 'all' | 'mention' | 'off';
   created_at: number;
+  /** 由 ADMIN_EMAILS 衍生,不是資料庫欄位。只用來決定要不要顯示入口。 */
+  is_admin?: boolean;
 };
 
 let cached: Me | null = null;

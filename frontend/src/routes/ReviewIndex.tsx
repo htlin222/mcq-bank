@@ -8,6 +8,7 @@ import {
   type LastPath,
 } from '../lib/lastPath';
 import { ResumeChip } from '../components/ResumeChip';
+import { useMe } from '../hooks/useMe';
 import { ConfidenceCalibration } from '../components/ConfidenceCalibration';
 import type { DueSummary } from '../lib/due';
 
@@ -34,6 +35,7 @@ export function ReviewIndex() {
   // 「你上次停在…」 — last question/year page visited, synced across devices.
   const [resume, setResume] = useState<LastPath | null>(null);
   const navigate = useNavigate();
+  const { me } = useMe();
 
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
@@ -129,7 +131,19 @@ export function ReviewIndex() {
         <ConfidenceCalibration />
       </section>
 
-      <h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-4">選擇年度 (民國)</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-serif text-xl text-ink-800 dark:text-ink-100">選擇年度 (民國)</h2>
+        {/* 只有 ADMIN_EMAILS 看得到。這只是入口顯隱 —— 真正的門在
+            /api/me/bank-skill 與 /api/admin/import-year/*,兩邊都各自驗一次。 */}
+        {me?.is_admin && (
+          <Link
+            to="/review/new-year"
+            className="text-sm text-accent hover:text-accent-dark whitespace-nowrap"
+          >
+            ＋ 加入新年份
+          </Link>
+        )}
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {years.map((y) => {
           const s = statsByYear.get(y.year);

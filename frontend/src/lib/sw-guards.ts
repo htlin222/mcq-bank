@@ -78,6 +78,10 @@ export function isCacheableApiResponse(
 //   /api/highlights, /api/state, /api/bookmarks   cross-device sync; cached = false conflicts
 //   /api/users             presence / mention roster
 //   /pdf/*                 tens of MB per lecture (see plan, non-goal #6)
+//   /api/admin/*           新年份匯入精靈。它整個機制就是「本機做了什麼,網頁
+//                          幾秒內反映出來」—— 心跳、解析進度、暫存區內容全都
+//                          是活的狀態。快取一份「12 秒前」會讓精靈變成謊話,
+//                          使用者會對著一個永遠不動的畫面等下去。
 //   anything non-GET       handled by method check at the call site
 const CACHEABLE_API: RegExp[] = [
   /^\/api\/questions(\?|$)/, // list + filters

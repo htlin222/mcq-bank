@@ -1,0 +1,19 @@
+{
+  "configured": true,
+  "key_version": 2,
+  "last_seen_at": 1785341111948,
+  "jobs": [
+    {
+      "id": "job-1",
+      "year": 115,
+      "created_by": "dev@example.com",
+      "stage": "pushed",
+      "detail": null,
+      "question_count": 4,
+      "needs_review": 2,
+      "created_at": 1785340256948,
+      "updated_at": 1785341126948
+    }
+  ],
+  "server_now": 1785341156948
+}

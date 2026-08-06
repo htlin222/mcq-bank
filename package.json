@@ -5,9 +5,11 @@
 	"scripts": {
 		"setup": "./scripts/setup.sh",
 		"gen:mcq-bundle": "node scripts/gen-mcq-bundle.mjs",
-		"dev": "node scripts/gen-mcq-bundle.mjs && wrangler dev",
+		"gen:bank-bundle": "node scripts/gen-bank-bundle.mjs",
+		"gen:bundles": "node scripts/gen-mcq-bundle.mjs && node scripts/gen-bank-bundle.mjs",
+		"dev": "pnpm gen:bundles && wrangler dev",
 		"sync-users": "node --experimental-strip-types scripts/sync-access.ts",
-		"predeploy": "node --experimental-strip-types scripts/sync-access.ts && node scripts/gen-mcq-bundle.mjs",
+		"predeploy": "node --experimental-strip-types scripts/sync-access.ts && pnpm gen:bundles",
 		"deploy": "wrangler deploy",
 		"tail": "wrangler tail",
 		"db:create": "wrangler d1 create $(node scripts/lib/cfg.mjs project.d1_db)",

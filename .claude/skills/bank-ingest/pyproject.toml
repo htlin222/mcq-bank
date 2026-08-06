@@ -1,0 +1,14 @@
+[project]
+name = "bank-ingest"
+version = "1.0.0"
+description = "把官方考題 PDF 解析成題庫,推進 hema-2026 的匯入暫存區"
+requires-python = ">=3.11"
+dependencies = [
+    # PDF 文字層 + 顏色/座標。答案偵測靠的就是 span 的 color 欄位,
+    # pdftotext 之類的純文字工具拿不到,所以這個相依沒得省。
+    "pymupdf>=1.24",
+    "httpx>=0.27",
+]
+
+[tool.uv]
+package = false

@@ -1,0 +1,84 @@
+{
+  "job": {
+    "id": "job-1",
+    "year": 115,
+    "created_by": "dev@example.com",
+    "stage": "pushed",
+    "detail": null,
+    "question_count": 4,
+    "needs_review": 2,
+    "created_at": 1785340256948,
+    "updated_at": 1785341126948
+  },
+  "questions": [
+    {
+      "number": 1,
+      "group": "內科",
+      "stem": "T315I mutation 的 CML 病人應選用下列何種 TKI?",
+      "options": {
+        "A": "Imatinib",
+        "B": "Dasatinib",
+        "C": "Nilotinib",
+        "D": "Ponatinib",
+        "E": "Asciminib"
+      },
+      "answer": "",
+      "tags": [],
+      "confidence": 0.0,
+      "explanation_doc": null
+    },
+    {
+      "number": 2,
+      "group": "內科",
+      "stem": "下列關於 MPN 的敘述何者錯誤?",
+      "options": {
+        "A": "Imatinib",
+        "B": "Dasatinib",
+        "C": "Nilotinib",
+        "D": "Ponatinib",
+        "E": "Asciminib"
+      },
+      "answer": "B",
+      "tags": [],
+      "confidence": 0.4,
+      "explanation_doc": null
+    },
+    {
+      "number": 3,
+      "group": "內科",
+      "stem": "下列關於 AML 誘導化療的敘述何者正確?",
+      "options": {
+        "A": "Imatinib",
+        "B": "Dasatinib",
+        "C": "Nilotinib",
+        "D": "Ponatinib",
+        "E": "Asciminib"
+      },
+      "answer": "C",
+      "tags": [],
+      "confidence": 1.0,
+      "explanation_doc": null
+    },
+    {
+      "number": 71,
+      "group": "共同",
+      "stem": "下列關於輸血反應的敘述何者最不適當?",
+      "options": {
+        "A": "Imatinib",
+        "B": "Dasatinib",
+        "C": "Nilotinib",
+        "D": "Ponatinib",
+        "E": "Asciminib"
+      },
+      "answer": "A",
+      "tags": [],
+      "confidence": 1.0,
+      "explanation_doc": null
+    }
+  ],
+  "blockers": [
+    "expected 100 questions, staged 4",
+    "these questions still have no answer: 1"
+  ],
+  "expected_total": 100
+}

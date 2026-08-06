@@ -120,6 +120,15 @@ test('identity, notifications and chat are never cacheable', () => {
   assert.equal(isCacheableApiPath('/api/users'), false);
 });
 
+test('the new-year import wizard is never cacheable', () => {
+  // 整個精靈的前提就是它反映本機此刻的狀態。快取任何一支都會讓畫面凍住,
+  // 而使用者無從得知自己在看的是幾分鐘前的東西。
+  assert.equal(isCacheableApiPath('/api/admin/import-year/status'), false);
+  assert.equal(isCacheableApiPath('/api/admin/import-year/abc-123'), false);
+  assert.equal(isCacheableApiPath('/api/bank-ingest/config'), false);
+  assert.equal(isCacheableApiPath('/api/me/bank-skill'), false);
+});
+
 test('scheduling and answer state are never cacheable', () => {
   assert.equal(isCacheableApiPath('/api/review/due'), false);
   assert.equal(isCacheableApiPath('/api/drill/next'), false);

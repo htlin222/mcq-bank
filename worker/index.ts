@@ -27,6 +27,7 @@ import { feedbackRoutes } from './routes/feedback';
 import { challengesRoutes, questionChallengeRoutes } from './routes/challenges';
 import { helpfulRoutes } from './routes/helpful';
 import { mcqRoutes } from './routes/mcq';
+import { bankIngestRoutes, bankAdminRoutes } from './routes/bank-ingest';
 import { lectureRoutes } from './routes/lectures';
 import { textbookRoutes } from './routes/textbook';
 import { chatRoutes } from './routes/chat';
@@ -79,6 +80,12 @@ app.get('/api/health', (c) => c.json({ ok: true, service: 'hema-2026-api', ts: D
 // never inherits Access gating — the path is Access-bypassed at the edge.
 app.route('/api/mcq', mcqRoutes);
 
+// 新年份題庫匯入 —— `bank-ingest` skill 的寫入面。同樣走自己的 API-key 驗證
+// (worker/lib/bank-key.ts) 並註冊在 Access middleware 之前:呼叫端是筆電上的
+// python script,沒有 Access session。這把金鑰只寫得到暫存區,發布必須回到
+// 下面 Access 認證過的 /api/admin/import-year。
+app.route('/api/bank-ingest', bankIngestRoutes);
+
 // Telegram webhook — Telegram 伺服器無法過 Zero Trust,故掛在 /tg(不在
 // /api/* 下,不吃 authMiddleware),並在邊緣把 /tg/* 設為 Access bypass。
 // 自身以 X-Telegram-Bot-Api-Secret-Token 常數時間比對驗證。
@@ -90,6 +97,7 @@ app.use('/img/*', authMiddleware);
 app.use('/pdf/*', authMiddleware);
 
 app.route('/api/me', meRoutes);
+app.route('/api/admin/import-year', bankAdminRoutes); // 審閱 + 發布新年份
 app.route('/api/users', usersRoutes);
 app.route('/api/questions', questionsRoutes);
 app.route('/api/questions', explanationsRoutes); // /:id/explanation/*

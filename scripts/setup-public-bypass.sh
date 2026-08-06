@@ -47,6 +47,14 @@ PATHS=(
   # Claude Code / claude.ai (no Access session) can reach it; the Worker's
   # apiKeyMiddleware (timing-safe key + email allowlist) is the sole gate.
   "/api/mcq/*|${SLUG} public · mcq-api"
+  # 新年份題庫匯入。呼叫端是管理員筆電上的 python script,沒有 Access
+  # session,所以整段必須 bypass;Worker 的 bankKeyMiddleware(常數時間比對
+  # 的 bnkk_ 金鑰 + ADMIN_EMAILS 檢查)才是真正的閘。
+  #
+  # 這條路徑寫得到的只有匯入暫存區 —— 沒有任何學員可見的資料在它後面。
+  # 把年份推進正式題庫需要 Access session,走的是另一段 /api/admin/*,
+  # 那段**不在**這份 bypass 清單裡,而且不可以被加進來。
+  "/api/bank-ingest/*|${SLUG} public · bank-ingest-api"
   # Telegram webhook. Telegram 伺服器沒有 Access session,回呼一律被 302 到
   # 登入頁就永遠收不到 update。故整段 /tg/* Access-bypass;Worker 內以
   # X-Telegram-Bot-Api-Secret-Token 常數時間比對驗證,才是真正的閘。

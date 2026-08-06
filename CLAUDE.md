@@ -250,6 +250,45 @@ Frontend: `ChatProvider` holds one app-wide WS connection (toasts work
 on every page); toast preference lives in `users.chat_notify`
 (`all`/`mention`/`off`), editable from the chat page header.
 
+### 新年份題庫: staged import, and the key that can't publish
+
+複習模式的「＋ 加入新年份」(admins only) 讓管理員不必 clone repo、不必碰
+Cloudflare 憑證就能加一屆考題。設計:
+`docs/plans/2026-08-06-new-year-ingest-design.md`。
+
+The security shape is the part worth remembering. Two keys, two blast radii:
+
+- `mcqk_` (existing) — read questions. ~20 people carry it.
+- `bnkk_` (`worker/lib/bank-key.ts`) — write the **staging area only**. Admins
+  only, separate secret (`BANK_KEY_SECRET`), separate version salt.
+
+`/api/bank-ingest/*` is Access-**bypassed** (the caller is a python script on a
+laptop with no session) and can only touch `import_jobs` / `import_staging`,
+which no student-facing query reads. Promoting a staged year into `questions`
+goes through `/api/admin/import-year/:id/publish`, which needs an Access
+session plus `ADMIN_EMAILS`. **Never add `/api/admin/*` to
+`setup-public-bypass.sh`** — that one line is what makes a stolen laptop
+harmless.
+
+Publish is INSERT-only and refuses any year that already has questions. That
+isn't tidiness: the CSV importer's upsert had to grow a
+`CASE WHEN answer_history IS NULL` guard because a re-import silently clobbered
+answers the community had revised through the challenge flow. Refusing existing
+years makes that bug class unreachable here rather than guarded against.
+
+**答案是白色的「字」,不是白色的方塊。** 官方 PDF 的答案欄每題都有一個
+`color=#ffffff` 的字母 —— 印出來看不見,但文字層有。所以官方發的「題目版」
+本身就含答案,不需要答案顯示版;但 `pdftotext` 會把隱藏層與可見層都吐出來、
+分不清誰是誰,故解析器(`.claude/skills/bank-ingest/scripts/parse_exam.py`)
+用 PyMuPDF 讀 span 顏色。答案欄座標由版面推導,不寫死。實測 114 年兩份官方
+PDF 共 100 題全數以信心 1.0 命中。兩個踩過的坑:連鎖題的答案寫成 `(C)` 而非
+`C`,以及至少一題用全形 `Ｄ` —— 兩者都會靜默漏題。
+
+The skill is snapshotted into the Worker by `scripts/gen-bank-bundle.mjs` (same
+pattern as the mcq bundle) so `/api/me/bank-skill` can zip it with a freshly
+baked per-admin `.env`. Editing the skill means re-running `pnpm gen:bundles`
+— wired into `dev` and `predeploy`.
+
 ### 作答歷史: `attempts` is the source of truth
 
 `attempts` (migration `0023`) is an append-only event log — one row per

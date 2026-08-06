@@ -42,6 +42,14 @@ export type Env = {
   //   key = "mcqk_" + b64url(HMAC-SHA256(MCQ_KEY_SECRET, `${email}:${ver}`))
   // Set via `wrangler secret put MCQ_KEY_SECRET`; .dev.vars locally.
   MCQ_KEY_SECRET?: string;
+  // HMAC secret for the per-admin write key used by the `bank-ingest` skill
+  // (新年份題庫匯入). Separate secret from MCQ_KEY_SECRET on purpose — that
+  // one is a read key held by ~20 people, this one can write the staging
+  // area and is held only by ADMIN_EMAILS. See worker/lib/bank-key.ts.
+  //   key = "bnkk_" + b64url(HMAC-SHA256(BANK_KEY_SECRET, `${email}:bank:${ver}`))
+  // Set via `wrangler secret put BANK_KEY_SECRET`; .dev.vars locally.
+  // Unset ⇒ /api/bank-ingest/* returns 503 and the download button hides.
+  BANK_KEY_SECRET?: string;
   // Question categories. Format: "<label>:<count>,...". Empty / missing
   // falls back to a single "全部:0" group so the app still boots.
   GROUPS?: string;

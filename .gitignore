@@ -83,3 +83,8 @@ anki-deck/
 
 # 策展中間產物 —— 可由 scripts/curate-videos.py 重新產生,D1 才是真相來源
 scripts/data/
+
+# uv 在 skill 資料夾解析出來的 lock。skill 是靠 gen-bank-bundle.mjs 打包成
+# .skill 發出去的,只帶 pyproject.toml,所以這份 lock 不會被送到任何人手上
+# —— 留在 repo 裡只會慢慢漂掉。
+.claude/skills/*/uv.lock
