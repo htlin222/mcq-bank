@@ -163,6 +163,29 @@ export function putPageNote(
 	});
 }
 
+// ── 歷屆考題 (past-exam MCQ links) ──────────────────────────────────────
+//
+// One page's worth of MCQs, pre-computed offline by
+// scripts/build-slide-mcq-links.ts and joined in worker/routes/lectures.ts.
+// Always returns [] rather than throwing (missing table / unbackfilled page).
+
+export interface LecturePageQuestion {
+	id: string;
+	year: number;
+	group: "內科" | "共同" | null;
+	stem: string;
+	options_json: string;
+	answer: string;
+	score: number;
+	rank: number;
+	tags: string | null; // space-joined GROUP_CONCAT
+}
+
+/** @param page 1-based PDF page (currentPage + 1). */
+export function listPageQuestions(slug: string, page: number): Promise<LecturePageQuestion[]> {
+	return api.get<LecturePageQuestion[]>(`/api/lectures/${slug}/questions?page=${page}`);
+}
+
 // ── AI ───────────────────────────────────────────────────────────────
 
 // Explain a free-text slide selection via Workers AI.
