@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
+import { questionCache } from "../lib/questionCache";
 import { useQuestion } from "../hooks/useQuestion";
 import { QuestionCard } from "../components/QuestionCard";
 
@@ -37,6 +38,14 @@ export function Drill() {
 
 	const currentId = ids && ids.length > 0 ? ids[pos] : undefined;
 	const { data, error, reload } = useQuestion(currentId);
+
+	// 這一組的 id 一開始就全知道,所以左右鄰居可以先抓進 questionCache —— 按下
+	// 「下一題」時 useQuestion 同步就讀得到,不必再等一趟網路。
+	useEffect(() => {
+		if (!ids) return;
+		questionCache.prefetch(ids[pos + 1]);
+		questionCache.prefetch(ids[pos - 1]);
+	}, [ids, pos]);
 	const total = ids?.length ?? 0;
 	const done = useMemo(
 		() => total > 0 && Object.keys(answered).length >= total,

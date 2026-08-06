@@ -35,12 +35,18 @@ const PIXEL = Buffer.from(
   'base64',
 );
 
-export function startServer({ dist, port = 0 }) {
+/**
+ * @param apiDelayMs 人為延遲每個 /api/ 回應。預抓測試靠它把「有沒有先抓好」變成
+ *   可觀測的時間差:抓好了就不必等這段延遲,沒抓好就得等滿。
+ */
+export function startServer({ dist, port = 0, apiDelayMs = 0 }) {
   const missing = new Set();
+  const apiHits = [];
 
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
     const p = url.pathname;
+    if (p.startsWith('/api/')) apiHits.push(p + url.search);
 
     if (p.startsWith('/img/')) {
       res.writeHead(200, { 'Content-Type': 'image/png' });
@@ -50,10 +56,14 @@ export function startServer({ dist, port = 0 }) {
     if (p.startsWith('/api/')) {
       const name = p.slice('/api/'.length).replace(/\/$/, '').replace(/\//g, '_');
       const file = path.join(FIXTURES, `${name}.json`);
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      if (fs.existsSync(file)) return res.end(fs.readFileSync(file));
-      missing.add(p);
-      return res.end('{}');
+      const send = () => {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        if (fs.existsSync(file)) return res.end(fs.readFileSync(file));
+        missing.add(p);
+        return res.end('{}');
+      };
+      if (apiDelayMs > 0) return void setTimeout(send, apiDelayMs);
+      return send();
     }
 
     // SPA:任何非資產路徑都回 index.html
@@ -70,6 +80,7 @@ export function startServer({ dist, port = 0 }) {
       resolve({
         origin: `http://127.0.0.1:${server.address().port}`,
         missingFixtures: () => [...missing].sort(),
+        apiHits: () => [...apiHits],
         close: () => new Promise((r) => server.close(r)),
       });
     });

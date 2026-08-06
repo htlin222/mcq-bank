@@ -110,7 +110,7 @@ jobs:
         run: |
           set -euo pipefail
           pnpm --dir frontend exec playwright install --with-deps webkit
-          node --test frontend/e2e/smoke.test.mjs
+          node --test frontend/e2e/smoke.test.mjs frontend/e2e/nav-prefetch.test.mjs
 
       - name: Deploy to Cloudflare Pages
         if: steps.guard.outputs.pages_only == 'true'

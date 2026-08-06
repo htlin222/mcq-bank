@@ -94,27 +94,35 @@ questionsRoutes.get("/:id", async (c) => {
 	const id = c.req.param("id");
 	const email = c.var.email;
 
-	const question = await c.env.DB.prepare(
-		"SELECT * FROM questions WHERE id = ?",
-	)
-		.bind(id)
-		.first<Question>();
-
-	if (!question) return c.json({ error: "not found" }, 404);
-
-	const explanation = await c.env.DB.prepare(
-		"SELECT * FROM explanations WHERE question_id = ?",
-	)
-		.bind(id)
-		.first<Explanation>();
-
-	const { results: tagRows } = await c.env.DB.prepare(
-		"SELECT tag FROM question_tags WHERE question_id = ? ORDER BY created_at ASC",
-	)
-		.bind(id)
-		.all<{ tag: string }>();
-
-	const [progress, bookmark, noteRows, backRefRows, activeChallenges, commentCountRow] = await Promise.all([
+	// 這九個查詢彼此不相依 —— 全部只靠 `id` 與 `email`,沒有一個要等別人的結果。
+	// 以前 questions / explanations / question_tags 是三個各自 await 的序列查詢,
+	// 排在 Promise.all 前面,等於每次開題白白多花兩趟 D1 round-trip。合成一批之後
+	// 這支端點只剩一趟的延遲,而它正是換題時使用者在等的東西。
+	//
+	// 代價:題目不存在時,另外八個查詢也已經送出去了。它們都是 `WHERE ... = ?` 的
+	// 空集合查詢,成本可忽略,而 404 是罕例 —— 拿常見路徑的兩趟 RTT 去換它不划算。
+	const [
+		question,
+		explanation,
+		tagRowsResult,
+		progress,
+		bookmark,
+		noteRows,
+		backRefRows,
+		activeChallenges,
+		commentCountRow,
+	] = await Promise.all([
+		c.env.DB.prepare("SELECT * FROM questions WHERE id = ?")
+			.bind(id)
+			.first<Question>(),
+		c.env.DB.prepare("SELECT * FROM explanations WHERE question_id = ?")
+			.bind(id)
+			.first<Explanation>(),
+		c.env.DB.prepare(
+			"SELECT tag FROM question_tags WHERE question_id = ? ORDER BY created_at ASC",
+		)
+			.bind(id)
+			.all<{ tag: string }>(),
 		c.env.DB.prepare(
 			"SELECT times_seen, times_correct, last_chosen, last_correct FROM review_progress WHERE user_email = ? AND question_id = ?",
 		)
@@ -163,6 +171,10 @@ questionsRoutes.get("/:id", async (c) => {
 			.bind(id)
 			.first<{ n: number } | null>(),
 	]);
+
+	if (!question) return c.json({ error: "not found" }, 404);
+
+	const tagRows = tagRowsResult.results ?? [];
 
 	const my_progress =
 		progress || bookmark
