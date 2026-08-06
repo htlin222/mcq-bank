@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Gamepad2, TriangleAlert, X } from "lucide-react";
 import { useGamepadConnected } from "../hooks/useGamepad";
-import { rumble, rumbleEnabled, setRumbleEnabled } from "../lib/gamepad";
+import {
+	claimConnectionAnnouncement,
+	rumble,
+	rumbleEnabled,
+	setRumbleEnabled,
+} from "../lib/gamepad";
 
 export type GamepadHint = { btn: string; label: string };
 
@@ -29,8 +34,12 @@ export function GamepadFab({ hints }: { hints: GamepadHint[] }) {
 	// 藍牙配對好之後仍然「看不見」,要等使用者在手把上按下第一顆按鈕才會現身。
 	// 所以「什麼時候算連上」對使用者是模糊的 —— 這則提示就是那個答案,而且它
 	// 出現的時機正好是第一次按鍵被收到的瞬間,順帶證明按鍵有通。
+	//
+	// 「講過了沒」記在 lib/gamepad.ts 的模組層,不記在這裡的 state:這顆 FAB 掛在
+	// 三條路由上,換頁就重掛,記在元件裡等於每次換頁都重講一次。claim 在沒有手把
+	// 時會自己歸零,所以拔掉再插仍然會宣告。
 	useEffect(() => {
-		if (!connected) return;
+		if (!claimConnectionAnnouncement()) return;
 		setJustConnected(true);
 		const t = window.setTimeout(() => setJustConnected(false), 5000);
 		return () => window.clearTimeout(t);

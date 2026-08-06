@@ -337,6 +337,57 @@ test('START 回年度列表,而且不會被新頁面再吃一次', async (t) => 
   assert.deepEqual(errors, [], '不該有未捕捉例外');
 });
 
+test('換題不會把「已連線」提示再放一次', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+
+  // 提示自己會在 5 秒後收掉。先等它收乾淨,這樣之後看到的任何一則都必然是
+  // 「又被放了一次」,而不是同一則還沒消失。
+  await page.waitForTimeout(6_000);
+  const before = await page.evaluate(() => document.body.innerText);
+  assert.ok(
+    !before.includes('已連線'),
+    `前置條件不成立:提示過了 5 秒還在。實際:${before.slice(0, 200)}`,
+  );
+
+  await tap(page, BTN.L1);
+  await page.waitForTimeout(1_200);
+  assert.equal(new URL(page.url()).pathname, '/q/113-049', '應該真的換了題');
+
+  const after = await page.evaluate(() => document.body.innerText);
+  assert.ok(
+    !after.includes('已連線'),
+    '換題又跳一次連線提示 —— GamepadFab 被卸載重掛了(手把從頭到尾沒斷過)',
+  );
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('回年度列表再進另一題,也不會把「已連線」提示再放一次', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await page.waitForTimeout(6_000);
+
+  // 題目頁 → 年度列表 → 另一題。中間 GamepadFab 真的被卸載了(換的是路由,
+  // 不是同一個元件的參數),所以這條驗的是「提示綁在連線事件上,不是綁在掛載
+  // 上」—— 手把從頭到尾沒斷過,就不該再宣告一次。
+  await tap(page, BTN.START);
+  await page.waitForTimeout(1_200);
+  assert.equal(new URL(page.url()).pathname, '/year/113', '應該先到年度列表');
+
+  const onList = await page.evaluate(() => document.body.innerText);
+  assert.ok(!onList.includes('已連線'), '年度列表就不該再宣告一次');
+
+  // 回題目頁用上一頁而不是在清單上按進去:清單第一列是 113-001,那題沒有
+  // fixture(樁回 {}),渲染會炸在 options —— 那是取樣問題,不是這條要驗的事。
+  await page.goBack();
+  await page.waitForTimeout(1_200);
+  assert.equal(new URL(page.url()).pathname, '/q/113-050', '應該回到題目頁');
+
+  const onQuestion = await page.evaluate(() => document.body.innerText);
+  assert.ok(!onQuestion.includes('已連線'), '回題目頁又宣告了一次');
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
 test('年度列表:DPAD ↓ 移動游標,FACE ▼ 進入該題', async (t) => {
   if (guard(t)) return;
   const { page, errors } = await open(t, '/year/113');

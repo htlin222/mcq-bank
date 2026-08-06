@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   AXIS_DEADZONE,
+  stepAnnounce,
   axisScrollDelta,
   BUTTON_ACTIONS,
   IDLE_BUTTON,
@@ -107,4 +108,35 @@ test('axisScrollDelta scales with frame time, not frame count', () => {
   const one = axisScrollDelta(1, 16);
   const two = axisScrollDelta(1, 32);
   assert.ok(Math.abs(two - one * 2) < 1e-9);
+});
+
+// ---- 「已連線」提示的歸屬 --------------------------------------------------
+// 提示綁在連線事件上,不是綁在 GamepadFab 的掛載上 —— 那顆 FAB 掛在三條路由上,
+// 換頁就重掛,記在元件 state 裡等於每次換頁都重講一次。
+
+test('同一支手把只宣告一次,重掛不重講', () => {
+  const first = stepAnnounce(null, 'pad-a');
+  assert.deepEqual(first, { state: 'pad-a', announce: true });
+  const again = stepAnnounce(first.state, 'pad-a');
+  assert.deepEqual(again, { state: 'pad-a', announce: false });
+});
+
+test('拔掉會歸零,插回來要重新宣告一次', () => {
+  const gone = stepAnnounce('pad-a', null);
+  assert.deepEqual(gone, { state: null, announce: false });
+  assert.deepEqual(stepAnnounce(gone.state, 'pad-a'), {
+    state: 'pad-a',
+    announce: true,
+  });
+});
+
+test('換成另一支手把要重新宣告(名字會變,使用者需要知道)', () => {
+  assert.deepEqual(stepAnnounce('pad-a', 'pad-b'), {
+    state: 'pad-b',
+    announce: true,
+  });
+});
+
+test('本來就沒手把時不會宣告', () => {
+  assert.deepEqual(stepAnnounce(null, null), { state: null, announce: false });
 });

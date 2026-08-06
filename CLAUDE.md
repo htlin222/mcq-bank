@@ -403,6 +403,13 @@ highlights and `/pdf/*` must stay out — see the comment block there for why.
   存在的理由只有一個:`peek()` 在 **render 當下同步**可讀,所以預抓命中時第一次
   render 就畫得出完整題目,連 loading 都不進。TTL 60s,過期不丟(先畫舊的再背景
   重抓)。
+- **`useQuestion` 結尾那個 render 期間的 `questionCache.peek(id)` 是承重的,不是
+  順手優化。** 拿掉它,換題的第一個 render 必然 `data === null`(state 還停在上一
+  題,effect 來不及),`Question.tsx` 的 `if (!data)` 就會把整棵子樹卸掉一幀再重掛
+  —— TipTap 被重建,GamepadFab 的「已連線」提示也會每次換題重播一次。
+- **一次性的提示不要把「講過了沒」記在元件 state。** `GamepadFab` 掛在
+  Question / YearList / Exam 三條路由上,換頁一定重掛;`claimConnectionAnnouncement()`
+  (`lib/gamepad.ts`)把它記在模組層並綁在 pad id 上,拔插才會重新宣告。
 - **不要把 `/api/questions/:id` 在 `sw.ts` 改成 StaleWhileRevalidate。** 它會讓
   「存完詳解 → `reload()` 看到自己的修改」讀到舊值 —— 比慢更糟。快取因此做在應用
   層,失效時機由呼叫端掌握(存檔後 `set()`、`reload()` 走 `force`)。SW 那套

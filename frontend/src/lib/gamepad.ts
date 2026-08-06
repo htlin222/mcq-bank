@@ -220,6 +220,38 @@ export function nonStandardMapping(): string | null {
 	return gp.mapping === "standard" ? null : gp.id || "unknown";
 }
 
+// 「已連線」提示歸屬於**連線這個事件**,不是歸屬於 GamepadFab 的掛載。
+//
+// FAB 掛在 Question / YearList / Exam 三條路由上,換路由就會卸載重掛;而換題
+// 時如果那一題還沒預抓到,Question 也會短暫地不渲染子樹。把「講過了沒」放在元件
+// 的 useState 裡,等於每一次重掛都重講一次 —— 手把明明從頭到尾沒斷過。
+//
+// 記的是 pad 的原始 id 而不是布林值:拔掉換一支、或同一支斷線再連,都該重新宣告
+// 一次(那時使用者確實需要知道「網頁看到它了」)。
+export type AnnounceState = string | null;
+
+/** 純函式,好測。`padId` 為 null 代表當下沒有手把。 */
+export function stepAnnounce(
+	prev: AnnounceState,
+	padId: string | null,
+): { state: AnnounceState; announce: boolean } {
+	if (!padId) return { state: null, announce: false };
+	if (prev === padId) return { state: prev, announce: false };
+	return { state: padId, announce: true };
+}
+
+let announcedPad: AnnounceState = null;
+
+/** 該不該現在跳提示。有副作用(記下已宣告),所以一次連線只會回 true 一次。 */
+export function claimConnectionAnnouncement(): boolean {
+	const { state, announce } = stepAnnounce(
+		announcedPad,
+		activeGamepad()?.id ?? null,
+	);
+	announcedPad = state;
+	return announce;
+}
+
 /** The pad's self-reported name, trimmed of the vendor/product hex the browser
  *  appends — "8BitDo Pro 2" reads better than the 40-char raw id. */
 export function gamepadName(): string | null {

@@ -133,6 +133,14 @@ export function useQuestion(id: string | undefined) {
     [id, adopt],
   );
 
-  const data = entry && entry.id === id ? entry.q : null;
+  // `entry` 是「上一次拿到的」,而 state 在 id 變動的那個 render 還停在舊題 ——
+  // 所以真正的答案要**在 render 當下**再問一次 cache。少了這一行,即使預抓早就
+  // 命中,換題的第一個 render 仍然 data === null,Question.tsx 的 `if (!data)`
+  // 會把整棵子樹卸掉一幀再重掛:TipTap 被重建,GamepadFab 也會因為「掛載時手把
+  // 已連線」而把提示重播一次。effect 裡的 adopt() 只是把它補寫回 state,來不及
+  // 救這一幀。
+  const data =
+    (entry && entry.id === id ? entry.q : null) ??
+    (id ? (questionCache.peek(id) ?? null) : null);
   return { data, loading: loading && !data, error, reload, setData };
 }
