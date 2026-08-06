@@ -135,7 +135,10 @@ export function Play() {
     }
     api
       .put<{ ok: true; best: number }>('/api/play/state', { state: latest.current })
-      .then((r) => setBest(r.best))
+      // 回應形狀不對就當沒發生 —— 否則 setBest(undefined) 會讓「最高」顯示 NaN。
+      .then((r) => {
+        if (typeof r?.best === 'number') setBest(r.best);
+      })
       .catch(() => {
         /* 離線:下一步移動會再試一次 */
       });

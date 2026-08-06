@@ -1,0 +1,5 @@
+[
+  {"email":"alice@example.com","displayName":"Alice","avatarKey":null,"best":6144,"at":1785309885409,"me":false},
+  {"email":"dev@example.com","displayName":"Dev","avatarKey":null,"best":3120,"at":1785309885409,"me":true},
+  {"email":"bob@example.com","displayName":"Bob","avatarKey":null,"best":892,"at":1785309885409,"me":false}
+]
