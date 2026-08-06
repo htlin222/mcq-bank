@@ -33,6 +33,7 @@ import { textbookRoutes } from './routes/textbook';
 import { chatRoutes } from './routes/chat';
 import { oeRoutes } from './routes/oe';
 import { stateRoutes } from './routes/state';
+import { playRoutes } from './routes/play';
 import { exportRoutes } from './routes/export';
 import { drillRoutes } from './routes/drill';
 import { highlightsRoutes } from './routes/highlights';
@@ -43,6 +44,7 @@ import { runPushTick } from './lib/tg-push';
 // Durable Object classes must be exported from the Worker entrypoint.
 export { ChatRoom } from './chat-room';
 export { UserState } from './user-state';
+export { Play2048 } from './play-2048';
 
 const app = new Hono<AppContext>();
 
@@ -127,6 +129,7 @@ app.route('/api/textbook', textbookRoutes);
 app.route('/api/chat', chatRoutes);
 app.route('/api/oe', oeRoutes);
 app.route('/api/state', stateRoutes);
+app.route('/api/play', playRoutes);   // 2048 休息小遊戲
 app.route('/api/export', exportRoutes);
 app.route('/api/telegram', telegramApiRoutes);
 app.route('/api/videos', videosRoutes);

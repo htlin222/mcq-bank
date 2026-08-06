@@ -60,6 +60,14 @@ class_name = "ChatRoom"
 name = "USER_STATE"
 class_name = "UserState"
 
+# 2048 休息小遊戲的存檔(棋盤 + 歷史最高分)—— single "main" instance。
+# 獨立於 USER_STATE:遊戲是每步 debounce 寫入(秒級),續讀位置是換頁才寫
+# (分鐘級),而 DO 是單執行緒的 —— 塞在同一個 instance 會讓有人在玩時,
+# 其他人的「上次停在哪」讀取排在遊戲寫入後面。
+[[durable_objects.bindings]]
+name = "PLAY"
+class_name = "Play2048"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["ChatRoom"]
@@ -67,6 +75,10 @@ new_sqlite_classes = ["ChatRoom"]
 [[migrations]]
 tag = "v2"
 new_sqlite_classes = ["UserState"]
+
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["Play2048"]
 
 # Cron Trigger — drives worker/index.ts `scheduled()`:
 #   1. roster → Access policy + D1 users sync (worker/lib/roster-sync.ts)
