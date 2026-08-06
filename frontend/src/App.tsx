@@ -232,7 +232,7 @@ export default function App() {
 			    同在一列(後兩顆按情境亮)。 */}
 			<SelectionToolbar />
 
-			{/* 番茄鐘 — floats over 複習模式 only (hides itself elsewhere). */}
+			{/* 番茄鐘 — 站內每一頁都在。右下角是它的位置,BackToTopFab 讓在左下。 */}
 			<PomodoroFab />
 
 			{/* "有新版本" strip — only visible when a new SW is waiting. */}

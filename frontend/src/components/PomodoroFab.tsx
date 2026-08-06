@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Timer,
   Play,
@@ -15,7 +15,6 @@ import {
   SETTING_BOUNDS,
   clampSettings,
   fmt,
-  isTimerPath,
   loadSettings,
   nextPhase,
   phaseMs,
@@ -24,9 +23,13 @@ import {
   type PomodoroSettings,
 } from '../lib/pomodoro';
 
-// 番茄鐘 FAB for 複習模式. Mounted app-wide but only *shown* on the 複習 routes:
-// a detour to 全真 or 收藏 mid-session shouldn't silently kill a running timer,
-// so the hooks keep ticking while the button hides.
+// 番茄鐘 FAB —— 站內每一頁都顯示。
+//
+// 一度只在複習路徑上顯示,理由是「別在其他地方礙事」;但那讓一顆跑著的番茄
+// 在你切去查收藏、看排行榜或玩 2048 時憑空消失,看起來像壞了。計時的東西
+// 一旦會自己不見,就沒人敢信任它 —— 所以現在它一直都在。
+//
+// 右下角是它的位置;BackToTopFab 已經讓在左下,兩顆不會疊。
 //
 // The countdown is derived from an absolute `endsAt` timestamp rather than
 // decremented per tick — a throttled background tab fires setInterval far less
@@ -36,9 +39,6 @@ const RING_R = 26;
 const RING_C = 2 * Math.PI * RING_R;
 
 export function PomodoroFab() {
-  const { pathname } = useLocation();
-  const visible = isTimerPath(pathname);
-
   const [settings, setSettings] = useState<PomodoroSettings>(() => loadSettings());
   const [phase, setPhase] = useState<Phase>('focus');
   const [completedFocus, setCompletedFocus] = useState(0);
@@ -174,8 +174,6 @@ export function PomodoroFab() {
     const into = completedFocus % settings.longEvery;
     return settings.longEvery - into;
   }, [completedFocus, settings.longEvery]);
-
-  if (!visible) return null;
 
   return (
     <div
