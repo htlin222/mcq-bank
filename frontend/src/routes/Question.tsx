@@ -34,6 +34,8 @@ import { useLock } from "../hooks/useLock";
 import { useMe } from "../hooks/useMe";
 import { useOnline } from "../hooks/useOnline";
 import { QuestionCard } from "../components/QuestionCard";
+import { GamepadFab, type GamepadHint } from "../components/GamepadFab";
+import { useGamepad, useGamepadScroll } from "../hooks/useGamepad";
 import { RichEditor } from "../components/RichEditor";
 import { AnnotatableContent } from "../components/AnnotatableContent";
 import { NoteContent } from "../components/NoteContent";
@@ -52,6 +54,32 @@ import {
 // row width; the rest goes to the right pane. Persisted as a UI layout pref.
 const SPLIT_MIN = 28;
 const SPLIT_MAX = 72;
+
+// Pixels per d-pad press when it is scrolling rather than picking an option.
+// The d-pad auto-repeats every 120ms while held, so this is ~1000px/s sustained
+// — brisk enough to cross a long 詳解, slow enough to read on the way.
+const GAMEPAD_SCROLL_STEP = 120;
+
+// 兩份說明:同一顆十字鍵在作答前選選項、揭曉後捲頁面,寫成一份會騙人。
+const GAMEPAD_HINTS_SHARED: GamepadHint[] = [
+	{ btn: "FACE ▲", label: "複製題目為 Markdown" },
+	{ btn: "FACE ▶", label: "收藏" },
+	{ btn: "L1 / R1", label: "上一題 / 下一題" },
+	{ btn: "L2 / R2", label: "上一個 / 下一個分頁" },
+	{ btn: "START", label: "回年度列表" },
+	{ btn: "左搖桿", label: "捲動" },
+];
+const GAMEPAD_HINTS_ANSWERING: GamepadHint[] = [
+	{ btn: "DPAD ↑ ↓", label: "選擇選項" },
+	{ btn: "DPAD ← →", label: "作答信心(選了選項後)" },
+	{ btn: "FACE ▼", label: "送出答案" },
+	{ btn: "FACE ◀", label: "略過 / 直接看答案" },
+	...GAMEPAD_HINTS_SHARED,
+];
+const GAMEPAD_HINTS_REVEALED: GamepadHint[] = [
+	{ btn: "DPAD ↑ ↓", label: "捲動詳解" },
+	...GAMEPAD_HINTS_SHARED,
+];
 const SPLIT_DEFAULT = 42; // ≈ the previous fixed 5fr / 7fr ratio
 const SPLIT_KEY = "review-split-pct";
 
@@ -131,6 +159,12 @@ export function Question() {
 	// Which pane is visible in tabs mode (≥md only).
 	const [mainTab, setMainTab] = useState<MainTab>("question");
 	const tabsMode = layout === "tabs";
+
+	// Reported up by QuestionCard so the gamepad knows whether the d-pad is
+	// still picking options or has become a scroll control. The right column is
+	// the scroll container in columns mode.
+	const [cardRevealed, setCardRevealed] = useState(false);
+	const rightColRef = useRef<HTMLDivElement>(null);
 
 	// The inner 詳解共筆/… tab strip is sticky (see below); its measured height
 	// drives where the sticky per-pane toolbar (自動挖空/防劇透/編輯) pins, so the
@@ -822,6 +856,40 @@ export function Question() {
 		}
 	}
 
+	// Cycle the tab strip one step. Which strip that is depends on the layout:
+	// tabs mode at ≥md drives the top 題目/詳解/… strip, everything else drives
+	// the right column's own. Shared by the h/l keys and L2/R2 on the gamepad.
+	function cycleTab(dir: 1 | -1) {
+		const md = window.matchMedia("(min-width: 768px)").matches;
+		if (md && tabsMode) {
+			// 影片 tab 只在有影片時存在,循環順序也要跟著少一格。
+			const order: MainTab[] = [
+				"question",
+				"explanation",
+				"note",
+				"discussion",
+				"similar",
+				...(hasVideos ? (["video"] as MainTab[]) : []),
+			];
+			setMainTab(
+				(cur) => order[(order.indexOf(cur) + dir + order.length) % order.length],
+			);
+		} else {
+			const order: Tab[] = md
+				? [
+						"explanation",
+						"note",
+						"discussion",
+						"similar",
+						...(hasVideos ? (["video"] as Tab[]) : []),
+					]
+				: ["explanation", "note", ...(hasVideos ? (["video"] as Tab[]) : [])];
+			const i = order.indexOf(tab);
+			const base = i < 0 ? 0 : i;
+			setTab(order[(base + dir + order.length) % order.length]);
+		}
+	}
+
 	// Review-mode page shortcuts. Answer selection / submit / copy / bookmark
 	// live in QuestionCard; here: ← 上一題, → 下一題, ↑ 回年度列表, h/l cycle the
 	// tab strip (5 tabs in tabs mode; the right-column tabs otherwise), n jumps
@@ -840,7 +908,6 @@ export function Question() {
 		)
 			return;
 		if (!data || editing || noteEditing) return;
-		const md = window.matchMedia("(min-width: 768px)").matches;
 
 		if (e.key === "ArrowLeft") {
 			if (navPrev) {
@@ -865,35 +932,7 @@ export function Question() {
 		const k = e.key.toLowerCase();
 		if (k === "h" || k === "l") {
 			e.preventDefault();
-			const dir = k === "l" ? 1 : -1;
-			if (md && tabsMode) {
-				// 影片 tab 只在有影片時存在,循環順序也要跟著少一格。
-				const order: MainTab[] = [
-					"question",
-					"explanation",
-					"note",
-					"discussion",
-					"similar",
-					...(hasVideos ? (["video"] as MainTab[]) : []),
-				];
-				setMainTab(
-					(cur) =>
-						order[(order.indexOf(cur) + dir + order.length) % order.length],
-				);
-			} else {
-				const order: Tab[] = md
-					? [
-							"explanation",
-							"note",
-							"discussion",
-							"similar",
-							...(hasVideos ? (["video"] as Tab[]) : []),
-						]
-					: ["explanation", "note", ...(hasVideos ? (["video"] as Tab[]) : [])];
-				const i = order.indexOf(tab);
-				const base = i < 0 ? 0 : i;
-				setTab(order[(base + dir + order.length) % order.length]);
-			}
+			cycleTab(k === "l" ? 1 : -1);
 			return;
 		}
 		if (k === "n") {
@@ -909,6 +948,52 @@ export function Question() {
 		window.addEventListener("keydown", onKeyDown);
 		return () => window.removeEventListener("keydown", onKeyDown);
 	}, []);
+
+	// Which element the gamepad scrolls. In columns mode at ≥md the page itself
+	// doesn't scroll — each column is its own scroll container — so `window`
+	// would be a no-op; the long content (詳解/筆記/討論) lives in the right one.
+	// tabs mode and mobile scroll the page normally, hence null.
+	function gamepadScrollEl(): HTMLElement | null {
+		const md = window.matchMedia("(min-width: 768px)").matches;
+		return !tabsMode && md ? rightColRef.current : null;
+	}
+	function gamepadScrollBy(dy: number) {
+		const el = gamepadScrollEl();
+		if (el) el.scrollTop += dy;
+		else window.scrollBy(0, dy);
+	}
+	useGamepadScroll(gamepadScrollEl);
+
+	// Gamepad page bindings. Options / 送出 / 複製 / 收藏 are QuestionCard's;
+	// these are the ones that need page context. The d-pad is shared: the card
+	// owns ↑↓ while unanswered (option cursor), the page takes it over once the
+	// answer is showing and there's a 詳解 to read — hence `cardRevealed`.
+	useGamepad((action) => {
+		if (!data || editing || noteEditing) return;
+		switch (action) {
+			case "l1":
+				if (navPrev) navigate(`/q/${navPrev}`, { state: location.state });
+				break;
+			case "r1":
+				if (navNext) navigate(`/q/${navNext}`, { state: location.state });
+				break;
+			case "l2":
+				cycleTab(-1);
+				break;
+			case "r2":
+				cycleTab(1);
+				break;
+			case "start":
+				navigate(`/year/${data.year}`);
+				break;
+			case "up":
+				if (cardRevealed) gamepadScrollBy(-GAMEPAD_SCROLL_STEP);
+				break;
+			case "down":
+				if (cardRevealed) gamepadScrollBy(GAMEPAD_SCROLL_STEP);
+				break;
+		}
+	});
 
 	// While we have data, keep rendering even during a refetch — this is the
 	// common case after saving 詳解, where blanking the page would feel jarring.
@@ -1126,6 +1211,7 @@ export function Question() {
 						question={data}
 						onAnswered={reload}
 						onProgressCleared={reload}
+						onRevealedChange={setCardRevealed}
 					/>
 				</div>
 
@@ -1151,6 +1237,7 @@ export function Question() {
 
 				{/* Right: 詳解共筆 / 個人筆記 tabs → 相似題目 → 被引用 → 討論 */}
 				<div
+					ref={rightColRef}
 					className={
 						"tiptap-compact mt-8 md:mt-0 " +
 						(tabsMode
@@ -1841,6 +1928,11 @@ export function Question() {
 			</div>
 			{/* /two-column grid */}
 			<BackToTopFab />
+			<GamepadFab
+				hints={
+					cardRevealed ? GAMEPAD_HINTS_REVEALED : GAMEPAD_HINTS_ANSWERING
+				}
+			/>
 		</div>
 	);
 }

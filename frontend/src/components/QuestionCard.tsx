@@ -3,6 +3,8 @@ import { Bookmark, BookmarkPlus, Check, X, FolderPlus, RotateCcw, Copy, ShieldCh
 import { api, ApiError } from '../lib/api';
 import type { QuestionFull } from '../hooks/useQuestion';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
+import { useGamepad } from '../hooks/useGamepad';
+import { rumble } from '../lib/gamepad';
 import { useMe } from '../hooks/useMe';
 import { ChallengePanel } from './ChallengePanel';
 import { groupBadgeClass } from '../lib/groups';
@@ -14,6 +16,10 @@ type Props = {
   onAnswered?: (chosen: string, correct: boolean) => void;
   onBookmarkToggled?: (bookmarked: boolean) => void;
   onProgressCleared?: () => void;
+  // Lets the page know whether the answer is showing. Only the gamepad needs
+  // this: the d-pad selects options while unanswered and scrolls the panel
+  // afterwards, and the scroll target is the page's business, not the card's.
+  onRevealedChange?: (revealed: boolean) => void;
 };
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
@@ -25,7 +31,7 @@ function fmtSeconds(ms: number): string {
   return `${Math.floor(sec / 60)} 分 ${sec % 60} 秒`;
 }
 
-export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared }: Props) {
+export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared, onRevealedChange }: Props) {
   const bookmarkSet = useBookmarkSet();
   const { me } = useMe();
   const [chosen, setChosen] = useState<string | null>(
@@ -85,6 +91,10 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
   async function submit() {
     if (!chosen || submitting) return;
     setSubmitting(true);
+    // Rumble the moment the button goes down. The round trip below is long
+    // enough that buzzing only on the response feels like a dropped input; the
+    // correct/wrong buzz is the second half of the same feedback.
+    void rumble('tap');
     if (!answerIdemKey.current || answerIdemKey.current.qid !== question.id) {
       answerIdemKey.current = { qid: question.id, key: crypto.randomUUID() };
     }
@@ -101,6 +111,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
       );
       answerIdemKey.current = null;
       setRevealed(true);
+      void rumble(r.correct ? 'correct' : 'wrong');
       onAnswered?.(chosen, r.correct);
     } finally {
       setSubmitting(false);
@@ -202,8 +213,11 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     }
   }
 
+  // `?.` 不是多餘的:少了它,一份沒有 options 的 payload 會在 render 途中丟
+  // TypeError,React 18 的反應是卸載整棵樹 —— 也就是整頁白屏。SW 會 runtime
+  // cache /api/questions/:id,所以「舊 schema 的快取回應」是真的搆得到這條路。
   const options = LETTERS
-    .map((L) => ({ L, text: question.options[L] }))
+    .map((L) => ({ L, text: question.options?.[L] }))
     .filter((o) => !!o.text);
   const canEditAnswer = question.can_edit_answer === true;
 
@@ -235,7 +249,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
 
     if (!revealed) {
       const L = e.key.toUpperCase() as (typeof LETTERS)[number];
-      if ((LETTERS as readonly string[]).includes(L) && question.options[L]) {
+      if ((LETTERS as readonly string[]).includes(L) && question.options?.[L]) {
         setChosen((cur) => (cur === L ? null : L)); // toggle, single-select
         return;
       }
@@ -263,6 +277,44 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  useEffect(() => { onRevealedChange?.(revealed); }, [revealed, onRevealedChange]);
+
+  // Gamepad: 移動即選取 — the d-pad walks the option list and picks as it goes,
+  // so `chosen` doubles as the cursor and no extra highlight state is needed.
+  // Wraps around; with nothing chosen yet, ↓ lands on A and ↑ on the last one.
+  function moveCursor(dir: 1 | -1) {
+    if (revealed || options.length === 0) return;
+    const i = chosen ? options.findIndex((o) => o.L === chosen) : -1;
+    const next =
+      i < 0
+        ? dir === 1 ? 0 : options.length - 1
+        : (i + dir + options.length) % options.length;
+    setChosen(options[next].L);
+  }
+
+  // 信心度 clamps rather than wraps: it's an ordered scale, and rolling from
+  // 有把握 straight back to 猜 would log the opposite of what the user meant.
+  // The row only exists while `!revealed && chosen` (see below), so this is a
+  // no-op outside that window.
+  function moveConfidence(dir: 1 | -1) {
+    if (revealed || !chosen) return;
+    setConfidence((c) => Math.min(3, Math.max(1, c + dir)) as 1 | 2 | 3);
+  }
+
+  useGamepad((action) => {
+    switch (action) {
+      // Once revealed the d-pad belongs to the page, which scrolls the panel.
+      case 'up': moveCursor(-1); break;
+      case 'down': moveCursor(1); break;
+      case 'left': moveConfidence(-1); break;
+      case 'right': moveConfidence(1); break;
+      case 'faceDown': if (!revealed) submit(); break;
+      case 'faceLeft': if (!revealed) setRevealed(true); break;
+      case 'faceUp': copyAsMarkdown(); break;
+      case 'faceRight': toggleBookmark(); break;
+    }
+  });
 
   return (
     <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper p-5 sm:p-7">
@@ -407,6 +459,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
               key={level}
               type="button"
               onClick={() => setConfidence(level)}
+              aria-pressed={confidence === level}
               className={
                 "text-sm px-3 py-1 rounded-full border transition " +
                 (confidence === level
