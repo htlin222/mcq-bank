@@ -289,6 +289,37 @@ pattern as the mcq bundle) so `/api/me/bank-skill` can zip it with a freshly
 baked per-admin `.env`. Editing the skill means re-running `pnpm gen:bundles`
 — wired into `dev` and `predeploy`.
 
+### 2048: 純休息,而且刻意跟題庫零耦合
+
+`/play` 是個休息小遊戲(設計:
+`docs/plans/2026-08-06-play-2048-design.md`)。入口只在個人頁一個小連結,
+不進導覽列。
+
+值得記住的是**它為什麼不跟刷題綁在一起**。「答對才能玩」「合成 512 跳一題」
+都想過,但那會讓一個五百行的休息功能長出對 `attempts`、`drill`、計分邏輯的
+依賴,往後每次動學習相關的程式都要多想它一次。休息就讓它只是休息。
+
+三層互不知情:`frontend/src/lib/game2048.ts` 是純函式引擎(rng 由呼叫端注入,
+所以「新磚落在哪」在測試裡可決定)、`frontend/src/routes/Play.tsx` 只管輸入與
+畫面、`worker/play-2048.ts` 的 DO 只管存檔。資料流單向,**DO 從不回推**。
+
+- **存檔用獨立的 `Play2048` DO,不是塞進 `UserState`。** DO 是單執行緒的:
+  遊戲每步 debounce 寫入(秒級),續讀位置換頁才寫(分鐘級)。塞在同一個
+  instance,等於讓有人在玩時,其他人的「上次停在哪」排在遊戲寫入後面。
+- **`best` 由 DO 取 `MAX(舊, 新)`**,client 送什麼都不能讓最高分變小,開新局
+  也不歸零。
+- **驗證只防資料汙染,不防作弊**(`worker/lib/play-state.ts`)。要真的防作弊得
+  在 server 重放整局移動;對 20 個熟人的休息遊戲那是過度設計,而且會把一個
+  零耦合的功能變成有狀態機的功能。
+- 榜單的 D1 join 在**路由層**做(DO 只認得 email),DO 不碰 D1。
+- **`/api/play` 不在 `sw-guards.ts` 的 `CACHEABLE_API`** —— 可變狀態被 SW
+  快取住,玩家會永遠看到停在舊局的棋盤。
+
+部署提醒:`wrangler.toml` 是 gitignored 的產出物,新增的 `PLAY` binding 與
+`[[migrations]] tag = "v3"` 只進得了 `wrangler.example.toml`。合併後第一次
+部署前,要把這兩段手動補進主 checkout 的 `wrangler.toml`,否則 Worker 會因為
+找不到 `Play2048` class 而部署失敗。
+
 ### 作答歷史: `attempts` is the source of truth
 
 `attempts` (migration `0023`) is an append-only event log — one row per

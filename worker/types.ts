@@ -18,6 +18,9 @@ export type Env = {
   // Per-user cross-device state (worker/user-state.ts, single "main"
   // instance) — RPC-typed so route code gets checked method calls.
   USER_STATE: DurableObjectNamespace<import('./user-state').UserState>;
+  // 2048 休息小遊戲的存檔 (worker/play-2048.ts, single "main" instance)。
+  // 跟 USER_STATE 分開是為了不讓每步寫入的遊戲卡住換頁才寫的續讀位置。
+  PLAY: DurableObjectNamespace<import('./play-2048').Play2048>;
   CF_ACCESS_TEAM_DOMAIN: string;
   CF_ACCESS_AUD: string;
   ADMIN_EMAILS?: string;

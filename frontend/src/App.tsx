@@ -57,6 +57,7 @@ import { ExamResult } from "./routes/ExamResult";
 import { ExamHistory } from "./routes/ExamHistory";
 import { CustomTest } from "./routes/CustomTest";
 import { Profile } from "./routes/Profile";
+import { Play } from "./routes/Play";
 import { WrongQuestions } from "./routes/Lists";
 import { Bookmarks } from "./routes/Bookmarks";
 import { Search } from "./routes/Search";
@@ -220,6 +221,8 @@ export default function App() {
 					<Route path="/videos" element={<Videos />} />
 					<Route path="/videos/:slug" element={<Videos />} />
 					<Route path="/profile" element={<Profile />} />
+					{/* 2048 休息小遊戲 —— 低調入口在個人頁,不進導覽列 */}
+					<Route path="/play" element={<Play />} />
 					<Route path="/login" element={<Navigate to="/" replace />} />
 					<Route path="*" element={<NotFound />} />
 				</Routes>

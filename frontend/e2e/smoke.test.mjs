@@ -52,6 +52,14 @@ const ROUTES = [
     // 的狀態,所以第五步的審閱面板會真的被渲染出來,而不是停在提示文字。
     expectText: '待確認',
   },
+  {
+    path: '/play',
+    name: '2048(useReducer + 全域鍵盤/觸控監聽 + debounce timer)',
+    // 這頁掛的是別處沒有的型態:reducer 驅動的盤面,加上兩個掛在 window/
+    // document 上的事件監聽與一個 debounce timer —— 三者都在卸載時要收乾淨。
+    // fixture 給的是「玩到一半」的存檔,所以斷言得到盤面上的磚,而不只是標題。
+    expectText: '128',
+  },
 ];
 
 // fixture 是從真實 API 抓下來的，而這個 repo 是公開的 —— 第一版就差點把 18 位
