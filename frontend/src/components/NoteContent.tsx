@@ -156,6 +156,11 @@ function NoteAccordion({ section }: { section: Section }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
+        // 手把的十字鍵靠這個屬性認出「大綱上的一條」—— 用它而不是 aria-expanded,
+        // 是因為同一個面板裡的筆記切換器也是 aria-expanded 的按鈕,標題列與工具列
+        // 混在同一份名單裡走起來會亂跳。收合的段落根本沒 render,所以名單天生就是
+        // 螢幕上看得到的那幾條。
+        data-note-section=""
         className="w-full flex items-center gap-2 py-2.5 text-left group"
       >
         <ChevronRight

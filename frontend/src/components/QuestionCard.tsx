@@ -4,7 +4,7 @@ import { api, ApiError } from '../lib/api';
 import type { QuestionFull } from '../hooks/useQuestion';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
 import { useGamepad } from '../hooks/useGamepad';
-import { rumble } from '../lib/gamepad';
+import { rumble, type GamepadAction } from '../lib/gamepad';
 import { useMe } from '../hooks/useMe';
 import { ChallengePanel } from './ChallengePanel';
 import { groupBadgeClass } from '../lib/groups';
@@ -20,6 +20,11 @@ type Props = {
   // this: the d-pad selects options while unanswered and scrolls the panel
   // afterwards, and the scroll target is the page's business, not the card's.
   onRevealedChange?: (revealed: boolean) => void;
+  // 讓頁面在特定狀態下把某顆手把鍵收回去。複習頁答案揭曉後 FACE ▲ 從「複製題目」
+  // 轉手成「編輯這一頁」,編輯中則整組鍵都歸編輯器 —— 兩個訂閱者收到的是同一次
+  // 按壓,卡片不讓,使用者按一下就會同時複製題目又跳進編輯器。問的是頁面那邊
+  // 同一個函式,所以「卡片讓出」跟「頁面接手」的條件不可能各自漂移。
+  gamepadClaimed?: (action: GamepadAction) => boolean;
 };
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
@@ -31,7 +36,7 @@ function fmtSeconds(ms: number): string {
   return `${Math.floor(sec / 60)} 分 ${sec % 60} 秒`;
 }
 
-export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared, onRevealedChange }: Props) {
+export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared, onRevealedChange, gamepadClaimed }: Props) {
   const bookmarkSet = useBookmarkSet();
   const { me } = useMe();
   const [chosen, setChosen] = useState<string | null>(
@@ -303,6 +308,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
   }
 
   useGamepad((action) => {
+    if (gamepadClaimed?.(action)) return;
     switch (action) {
       // Once revealed the d-pad belongs to the page, which scrolls the panel.
       case 'up': moveCursor(-1); break;

@@ -36,6 +36,7 @@ import { useOnline } from "../hooks/useOnline";
 import { QuestionCard } from "../components/QuestionCard";
 import { GamepadFab, type GamepadHint } from "../components/GamepadFab";
 import { useGamepad, useGamepadScroll } from "../hooks/useGamepad";
+import { rumble, type GamepadAction } from "../lib/gamepad";
 import { RichEditor } from "../components/RichEditor";
 import { AnnotatableContent } from "../components/AnnotatableContent";
 import { NoteContent } from "../components/NoteContent";
@@ -65,25 +66,29 @@ const SPLIT_MAX = 72;
 // — brisk enough to cross a long 詳解, slow enough to read on the way.
 const GAMEPAD_SCROLL_STEP = 120;
 
-// 兩份說明:同一顆十字鍵在作答前選選項、揭曉後捲頁面,寫成一份會騙人。
+// 說明分成好幾份而不是一份:同一顆十字鍵在作答前選選項、揭曉後捲頁面,同一顆
+// FACE ▲ 在詳解頁是「編輯詳解」、在討論頁還是「複製題目」—— 寫成一份會騙人,
+// 而這顆浮鈕是使用者唯一知道能按什麼的地方。
 const GAMEPAD_HINTS_SHARED: GamepadHint[] = [
-	{ btn: "FACE ▲", label: "複製題目為 Markdown" },
 	{ btn: "FACE ▶", label: "收藏" },
 	{ btn: "L1 / R1", label: "上一題 / 下一題" },
 	{ btn: "L2 / R2", label: "上一個 / 下一個分頁" },
 	{ btn: "START", label: "回年度列表" },
 	{ btn: "左搖桿", label: "捲動" },
 ];
+const HINT_COPY: GamepadHint = { btn: "FACE ▲", label: "複製題目為 Markdown" };
 const GAMEPAD_HINTS_ANSWERING: GamepadHint[] = [
 	{ btn: "DPAD ↑ ↓", label: "選擇選項" },
 	{ btn: "DPAD ← →", label: "作答信心(選了選項後)" },
 	{ btn: "FACE ▼", label: "送出答案" },
 	{ btn: "FACE ◀", label: "略過 / 直接看答案" },
+	HINT_COPY,
 	...GAMEPAD_HINTS_SHARED,
 ];
-const GAMEPAD_HINTS_REVEALED: GamepadHint[] = [
-	{ btn: "DPAD ↑ ↓", label: "捲動詳解" },
-	...GAMEPAD_HINTS_SHARED,
+// 編輯中就真的只剩這一顆 —— 其餘全被擋掉(見 useGamepad 裡的 editing 分支),
+// 列出導覽鍵只會讓人按了才發現沒反應。取消不列:那會丟掉打的東西。
+const GAMEPAD_HINTS_EDITING: GamepadHint[] = [
+	{ btn: "FACE ▼", label: "完成(儲存)" },
 ];
 const SPLIT_DEFAULT = 42; // ≈ the previous fixed 5fr / 7fr ratio
 const SPLIT_KEY = "review-split-pct";
@@ -170,6 +175,9 @@ export function Question() {
 	// the scroll container in columns mode.
 	const [cardRevealed, setCardRevealed] = useState(false);
 	const rightColRef = useRef<HTMLDivElement>(null);
+	// 個人筆記的內文容器。手把的十字鍵要在它裡面的大綱標題之間走,而那份名單必須
+	// 只包含這一塊 —— 面板工具列上也有按鈕。
+	const noteBodyRef = useRef<HTMLDivElement>(null);
 
 	// The inner 詳解共筆/… tab strip is sticky (see below); its measured height
 	// drives where the sticky per-pane toolbar (自動挖空/防劇透/編輯) pins, so the
@@ -474,6 +482,19 @@ export function Question() {
 		}
 	}, [data?.explanation?.content_json]);
 
+	// 詳解裡到底有沒有東西 —— 只有一個空段落的 doc 等同沒寫。算在這裡(而不是
+	// 貼著使用它的 JSX)是因為手把的 FACE ▼ 與說明浮鈕都得在 `if (!data)` 那個
+	// early return 之前讀到它,而 hooks 不能排在 early return 後面。
+	const hasExplanation = useMemo(() => {
+		const content = explanationJson?.content;
+		if (!content || content.length === 0) return false;
+		return !(
+			content.length === 1 &&
+			content[0].type === "paragraph" &&
+			!content[0].content
+		);
+	}, [explanationJson]);
+
 	const noteJson = useMemo(() => {
 		if (!activeNote?.content_json) return null;
 		try {
@@ -482,6 +503,18 @@ export function Question() {
 			return null;
 		}
 	}, [activeNote?.content_json]);
+
+	// 這則筆記有沒有標題 —— 有的話 NoteContent 會把它排成可收合的大綱,十字鍵才有
+	// 東西可走。從 JSON 判斷而不是數 DOM:說明清單是在 render 當下組出來的,那時
+	// 剛切過去的那一頁還沒畫上去。
+	const noteHasSections = useMemo(
+		() =>
+			((noteJson?.content ?? []) as { type?: string; attrs?: any }[]).some(
+				(n) =>
+					n.type === "heading" && n.attrs?.level >= 1 && n.attrs?.level <= 3,
+			),
+		[noteJson],
+	);
 
 	// Re-blur the 詳解 whenever the user navigates to a different question
 	// (prev/next, similar, back-refs, deep link). Same component instance, so
@@ -1048,13 +1081,163 @@ export function Question() {
 	}
 	useGamepadScroll(gamepadScrollEl);
 
+	// 右欄的哪一頁此刻真的看得到 —— 手把那幾顆「對目前這一頁動作」的鍵靠它決定
+	// 有沒有事做。tabs 模式在 ≥md 由 mainTab 決定顯示哪一欄,而且 mainTab 停在
+	// 「題目」時內層 tab 是上一次的殘值,不能只看它;columns 與 <md 都是右欄常駐,
+	// 看內層 tab 就夠。
+	function paneVisible(which: Tab): boolean {
+		if (tab !== which) return false;
+		if (!tabsMode) return true;
+		if (!window.matchMedia("(min-width: 768px)").matches) return true;
+		return mainTab === which;
+	}
+
+	// 手把在複習頁分三段換手:作答中歸 QuestionCard,答案揭曉後右欄那一頁才是
+	// 使用者在看的東西、頁面接過幾顆鍵,編輯中則整組鍵都歸編輯器。這個函式是那條
+	// 界線的唯一定義 —— 卡片問的是同一個函式(見 gamepadClaimed prop),所以不會
+	// 出現兩邊都動作、或兩邊都放手的縫。
+	function gamepadClaimed(action: GamepadAction): boolean {
+		// 編輯中一顆都不留給卡片:那時 FACE ▼ 是「儲存」,卡片若也收到,一題還沒
+		// 作答的選項會被順手送出。
+		if (editing || noteEditing) return true;
+		if (!cardRevealed) return false;
+		switch (action) {
+			// FACE ▲ 平常是「複製題目為 Markdown」,在詳解/筆記頁改成編輯那一頁。
+			case "faceUp":
+				return paneVisible("explanation") || paneVisible("note");
+			// ←→ 平常是作答信心(只在 `!revealed && chosen` 有效,所以這裡的
+			// cardRevealed 早就把它排除了),在筆記頁改成切換這一題的第幾則筆記。
+			case "left":
+			case "right":
+				return paneVisible("note") && notes.length > 1;
+			default:
+				return false;
+		}
+	}
+
+	// 個人筆記的內文被 NoteContent 排成一棵可收合的大綱,十字鍵 ↑↓ 就在那些標題
+	// 之間走、FACE ▼ 收合/展開停在上面的那一條。
+	//
+	// 用瀏覽器焦點而不是自己記一個游標,是這裡最省事的一步:那些標題本來就是
+	// <button>,焦點框是現成的視覺回饋(不必再發明一種高亮),鍵盤 Tab 走的是同一
+	// 條路,而收合後子標題根本沒 render —— 名單自動只剩螢幕上看得到的那幾條,不會
+	// 有「游標停在一條被折起來的標題上」這種對不上的狀態。
+	function noteSections(): HTMLButtonElement[] {
+		const root = noteBodyRef.current;
+		if (!root) return [];
+		return Array.from(
+			root.querySelectorAll<HTMLButtonElement>("[data-note-section]"),
+		);
+	}
+
+	// 回傳有沒有真的移動。到頭了(或這則筆記根本沒有標題)就回 false,讓 ↑↓ 落回
+	// 原本的捲動 —— 大綱走完之後按鍵突然沒反應,比繞回第一條更難理解。
+	function stepNoteSection(dir: 1 | -1): boolean {
+		const list = noteSections();
+		if (list.length === 0) return false;
+		const at = list.indexOf(document.activeElement as HTMLButtonElement);
+		// 還沒有焦點時:↓ 落在第一條、↑ 落在最後一條 —— 跟卡片的選項游標同一套規矩。
+		const next = at < 0 ? (dir === 1 ? 0 : list.length - 1) : at + dir;
+		if (next < 0 || next >= list.length) return false;
+		// preventScroll + scrollIntoView:讓 focus 只管焦點,捲動由我們決定捲多少,
+		// 否則瀏覽器的自動捲動會把剛選到的那條丟到面板正中央,讀起來像跳頁。
+		list[next].focus({ preventScroll: true });
+		list[next].scrollIntoView({ block: "nearest" });
+		return true;
+	}
+
+	// 一題可以有很多則筆記(migration 0036)。走法跟 NoteSwitcher 的 ‹ › 一致:
+	// 到頭就停,不繞回第一則 —— 那是一列有順序的東西,繞回去讀起來像換了題。
+	function stepNote(dir: 1 | -1) {
+		const at = notes.findIndex((n) => n.slot === activeSlot);
+		const next = at < 0 ? 0 : at + dir;
+		if (next < 0 || next >= notes.length) return;
+		setNoteSlot(notes[next].slot);
+		void rumble("tap");
+	}
+
+	// 揭曉之後的說明跟著右欄那一頁走。不用 useMemo:paneVisible 讀的是 matchMedia,
+	// 不是 render 的純輸入,列進依賴表只會給出一份會走鐘的快取;而這份清單只在
+	// 浮鈕展開時才被讀一次。
+	function revealedHints(): GamepadHint[] {
+		const hints: GamepadHint[] = [];
+		if (paneVisible("explanation")) {
+			hints.push({ btn: "DPAD ↑ ↓", label: "捲動" });
+			if (hasExplanation && !revealedExp)
+				hints.push({ btn: "FACE ▼", label: "揭曉詳解" });
+			hints.push({ btn: "FACE ▲", label: "編輯詳解" });
+		} else if (paneVisible("note")) {
+			hints.push({
+				btn: "DPAD ↑ ↓",
+				label: noteHasSections ? "大綱上下移動(到頭改捲動)" : "捲動",
+			});
+			if (notes.length > 1)
+				hints.push({ btn: "DPAD ← →", label: "上一則 / 下一則筆記" });
+			if (noteHasSections) hints.push({ btn: "FACE ▼", label: "收合 / 展開" });
+			hints.push({ btn: "FACE ▲", label: "編輯筆記" });
+		} else {
+			hints.push({ btn: "DPAD ↑ ↓", label: "捲動" });
+			hints.push(HINT_COPY);
+		}
+		return [...hints, ...GAMEPAD_HINTS_SHARED];
+	}
+
 	// Gamepad page bindings. Options / 送出 / 複製 / 收藏 are QuestionCard's;
 	// these are the ones that need page context. The d-pad is shared: the card
 	// owns ↑↓ while unanswered (option cursor), the page takes it over once the
 	// answer is showing and there's a 詳解 to read — hence `cardRevealed`.
 	useGamepad((action) => {
-		if (!data || editing || noteEditing) return;
+		if (!data) return;
+
+		// 編輯中只留一顆鍵:FACE ▼ 存檔收工,等同工具列的「儲存」。其餘一律不動作
+		// —— 手把在編輯器裡沒有游標可言,誤觸一顆導覽鍵就會把還沒存的內容留在原地、
+		// 人卻已經到了下一題。取消要回鍵盤或滑鼠:那會丟掉打的東西,不該是一顆
+		// 手把鍵按下去就發生的事。
+		if (editing) {
+			if (action === "faceDown" && !saving) void save();
+			return;
+		}
+		if (noteEditing) {
+			if (action === "faceDown" && !noteSaving) void saveNote();
+			return;
+		}
+
 		switch (action) {
+			// FACE ▼ 是分時共用的:作答中歸 QuestionCard(送出答案),它只在
+			// `!revealed` 時動作,所以答案揭曉後這顆鍵空了出來,正好接手詳解上那層
+			// 「點擊顯示詳解」。同一次按壓不會兩邊都吃到 —— 送出的那一下,
+			// `cardRevealed` 這一幀還是 false。
+			case "faceDown": {
+				if (!cardRevealed) break;
+				// 筆記頁:收合/展開十字鍵停在上面的那條大綱標題。只認自己面板裡的
+				// 標題按鈕,免得焦點剛好落在工具列時按下去變成按到「刪除」。
+				if (paneVisible("note")) {
+					const el = document.activeElement as HTMLElement | null;
+					if (el?.hasAttribute("data-note-section") && noteBodyRef.current?.contains(el)) {
+						el.click();
+						void rumble("tap");
+					}
+					break;
+				}
+				if (hasExplanation && !revealedExp && paneVisible("explanation")) {
+					setRevealedExp(true);
+					void rumble("tap");
+				}
+				break;
+			}
+			// 編輯目前這一頁。離線時整個編輯路徑都是關的(詳解要先跟伺服器拿鎖),
+			// 所以這裡跟那兩顆「編輯」按鈕一樣先看 online。
+			case "faceUp":
+				if (!gamepadClaimed("faceUp") || !online) break;
+				if (paneVisible("explanation")) void startEdit();
+				else startNoteEdit();
+				break;
+			case "left":
+				if (gamepadClaimed("left")) stepNote(-1);
+				break;
+			case "right":
+				if (gamepadClaimed("right")) stepNote(1);
+				break;
 			case "l1":
 				if (navPrev) navigate(`/q/${navPrev}`, { state: location.state });
 				break;
@@ -1070,11 +1253,17 @@ export function Question() {
 			case "start":
 				navigate(`/year/${data.year}`);
 				break;
+			// 揭曉後十字鍵歸頁面。筆記頁先讓它在大綱標題之間走,走到頭(或這則筆記
+			// 沒有標題)再落回捲動。
 			case "up":
-				if (cardRevealed) gamepadScrollBy(-GAMEPAD_SCROLL_STEP);
+				if (!cardRevealed) break;
+				if (paneVisible("note") && stepNoteSection(-1)) break;
+				gamepadScrollBy(-GAMEPAD_SCROLL_STEP);
 				break;
 			case "down":
-				if (cardRevealed) gamepadScrollBy(GAMEPAD_SCROLL_STEP);
+				if (!cardRevealed) break;
+				if (paneVisible("note") && stepNoteSection(1)) break;
+				gamepadScrollBy(GAMEPAD_SCROLL_STEP);
 				break;
 		}
 	});
@@ -1095,16 +1284,6 @@ export function Question() {
 		// the header + question card + tab strip don't jump on hydration.
 		return showSkeleton ? <QuestionDetailSkeleton /> : null;
 	}
-
-	const hasExplanation =
-		explanationJson &&
-		explanationJson.content &&
-		explanationJson.content.length > 0 &&
-		!(
-			explanationJson.content.length === 1 &&
-			explanationJson.content[0].type === "paragraph" &&
-			!explanationJson.content[0].content
-		);
 
 	return (
 		<div
@@ -1306,6 +1485,7 @@ export function Question() {
 						onAnswered={reload}
 						onProgressCleared={reload}
 						onRevealedChange={setCardRevealed}
+						gamepadClaimed={gamepadClaimed}
 					/>
 				</div>
 
@@ -1735,12 +1915,16 @@ export function Question() {
 											<Trash2 size={14} /> 刪除
 										</button>
 									</div>
-									<NoteContent
-										content={noteJson}
-										annotateKeyPrefix={`anno:note:${data.id}`}
-										cloze={noteCloze}
-										autoTerms={noteAutoTerms ?? undefined}
-									/>
+									{/* 包一層只為了給手把一個範圍:十字鍵在大綱標題之間走時,
+									    名單得限縮在內文,不能把上面工具列的按鈕也算進去。 */}
+									<div ref={noteBodyRef}>
+										<NoteContent
+											content={noteJson}
+											annotateKeyPrefix={`anno:note:${data.id}`}
+											cloze={noteCloze}
+											autoTerms={noteAutoTerms ?? undefined}
+										/>
+									</div>
 									<footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
 										僅你可見
 										{activeNote?.updated_at && (
@@ -2024,7 +2208,11 @@ export function Question() {
 			<BackToTopFab />
 			<GamepadFab
 				hints={
-					cardRevealed ? GAMEPAD_HINTS_REVEALED : GAMEPAD_HINTS_ANSWERING
+					editing || noteEditing
+						? GAMEPAD_HINTS_EDITING
+						: cardRevealed
+							? revealedHints()
+							: GAMEPAD_HINTS_ANSWERING
 				}
 			/>
 		</div>

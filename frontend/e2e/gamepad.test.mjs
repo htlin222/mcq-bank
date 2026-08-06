@@ -425,3 +425,153 @@ test('非標準配置的手把會被警告,而不是靜默錯位', async (t) => 
     `應該警告配置對不上並指出切到 X 模式;實際:${text.slice(0, 400)}`,
   );
 });
+
+// ---------------------------------------------------------------- 詳解 / 筆記
+//
+// 以下幾支驗的是「答案揭曉之後」那一段:同幾顆按鍵換手給右欄目前那一頁。
+// 換手是整組綁定裡最容易錯的地方 —— 卡片與頁面是兩個各自訂閱同一個輪詢器的
+// 元件,同一次按壓兩邊都收得到,所以每一支都順便斷言「另一邊沒有也動作」。
+
+test('揭曉後 FACE ▼ 掀開詳解的防劇透遮罩', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+
+  const reveal = page.getByRole('button', { name: '顯示詳解' });
+  // 還沒作答時這顆鍵是「送出」,詳解那層遮罩不能被它掀開。
+  await tap(page, BTN.FACE_DOWN);
+  assert.equal(await reveal.count(), 1, '還沒揭曉答案就不該掀開詳解');
+
+  await tap(page, BTN.FACE_LEFT); // 直接看答案
+  assert.equal(await reveal.count(), 1, '答案揭曉後詳解仍應該是遮住的');
+
+  await tap(page, BTN.FACE_DOWN);
+  assert.equal(await reveal.count(), 0, 'FACE ▼ 應該掀開詳解');
+  assert.ok(
+    (await page.evaluate(() => document.body.innerText)).includes('亞孟買血型'),
+    '掀開之後應該看得到詳解內文',
+  );
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('揭曉後 FACE ▲ 進詳解編輯器(而不是複製題目),FACE ▼ 存檔收工', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+
+  await tap(page, BTN.FACE_LEFT); // 直接看答案
+
+  await tap(page, BTN.FACE_UP);
+  await page.waitForTimeout(600); // 等取鎖那一趟
+  let text = await page.evaluate(() => document.body.innerText);
+  assert.ok(text.includes('你正在編輯'), `FACE ▲ 應該進編輯器;實際:${text.slice(0, 300)}`);
+  // 卡片讓出這顆鍵的證據:複製成功會把按鈕文字換成「已複製」。兩邊都動作的話,
+  // 使用者按一下會同時被塞剪貼簿又跳進編輯器。
+  assert.ok(!text.includes('已複製'), 'FACE ▲ 被頁面接手時,卡片不該又複製一次題目');
+
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(900); // PUT + reload
+  text = await page.evaluate(() => document.body.innerText);
+  assert.ok(!text.includes('你正在編輯'), `FACE ▼ 應該存檔收工;實際:${text.slice(0, 300)}`);
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('個人筆記:DPAD ↑↓ 走大綱、FACE ▼ 收合展開、←→ 換筆記', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+
+  await tap(page, BTN.FACE_LEFT); // 直接看答案,十字鍵才歸頁面
+  await tap(page, BTN.R2); // 詳解 → 個人筆記
+  await page.waitForTimeout(200);
+
+  const sections = () =>
+    page.$$eval('[data-note-section]', (els) => els.map((e) => e.textContent.trim()));
+  const focused = () =>
+    page.evaluate(() => document.activeElement?.textContent?.trim() ?? null);
+
+  // 收起來的段落根本沒 render,所以一開始名單上只有最外層那一條。
+  assert.deepEqual(await sections(), ['高頻考點:亞孟買血型'], '大綱一開始是全收合的');
+
+  await tap(page, BTN.DPAD_DOWN);
+  assert.equal(await focused(), '高頻考點:亞孟買血型', '↓ 應該把焦點落在第一條');
+
+  await tap(page, BTN.FACE_DOWN);
+  assert.deepEqual(
+    await sections(),
+    ['高頻考點:亞孟買血型', '一、機轉', '二、鑑別'],
+    'FACE ▼ 應該展開那一條,底下的子標題才進得了名單',
+  );
+  assert.ok(
+    (await page.evaluate(() => document.body.innerText)).includes('H 抗原缺失'),
+    '展開後看得到段落內文',
+  );
+
+  await tap(page, BTN.DPAD_DOWN);
+  assert.equal(await focused(), '一、機轉', '↓ 接著走到剛展開的子標題');
+  await tap(page, BTN.FACE_DOWN);
+  assert.ok(
+    (await page.evaluate(() => document.body.innerText)).includes('FUT1'),
+    '子標題也能展開',
+  );
+
+  // ←→ 換這一題的第幾則筆記。第二則沒有標題,所以大綱名單會空掉。
+  await tap(page, BTN.DPAD_RIGHT);
+  await page.waitForTimeout(300);
+  assert.ok(
+    (await page.evaluate(() => document.body.innerText)).includes('輸血只能用同型'),
+    'DPAD → 應該換到第二則筆記',
+  );
+  assert.deepEqual(await sections(), [], '第二則沒有標題,大綱是空的');
+
+  await tap(page, BTN.DPAD_LEFT);
+  await page.waitForTimeout(300);
+  // 換回來時大綱是重新收合的 —— 展開狀態存在 NoteAccordion 自己的 useState,
+  // 換筆記等於換一棵樹。這跟用切換器的下拉選單換是同一個結果,不是手把特有的。
+  assert.deepEqual(
+    await sections(),
+    ['高頻考點:亞孟買血型'],
+    'DPAD ← 應該換回第一則',
+  );
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('手把說明跟著狀態走:作答中 / 詳解頁 / 筆記頁 / 編輯中', async (t) => {
+  if (guard(t)) return;
+  const { page } = await open(t, '/q/113-050');
+
+  const fab = page.getByRole('button', { name: '手把操作說明' });
+  const panel = async () => {
+    await fab.click();
+    const text = await page.evaluate(() => document.body.innerText);
+    await page.keyboard.press('Escape');
+    return text;
+  };
+
+  assert.ok((await panel()).includes('送出答案'), '作答中列的是送出');
+
+  await tap(page, BTN.FACE_LEFT);
+  let text = await panel();
+  assert.ok(text.includes('揭曉詳解'), '詳解還遮著時要列出掀開的鍵');
+  assert.ok(text.includes('編輯詳解'), '揭曉後 FACE ▲ 的說明要換成編輯詳解');
+  assert.ok(
+    !text.includes('複製題目'),
+    'FACE ▲ 已經被頁面接手,說明不該還寫著複製題目',
+  );
+
+  await tap(page, BTN.FACE_DOWN); // 掀開詳解
+  assert.ok(!(await panel()).includes('揭曉詳解'), '掀開之後這一條就該消失');
+
+  await tap(page, BTN.R2); // → 個人筆記
+  await page.waitForTimeout(200);
+  text = await panel();
+  assert.ok(text.includes('收合 / 展開'), '筆記頁要列出收合鍵');
+  assert.ok(text.includes('上一則 / 下一則筆記'), '有兩則筆記才列這一條');
+  assert.ok(text.includes('編輯筆記'), 'FACE ▲ 在筆記頁是編輯筆記');
+
+  await tap(page, BTN.FACE_UP); // 進筆記編輯器
+  await page.waitForTimeout(400);
+  text = await panel();
+  assert.ok(text.includes('完成(儲存)'), '編輯中只剩存檔那一顆');
+  assert.ok(!text.includes('上一題 / 下一題'), '編輯中不該再列導覽鍵——它們都被擋掉了');
+});
