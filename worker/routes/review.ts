@@ -3,7 +3,7 @@ import type {
 	D1Database,
 	D1PreparedStatement,
 } from "@cloudflare/workers-types";
-import type { AppContext, Explanation, Question } from "../types";
+import type { AppContext, Env, Explanation, Question } from "../types";
 import { optionsToRecord } from "../lib/db";
 import {
 	nextFsrsCard,
@@ -16,6 +16,7 @@ import {
 } from "../lib/fsrs";
 import { calibration } from "../lib/calibration";
 import { clusterByThreshold, type VecItem } from "../lib/cluster";
+import { groupByTopic, type TopicRow } from "../lib/weakness";
 import { clampElapsedMs, insertAttemptOp } from "../lib/attempts";
 import { readIdemKey, idemLookup, idemRecordOp } from "../lib/idempotency";
 import { dailyActivity, todayInTaipei } from "../lib/activity";
@@ -290,7 +291,15 @@ reviewRoutes.get("/weakness-map", async (c) => {
 	} catch {
 		items = [];
 	}
-	if (items.length < 2) return c.json({ clusters: [], wrong_count: ids.length });
+	// 索引沒涵蓋到這些題(回填落後於新加入的年份)—— 這正是 issue #78 的成因。
+	// 降級成主題分群,而不是回一頁空白。
+	if (items.length < 2) {
+		return c.json({
+			clusters: await topicClusters(c.env.DB, ids),
+			wrong_count: ids.length,
+			basis: "topic",
+		});
+	}
 
 	const raw = clusterByThreshold(items, { threshold: 0.55 });
 
@@ -319,8 +328,47 @@ reviewRoutes.get("/weakness-map", async (c) => {
 			question_ids: cl.members,
 		}));
 
-	return c.json({ clusters, wrong_count: ids.length });
+	// 語意分群分不出東西時(錯題主題太分散)仍然退回主題分群 —— 使用者要的是
+	// 「有個概念」,不是一頁空白。
+	if (clusters.length === 0) {
+		return c.json({
+			clusters: await topicClusters(c.env.DB, ids),
+			wrong_count: ids.length,
+			basis: "topic",
+		});
+	}
+
+	return c.json({ clusters, wrong_count: ids.length, basis: "semantic" });
 });
+
+/**
+ * 確定性的保底分群:錯題 → question_tags → tag_topics → video_topics。
+ *
+ * 存在的理由是語意分群有一個會靜默失敗的模式:Vectorize 索引沒涵蓋到的題目
+ * 會被略過,涵蓋不足時整頁就是空的。實際發生過 —— 回填停在 2026-07-19,而
+ * 使用者最近 60 題錯題全在之後才加入的 113/114 年,一個向量都沒有,於是
+ * 「做了一百題卻什麼都看不到」。索引的新鮮度不該決定這頁有沒有內容。
+ */
+async function topicClusters(db: Env["DB"], ids: string[]) {
+	if (ids.length === 0) return [];
+	const ph = ids.map(() => "?").join(",");
+	try {
+		const { results } = await db
+			.prepare(
+				`SELECT vt.slug AS slug, vt.label AS label, qt.question_id AS question_id
+         FROM question_tags qt
+         JOIN tag_topics tt   ON tt.tag = qt.tag
+         JOIN video_topics vt ON vt.slug = tt.topic_slug
+         WHERE qt.question_id IN (${ph})`,
+			)
+			.bind(...ids)
+			.all<TopicRow>();
+		return groupByTopic(results ?? [], ids);
+	} catch {
+		// 主題白名單是後來的 migration;沒有它就沒有保底,不是錯誤。
+		return [];
+	}
+}
 
 function topTag(members: string[], tagsByQ: Map<string, string[]>): string | null {
 	const count = new Map<string, number>();

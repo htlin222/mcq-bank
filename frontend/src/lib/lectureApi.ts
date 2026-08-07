@@ -1,6 +1,7 @@
 // Typed wrappers over the lecture (複習班講義) + AI endpoints. Reuses the shared
 // `api` fetch helper — do not introduce a second fetch layer here.
 import { api } from "./api";
+import { createQuestionStore } from "./questionStore";
 
 export interface LectureDoc {
 	slug: string;
@@ -50,6 +51,20 @@ export function listLectures(
 	const q = kind === "textbook" ? "?kind=textbook" : "";
 	return api.get<LectureDoc[]>(`/api/lectures${q}`);
 }
+
+/**
+ * 講義/教科書清單的快取,以 kind 為鍵。
+ *
+ * /lectures 的三個分頁原本每切一次就 setDocs(null) 再重抓,所以來回比對講義與
+ * 教科書時,每一下都是一輪骨架 —— 而這份清單只有匯入時才會變。`peek()` 同步
+ * 可讀,所以回到看過的分頁是即時的,不閃骨架。
+ *
+ * ttl 五分鐘:匯入是離線腳本,五分鐘內看到舊清單沒有任何後果。
+ */
+export const lectureListCache = createQuestionStore<LectureDoc[]>(
+	(kind) => listLectures(kind as "lecture" | "textbook"),
+	{ max: 4, ttlMs: 5 * 60_000 },
+);
 
 export function getLecture(slug: string): Promise<LectureDoc> {
 	return api.get<LectureDoc>(`/api/lectures/${slug}`);

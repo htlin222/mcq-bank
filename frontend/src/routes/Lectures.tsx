@@ -2,15 +2,16 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Highlighter, NotebookPen, Plus, Search } from "lucide-react";
 import {
-	listLectures,
+	lectureListCache,
 	searchLectures,
 	type LectureDoc,
 	type LectureSearchHit,
 	type LectureSearchScope,
 } from "../lib/lectureApi";
 import {
-	listFreeNotes,
+	FREE_NOTE_LIST_KEY,
 	createFreeNote,
+	freeNoteListCache,
 	type FreeNoteSummary,
 } from "../lib/freeNoteApi";
 import { HighlightedSnippet } from "../components/lecture/HighlightedSnippet";
@@ -64,20 +65,26 @@ export default function Lectures() {
 	const trimmed = query.trim();
 	const searchMode = trimmed.length > 0;
 
-	// Registry load — refetches when the view tab changes. Reset docs to null
-	// first so the skeleton shows instead of the previous tab's cards.
+	// Registry load — 走 lectureListCache,所以切回看過的分頁是即時的。
+	//
+	// 原本每次切分頁都 setDocs(null) 再重抓,於是來回比對講義與教科書時每一下都
+	// 閃一輪骨架(#77)—— 而這份清單只有匯入時才會變。快取過期仍然先畫舊的再背景
+	// 重抓,不會退回骨架。
 	// 其他筆記 has its own registry (own endpoint, own shape), so it opts out.
 	useEffect(() => {
 		if (view === "note") return;
 		let alive = true;
-		setDocs(null);
+		const cached = lectureListCache.peek(view);
+		setDocs(cached ?? null);
 		setError(null);
-		listLectures(view)
+		if (cached && lectureListCache.isFresh(view)) return;
+		lectureListCache
+			.get(view)
 			.then((d) => {
 				if (alive) setDocs(d);
 			})
 			.catch((e) => {
-				if (alive) setError(e?.message || "載入失敗");
+				if (alive && !cached) setError(e?.message || "載入失敗");
 			});
 		return () => {
 			alive = false;
@@ -92,14 +99,17 @@ export default function Lectures() {
 	useEffect(() => {
 		if (view !== "note") return;
 		let alive = true;
-		setNotes(null);
+		const cached = freeNoteListCache.peek(FREE_NOTE_LIST_KEY);
+		setNotes(cached ?? null);
 		setNotesError(null);
-		listFreeNotes()
+		if (cached && freeNoteListCache.isFresh(FREE_NOTE_LIST_KEY)) return;
+		freeNoteListCache
+			.get(FREE_NOTE_LIST_KEY)
 			.then((n) => {
 				if (alive) setNotes(n);
 			})
 			.catch((e) => {
-				if (alive) setNotesError(e?.message || "載入失敗");
+				if (alive && !cached) setNotesError(e?.message || "載入失敗");
 			});
 		return () => {
 			alive = false;

@@ -5,6 +5,7 @@
 // 被 Service Worker 快取住,使用者會看到自己剛存的東西沒有變。
 
 import { api } from "./api";
+import { createQuestionStore } from "./questionStore";
 
 export type FreeNoteSummary = {
 	id: string;
@@ -44,8 +45,32 @@ export function listFreeNotes(): Promise<FreeNoteSummary[]> {
 		.then((r) => r.notes ?? []);
 }
 
+/**
+ * 清單快取。/lectures 的三個分頁每切一次就重抓、閃一輪骨架 —— 這是其中一份。
+ * `peek()` 同步可讀,所以切回來是即時的。
+ *
+ * **失效寫在下面每個變更函式裡,不是交給呼叫端記得。** 這份清單帶標題、摘要與
+ * 更新時間,改標題(#76)之後如果沒失效,回到清單會看到舊標題而且無聲。
+ */
+export const freeNoteListCache = createQuestionStore<FreeNoteSummary[]>(
+	() => listFreeNotes(),
+	{ max: 1, ttlMs: 60_000 },
+);
+
+/** 清單只有一份,鍵是常數。 */
+export const FREE_NOTE_LIST_KEY = "all";
+
+function dropListCache() {
+	freeNoteListCache.invalidate(FREE_NOTE_LIST_KEY);
+}
+
 export function createFreeNote(title = ""): Promise<{ id: string }> {
-	return api.post<{ id: string }>("/api/free-notes", { title });
+	return api
+		.post<{ id: string }>("/api/free-notes", { title })
+		.then((r) => {
+			dropListCache();
+			return r;
+		});
 }
 
 export function getFreeNote(id: string): Promise<FreeNote> {
@@ -56,11 +81,19 @@ export function saveFreeNote(
 	id: string,
 	patch: { title?: string; content_json?: any },
 ): Promise<{ updated_at: number }> {
-	return api.put<{ updated_at: number }>(`/api/free-notes/${id}`, patch);
+	return api
+		.put<{ updated_at: number }>(`/api/free-notes/${id}`, patch)
+		.then((r) => {
+			dropListCache();
+			return r;
+		});
 }
 
 export function deleteFreeNote(id: string): Promise<unknown> {
-	return api.del(`/api/free-notes/${id}`);
+	return api.del(`/api/free-notes/${id}`).then((r) => {
+		dropListCache();
+		return r;
+	});
 }
 
 // 標籤獨立取得:這支可能要等 Workers AI 一兩秒(內容變了才會叫模型),

@@ -86,6 +86,30 @@ export default function FreeNote() {
 		if (note && !editing) reloadSideData();
 	}, [note, editing, reloadSideData]);
 
+	// 就地改標題。原本標題只有進入編輯模式(連內文編輯器一起開)才改得動,
+	// 但「把『(未命名筆記)』換成一個名字」是個獨立、頻繁、而且不該連帶開啟
+	// 內文編輯的動作 —— 那會讓一次改名冒著誤動內文的風險。
+	const [renaming, setRenaming] = useState(false);
+	const [renameDraft, setRenameDraft] = useState("");
+
+	async function commitRename() {
+		if (!id || !note) return;
+		const next = renameDraft.trim();
+		setRenaming(false);
+		if (next === note.title) return;
+		// 樂觀更新:改名要感覺是即時的。失敗才退回去,並且說出來。
+		const before = note.title;
+		setNote({ ...note, title: next });
+		setTitle(next);
+		try {
+			await saveFreeNote(id, { title: next });
+		} catch (e: any) {
+			setNote({ ...note, title: before });
+			setTitle(before);
+			setError(e?.message || "改名失敗");
+		}
+	}
+
 	async function save() {
 		if (!id || !note) return;
 		setSaving(true);
@@ -147,9 +171,43 @@ export default function FreeNote() {
 					aria-label="筆記標題"
 					className="w-full mb-4 bg-transparent font-serif text-2xl text-ink-900 dark:text-ink-100 border-b border-ink-200 dark:border-ink-700 pb-2 focus:outline-none focus:border-accent placeholder:text-ink-300 dark:placeholder:text-ink-600"
 				/>
+			) : renaming ? (
+				<input
+					value={renameDraft}
+					onChange={(e) => setRenameDraft(e.target.value)}
+					onBlur={commitRename}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") {
+							e.preventDefault();
+							void commitRename();
+						} else if (e.key === "Escape") {
+							e.preventDefault();
+							setRenaming(false);
+						}
+					}}
+					placeholder="筆記標題"
+					aria-label="筆記標題"
+					// biome-ignore lint/a11y/noAutofocus: 使用者剛剛點了標題,游標就該在這
+					autoFocus
+					className="w-full mb-3 bg-transparent font-serif text-2xl text-ink-900 dark:text-ink-100 border-b border-accent pb-2 focus:outline-none placeholder:text-ink-300 dark:placeholder:text-ink-600"
+				/>
 			) : (
-				<h1 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-3">
-					{note.title || "(未命名筆記)"}
+				<h1 className="mb-3">
+					<button
+						type="button"
+						onClick={() => {
+							setRenameDraft(note.title);
+							setRenaming(true);
+						}}
+						title="點一下改標題"
+						className="w-full text-left font-serif text-2xl text-ink-900 dark:text-ink-100 rounded px-1 -mx-1 hover:bg-ink-100 dark:hover:bg-ink-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent transition"
+					>
+						{note.title || (
+							<span className="text-ink-400 dark:text-ink-500">
+								(未命名筆記)
+							</span>
+						)}
+					</button>
 				</h1>
 			)}
 

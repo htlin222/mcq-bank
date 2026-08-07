@@ -167,7 +167,12 @@ function NoteAccordion({ section }: { section: Section }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="w-full flex items-center gap-2 py-2.5 text-left group"
+        // data-note-heading 是手把導覽的抓手:DOM 裡存在的這些按鈕,正好就是
+        // 「目前展開得到的標題」(收合的區段不渲染子節點),不必另外維護一份
+        // 清單。焦點環用 :focus 而不是 :focus-visible —— 手把移動游標是程式呼叫
+        // .focus(),瀏覽器不見得認定成 focus-visible,那樣游標就會是隱形的。
+        data-note-heading=""
+        className="w-full flex items-center gap-2 py-2.5 text-left group rounded focus:outline-none focus:ring-2 focus:ring-accent"
       >
         <ChevronRight
           size={16}

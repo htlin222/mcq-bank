@@ -377,7 +377,7 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
               type="time"
               value={draftStart}
               onChange={(e) => setDraftStart(e.target.value)}
-              className="px-2 py-1.5 rounded border border-ink-200 dark:border-ink-600 bg-transparent text-sm"
+              className="px-2 py-1.5 rounded border border-ink-200 dark:border-ink-600 bg-transparent text-sm text-ink-800 dark:text-ink-100"
               aria-label="開始時間"
             />
             <span className="text-ink-400">–</span>
@@ -385,7 +385,7 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
               type="time"
               value={draftEnd}
               onChange={(e) => setDraftEnd(e.target.value)}
-              className="px-2 py-1.5 rounded border border-ink-200 dark:border-ink-600 bg-transparent text-sm"
+              className="px-2 py-1.5 rounded border border-ink-200 dark:border-ink-600 bg-transparent text-sm text-ink-800 dark:text-ink-100"
               aria-label="結束時間"
             />
             <label className="inline-flex items-center gap-1.5 text-sm text-ink-600 dark:text-ink-300 ml-1">
@@ -418,7 +418,10 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
       <div
         role="dialog"
         aria-label="生成讀書計畫"
-        className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-lg overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]"
+        // 根節點給明確文字色:對話框裡有一整批元素(計畫表格列、統計格、
+        // 「還差 N 題」那些)沒有自己的 text-*,原本一路繼承到 body 的瀏覽器
+        // 預設近黑色 —— 淺色模式下看不出來,深色模式下整片消失(issue #75)。
+        className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-lg overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)] text-ink-800 dark:text-ink-100"
       >
         <header className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-ink-100 dark:border-ink-700">
           <h2 className="font-serif text-lg text-ink-900 dark:text-ink-100 inline-flex items-center gap-2">
@@ -482,7 +485,7 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
             <button
               disabled={busy}
               onClick={() => download('ics')}
-              className="px-3 py-1.5 rounded text-sm border border-ink-200 dark:border-ink-600 hover:border-accent transition"
+              className="px-3 py-1.5 rounded text-sm border border-ink-200 dark:border-ink-600 text-ink-700 dark:text-ink-200 hover:border-accent transition"
             >
               匯入行事曆 (.ics)
             </button>
