@@ -129,6 +129,15 @@ test('the new-year import wizard is never cacheable', () => {
   assert.equal(isCacheableApiPath('/api/me/bank-skill'), false);
 });
 
+test('其他筆記(自由筆記)是可變的私人狀態,永遠不快取', () => {
+  // 這幾支被快取住的話,使用者會存完筆記、重新整理,然後看到自己剛寫的東西
+  // 沒有變 —— 而且是無聲的。/api/lectures 可快取,名稱又相近,所以特別測。
+  assert.equal(isCacheableApiPath('/api/free-notes'), false);
+  assert.equal(isCacheableApiPath('/api/free-notes/n1'), false);
+  assert.equal(isCacheableApiPath('/api/free-notes/n1/tags'), false);
+  assert.equal(isCacheableApiPath('/api/free-notes/n1/links'), false);
+});
+
 test('scheduling and answer state are never cacheable', () => {
   assert.equal(isCacheableApiPath('/api/review/due'), false);
   assert.equal(isCacheableApiPath('/api/drill/next'), false);

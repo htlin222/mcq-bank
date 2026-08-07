@@ -14,6 +14,11 @@ type AnnoCtx = {
 } | null;
 const AnnotationCtx = createContext<AnnoCtx>(null);
 
+// 章節手風琴預設開或關。題目頁的個人筆記面板是次要內容,收合著才不會把題目
+// 擠下去;其他筆記的專屬頁整頁只有這一則,收合著等於打開自己的筆記只看得到
+// 幾個標題。所以做成參數而不是改預設值 —— 兩個位置要的行為本來就不同。
+const DefaultOpenCtx = createContext(false);
+
 // Read-only renderer for 個人筆記 with two view-only affordances:
 //   • a paragraph that is just ---/***/___ renders as a real <hr>
 //   • every heading (h1/h2/h3) becomes a collapsible accordion, folded by
@@ -72,11 +77,14 @@ export function NoteContent({
   annotateKeyPrefix,
   cloze = false,
   autoTerms,
+  defaultSectionsOpen = false,
 }: {
   content: any;
   /** When set, section bodies become annotatable, keyed under this prefix. */
   annotateKeyPrefix?: string;
   cloze?: boolean;
+  /** 章節手風琴是否預設展開(其他筆記的專屬頁用 true)。 */
+  defaultSectionsOpen?: boolean;
   /**
    * 自動挖空 terms for the whole note. Every section body gets the same list and
    * marks whichever terms appear in it — a term from another section simply
@@ -90,9 +98,11 @@ export function NoteContent({
     : null;
   return (
     <AnnotationCtx.Provider value={ctx}>
-      <div className="tiptap-note">
-        <ItemList items={items} />
-      </div>
+      <DefaultOpenCtx.Provider value={defaultSectionsOpen}>
+        <div className="tiptap-note">
+          <ItemList items={items} />
+        </div>
+      </DefaultOpenCtx.Provider>
     </AnnotationCtx.Provider>
   );
 }
@@ -146,7 +156,8 @@ const TITLE_CLS: Record<number, string> = {
 };
 
 function NoteAccordion({ section }: { section: Section }) {
-  const [open, setOpen] = useState(false);
+  const defaultOpen = useContext(DefaultOpenCtx);
+  const [open, setOpen] = useState(defaultOpen);
   const title = headingText(section.heading);
   const hasChildren = section.children.length > 0;
 

@@ -1,0 +1,19 @@
+{
+  "links": [
+    {
+      "targetKind": "question",
+      "targetId": "113-050",
+      "year": 113,
+      "number": 50,
+      "stem": "下列關於孟買血型的敘述,何者正確?",
+      "group": "內科",
+      "sharedTerms": ["AML"]
+    },
+    {
+      "targetKind": "free",
+      "targetId": "n2",
+      "title": "鐵代謝速記",
+      "sharedTerms": ["貧血"]
+    }
+  ]
+}

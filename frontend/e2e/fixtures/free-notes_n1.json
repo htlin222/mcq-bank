@@ -1,0 +1,33 @@
+{
+  "id": "n1",
+  "title": "AML 誘導治療整理",
+  "content_json": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "誘導治療骨幹" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "7+3 仍是體能狀態良好者的骨幹:cytarabine 連續輸注七天,加上三天的 anthracycline。"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "FLT3-ITD 陽性者加上 midostaurin,見 " },
+          { "type": "questionRef", "attrs": { "id": "113-050" } },
+          { "type": "text", "text": " 那一題的討論。" }
+        ]
+      }
+    ]
+  },
+  "created_at": 1754500000000,
+  "updated_at": 1754560000000
+}

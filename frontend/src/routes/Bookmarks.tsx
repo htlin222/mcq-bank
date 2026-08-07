@@ -1,10 +1,18 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Folder, FolderPlus, Trash2, MoreVertical, Highlighter } from 'lucide-react';
+import { Folder, FolderPlus, Trash2, MoreVertical, Highlighter, NotebookPen } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { groupBadgeClass } from '../lib/groups';
-import { loadNoteHighlights, mergeNoteHighlights, type HlGroup } from '../lib/noteHighlights';
+import {
+  loadNoteHighlights,
+  mergeNoteHighlights,
+  mergeFreeNoteHighlights,
+  type HlGroup,
+  type HlLine,
+  type FreeHlGroup,
+} from '../lib/noteHighlights';
+import { listFreeNotes } from '../lib/freeNoteApi';
 import { ExportButton } from '../components/ExportDialog';
 import type { ExportScope } from '../lib/export-scope';
 
@@ -50,6 +58,28 @@ export function Bookmarks() {
       })
       .catch(() => {
         /* offline — the localStorage-only view stays */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  // 其他筆記上的畫記(store_key 前綴 anno:free:)。標題不在 key 裡,所以要
+  // 併著筆記清單一起拿 —— 也因此這一區沒有「先 localStorage 再同步」的
+  // instant 版本:沒有標題的卡片連不到東西,不如等這兩支回來再一起顯示。
+  const [freeHl, setFreeHl] = useState<FreeHlGroup[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      api.get<{ store_key: string; doc_json: string }[]>('/api/highlights?prefix=anno:free:'),
+      listFreeNotes(),
+    ])
+      .then(([rows, notes]) => {
+        if (cancelled) return;
+        const titles = new Map(notes.map((n) => [n.id, n.title]));
+        setFreeHl(mergeFreeNoteHighlights(rows, titles));
+      })
+      .catch(() => {
+        /* offline — 這一區留空,題目畫記那區照常 */
       });
     return () => {
       cancelled = true;
@@ -187,7 +217,7 @@ export function Bookmarks() {
           />
           <SideItem
             label="我的畫記"
-            count={hlGroups.length}
+            count={hlGroups.length + freeHl.length}
             active={active === HIGHLIGHTS}
             onClick={() => setActive(HIGHLIGHTS)}
             icon={<Highlighter size={14} className="shrink-0" />}
@@ -232,20 +262,36 @@ export function Bookmarks() {
         {/* Items */}
         <section>
           {active === HIGHLIGHTS ? (
-            hlGroups.length === 0 ? (
+            hlGroups.length === 0 && freeHl.length === 0 ? (
               <p className="text-ink-400 dark:text-ink-500 text-sm">
-                還沒有個人筆記的畫記。在題目頁的「個人筆記」選取文字即可加螢光標記。
+                還沒有畫記。在題目頁的「個人筆記」或「其他筆記」選取文字即可加螢光標記。
               </p>
             ) : (
               <>
                 <p className="text-[11px] text-ink-400 dark:text-ink-500 mb-2">
                   畫記已同步,所有裝置皆可見。
                 </p>
-                <ul className="space-y-2">
-                  {hlGroups.map((g) => (
-                    <HighlightCard key={g.qid} group={g} stem={hlStems[g.qid]} />
-                  ))}
-                </ul>
+                {hlGroups.length > 0 && (
+                  <ul className="space-y-2">
+                    {hlGroups.map((g) => (
+                      <HighlightCard key={g.qid} group={g} stem={hlStems[g.qid]} />
+                    ))}
+                  </ul>
+                )}
+                {freeHl.length > 0 && (
+                  <>
+                    {/* 兩區之間放小標,而不是混在同一串 —— 題目畫記排序是
+                        年-題號,自由筆記沒有那個維度,混排會看起來沒有順序。 */}
+                    <h2 className="mt-5 mb-2 text-xs uppercase tracking-wider text-ink-400 dark:text-ink-500">
+                      其他筆記
+                    </h2>
+                    <ul className="space-y-2">
+                      {freeHl.map((g) => (
+                        <FreeHighlightCard key={g.id} group={g} />
+                      ))}
+                    </ul>
+                  </>
+                )}
               </>
             )
           ) : items === null ? (
@@ -321,29 +367,67 @@ function HighlightCard({
             }>{stem.group}</span>
           )}
         </div>
-        <ul className="mt-2 pl-16 space-y-1">
-          {group.lines.map((line, i) => (
-            <li
-              key={i}
-              className="text-[13px] leading-relaxed text-ink-600 dark:text-ink-300 line-clamp-2"
-            >
-              {line.ellipsisStart && '…'}
-              {line.segments.map((s, j) =>
-                s.hl ? (
-                  <mark key={j} className="bg-yellow-200 dark:bg-yellow-400/30 text-inherit rounded-sm px-0.5">
-                    {s.text}
-                  </mark>
-                ) : (
-                  <span key={j}>{s.text}</span>
-                ),
-              )}
-              {line.ellipsisEnd && '…'}
-            </li>
-          ))}
-          {extra > 0 && (
-            <li className="text-[11px] text-ink-400 dark:text-ink-500">還有 {extra} 條畫記…</li>
+        <HighlightLines lines={group.lines} extra={extra} className="mt-2 pl-16" />
+      </Link>
+    </li>
+  );
+}
+
+// 畫記片段的呈現。題目畫記與自由筆記畫記共用 —— 兩張卡片的抬頭不同(題號
+// vs 筆記標題),但底下這幾行的樣子必須一模一樣,否則同一份畫記在兩個區塊
+// 看起來像兩種東西。
+function HighlightLines({
+  lines,
+  extra,
+  className = '',
+}: {
+  lines: HlLine[];
+  extra: number;
+  className?: string;
+}) {
+  return (
+    <ul className={`space-y-1 ${className}`}>
+      {lines.map((line, i) => (
+        <li
+          key={i}
+          className="text-[13px] leading-relaxed text-ink-600 dark:text-ink-300 line-clamp-2"
+        >
+          {line.ellipsisStart && '…'}
+          {line.segments.map((s, j) =>
+            s.hl ? (
+              <mark key={j} className="bg-yellow-200 dark:bg-yellow-400/30 text-inherit rounded-sm px-0.5">
+                {s.text}
+              </mark>
+            ) : (
+              <span key={j}>{s.text}</span>
+            ),
           )}
-        </ul>
+          {line.ellipsisEnd && '…'}
+        </li>
+      ))}
+      {extra > 0 && (
+        <li className="text-[11px] text-ink-400 dark:text-ink-500">還有 {extra} 條畫記…</li>
+      )}
+    </ul>
+  );
+}
+
+// 其他筆記(自由筆記)上的畫記。沒有題號可標,抬頭放筆記標題。
+function FreeHighlightCard({ group }: { group: FreeHlGroup }) {
+  return (
+    <li className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent transition">
+      <Link to={`/notes/${group.id}`} className="block">
+        <div className="flex items-start gap-3">
+          <NotebookPen size={16} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
+          <span className="text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed flex-1">
+            {group.title}
+          </span>
+        </div>
+        <HighlightLines
+          lines={group.lines}
+          extra={group.total - group.lines.length}
+          className="mt-2 pl-7"
+        />
       </Link>
     </li>
   );
