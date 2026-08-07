@@ -206,6 +206,41 @@ function buildSuggestTagsSystemPrompt(env: Env): string {
 	].join("");
 }
 
+// 自由筆記(其他筆記)的標籤提示詞。刻意跟上面共用同一組 tag 風格變數 ——
+// 建議系統的受控詞表就是 question_tags,標籤語彙對不齊的話,筆記抽出來的詞
+// 永遠命中不了詞表,下方建議會一直是空的。
+export function buildNoteTagsSystemPrompt(env: Env): string {
+	const spec = aiVar(env, "specialty_zh");
+	const specEn = aiVar(env, "specialty_en_long");
+	const disease = aiVar(env, "tag_disease_examples");
+	const topic = aiVar(env, "tag_topic_examples");
+
+	return [
+		`你是${spec}科讀書筆記的標籤助手。筆記內容屬${spec}領域 (${specEn})。`,
+		'看到筆記內容後回傳一個 JSON: {"tags":["<tag1>","<tag2>","<tag3>"]}。',
+		`tag 風格:疾病用慣用縮寫 (${disease}),其他用繁體中文 (${topic})。`,
+		"盡量 2-5 個標籤,不要過多,不要解釋,只回 JSON。",
+	].join("");
+}
+
+// 從模型輸出裡挖出 {"tags":[...]}。與 /suggest-tags 同一套寬容解析:模型偶爾
+// 會在 JSON 前後多寫一句話。
+export function parseTagsResponse(raw: unknown): string[] {
+	try {
+		const m = String((raw as any)?.response ?? "").match(/\{[\s\S]*\}/)?.[0];
+		if (!m) return [];
+		const j = JSON.parse(m);
+		if (!Array.isArray(j.tags)) return [];
+		return (j.tags as unknown[])
+			.filter((t): t is string => typeof t === "string")
+			.map((t) => t.trim())
+			.filter(Boolean)
+			.slice(0, 8);
+	} catch {
+		return [];
+	}
+}
+
 function parseGeneratedQaItems(raw: unknown): GeneratedQaItem[] {
 	const parsed = parseJsonObject(raw);
 	const candidates = Array.isArray(parsed)

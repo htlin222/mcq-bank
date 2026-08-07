@@ -67,6 +67,8 @@ import Videos from "./routes/Videos";
 // Lazy — keeps EmbedPDF's pdfium-wasm bundle off every other route.
 const Lectures = lazy(() => import("./routes/Lectures"));
 const LectureReader = lazy(() => import("./routes/LectureReader"));
+// 跟講義閱讀器同一個理由 lazy:整包 TipTap 編輯器只有真的開筆記才需要。
+const FreeNote = lazy(() => import("./routes/FreeNote"));
 
 export default function App() {
 	const { me, loading } = useMe();
@@ -215,6 +217,15 @@ export default function App() {
 						element={
 							<Suspense fallback={<BootSplash />}>
 								<LectureReader />
+							</Suspense>
+						}
+					/>
+					{/* 其他筆記(自由筆記)—— 入口在 /lectures?tab=note */}
+					<Route
+						path="/notes/:id"
+						element={
+							<Suspense fallback={<BootSplash />}>
+								<FreeNote />
 							</Suspense>
 						}
 					/>

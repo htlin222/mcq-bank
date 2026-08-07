@@ -1,0 +1,20 @@
+{
+  "notes": [
+    {
+      "id": "n1",
+      "title": "AML 誘導治療整理",
+      "excerpt": "7+3 仍是體能狀態良好者的骨幹:cytarabine 連續輸注七天,加上三天的 anthracycline。",
+      "tags": ["AML", "化學治療"],
+      "created_at": 1754500000000,
+      "updated_at": 1754560000000
+    },
+    {
+      "id": "n2",
+      "title": "鐵代謝速記",
+      "excerpt": "hepcidin 由肝臟分泌,發炎時上升,把 ferroportin 拉下來 —— 這是慢性病貧血的核心。",
+      "tags": ["貧血"],
+      "created_at": 1754300000000,
+      "updated_at": 1754400000000
+    }
+  ]
+}

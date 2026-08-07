@@ -289,6 +289,45 @@ pattern as the mcq bundle) so `/api/me/bank-skill` can zip it with a freshly
 baked per-admin `.env`. Editing the skill means re-running `pnpm gen:bundles`
 — wired into `dev` and `predeploy`.
 
+### 其他筆記: 不掛題目的私人筆記,以及那張表為什麼要重建
+
+`/lectures?tab=note` 是講義/教科書旁的第三個分頁,每張卡片是一則
+**question-agnostic** 的私人筆記(`free_notes`,migration 0040)。設計:
+`docs/plans/2026-08-07-free-notes-design.md`。
+
+`personal_notes.question_id` 有 `REFERENCES questions(id)`,所以「用假題號當
+佔位」這條路走不通 —— 得先在 `questions` 插一列假題目,而題數統計、隨機出題、
+匯出全都是 `SELECT ... FROM questions`。故另開一張表。
+
+真正值得記住的是連帶動的那兩張表。`note_terms` / `note_link_suggestions` 原本
+的鍵是 `(user_email, question_id)`,0040 改成 `owner_kind` + `owner_id`
+(`'question' | 'free'`),`target_kind` 多一個 `'free'`。**沒有把自由筆記的 id
+塞進 `question_id` 欄位**:格式不會撞(`114-001` vs UUID)所以「能動」,但那會
+讓欄名說謊,而這兩張表的每一條查詢都靠欄名讀懂。換到的是單一程式路徑 ——
+自由筆記與題目筆記互相推薦是同一段 SQL,不是兩套。
+
+- **讀取端不能用單一 `JOIN questions`。** 原本 `notes.ts` 是
+  `JOIN questions q ON q.id = s.target_id`,自由筆記目標的 `target_id` 不是
+  題號,會被**靜默丟掉** —— 建議少一種來源而且完全無聲。改成依 `target_kind`
+  分別 LEFT JOIN(`lib/note-links.ts` 的 `loadSuggestions`),`free` 那條還要
+  `AND user_email = ?`,否則會漏出別人的標題。
+- **標籤的刪除要留墓碑(`source='hidden'`),不能真的刪列。** AI 重跑是
+  `DELETE WHERE source='ai'` + `INSERT OR IGNORE`;真的刪掉的話,模型看同一份
+  內容會再給出同一個標籤,使用者刪過的標籤下次打開筆記就又回來了。
+- **重跑的判準是內容雜湊(`tagged_hash`),不是髒旗標。** 旗標會被
+  「存檔 → 還沒產標籤 → 又存檔回原內容」騙到。
+- **寫入端不呼叫 Workers AI。** debounce 存檔一秒好幾次,在那裡叫模型等於把
+  免費額度燒在沒人看的中間狀態上。產生點在 `GET /:id/tags`,且與筆記本體分開
+  取得,詳情頁才不會為了等標籤空著一兩秒。
+- **`/api/free-notes*` 不進 `sw-guards.ts` 的 `CACHEABLE_API`**(有測試鎖著)。
+  可變的私人狀態被 SW 快取住,使用者會存完筆記、重整,然後看到自己剛寫的東西
+  沒有變 —— 而且無聲。名稱跟可快取的 `/api/lectures` 很像,特別容易誤加。
+- 畫記沿用既有機制,`highlights` 一列 schema 都沒動:前綴 `anno:free:<id>`,
+  收藏頁「我的畫記」多撈一次 `?prefix=anno:free:`。標題不在 key 裡,所以要併
+  著 `listFreeNotes()` 一起拿;查不到標題就整組略過(筆記已刪)。
+- 連到題目的 `@114-010` **一行新程式都沒有** —— `RichEditor` 用的
+  `buildExtensions()` 本來就含 `QuestionRef` 與 mention suggestion。
+
 ### 2048: 純休息,而且刻意跟題庫零耦合
 
 `/play` 是個休息小遊戲(設計:

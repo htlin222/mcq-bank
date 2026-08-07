@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../types';
-import { loadVocab, computeNoteSuggestions } from '../lib/note-links';
+import { loadVocab, computeNoteSuggestions, loadSuggestions } from '../lib/note-links';
 import { MAX_NOTES_PER_QUESTION, parseSlot } from '../lib/notes';
 
 export const notesRoutes = new Hono<AppContext>();
@@ -95,8 +95,10 @@ notesRoutes.delete('/:id/note', async (c) => {
 
   if ((left?.n ?? 0) === 0) {
     await c.env.DB.batch([
-      c.env.DB.prepare('DELETE FROM note_terms WHERE user_email = ? AND question_id = ?').bind(email, id),
-      c.env.DB.prepare('DELETE FROM note_link_suggestions WHERE user_email = ? AND question_id = ?').bind(email, id),
+      c.env.DB.prepare("DELETE FROM note_terms WHERE user_email = ? AND owner_kind = 'question' AND owner_id = ?").bind(email, id),
+      c.env.DB.prepare("DELETE FROM note_link_suggestions WHERE user_email = ? AND owner_kind = 'question' AND owner_id = ?").bind(email, id),
+      // 這則筆記消失後,別人(自己的其他筆記)不該再被推薦到它。
+      c.env.DB.prepare("DELETE FROM note_link_suggestions WHERE user_email = ? AND target_kind = 'note' AND target_id = ?").bind(email, id),
     ]);
   } else {
     await c.env.DB
@@ -112,17 +114,6 @@ notesRoutes.delete('/:id/note', async (c) => {
 // if the note is dirty (edited since last compute) we recompute on the spot —
 // single note, deterministic SQL, zero Workers AI neurons — so suggestions feel
 // live without waiting for the nightly cron.
-type NoteLinkRow = {
-  target_kind: 'note' | 'question';
-  target_id: string;
-  score: number;
-  shared_terms: string;
-  year: number;
-  number: number;
-  stem: string;
-  group: string | null;
-};
-
 notesRoutes.get('/:id/note/links', async (c) => {
   const id = c.req.param('id');
   const email = c.var.email;
@@ -138,45 +129,20 @@ notesRoutes.get('/:id/note/links', async (c) => {
   if (noteRows.some((n) => n.needs_relink)) {
     try {
       const vocab = await loadVocab(c.env.DB);
-      await computeNoteSuggestions(c.env.DB, email, id, noteRows.map((n) => n.content_json), vocab);
+      await computeNoteSuggestions(
+        c.env.DB,
+        email,
+        'question',
+        id,
+        noteRows.map((n) => n.content_json),
+        vocab,
+      );
     } catch (e) {
       // Non-fatal: fall through to whatever is cached (possibly empty).
       console.warn('note-links lazy compute failed', id, String(e));
     }
   }
 
-  const { results } = await c.env.DB
-    .prepare(
-      `SELECT s.target_kind, s.target_id, s.score, s.shared_terms,
-              q.year, q.number, q.stem, q."group"
-         FROM note_link_suggestions s
-         JOIN questions q ON q.id = s.target_id
-        WHERE s.user_email = ? AND s.question_id = ?
-          AND (s.target_kind = 'question'
-               OR EXISTS (SELECT 1 FROM personal_notes pn
-                           WHERE pn.user_email = s.user_email
-                             AND pn.question_id = s.target_id))
-        ORDER BY s.score DESC`
-    )
-    .bind(email, id)
-    .all<NoteLinkRow>();
-
-  const links = (results ?? []).map((r) => {
-    let sharedTerms: string[] = [];
-    try {
-      const v = JSON.parse(r.shared_terms);
-      if (Array.isArray(v)) sharedTerms = v.filter((x) => typeof x === 'string');
-    } catch { /* keep [] */ }
-    return {
-      targetKind: r.target_kind,
-      targetId: r.target_id,
-      year: r.year,
-      number: r.number,
-      stem: r.stem,
-      group: r.group,
-      sharedTerms,
-    };
-  });
-
+  const links = await loadSuggestions(c.env.DB, email, 'question', id);
   return c.json({ links });
 });

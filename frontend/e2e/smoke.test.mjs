@@ -53,6 +53,14 @@ const ROUTES = [
     expectText: '待確認',
   },
   {
+    path: '/notes/n1',
+    name: '其他筆記單則(NoteContent 畫記層 + 關聯建議)',
+    // 這頁掛的是 AnnotatableContent 驅動的唯讀筆記 —— 就是 2026-07 iOS
+    // 白屏那個 useEditor 競態的溫床。斷言內文而不是標題:標題是純 DOM,
+    // 光有它不能證明畫記層真的掛起來了。
+    expectText: 'anthracycline',
+  },
+  {
     path: '/play',
     name: '2048(useReducer + 全域鍵盤/觸控監聽 + debounce timer)',
     // 這頁掛的是別處沒有的型態:reducer 驅動的盤面,加上兩個掛在 window/
