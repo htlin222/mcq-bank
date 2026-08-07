@@ -60,6 +60,14 @@ const ROUTES = [
     // fixture 給的是「玩到一半」的存檔,所以斷言得到盤面上的磚,而不只是標題。
     expectText: '128',
   },
+  {
+    path: '/profile',
+    name: '個人資料(答題狀態分析:debounce 報數 + 日期輸入)',
+    // 這頁掛的是別處沒有的型態:條件一改就重跑的 debounce 請求(帶 seq 防亂序)
+    // 加上一組 <input type="date">。斷言「筆」而不只是標題,因為報數要等
+    // debounce + fetch 都回來才畫得出來 —— 中途卸載沒收乾淨就會在這裡炸。
+    expectText: '801 筆',
+  },
 ];
 
 // fixture 是從真實 API 抓下來的，而這個 repo 是公開的 —— 第一版就差點把 18 位

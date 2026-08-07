@@ -352,6 +352,28 @@ GROUP BY rp.user_email, rp.question_id
 HAVING rp.times_seen <> attempts_n LIMIT 20;
 ```
 
+### 答題狀態分析: 把 `attempts` 原樣交出去
+
+個人頁的「答題狀態分析」(`/api/attempt-log`,
+`frontend/src/components/profile/AttemptLogCard.tsx`)下載一份逐次作答的 CSV
+長表,條件是年份 / 只要答錯 / 作答區間,預設全部。站內其他統計都是「幫你看完
+再給結論」,這張卡刻意相反 —— 不歸納,只把原始列倒出來。
+
+三個不明顯的地方:
+
+- **只取 `chosen IS NOT NULL AND is_correct IS NOT NULL`。** 前者是「有作答」
+  (交卷補的空題會寫一列 `chosen = NULL`);後者排掉模擬考交卷前尚未判定的列。
+  留著會讓「是否答對」欄出現空白,任何樞紐分析的正確率都會被那幾列拖歪。
+- **信心是靠 timestamp 接的,不是靠 id。** `confidence_events` 沒有
+  `attempt_id`,但 `review.ts` 的 `/answer` 用同一個 `now` 同時寫兩張表,所以
+  `(user_email, question_id, at = created_at)` 是精確對應。要是哪天把兩者的
+  時間戳拆開寫,這個 join 會靜默變成全空白而不是報錯。
+- **`/api/attempt-log/*` 不能進 `sw-guards.ts` 的 `CACHEABLE_API`** —— meta
+  反映的是「你剛剛答了幾題」,快取住等於年份選單永遠少一年。
+
+CSV 帶 BOM(否則 Excel 會用系統字碼頁開成亂碼),欄位走 `csvCell()` 以中和
+`=` 開頭的公式注入。純函式與測試在 `worker/lib/attempt-log.ts`。
+
 ### PWA: offline *reading* only, and the Access trap
 
 `frontend/src/sw.ts` (built by `vite-plugin-pwa` in **`injectManifest`** mode)
