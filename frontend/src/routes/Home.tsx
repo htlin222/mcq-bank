@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, History, AlertTriangle, CalendarDays, Scale } from 'lucide-react';
+import { Bookmark, History, AlertTriangle, CalendarDays, Scale, CalendarPlus } from 'lucide-react';
 import { api } from '../lib/api';
 import { config } from '../config';
 import { loadLastPath, describePath } from '../lib/lastPath';
@@ -8,6 +8,7 @@ import { ResumeChip } from '../components/ResumeChip';
 import { useMe } from '../hooks/useMe';
 import { ActivityHeatmap } from '../components/ActivityHeatmap';
 import { PacingCard } from '../components/PacingCard';
+import { StudyPlanDialog } from '../components/StudyPlanDialog';
 import { GROUPS, TOTAL_EXAM_COUNT } from '../lib/groups';
 import { formatDueAt, type DueSummary } from '../lib/due';
 
@@ -49,6 +50,7 @@ export function Home() {
   const [countdown, setCountdown] = useState<Countdown>(() => countdownTo(EXAM_DATE));
   // 「繼續上次」— read once on mount; dismissable for this visit.
   const [resume, setResume] = useState(() => loadLastPath());
+  const [planOpen, setPlanOpen] = useState(false);
 
   useEffect(() => {
     api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
@@ -125,9 +127,21 @@ export function Home() {
               <span className="text-ink-500 dark:text-ink-400 text-xs sm:text-sm">
                 · {config.exam.date_label}
               </span>
+              {/* 靠 ml-auto 推到卡片右緣;self-center 讓它脫離 baseline ——
+                  跟左邊 text-3xl 的天數對 baseline 會明顯錯位。ghost 樣式:
+                  這張卡已經有 accent 底色,再放一顆實心鈕會打架。 */}
+              <button
+                type="button"
+                onClick={() => setPlanOpen(true)}
+                className="ml-auto self-center inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1 text-xs sm:text-sm text-accent dark:text-accent-light hover:border-accent/50 hover:bg-accent/10 transition"
+              >
+                <CalendarPlus size={15} strokeWidth={1.75} />
+                生成讀書計畫
+              </button>
             </>
           )}
         </div>
+        {planOpen && <StudyPlanDialog onClose={() => setPlanOpen(false)} />}
 
         {/* 跨年份「今天該複習什麼」入口。0 張時只留一行低調文字,不搶版面。 */}
         {due && due.due_total > 0 ? (

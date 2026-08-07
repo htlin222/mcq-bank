@@ -419,6 +419,54 @@ highlights and `/pdf/*` must stay out — see the comment block there for why.
 - 驗證在 `frontend/e2e/nav-prefetch.test.mjs`:fixture 伺服器每個 `/api/` 延遲
   700ms,把「有沒有預抓到」變成可觀測的時間差。改動預抓邏輯後這支會紅。
 
+### 讀書計畫產生器: 排程是純函式,AI 只負責語氣
+
+首頁倒數卡片右側的「生成讀書計畫」開一個對話式問卷(七題),產出到考試當天的
+逐日計畫表(單檔 HTML)與可匯入行事曆的 `.ics`。設計:
+`docs/plans/2026-08-07-study-plan-generator-design.md`。
+
+跟 `PacingCard` 的分工要先講清楚,不然日後會有人想把兩者合併:`PacingCard`
+是後視鏡(「以我**目前**的速度做得完嗎」,輸入全來自 `attempts` 的既成事實);
+這裡是前瞻(「我**打算**每天 90 分鐘、只寫五年、跑兩輪,排得出來嗎」,輸入是
+意圖)。天數兩邊都取 `/api/review/readiness` 的 `days_left`(ceil),不混用首頁
+倒數卡的 `countdown.days`(floor)—— 差一天,同畫面兩個數字是體感 bug。
+
+- **`worker/lib/study-plan.ts` 的 `buildPlan()` 是純函式**,不碰 D1、不碰
+  `Date.now()`。前端不重算排程,只顯示 `/api/study-plan/preview` 回來的結果 ——
+  兩邊各算一次必然會在某個邊界條件上算出不同數字。
+- **第二輪起只排錯題(× 錯誤率遞減),不重跑全題。** 若每輪都排全題,「剩 28 天
+  跑兩輪 1000 題」會算出一天 71 題 —— 那不是計畫,是一張看一眼就關掉的表。
+- **排不完就說排不完。** `shortfall` 帶著差額回傳,UI 與 HTML 都把它放在所有
+  表格**之前**,並附三顆一鍵重算的按鈕(加時間 / 砍最舊年份 / 減一輪)。那句話
+  是使用者現在就該做決定的唯一理由,被行事曆推到看不見的地方等於沒說。
+- **`study_plans` 只存問卷輸入,不存排程結果**(migration `0039`)。排程可從
+  「輸入 + 當下進度」重算,存下來就會跟真實進度漂移,而漂移的計畫表沒人會發現
+  它錯了。同 `review_progress` 是快取、`attempts` 才是真相的那條規則。
+- **弱點不走 `/api/review/weakness-map`** —— 它依賴 Vectorize 索引,未回填時直接
+  回空陣列,拿它當計畫的基礎會在多數使用者身上開天窗。改用逐年正確率 +
+  `tag_topics`/`video_topics` 白名單的確定性 SQL,並濾掉作答數 < 8 的主題
+  (「1 題錯 1 題 = 0%」是雜訊,不是弱點)。
+- **Workers AI 只寫弱點導讀那一段,不碰任何一個數字。** 送出去的只有一張最多
+  12 列的彙總表,不含題目內容也不含 email;6 秒 timeout,失敗整段省略,計畫表
+  照出。export 的導讀文字由 client 帶回而不是再打一次 AI —— 同一份計畫燒兩次
+  神經元,還可能拿到兩段不一樣的文字。
+- **真 PDF 是 non-goal**,理由同 `export-html.ts`:Browser Rendering 要付費、
+  CJK 字型塞不進 bundle、從 R2 拉字型再 subset 撐不住 free plan 的 10ms CPU。
+  HTML 帶 `@media print` 與一顆列印時自己隱藏的按鈕,瀏覽器列印的輸出跟真 PDF
+  沒有差別。
+- **`.ics` 用定時事件而非全天事件**(考試當天除外 —— 不知道幾點入場)。手機只有
+  定時事件才會跳提醒,而不會提醒的計畫表不會被執行。跨午夜的時段(23:30–01:00、
+  21:00 起的三小時模擬考)**必須把日期一起進位**;只取 `mod 1440` 會產出「開始
+  21:00、結束同日 00:00」的負長度事件 —— 這個 bug 單元測試沒抓到,是實際產一份
+  `.ics` 出來看才發現的。
+- **`/api/study-plan` 不在 `sw-guards.ts` 的 `CACHEABLE_API`** —— 可變狀態被 SW
+  快取住,使用者會看到上一版的計畫還以為沒存到。
+- 驗證:`worker/lib/study-plan*.test.ts`(排程 / HTML / ICS),以及
+  `frontend/e2e/study-plan.test.mjs` —— 這個功能整個活在 portal 掛載的 modal 裡,
+  `smoke.test.mjs` 只會開路徑、碰不到它。fixture 由
+  `scripts/gen-study-plan-fixture.mjs` 跑真的 `buildPlan()` 產出,手寫的 JSON 會
+  在 `PlanResult` 改欄位時悄悄過期。
+
 ### Images: R2 via Worker proxy (not public bucket)
 
 Uploads: `POST /api/upload` (multipart) → Worker validates size/MIME → R2 put with UUID key → returns `/img/<key>` URL.
