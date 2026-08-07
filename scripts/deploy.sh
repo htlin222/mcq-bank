@@ -67,24 +67,39 @@ wrangler d1 migrations apply "$D1_DB" --remote
 echo "  ✅ Schema applied"
 
 # 3. R2 bucket
+#
+# 先問「在不在」,而不是照 `create` 的輸出去猜。兩種寫法都被同一個症狀咬過:
+# 資源明明好好的,每次部署卻噴一行 "may have failed" —— 久了就沒人看警告了。
+#
+#   * grep create 的 stdout:`create` 在資源已存在時 exit 1,而這支腳本開著
+#     pipefail,所以整條 pipeline 回 1,grep 有沒有配到根本不影響結果。
+#   * grep 錯誤訊息字串:wrangler 改過措辭。Vectorize 現在回的是
+#     "vectorize.index.duplicate_name",不再有 "already exists"。
+#
+# `info` / `get` 只回 0/1,不必解析任何文字,兩種脆弱都繞開了。
 echo ""
 echo "▶ Step 3: R2 bucket ($R2_BUCKET)"
-if wrangler r2 bucket create "$R2_BUCKET" 2>&1 | grep -q "already exists\|Created bucket"; then
-  echo "  ✅ $R2_BUCKET ready"
+if wrangler r2 bucket info "$R2_BUCKET" >/dev/null 2>&1; then
+  echo "  ✓ $R2_BUCKET already exists"
 else
-  echo "  ⚠️  R2 step may have failed; check manually."
+  # 建不起來就讓 set -e 停在這裡:圖片上傳與 /img/* 代理都靠它,
+  # 帶著壞掉的 R2 繼續部署只會把問題推遲到使用者身上。
+  wrangler r2 bucket create "$R2_BUCKET"
+  echo "  ✅ $R2_BUCKET created"
 fi
 
 # 3.5 Vectorize index (semantic 相似題 / weakness clustering)
+#
+# 這一步刻意不致命:少了它,相似題退回 BM25,其餘功能完好。token 沒有
+# Vectorize Edit 權限的分支應該照樣部署得完。
 echo ""
 echo "▶ Step 3.5: Vectorize index ($VEC_INDEX)"
-# Capture first so pipefail + wrangler's non-zero "already exists" exit don't
-# trip the else branch on an idempotent re-run.
-VEC_OUT=$(wrangler vectorize create "$VEC_INDEX" --dimensions=768 --metric=cosine 2>&1 || true)
-if echo "$VEC_OUT" | grep -qi "already exists\|created"; then
-  echo "  ✅ $VEC_INDEX ready (backfill vectors with: pnpm vectors:backfill)"
+if wrangler vectorize get "$VEC_INDEX" >/dev/null 2>&1; then
+  echo "  ✓ $VEC_INDEX already exists"
+elif VEC_OUT=$(wrangler vectorize create "$VEC_INDEX" --dimensions=768 --metric=cosine 2>&1); then
+  echo "  ✅ $VEC_INDEX created (backfill vectors with: pnpm vectors:backfill)"
 else
-  echo "  ⚠️  Vectorize step may have failed (token needs Vectorize Edit); check manually."
+  echo "  ⚠️  Vectorize index 建立失敗(token 可能缺 Vectorize Edit)。相似題會退回 BM25。"
   echo "$VEC_OUT"
 fi
 
