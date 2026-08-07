@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
 	buildPlan,
 	dailyCapacity,
+	parsePlanInput,
 	type PlanContext,
 	type PlanInput,
 } from "./study-plan.ts";
@@ -299,4 +300,77 @@ test("週分組以週一為起點,每週 total 等於該週題數和", () => {
 	const dates = r.weeks.flatMap((w) => w.days).map((d) => d.date);
 	assert.deepEqual([...dates].sort(), dates);
 	assert.equal(new Set(dates).size, dates.length);
+});
+
+test("parsePlanInput:垃圾輸入退回可用的預設值,不炸也不回 NaN", () => {
+	const d = parsePlanInput(null);
+	assert.deepEqual(d.years, []);
+	assert.equal(d.completedOverride, null);
+	assert.equal(Number.isFinite(d.minutesPerDay), true);
+	assert.equal(Number.isFinite(d.secondsPerQuestion), true);
+	assert.equal(d.rounds >= 1, true);
+	assert.deepEqual(parsePlanInput("nope"), d);
+	assert.deepEqual(parsePlanInput(42), d);
+});
+
+test("parsePlanInput:數值一律 clamp,不信任 client", () => {
+	const big = parsePlanInput({
+		minutesPerDay: 99999,
+		secondsPerQuestion: 99999,
+		rounds: 99,
+		mockExams: 99,
+	});
+	assert.equal(big.minutesPerDay, 720);
+	assert.equal(big.secondsPerQuestion, 600);
+	assert.equal(big.rounds, 3);
+	assert.equal(big.mockExams, 6);
+
+	const small = parsePlanInput({
+		minutesPerDay: -5,
+		secondsPerQuestion: 0,
+		rounds: 0,
+		mockExams: -1,
+		completedOverride: -20,
+	});
+	assert.equal(small.minutesPerDay, 5);
+	assert.equal(small.secondsPerQuestion, 10);
+	assert.equal(small.rounds, 1);
+	assert.equal(small.mockExams, 0);
+	assert.equal(small.completedOverride, 0);
+
+	// 小數與字串數字都收斂成整數。
+	const odd = parsePlanInput({ minutesPerDay: "90", rounds: 2.7 });
+	assert.equal(odd.minutesPerDay, 90);
+	assert.equal(odd.rounds, 2);
+});
+
+test("parsePlanInput:年份去重、去雜質、由新到舊", () => {
+	const r = parsePlanInput({ years: [110, "113", 114, 114, null, 1.5, 113] });
+	assert.deepEqual(r.years, [114, 113, 110]);
+	assert.deepEqual(parsePlanInput({ years: "114" }).years, []);
+});
+
+test("parsePlanInput:時段格式不合就退回預設,不讓 25:99 進 .ics", () => {
+	const ok = parsePlanInput({ studyStart: "07:05", studyEnd: "09:30" });
+	assert.equal(ok.studyStart, "07:05");
+	assert.equal(ok.studyEnd, "09:30");
+
+	const bad = parsePlanInput({ studyStart: "25:99", studyEnd: "上午" });
+	assert.equal(bad.studyStart, "21:00");
+	assert.equal(bad.studyEnd, "22:30");
+});
+
+test("parsePlanInput:接得住自己吐出來的東西(round-trip)", () => {
+	const once = parsePlanInput({
+		years: [114, 113],
+		completedOverride: 30,
+		minutesPerDay: 45,
+		secondsPerQuestion: 75,
+		rounds: 2,
+		mockExams: 3,
+		restSunday: true,
+		studyStart: "06:00",
+		studyEnd: "07:15",
+	});
+	assert.deepEqual(parsePlanInput(JSON.parse(JSON.stringify(once))), once);
 });

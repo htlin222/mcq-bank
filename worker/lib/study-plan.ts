@@ -112,6 +112,74 @@ function toInt(v: unknown, fallback = 0): number {
 	return Number.isFinite(n) ? n : fallback;
 }
 
+const DEFAULT_INPUT: PlanInput = {
+	years: [],
+	completedOverride: null,
+	minutesPerDay: 60,
+	secondsPerQuestion: 90,
+	rounds: 2,
+	mockExams: 4,
+	restSunday: true,
+	studyStart: "21:00",
+	studyEnd: "22:30",
+};
+
+function clamp(v: unknown, lo: number, hi: number, fallback: number): number {
+	const n = Number(v);
+	if (!Number.isFinite(n)) return fallback;
+	return Math.min(Math.max(Math.trunc(n), lo), hi);
+}
+
+function parseTime(v: unknown, fallback: string): string {
+	const m = /^(\d{1,2}):(\d{2})$/.exec(typeof v === "string" ? v.trim() : "");
+	if (!m) return fallback;
+	const h = Number(m[1]);
+	const min = Number(m[2]);
+	if (h > 23 || min > 59) return fallback;
+	return `${String(h).padStart(2, "0")}:${m[2]}`;
+}
+
+/** 把 client 送來的問卷答案收斂成可用的 PlanInput。每個欄位都 clamp ——
+ *  這份輸入會直接決定排程,一個 NaN 就能讓整張表變空白。 */
+export function parsePlanInput(raw: unknown): PlanInput {
+	if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+		return { ...DEFAULT_INPUT };
+	}
+	const o = raw as Record<string, unknown>;
+
+	const years = Array.isArray(o.years)
+		? [
+				...new Set(
+					o.years
+						.map((y) => Number(y))
+						.filter((y) => Number.isInteger(y) && y > 0),
+				),
+			].sort((a, b) => b - a)
+		: [];
+
+	const override =
+		o.completedOverride == null || o.completedOverride === ""
+			? null
+			: clamp(o.completedOverride, 0, 1_000_000, 0);
+
+	return {
+		years,
+		completedOverride: override,
+		minutesPerDay: clamp(o.minutesPerDay, 5, 720, DEFAULT_INPUT.minutesPerDay),
+		secondsPerQuestion: clamp(
+			o.secondsPerQuestion,
+			10,
+			600,
+			DEFAULT_INPUT.secondsPerQuestion,
+		),
+		rounds: clamp(o.rounds, 1, 3, DEFAULT_INPUT.rounds),
+		mockExams: clamp(o.mockExams, 0, 6, DEFAULT_INPUT.mockExams),
+		restSunday: o.restSunday !== false,
+		studyStart: parseTime(o.studyStart, DEFAULT_INPUT.studyStart),
+		studyEnd: parseTime(o.studyEnd, DEFAULT_INPUT.studyEnd),
+	};
+}
+
 function addDays(day: string, n: number): string {
 	return new Date(Date.parse(`${day}T00:00:00Z`) + n * DAY_MS)
 		.toISOString()
