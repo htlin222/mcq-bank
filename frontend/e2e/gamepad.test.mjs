@@ -388,6 +388,78 @@ test('回年度列表再進另一題,也不會把「已連線」提示再放一�
   assert.deepEqual(errors, [], '不該有未捕捉例外');
 });
 
+// ── 詳解分頁的面鍵 (#81 / #82 / #83) ─────────────────────────────────
+//
+// 揭曉答案之後,四顆面鍵改對應詳解工具列。驗的重點有兩個:換了意思、以及
+// **沒有雙重觸發** —— FACE ▲ / ▶ 原本是 QuestionCard 的複製 / 收藏,兩邊都掛
+// 的話按一下會同時做兩件事。
+
+test('詳解分頁:FACE ▼ 顯示詳解,▲ 自動挖空,◀ 防劇透', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+
+  // 先揭曉答案 —— 沒揭曉時 ▼ / ◀ 還歸 QuestionCard(送出 / 略過)。
+  await tap(page, BTN.FACE_LEFT);
+  await page.waitForTimeout(600);
+
+  // 詳解預設是糊的,工具列還沒出現。
+  assert.equal(
+    await page.getByRole('button', { name: /自動挖空/ }).count(),
+    0,
+    '還沒顯示詳解時不該有工具列',
+  );
+
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(600);
+  await page
+    .getByRole('button', { name: /防劇透/ })
+    .first()
+    .waitFor({ timeout: 5_000 });
+
+  const cloze = page.getByRole('button', { name: /防劇透|取消/ }).first();
+  assert.equal(
+    await cloze.getAttribute('aria-pressed'),
+    'false',
+    '防劇透預設關著',
+  );
+  await tap(page, BTN.FACE_LEFT);
+  await page.waitForTimeout(400);
+  assert.equal(
+    await page.getByRole('button', { name: /防劇透|取消/ }).first().getAttribute('aria-pressed'),
+    'true',
+    'FACE ◀ 該把防劇透打開',
+  );
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('詳解分頁:FACE ▶ 開啟編輯器,而不是收藏', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await tap(page, BTN.FACE_LEFT);
+  await page.waitForTimeout(600);
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(600);
+
+  // 驗**正面效果**而不是「收藏沒變」:後者在功能沒接上時也會通過(FACE ▶ 落到
+  // QuestionCard 的收藏,而 fixture 的收藏 API 回空物件、狀態本來就不會動),
+  // 那種斷言看起來像在把關,其實什麼都沒守住。
+  assert.equal(
+    await page.getByRole('button', { name: '儲存' }).count(),
+    0,
+    '前置條件:還沒進編輯模式',
+  );
+
+  await tap(page, BTN.FACE_RIGHT);
+  await page.waitForTimeout(1_200);
+  assert.ok(
+    (await page.getByRole('button', { name: '儲存' }).count()) > 0,
+    'FACE ▶ 該開啟詳解編輯器(工具列出現「儲存」)',
+  );
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
 // ── 個人筆記分頁的十字鍵 (#79 / #80) ──────────────────────────────────
 //
 // 這一組驗的是「同一顆十字鍵在不同情境下換了意思」—— 看筆記時它走訪筆記標題,

@@ -91,6 +91,19 @@ const GAMEPAD_HINTS_REVEALED: GamepadHint[] = [
 	{ btn: "DPAD ↑ ↓", label: "捲動詳解" },
 	...GAMEPAD_HINTS_SHARED,
 ];
+// 讀詳解時四顆面鍵改對應詳解工具列。這裡不 spread SHARED —— FACE ▲ / ▶ 的
+// 意思被換掉了,照抄那份會寫出兩行互相矛盾的說明。
+const GAMEPAD_HINTS_EXPLANATION: GamepadHint[] = [
+	{ btn: "DPAD ↑ ↓", label: "捲動詳解" },
+	{ btn: "FACE ▼", label: "顯示詳解" },
+	{ btn: "FACE ▲", label: "自動挖空" },
+	{ btn: "FACE ◀", label: "防劇透" },
+	{ btn: "FACE ▶", label: "編輯詳解" },
+	{ btn: "L1 / R1", label: "上一題 / 下一題" },
+	{ btn: "L2 / R2", label: "上一個 / 下一個分頁" },
+	{ btn: "START", label: "回年度列表" },
+	{ btn: "左搖桿", label: "捲動" },
+];
 // 看個人筆記時十字鍵改成走訪筆記本身。三份說明而不是一份:同一顆十字鍵在
 // 作答前選選項、揭曉後捲頁面、看筆記時跳標題,寫成一份會騙人。
 const GAMEPAD_HINTS_NOTE: GamepadHint[] = [
@@ -1093,12 +1106,60 @@ export function Question() {
 	const noteTabVisible =
 		tab === "note" && (!tabsMode || mainTab === "note") && !noteEditing;
 
+	// 讀詳解時四顆面鍵改對應詳解工具列 —— 那排按鈕是讀的時候真正會用到的東西,
+	// 而「複製題目」「收藏」在讀的時候用不上。
+	//
+	// 一定要 cardRevealed:還沒作答時 FACE ▼ 是送出、FACE ◀ 是略過看答案,那兩顆
+	// 歸 QuestionCard。搶在答題前接管,等於按下送出的同時把詳解也掀開了。
+	const expKeysActive =
+		tab === "explanation" &&
+		(!tabsMode || mainTab === "note") &&
+		cardRevealed &&
+		!editing &&
+		!noteEditing;
+
 	// Gamepad page bindings. Options / 送出 / 複製 / 收藏 are QuestionCard's;
 	// these are the ones that need page context. The d-pad is shared: the card
 	// owns ↑↓ while unanswered (option cursor), the page takes it over once the
 	// answer is showing and there's a 詳解 to read — hence `cardRevealed`.
 	useGamepad((action) => {
 		if (!data || editing || noteEditing) return;
+
+		if (expKeysActive) {
+			switch (action) {
+				case "faceDown":
+					// 詳解預設是糊的(「點擊以顯示詳解」)—— 這顆就是那一下點擊。
+					if (!revealedExp) {
+						setRevealedExp(true);
+						return;
+					}
+					break;
+				case "faceUp":
+					// 工具列只在揭曉後才在,所以沒揭曉時這顆不該有反應。
+					if (revealedExp && !autoClozeLoading) {
+						toggleAutoCloze(data.id, "exp");
+						return;
+					}
+					break;
+				case "faceLeft":
+					if (revealedExp) {
+						setExpCloze((v) => !v);
+						return;
+					}
+					break;
+				case "faceRight":
+					// 跟「編輯」按鈕自己的停用條件對齊 —— 手把不該繞過鎖。
+					if (
+						online &&
+						lockState.status !== "acquiring" &&
+						lockState.status !== "locked-by-other"
+					) {
+						void startEdit();
+						return;
+					}
+					break;
+			}
+		}
 
 		if (noteTabVisible) {
 			switch (action) {
@@ -1380,6 +1441,7 @@ export function Question() {
 					style={tabsMode ? undefined : { flexBasis: `${splitPct}%` }}
 				>
 					<QuestionCard
+								yieldFaceKeys={expKeysActive}
 						key={data.id}
 						question={data}
 						onAnswered={reload}
@@ -2066,9 +2128,11 @@ export function Question() {
 				hints={
 					noteTabVisible
 						? GAMEPAD_HINTS_NOTE
-						: cardRevealed
-							? GAMEPAD_HINTS_REVEALED
-							: GAMEPAD_HINTS_ANSWERING
+						: expKeysActive
+							? GAMEPAD_HINTS_EXPLANATION
+							: cardRevealed
+								? GAMEPAD_HINTS_REVEALED
+								: GAMEPAD_HINTS_ANSWERING
 				}
 			/>
 		</div>

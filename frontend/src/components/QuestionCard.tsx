@@ -20,6 +20,9 @@ type Props = {
   // this: the d-pad selects options while unanswered and scrolls the panel
   // afterwards, and the scroll target is the page's business, not the card's.
   onRevealedChange?: (revealed: boolean) => void;
+  // 讀詳解時,FACE ▲ / ▶ 要讓給詳解工具列(自動挖空 / 編輯)。同一顆鍵兩邊
+  // 都掛的話會一次觸發兩件事,所以由頁面明說「這兩顆現在歸我」。
+  yieldFaceKeys?: boolean;
 };
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
@@ -31,7 +34,7 @@ function fmtSeconds(ms: number): string {
   return `${Math.floor(sec / 60)} 分 ${sec % 60} 秒`;
 }
 
-export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared, onRevealedChange }: Props) {
+export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared, onRevealedChange, yieldFaceKeys }: Props) {
   const bookmarkSet = useBookmarkSet();
   const { me } = useMe();
   const [chosen, setChosen] = useState<string | null>(
@@ -311,8 +314,11 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
       case 'right': moveConfidence(1); break;
       case 'faceDown': if (!revealed) submit(); break;
       case 'faceLeft': if (!revealed) setRevealed(true); break;
-      case 'faceUp': copyAsMarkdown(); break;
-      case 'faceRight': toggleBookmark(); break;
+      // 讀詳解時這兩顆改給詳解工具列(自動挖空 / 編輯),由頁面接手 —— 兩邊
+      // 都掛的話同一下會觸發兩件事。↓ ← 不必判斷:揭曉後 QuestionCard 本來就
+      // 不吃它們。
+      case 'faceUp': if (!yieldFaceKeys) copyAsMarkdown(); break;
+      case 'faceRight': if (!yieldFaceKeys) toggleBookmark(); break;
     }
   });
 
