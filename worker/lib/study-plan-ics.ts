@@ -81,17 +81,23 @@ function toMinutes(hhmm: string, fallback: number): number {
 	return h * 60 + min;
 }
 
-function localTime(day: string, minutes: number): string {
-	const m = ((minutes % 1440) + 1440) % 1440;
-	const hh = String(Math.floor(m / 60)).padStart(2, "0");
-	const mm = String(m % 60).padStart(2, "0");
-	return `${compact(day)}T${hh}${mm}00`;
-}
-
-function addDay(day: string): string {
-	return new Date(Date.parse(`${day}T00:00:00Z`) + 86_400_000)
+function addDay(day: string, n = 1): string {
+	return new Date(Date.parse(`${day}T00:00:00Z`) + n * 86_400_000)
 		.toISOString()
 		.slice(0, 10);
+}
+
+/** minutes 可以 >= 1440(23:30 起的 90 分鐘、21:00 起的模擬考三小時),
+ *  這時要把**日期**一起進位。只取 mod 1440 會產出「開始 21:00、結束同日
+ *  00:00」的負長度事件 —— 行事曆看到那種東西的反應從默默顯示錯誤到整份
+ *  拒收都有。 */
+function localTime(day: string, minutes: number): string {
+	const total = Math.max(Math.trunc(minutes), 0);
+	const date = addDay(day, Math.floor(total / 1440));
+	const m = total % 1440;
+	const hh = String(Math.floor(m / 60)).padStart(2, "0");
+	const mm = String(m % 60).padStart(2, "0");
+	return `${compact(date)}T${hh}${mm}00`;
 }
 
 const VTIMEZONE = [
@@ -111,9 +117,11 @@ const VTIMEZONE = [
 export function renderPlanIcs(plan: PlanResult, opts: IcsOpts): string {
 	const dtstamp = stamp(opts.now);
 	const start = toMinutes(plan.study_start, 21 * 60);
-	// 結束時間不晚於開始時間時,退回「開始 + 60 分鐘」而不是產生負長度事件。
+	// 結束早於開始 = 跨午夜(「23:30–01:00」),往後推一天而不是當成錯誤。
+	// 剛好相等才是無從解讀,退回「開始 + 60 分鐘」。
 	const rawEnd = toMinutes(plan.study_end, 22 * 60 + 30);
-	const end = rawEnd > start ? rawEnd : start + 60;
+	const end =
+		rawEnd > start ? rawEnd : rawEnd < start ? rawEnd + 1440 : start + 60;
 	const mockEnd = start + 180; // 100 題的全真模擬撐不進晚間 90 分鐘
 
 	const lines: string[] = [

@@ -80,6 +80,23 @@ test("模擬考日與考試日各一個獨立事件", () => {
 	assert.match(ics, /SUMMARY:.*考試/);
 });
 
+test("跨午夜的事件把日期進位,不會產出負長度", () => {
+	// 21:00 起的全真模擬要 3 小時 → 結束在隔天 00:00,不是同一天的 00:00。
+	const ics = render();
+	const evs = events(ics);
+	for (const e of evs) {
+		const s = e.find((l) => l.startsWith("DTSTART;TZID"))?.split(":")[1];
+		const t = e.find((l) => l.startsWith("DTEND;TZID"))?.split(":")[1];
+		if (!s || !t) continue;
+		assert.equal(t > s, true, `事件結束時間不晚於開始:${s} → ${t}`);
+	}
+
+	// 晚讀書的人:23:30–01:00 也要跨到隔天。
+	const late = render({ ...INPUT, studyStart: "23:30", studyEnd: "01:00" });
+	assert.match(late, /DTSTART;TZID=Asia\/Taipei:20260810T233000/);
+	assert.match(late, /DTEND;TZID=Asia\/Taipei:20260811T010000/);
+});
+
 test("UID 對同一人同一天穩定 —— 重匯入是更新而非長出第二份", () => {
 	const a = planUid("a@example.com", "2026-08-08", "qa.example.com");
 	const b = planUid("a@example.com", "2026-08-08", "qa.example.com");

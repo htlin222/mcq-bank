@@ -1,0 +1,471 @@
+{
+  "plan": {
+    "exam_date": "2026-09-05",
+    "days_left": 29,
+    "daily_capacity": 21,
+    "available_days": 20,
+    "demand": 689,
+    "demand_by_round": [
+      418,
+      195,
+      76
+    ],
+    "scheduled": 420,
+    "shortfall": 269,
+    "weeks": [
+      {
+        "week_start": "2026-08-03",
+        "days": [
+          {
+            "date": "2026-08-08",
+            "kind": "mock",
+            "count": 0,
+            "slices": [],
+            "label": "全真模擬 · 100 題"
+          },
+          {
+            "date": "2026-08-09",
+            "kind": "rest",
+            "count": 0,
+            "slices": [],
+            "label": "休息"
+          }
+        ],
+        "total": 0
+      },
+      {
+        "week_start": "2026-08-10",
+        "days": [
+          {
+            "date": "2026-08-10",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 114,
+                "round": 1,
+                "n": 21,
+                "from": 41,
+                "to": 61
+              }
+            ],
+            "label": "114 年第 41–61 題"
+          },
+          {
+            "date": "2026-08-11",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 114,
+                "round": 1,
+                "n": 21,
+                "from": 62,
+                "to": 82
+              }
+            ],
+            "label": "114 年第 62–82 題"
+          },
+          {
+            "date": "2026-08-12",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 114,
+                "round": 1,
+                "n": 18,
+                "from": 83,
+                "to": 100
+              },
+              {
+                "year": 113,
+                "round": 1,
+                "n": 3,
+                "from": 31,
+                "to": 33
+              }
+            ],
+            "label": "114 年第 83–100 題 + 113 年第 31–33 題"
+          },
+          {
+            "date": "2026-08-13",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 113,
+                "round": 1,
+                "n": 21,
+                "from": 34,
+                "to": 54
+              }
+            ],
+            "label": "113 年第 34–54 題"
+          },
+          {
+            "date": "2026-08-14",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 113,
+                "round": 1,
+                "n": 21,
+                "from": 55,
+                "to": 75
+              }
+            ],
+            "label": "113 年第 55–75 題"
+          },
+          {
+            "date": "2026-08-15",
+            "kind": "mock",
+            "count": 0,
+            "slices": [],
+            "label": "全真模擬 · 100 題"
+          },
+          {
+            "date": "2026-08-16",
+            "kind": "rest",
+            "count": 0,
+            "slices": [],
+            "label": "休息"
+          }
+        ],
+        "total": 105
+      },
+      {
+        "week_start": "2026-08-17",
+        "days": [
+          {
+            "date": "2026-08-17",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 113,
+                "round": 1,
+                "n": 21,
+                "from": 76,
+                "to": 96
+              }
+            ],
+            "label": "113 年第 76–96 題"
+          },
+          {
+            "date": "2026-08-18",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 113,
+                "round": 1,
+                "n": 4,
+                "from": 97,
+                "to": 100
+              },
+              {
+                "year": 112,
+                "round": 1,
+                "n": 17,
+                "from": 13,
+                "to": 29
+              }
+            ],
+            "label": "113 年第 97–100 題 + 112 年第 13–29 題"
+          },
+          {
+            "date": "2026-08-19",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 112,
+                "round": 1,
+                "n": 21,
+                "from": 30,
+                "to": 50
+              }
+            ],
+            "label": "112 年第 30–50 題"
+          },
+          {
+            "date": "2026-08-20",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 112,
+                "round": 1,
+                "n": 21,
+                "from": 51,
+                "to": 71
+              }
+            ],
+            "label": "112 年第 51–71 題"
+          },
+          {
+            "date": "2026-08-21",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 112,
+                "round": 1,
+                "n": 21,
+                "from": 72,
+                "to": 92
+              }
+            ],
+            "label": "112 年第 72–92 題"
+          },
+          {
+            "date": "2026-08-22",
+            "kind": "mock",
+            "count": 0,
+            "slices": [],
+            "label": "全真模擬 · 100 題"
+          },
+          {
+            "date": "2026-08-23",
+            "kind": "rest",
+            "count": 0,
+            "slices": [],
+            "label": "休息"
+          }
+        ],
+        "total": 105
+      },
+      {
+        "week_start": "2026-08-24",
+        "days": [
+          {
+            "date": "2026-08-24",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 112,
+                "round": 1,
+                "n": 8,
+                "from": 93,
+                "to": 100
+              },
+              {
+                "year": 111,
+                "round": 1,
+                "n": 13,
+                "from": 1,
+                "to": 13
+              }
+            ],
+            "label": "112 年第 93–100 題 + 111 年第 1–13 題"
+          },
+          {
+            "date": "2026-08-25",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 111,
+                "round": 1,
+                "n": 21,
+                "from": 14,
+                "to": 34
+              }
+            ],
+            "label": "111 年第 14–34 題"
+          },
+          {
+            "date": "2026-08-26",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 111,
+                "round": 1,
+                "n": 21,
+                "from": 35,
+                "to": 55
+              }
+            ],
+            "label": "111 年第 35–55 題"
+          },
+          {
+            "date": "2026-08-27",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 111,
+                "round": 1,
+                "n": 21,
+                "from": 56,
+                "to": 76
+              }
+            ],
+            "label": "111 年第 56–76 題"
+          },
+          {
+            "date": "2026-08-28",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 111,
+                "round": 1,
+                "n": 21,
+                "from": 77,
+                "to": 97
+              }
+            ],
+            "label": "111 年第 77–97 題"
+          },
+          {
+            "date": "2026-08-29",
+            "kind": "mock",
+            "count": 0,
+            "slices": [],
+            "label": "全真模擬 · 100 題"
+          },
+          {
+            "date": "2026-08-30",
+            "kind": "rest",
+            "count": 0,
+            "slices": [],
+            "label": "休息"
+          }
+        ],
+        "total": 105
+      },
+      {
+        "week_start": "2026-08-31",
+        "days": [
+          {
+            "date": "2026-08-31",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 111,
+                "round": 1,
+                "n": 3,
+                "from": 98,
+                "to": 100
+              },
+              {
+                "year": 110,
+                "round": 1,
+                "n": 18,
+                "from": 1,
+                "to": 18
+              }
+            ],
+            "label": "111 年第 98–100 題 + 110 年第 1–18 題"
+          },
+          {
+            "date": "2026-09-01",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 110,
+                "round": 1,
+                "n": 21,
+                "from": 19,
+                "to": 39
+              }
+            ],
+            "label": "110 年第 19–39 題"
+          },
+          {
+            "date": "2026-09-02",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 110,
+                "round": 1,
+                "n": 21,
+                "from": 40,
+                "to": 60
+              }
+            ],
+            "label": "110 年第 40–60 題"
+          },
+          {
+            "date": "2026-09-03",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 110,
+                "round": 1,
+                "n": 21,
+                "from": 61,
+                "to": 81
+              }
+            ],
+            "label": "110 年第 61–81 題"
+          },
+          {
+            "date": "2026-09-04",
+            "kind": "study",
+            "count": 21,
+            "slices": [
+              {
+                "year": 110,
+                "round": 1,
+                "n": 19,
+                "from": 82,
+                "to": 100
+              },
+              {
+                "year": 114,
+                "round": 2,
+                "n": 2,
+                "from": null,
+                "to": null
+              }
+            ],
+            "label": "110 年第 82–100 題 + 114 年錯題 2 題"
+          },
+          {
+            "date": "2026-09-05",
+            "kind": "exam",
+            "count": 0,
+            "slices": [],
+            "label": "考試日"
+          }
+        ],
+        "total": 105
+      }
+    ],
+    "mock_dates": [
+      "2026-08-08",
+      "2026-08-15",
+      "2026-08-22",
+      "2026-08-29"
+    ],
+    "suggestions": [
+      {
+        "kind": "more_per_day",
+        "extra_questions": 14,
+        "extra_minutes": 20
+      },
+      {
+        "kind": "drop_year",
+        "year": 110,
+        "questions": 147
+      },
+      {
+        "kind": "fewer_rounds",
+        "rounds": 2
+      }
+    ],
+    "study_start": "21:00",
+    "study_end": "22:30"
+  },
+  "coaching": "凝血與輸血醫學是目前正確率最低的兩塊,建議先攻凝血。"
+}
