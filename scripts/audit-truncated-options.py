@@ -20,13 +20,30 @@
 看它後面接的是不是「下一個選項的開頭」。是 → 完整;不是 → 中間那段就是被切
 掉的內容。這個方法對得上 docx 把選項排成連續行、沒有 (A)(B) 標記的排版。
 
+第二版又抓出七個「截斷」,逐一對原文之後**七個全是偽陽性**,各有各的原因:
+
+  * 後面接的是下一題的題號(「59.以下有關…」)或 PDF 頁首。
+  * docx 與批次檔在中英交界的空白不一致 —— 「MPL突變者」vs「MPL 突變者」。
+    所以比對前把空白全部拿掉(`squash`),不是只做正規化。
+  * 選項太短又太通用 —— "All of the above"、"G6PD deficiency" 在整份文件裡
+    出現在好幾題底下,`find()` 命中的位置根本不是這一題。所以短於
+    `MIN_ANCHOR` 或在原文出現不只一次的選項一律不判。
+
+現在的規則見 `find_truncated()`。**加嚴邊界規則很容易順手把真的截斷也濾掉**,
+所以 `--self-test` 的 fixture 同時涵蓋兩邊:真截斷要抓得到,四種完整情境都不
+能報。改動任何一條規則之後請先跑它。
+
 ## 用法
 
-    python3 scripts/audit-truncated-options.py 113        # 對某一年
-    python3 scripts/audit-truncated-options.py 113 --fix  # 印出可套用的 SQL
+    python3 scripts/audit-truncated-options.py --self-test  # 釘住判斷邏輯
+    python3 scripts/audit-truncated-options.py 113          # 對某一年
+    python3 scripts/audit-truncated-options.py 113 --fix    # 印出可套用的 SQL
 
 只有備有原始 docx/PDF 的年份能做邊界驗證;沒有的年份只會列出「吞掉詳解」那類
 (那一類不必對照原文也能確定 —— 選項裡不會有 "Reference:")。
+
+**印出來的 SQL 不是可以直接套的。** 逐題確認補回的內容再用 —— 這支工具的定位
+是把一千題縮到幾題可以人工過目,不是替你改題庫。
 """
 
 import argparse
@@ -45,12 +62,29 @@ KEYS = "ABCDE"
 MAX_MISSING = 200
 # 短到這種程度的「缺漏」都是原始檔的雜訊 —— 答案字母、破折號、頁碼。
 MIN_MISSING = 6
+# 比這短的選項不做定位比對。"All of the above"、"G6PD deficiency"、
+# "Dyserythropoiesis" 這種通用短語在整份文件裡會出現在好幾題底下,`find()`
+# 命中的位置沒有意義 —— 七個誤報裡有三個是這樣來的。
+MIN_ANCHOR = 25
+# 原始檔的頁首/頁尾。它們夾在選項之間,會讓「後面接的不是下一個選項」成立。
+PAGE_NOISE = re.compile(r"^\d{3}\s*年度")
+# 選項後面接下一題的題號 —— 「59.以下有關…」—— 代表這個選項結束了。
+NEXT_Q = re.compile(r"^\d{1,3}[.、]")
+# 比對前先剝掉黏在前面的收尾標點,否則「。114年度…」這種會躲過頁首判斷。
+LEAD_PUNCT = re.compile(r"^[。.,,、;;::)）\]】\s]+")
 # 整段只有標點/單一字母 → 同樣是雜訊,不是被切掉的內容。
 NOISE = re.compile(r"^[A-E\s\-—–·.、,,。()()]*$")
 
 
 def norm(s: str) -> str:
     return re.sub(r"\s+", " ", s or "").strip()
+
+
+def squash(s: str) -> str:
+    r"""把空白全部拿掉再比。docx 與批次檔在中英交界的空白不一致 ——
+    「MPL突變者」vs「MPL 突變者」—— 只做 \s+ → 單一空白的正規化仍然對不上,
+    七個誤報裡有一個是這樣來的。"""
+    return re.sub(r"\s+", "", s or "")
 
 
 def load_questions(year: str) -> dict:
@@ -107,30 +141,35 @@ def find_swallowed(qs: dict) -> list:
 def find_truncated(qs: dict, flat: str) -> list:
     """用下一個選項當邊界找截斷。回 (number, key, 目前文字, 補回後的全文)。"""
     hits = []
+    sq_flat = squash(flat)
     for n, opts in sorted(qs.items()):
         for i, k in enumerate(KEYS):
             if k not in opts:
                 continue
             cur = norm(opts[k])
-            if len(cur) < 15:
-                continue
-            at = flat.find(cur)
-            if at < 0:
-                continue  # 原文找不到 → 無從判斷,不猜
-            after = flat[at + len(cur):].lstrip()
+            if len(cur) < MIN_ANCHOR:
+                continue  # 太短,定位不可靠
+            sq_cur = squash(cur)
+            if sq_flat.count(sq_cur) != 1:
+                continue  # 找不到、或不只一處 → 位置不可信,不猜
+            at = sq_flat.find(sq_cur)
+            after = sq_flat[at + len(sq_cur):]
             # 有些原始檔的選項帶 (B) / B. / B、 這種標記,有些沒有(選項直接
             # 排成連續行)。兩種都要能判,所以先把標記剝掉再比對內容 ——
             # 而標記本身出現就已經是「這個選項結束了」的證據。
             if re.match(r"^\(?[A-E][)\.、]", after):
                 continue
+            after = LEAD_PUNCT.sub("", after)
+            if PAGE_NOISE.match(after) or NEXT_Q.match(after):
+                continue  # 夾在選項之間的頁首,或已經是下一題了
             nk = KEYS[i + 1] if i + 1 < len(KEYS) else None
-            nxt = norm(opts.get(nk, "")) if nk else ""
+            nxt = squash(opts.get(nk, "")) if nk else ""
             if nxt and after.startswith(nxt[:20]):
                 continue  # 後面就是下一個選項 → 完整
             if re.match(r"^(詳解|Ans|答案|-{5,}|參考|Reference|這段來自)", after):
                 continue  # 後面是詳解 → 完整
             stop = len(after)
-            for marker in ([nxt[:20]] if nxt else []) + ["詳解", "-----", "這段來自"]:
+            for marker in ([nxt[:20]] if nxt else []) + ["詳解", "-----", "這段來自", "答案"]:
                 p = after.find(marker) if marker else -1
                 if p > 0:
                     stop = min(stop, p)
@@ -148,8 +187,79 @@ def find_truncated(qs: dict, flat: str) -> list:
     return hits
 
 
+def self_test() -> int:
+    """把這支工具的判斷邏輯釘住。
+
+    它的價值完全建立在「不亂喊、也不漏喊」上,而這兩件事會朝相反方向壞掉:
+    把邊界規則加嚴到誤報歸零,很容易順手把真的截斷也濾掉。第一版就差點這樣 ——
+    調完之後四個年度全是 0,看起來很漂亮,但那可能只代表工具瞎了。下面的
+    fixture 同時涵蓋兩邊。
+    """
+    cases = []
+
+    def check(name, got, want):
+        cases.append((name, got == want, f"got={got!r} want={want!r}"))
+
+    # 真的截斷:原文比選項多一句,而且後面接的是下一個選項。
+    qs = {1: {"A": "The patient developed severe hemolysis after the drug",
+              "B": "Renal function remained stable throughout the course"}}
+    src = ("The patient developed severe hemolysis after the drug and required "
+           "urgent transfusion support. Renal function remained stable throughout "
+           "the course 詳解")
+    hits = find_truncated(qs, src)
+    check("真截斷抓得到", [(h[0], h[1]) for h in hits], [(1, "A")])
+
+    # 完整:後面直接接下一個選項。
+    qs = {1: {"A": "The patient developed severe hemolysis after the drug",
+              "B": "Renal function remained stable throughout the course"}}
+    src = ("The patient developed severe hemolysis after the drug Renal function "
+           "remained stable throughout the course 詳解")
+    check("接下一個選項 → 不報", find_truncated(qs, src), [])
+
+    # 完整:後面是頁首 / 下一題的題號。這兩種夾在選項之間過,誤報過。
+    qs = {1: {"E": "Monocytosis is not uncommon at initial diagnosis here"}}
+    check("接頁首 → 不報",
+          find_truncated(qs, "Monocytosis is not uncommon at initial diagnosis here "
+                              "114 年度血專筆試分科–內科"), [])
+    check("接下一題題號 → 不報",
+          find_truncated(qs, "Monocytosis is not uncommon at initial diagnosis here "
+                              "59.以下有關 Activated protein C 的描述"), [])
+
+    # 空白差異不該造成誤報:docx 的中英交界常常沒有空格。
+    qs = {1: {"A": "CAL-R type I or MPL 突變者屬於 low risk 的處置建議如下",
+              "B": "使用 ruxolitinib 時若脾臟變大是惡化的象徵"}}
+    src = ("CAL-RtypeIorMPL突變者屬於lowrisk的處置建議如下使用ruxolitinib時若脾臟變大是惡化的象徵 詳解")
+    check("中英交界空白不一致 → 不報", find_truncated(qs, src), [])
+
+    # 通用短語不做定位:它在整份文件裡會出現好幾次,命中位置沒有意義。
+    qs = {1: {"E": "All of the above"}}
+    src = "All of the above are possible causes. 答案: E ... All of the above 詳解"
+    check("通用短語不錨定", find_truncated(qs, src), [])
+
+    # 吞掉詳解:不必對照原文。
+    qs = {1: {"A": "2+3", "B": "2+4", "C": "3+4", "D": "2+3+4",
+              "E": "1+2+3+4 正確 錯誤, half-life 約為 2-3 小時 "
+                   "Reference: TOWER Study: Kantarjian H. N Engl J Med. 2017" + "x" * 60}}
+    check("吞掉詳解抓得到", [(h[0], h[1]) for h in find_swallowed(qs)], [(1, "E")])
+    qs = {1: {"A": "x" * 130, "B": "x" * 140, "C": "x" * 150}}
+    check("每個選項都長 → 不報吞詳解", find_swallowed(qs), [])
+
+    bad = [(n, d) for n, ok, d in cases if not ok]
+    for n, ok, _ in cases:
+        print(f"  {'✔' if ok else '✘'} {n}")
+    if bad:
+        print(f"\n{len(bad)} 項失敗:")
+        for n, d in bad:
+            print(f"  {n}: {d}")
+        return 1
+    print(f"\n{len(cases)} 項全過")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
+    if "--self-test" in sys.argv:
+        return self_test()
     ap.add_argument("year")
     ap.add_argument("--fix", action="store_true", help="印出可套用的 UPDATE 語句")
     args = ap.parse_args()
