@@ -14,6 +14,18 @@
     scrollbar-gutter: stable;
   }
 
+  /* 原生控制項(time/date input、checkbox、捲軸、下拉選單)的配色不吃 Tailwind
+     的 dark: —— 它們由瀏覽器依 color-scheme 繪製。沒宣告的話一律以淺色模式繪製,
+     於是深色底上的 <input type="time"> 會拿到瀏覽器預設的近黑色文字,黑到看不見
+     (issue #75 的讀書計畫時段就是這樣)。
+     darkMode: 'class',所以跟著 <html class="dark"> 走。 */
+  :root {
+    color-scheme: light;
+  }
+  :root.dark {
+    color-scheme: dark;
+  }
+
   body {
     font-feature-settings: "ss01", "cv11";
   }
