@@ -458,6 +458,48 @@ highlights and `/pdf/*` must stay out — see the comment block there for why.
 - 驗證在 `frontend/e2e/nav-prefetch.test.mjs`:fixture 伺服器每個 `/api/` 延遲
   700ms,把「有沒有預抓到」變成可觀測的時間差。改動預抓邏輯後這支會紅。
 
+**`createQuestionStore` 是通用的,不只給題目用。** 名字是歷史包袱 —— 它同時是
+`/lectures` 三個分頁(`lectureListCache`)與其他筆記清單(`freeNoteListCache`)
+的快取。下次再收到「切 X 分頁都要重新載入,蠻卡的」這類回報,先看是不是同一個
+病灶:切換時 `setState(null)` 再重抓。套用方式固定三步 ——
+render 當下 `peek()` 同步取、`isFresh()` 決定要不要背景重抓、**把失效寫進
+API 模組自己的變更函式裡**(`freeNoteApi.ts` 的 `dropListCache()`)而不是交給
+呼叫端記得。清單帶著標題之類的可變欄位時,漏掉失效的症狀是「改完名回到清單還是
+舊的」,而且無聲。
+
+### 手把: 同一顆鍵在不同情境換意思,而且說明要跟著換
+
+`/q/:id` 的手把綁定分散在兩層:`QuestionCard` 擁有選項游標與送出/複製/收藏,
+`Question.tsx` 擁有需要頁面脈絡的那些(換題、換分頁、捲動)。在這之上再疊三種
+**情境**,由 `Question.tsx` 判斷後接管:
+
+| 情境 | 條件 | 十字鍵 | 面鍵 |
+|---|---|---|---|
+| 作答中 | `!cardRevealed` | 選選項 / 調信心 | 送出 · 略過 · 複製 · 收藏 |
+| 讀詳解 | `expKeysActive` | 捲動 | 顯示詳解 · 自動挖空 · 防劇透 · 編輯 |
+| 讀筆記 | `noteTabVisible` | 走訪標題 / 切換筆記 | 展開收合 |
+
+擴充時的三條規矩:
+
+- **接管前先確認卡片不要那顆鍵,否則一次按鍵會做兩件事。** `FACE ▲ / ▶` 卡片
+  無條件吃,所以要靠 `yieldFaceKeys` prop 讓它明確讓出;`FACE ▼ / ◀` 只在未揭曉
+  時吃,揭曉後直接接管即可。**一定要等 `cardRevealed`** —— 搶在答題前接管 ▼,
+  等於按下送出的同時把詳解也掀開。
+- **每種情境一份 `GamepadHint[]`,不要 spread 共用那份再蓋。** 意思被換掉的鍵
+  會留下兩行互相矛盾的說明。
+- **走訪清單優先問 DOM,不要另外維護狀態。** `NoteContent` 的每個手風琴各自持有
+  `open`(刻意的:巢狀、彼此獨立),而收合的區段不渲染子節點 —— 所以
+  `[data-note-heading]` 查到的按鈕,定義上就是使用者現在看得到的那些。焦點環用
+  `:focus` 而非 `:focus-visible`:程式呼叫 `.focus()` 不一定被判定成
+  focus-visible,那樣游標是隱形的。
+
+驗證都在 `frontend/e2e/gamepad.test.mjs`(假 `navigator.getGamepads`)。**寫這裡
+的測試要驗正面效果,不要驗「某個副作用沒發生」** —— 後者在功能根本沒接上時也會
+通過。真的踩過:「FACE ▶ 之後收藏狀態不變」在功能停用時照樣綠,因為那顆鍵落回
+卡片的收藏,而 fixture 的收藏 API 回空物件、狀態本來就不會動。**確認新測試會紅
+的時候不要用 `pnpm build >/dev/null 2>&1`** —— 建置失敗被吃掉,測試會跑在舊
+bundle 上,得到「停用了還是綠」的假結論。
+
 ### 讀書計畫產生器: 排程是純函式,AI 只負責語氣
 
 首頁倒數卡片右側的「生成讀書計畫」開一個對話式問卷(七題),產出到考試當天的
