@@ -1441,8 +1441,8 @@ export function Question() {
 					style={tabsMode ? undefined : { flexBasis: `${splitPct}%` }}
 				>
 					<QuestionCard
-								yieldFaceKeys={expKeysActive}
 						key={data.id}
+						yieldFaceKeys={expKeysActive}
 						question={data}
 						onAnswered={reload}
 						onProgressCleared={reload}
