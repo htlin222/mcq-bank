@@ -388,6 +388,77 @@ test('回年度列表再進另一題,也不會把「已連線」提示再放一�
   assert.deepEqual(errors, [], '不該有未捕捉例外');
 });
 
+// ── 個人筆記分頁的十字鍵 (#79 / #80) ──────────────────────────────────
+//
+// 這一組驗的是「同一顆十字鍵在不同情境下換了意思」—— 看筆記時它走訪筆記標題,
+// 而不是捲頁面。fixture 的 113-050 帶兩則筆記,第一則有 h1/h2/h1 三個標題。
+
+/** 切到個人筆記分頁(快捷鍵 n 會直接進編輯,所以用滑鼠點分頁)。 */
+async function openNoteTab(page) {
+  await page.getByRole('button', { name: /個人筆記/ }).first().click();
+  await page.waitForTimeout(400);
+}
+
+test('筆記分頁:DPAD ↓ 在標題之間移動,FACE ▼ 展開收合', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await openNoteTab(page);
+
+  const headings = page.locator('[data-note-heading]');
+  // 手風琴預設收合,所以一開始只看得到兩個最外層的 h1。
+  assert.equal(await headings.count(), 2, '一開始只該有兩個頂層標題');
+
+  await tap(page, BTN.DPAD_DOWN);
+  await page.waitForTimeout(300);
+  assert.equal(
+    await page.evaluate(() =>
+      document.activeElement?.getAttribute('data-note-heading') === ''
+        ? document.activeElement.textContent.trim()
+        : null,
+    ),
+    '溶血機轉',
+    'DPAD ↓ 第一下該把游標放在第一個標題上',
+  );
+
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(400);
+  assert.equal(
+    await headings.count(),
+    3,
+    'FACE ▼ 展開之後,裡面的 h2 也該進入走訪範圍',
+  );
+
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(400);
+  assert.equal(await headings.count(), 2, '再按一次該收回去');
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('筆記分頁:DPAD ← → 切換多則筆記', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await openNoteTab(page);
+
+  const titles = () =>
+    page.locator('[data-note-heading]').first().textContent();
+  assert.equal((await titles()).trim(), '溶血機轉', '起點是第一則');
+
+  await tap(page, BTN.DPAD_RIGHT);
+  await page.waitForTimeout(400);
+  assert.equal(
+    (await titles()).trim(),
+    '第二則筆記的標題',
+    'DPAD → 該換到第二則',
+  );
+
+  await tap(page, BTN.DPAD_RIGHT);
+  await page.waitForTimeout(400);
+  assert.equal((await titles()).trim(), '溶血機轉', '只有兩則,再按一次繞回第一則');
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
 test('年度列表:DPAD ↓ 移動游標,FACE ▼ 進入該題', async (t) => {
   if (guard(t)) return;
   const { page, errors } = await open(t, '/year/113');

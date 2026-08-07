@@ -46,6 +46,11 @@ import { QuestionDetailSkeleton } from "../components/Skeleton";
 import { BackToTopFab } from "../components/BackToTopFab";
 import { searchNeighbors } from "../lib/searchCache";
 import {
+	HEADING_SELECTOR,
+	nextHeadingIndex,
+	nextSlot,
+} from "../lib/headingCursor";
+import {
 	questionCache,
 	yearListCache,
 	type YearListItem,
@@ -84,6 +89,14 @@ const GAMEPAD_HINTS_ANSWERING: GamepadHint[] = [
 ];
 const GAMEPAD_HINTS_REVEALED: GamepadHint[] = [
 	{ btn: "DPAD ↑ ↓", label: "捲動詳解" },
+	...GAMEPAD_HINTS_SHARED,
+];
+// 看個人筆記時十字鍵改成走訪筆記本身。三份說明而不是一份:同一顆十字鍵在
+// 作答前選選項、揭曉後捲頁面、看筆記時跳標題,寫成一份會騙人。
+const GAMEPAD_HINTS_NOTE: GamepadHint[] = [
+	{ btn: "DPAD ↑ ↓", label: "在筆記標題之間移動" },
+	{ btn: "FACE ▼", label: "展開 / 收合這一段" },
+	{ btn: "DPAD ← →", label: "切換筆記(有多則時)" },
 	...GAMEPAD_HINTS_SHARED,
 ];
 const SPLIT_DEFAULT = 42; // ≈ the previous fixed 5fr / 7fr ratio
@@ -165,6 +178,8 @@ export function Question() {
 	// the scroll container in columns mode.
 	const [cardRevealed, setCardRevealed] = useState(false);
 	const rightColRef = useRef<HTMLDivElement>(null);
+	// 個人筆記面板的容器 —— 手把在裡面找可展開的標題按鈕。
+	const notePaneRef = useRef<HTMLDivElement>(null);
 
 	// The inner 詳解共筆/… tab strip is sticky (see below); its measured height
 	// drives where the sticky per-pane toolbar (自動挖空/防劇透/編輯) pins, so the
@@ -1043,12 +1058,81 @@ export function Question() {
 	}
 	useGamepadScroll(gamepadScrollEl);
 
+	// 個人筆記在看的時候,十字鍵改成走訪筆記本身,而不是捲頁面:
+	//   ↑ ↓  在**目前展開得到的** h1/h2/h3 之間移動
+	//   FACE ▼ 展開 / 收合游標所在的那個區段
+	//   ← →  切換這一題底下的多則筆記
+	// 標題清單直接問 DOM —— 收合的區段不渲染子節點,所以 DOM 裡有的按鈕定義上
+	// 就是使用者現在看得到的那些,展開一個區段它的子標題自動加入,不必同步。
+	const noteHeadings = useCallback(
+		() =>
+			Array.from(
+				notePaneRef.current?.querySelectorAll<HTMLElement>(
+					HEADING_SELECTOR,
+				) ?? [],
+			),
+		[],
+	);
+	const headingIdx = useRef(-1);
+	// 換題、換筆記、收合造成清單變動 → 游標重來,免得指到別份內容的第 N 個標題。
+	useEffect(() => {
+		headingIdx.current = -1;
+	}, [data?.id, activeSlot]);
+
+	function moveHeading(delta: number) {
+		const items = noteHeadings();
+		const next = nextHeadingIndex(headingIdx.current, items.length, delta);
+		headingIdx.current = next;
+		if (next < 0) return false;
+		items[next].focus();
+		items[next].scrollIntoView({ block: "center", behavior: "smooth" });
+		return true;
+	}
+
+	// 筆記分頁是不是正在被看:欄位版兩欄同時可見,分頁版要看 mainTab。
+	const noteTabVisible =
+		tab === "note" && (!tabsMode || mainTab === "note") && !noteEditing;
+
 	// Gamepad page bindings. Options / 送出 / 複製 / 收藏 are QuestionCard's;
 	// these are the ones that need page context. The d-pad is shared: the card
 	// owns ↑↓ while unanswered (option cursor), the page takes it over once the
 	// answer is showing and there's a 詳解 to read — hence `cardRevealed`.
 	useGamepad((action) => {
 		if (!data || editing || noteEditing) return;
+
+		if (noteTabVisible) {
+			switch (action) {
+				case "up":
+					if (moveHeading(-1)) return;
+					break; // 這則筆記沒有標題 → 落回原本的捲動行為
+				case "down":
+					if (moveHeading(1)) return;
+					break;
+				case "faceDown": {
+					const items = noteHeadings();
+					const at = headingIdx.current;
+					if (at >= 0 && at < items.length) {
+						items[at].click();
+						return;
+					}
+					break;
+				}
+				case "left":
+				case "right":
+					if (notes.length > 1) {
+						setNoteSlot(
+							nextSlot(
+								notes.map((n) => n.slot),
+								activeSlot,
+								action === "right" ? 1 : -1,
+							),
+						);
+						return;
+					}
+					break;
+			}
+		}
+
 		switch (action) {
 			case "l1":
 				if (navPrev) navigate(`/q/${navPrev}`, { state: location.state });
@@ -1730,12 +1814,15 @@ export function Question() {
 											<Trash2 size={14} /> 刪除
 										</button>
 									</div>
-									<NoteContent
-										content={noteJson}
-										annotateKeyPrefix={`anno:note:${data.id}`}
-										cloze={noteCloze}
-										autoTerms={noteAutoTerms ?? undefined}
-									/>
+									{/* 手把導覽以這個容器為範圍找標題按鈕(見 noteHeadings)。 */}
+									<div ref={notePaneRef}>
+										<NoteContent
+											content={noteJson}
+											annotateKeyPrefix={`anno:note:${data.id}`}
+											cloze={noteCloze}
+											autoTerms={noteAutoTerms ?? undefined}
+										/>
+									</div>
 									<footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
 										僅你可見
 										{activeNote?.updated_at && (
@@ -1977,7 +2064,11 @@ export function Question() {
 			<BackToTopFab />
 			<GamepadFab
 				hints={
-					cardRevealed ? GAMEPAD_HINTS_REVEALED : GAMEPAD_HINTS_ANSWERING
+					noteTabVisible
+						? GAMEPAD_HINTS_NOTE
+						: cardRevealed
+							? GAMEPAD_HINTS_REVEALED
+							: GAMEPAD_HINTS_ANSWERING
 				}
 			/>
 		</div>
