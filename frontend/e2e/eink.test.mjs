@@ -67,6 +67,18 @@ const ROUTES = [
     },
     expectAfter: ['正解', '你的選擇'],
   },
+  {
+    path: '/q/113-050',
+    name: '題目頁 → 詳解分頁(防劇透遮罩)',
+    // 必須單獨走一條路由:手機一律分頁 (#96) 之後,詳解那一欄在題目分頁下是
+    // display:none,掃描迴圈的 getClientRects() 會整欄跳過 —— 上面那條路由再怎麼
+    // 掃都碰不到防劇透遮罩。這正是「模糊成一團灰」能活到使用者手上的原因。
+    async interact(page) {
+      await page.getByRole('button', { name: '詳解區' }).click();
+      await page.waitForTimeout(500);
+    },
+    expectAfter: ['點擊顯示詳解'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是
@@ -218,6 +230,27 @@ for (const route of ROUTES) {
             }
             if (cs.backgroundImage.includes('gradient')) {
               out.push({ sel: cssPath(el), prop: 'background-image', value: cs.backgroundImage });
+            }
+            // 模糊在 1-bit 下就是灰:blur 過的黑字疊在白底上,得到的正是整層在
+            // 消滅的那種中間灰。中和層原本只關 backdrop-filter,關不到 filter,
+            // 於是防劇透的 `blur-md` 一路放行(回報 #95 的「一團灰」)。
+            // 上面的 getClientRects()/visibility 判斷會跳過已被藏起來的元素,
+            // 所以這條只會抓到**真的畫在畫面上**的模糊。
+            if (cs.filter.includes('blur(')) {
+              out.push({ sel: cssPath(el), prop: 'filter', value: cs.filter });
+            }
+            // `outline-none` 是「2px 透明外框」而不是 `outline-style: none`,所以
+            // 顏色掃描抓不到它被塗黑 —— 黑色在 1-bit 下完全合法。這條從反面驗:
+            // 掛了 outline-none 的元素**本來就不該看得見外框**,看得見就是中和層
+            // 誤傷(回報 #95 的「奇怪的長方形 overlay」)。
+            const cls = el.getAttribute('class') || '';
+            if (
+              cls.includes('outline-none') &&
+              cs.outlineStyle !== 'none' &&
+              px(cs.outlineWidth) > 0 &&
+              !/rgba\([^)]*,\s*0\s*\)$/.test(cs.outlineColor)
+            ) {
+              out.push({ sel: cssPath(el), prop: 'outline-none 卻畫得出來', value: cs.outlineColor });
             }
           }
           return out;
