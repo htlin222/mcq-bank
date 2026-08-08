@@ -55,6 +55,7 @@ import {
 	yearListCache,
 	type YearListItem,
 } from "../lib/questionCache";
+import { withAnswer, withProgressCleared } from "../lib/questionProgress";
 import { rememberAutoCloze, wasAutoCloze } from "../lib/clozePref";
 import {
 	VideoTopicSection,
@@ -166,7 +167,7 @@ type NoteLink = NoteLinkItem;
 export function Question() {
 	const { id } = useParams<{ id: string }>();
 	const { me } = useMe();
-	const { data, error, reload } = useQuestion(id);
+	const { data, error, reload, setData } = useQuestion(id);
 	const { state: lockState, acquire, release } = useLock(id || "");
 	// 詳解 is behind a pessimistic server lock — attempting to edit offline can
 	// only ever fail, and would strand a draft against a lock we never held.
@@ -185,6 +186,45 @@ export function Question() {
 	// Which pane is visible in tabs mode (≥md only).
 	const [mainTab, setMainTab] = useState<MainTab>("question");
 	const tabsMode = layout === "tabs";
+
+	// ── 手機也走分頁 (#96) ────────────────────────────────────────────────
+	// <md 以前是把兩欄直接疊起來:題目卡在上、詳解/筆記/討論全部在下。一張含五個
+	// 選項的題目卡就吃掉一整個手機螢幕,所以「看詳解」永遠要先捲過整張卡 —— 回報
+	// 說的「擠到下面去」。
+	//
+	// 這裡刻意**不**沿用桌機的 `mainTab`(六個值,每個 pane 一個):手機用不到那麼
+	// 細,內層那條 詳解共筆/個人筆記/討論串/… 的 strip 本來就在右欄頂端而且是
+	// sticky 的,直接當第二層導覽就好。手機只需要回答一個問題:現在看的是題目,
+	// 還是題目以外的東西。
+	const [narrow, setNarrow] = useState(
+		() =>
+			typeof window !== "undefined" &&
+			!window.matchMedia("(min-width: 768px)").matches,
+	);
+	useEffect(() => {
+		const mq = window.matchMedia("(min-width: 768px)");
+		const onChange = () => setNarrow(!mq.matches);
+		mq.addEventListener("change", onChange);
+		return () => mq.removeEventListener("change", onChange);
+	}, []);
+	const [mobilePane, setMobilePane] = useState<"question" | "content">(
+		"question",
+	);
+	// 換題一定回到題目。少了這行,從詳解頁按「下一題」會直接落在下一題的詳解上 ——
+	// 那是劇透,不是便利。
+	useEffect(() => {
+		setMobilePane("question");
+	}, [id]);
+	// 兩欄模式在 ≥md 是同時可見的,所以窄螢幕的隱藏只能靠 JS 算(用 `md:hidden`
+	// 之類的字首寫不出「只在 <md 依狀態隱藏」)。
+	const showQuestionPane = !narrow || mobilePane === "question";
+	const showContentPane = !narrow || mobilePane === "content";
+	// 換頁要回到頂端。兩個 pane 共用同一條頁面捲軸,不歸零的話從長長的詳解切回
+	// 題目,會落在題目卡底下的空白處 —— 看起來像整頁空了。
+	const switchMobilePane = useCallback((pane: "question" | "content") => {
+		setMobilePane(pane);
+		window.scrollTo({ top: 0 });
+	}, []);
 
 	// Reported up by QuestionCard so the gamepad knows whether the d-pad is
 	// still picking options or has become a scroll control. The right column is
@@ -1361,6 +1401,33 @@ export function Question() {
 					</div>
 				</header>
 
+				{/* 手機的第一層分頁 (#96)。只有兩顆 —— 第二層(詳解共筆/個人筆記/
+			    討論串/…)是右欄頂端那條既有的 strip,它在 <md 一直都在。
+			    放在 navBarRef 這個 sticky 區塊裡面,所以捲動時它跟「上一題/下一題」
+			    一起釘在頂端,而底下兩層 sticky 的 --nav-h 位移是量出來的,會自己
+			    把這條的高度算進去。 */}
+				{narrow && (
+					<div className="flex border-b border-ink-200 dark:border-ink-700 md:hidden">
+						<TabButton
+							active={mobilePane === "question"}
+							onClick={() => switchMobilePane("question")}
+						>
+							題目
+						</TabButton>
+						<TabButton
+							active={mobilePane === "content"}
+							onClick={() => switchMobilePane("content")}
+						>
+							詳解區
+							{data.my_note && (
+								<span className="ml-1.5 text-[10px] text-ink-400 dark:text-ink-500">
+									●
+								</span>
+							)}
+						</TabButton>
+					</div>
+				)}
+
 				{/* ≥md has two view modes (header toggle / `t` shortcut):
 			    - columns: question left, everything else right — a flex row pinned
 			      to the remaining viewport height; each pane is its own scroll
@@ -1433,10 +1500,11 @@ export function Question() {
 				{/* Left: question stem / options / answer */}
 				<div
 					className={
-						tabsMode
+						(showQuestionPane ? "" : "hidden ") +
+						(tabsMode
 							? "md:max-w-4xl md:mx-auto md:pb-12" +
 								(mainTab === "question" ? "" : " md:hidden")
-							: "md:h-full md:min-w-0 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8"
+							: "md:h-full md:min-w-0 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8")
 					}
 					style={tabsMode ? undefined : { flexBasis: `${splitPct}%` }}
 				>
@@ -1444,8 +1512,13 @@ export function Question() {
 						key={data.id}
 						yieldFaceKeys={expKeysActive}
 						question={data}
-						onAnswered={reload}
-						onProgressCleared={reload}
+						// 不用 reload:那會強制重抓一份我們已經知道答案的 payload,而在
+						// 慢網路上 SW 會拿三秒前的快取回來把剛作答的狀態洗掉(#95)。
+						// 見 lib/questionCache.ts 的 withAnswer。
+						onAnswered={(chosen, correct) =>
+							setData(withAnswer(data, chosen, correct))
+						}
+						onProgressCleared={() => setData(withProgressCleared(data))}
 						onRevealedChange={setCardRevealed}
 					/>
 				</div>
@@ -1474,7 +1547,11 @@ export function Question() {
 				<div
 					ref={rightColRef}
 					className={
-						"tiptap-compact mt-8 md:mt-0 " +
+						"tiptap-compact md:mt-0 " +
+						// 手機分頁後這一欄不再接在題目卡下面,`mt-8` 那道間距就變成
+						// 標籤列與內容之間一塊沒來由的空白。
+						(narrow ? "" : "mt-8 ") +
+						(showContentPane ? "" : "hidden ") +
 						(tabsMode
 							? "md:max-w-4xl md:mx-auto md:pb-12" +
 								(mainTab === "question" ? " md:hidden" : "")
