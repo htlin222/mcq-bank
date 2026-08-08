@@ -253,7 +253,8 @@ export function Home() {
                     <div className="text-xs text-ink-500 dark:text-ink-400">{y.count} 題</div>
                   </div>
 
-                  <div className="mt-2 h-1.5 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden">
+                  {/* eink:軌道補黑框,否則 0% 時整條被洗白、看不見 */}
+                  <div className="mt-2 h-1.5 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden eink:border eink:border-black">
                     <div
                       className="h-full bg-accent transition-[width]"
                       style={{ width: `${Math.min(100, seenPct)}%` }}

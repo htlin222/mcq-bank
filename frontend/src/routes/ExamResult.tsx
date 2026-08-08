@@ -114,7 +114,9 @@ export function ExamResult() {
         <div className="font-serif text-6xl text-ink-900 dark:text-ink-100 mb-3">
           {correct}<span className="text-ink-300 dark:text-ink-600 text-3xl">/{total}</span>
         </div>
-        <div className={`text-lg font-medium ${pct >= 60 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+        {/* 及格與否**只**寫在 emerald/rose 裡 —— 數字本身不帶判斷。1-bit 下
+            顏色沒了就什麼都不剩,所以補一個只在電子紙顯示的 ✓ / ✗。 */}
+        <div className={`text-lg font-medium ${pct >= 60 ? 'text-emerald-700 dark:text-emerald-400 eink-mark-ok' : 'text-rose-700 dark:text-rose-400 eink-mark-bad'}`}>
           {pct}%
         </div>
         <div className="text-xs text-ink-400 dark:text-ink-500 mt-3">
@@ -208,12 +210,14 @@ export function ExamResult() {
                 className="flex gap-3 items-start bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
               >
                 <span
+                  // 三種底色在 1-bit 下會一起變白 → 全部長一樣。改成
+                  // 對=反白 / 錯=粗實框 / 未作答=虛線框。
                   className={`shrink-0 w-9 h-9 rounded-full grid place-items-center font-mono text-sm ${
                     right
-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 eink-invert'
                       : unanswered
-                      ? 'bg-ink-100 dark:bg-ink-700 text-ink-500 dark:text-ink-400'
-                      : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
+                      ? 'bg-ink-100 dark:bg-ink-700 text-ink-500 dark:text-ink-400 eink:border eink:border-dashed eink:border-black'
+                      : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 eink:border-2 eink:border-black'
                   }`}
                 >
                   {a.number}
@@ -313,11 +317,19 @@ function ChoiceDistribution({
             return (
               <div key={L} className="flex items-center gap-2 py-0.5">
                 <span className="w-4 font-mono text-ink-700 dark:text-ink-300">{L}</span>
-                <span className="relative h-3 flex-1 rounded bg-ink-100 dark:bg-ink-700/50 overflow-hidden">
+                {/* 軌道與填充都是淡色,1-bit 下會一起變白、整條消失。軌道補
+                    黑框(0% 時才看得到「有這一條」),填充轉實心黑;正解那條用
+                    粗框標示,因為兩條填充都是黑、分不出誰是正解。 */}
+                <span
+                  className={
+                    'relative h-3 flex-1 rounded bg-ink-100 dark:bg-ink-700/50 overflow-hidden eink:border-black ' +
+                    (isCorrect ? 'eink:border-2' : 'eink:border')
+                  }
+                >
                   <span
                     aria-hidden
                     className={
-                      'absolute inset-y-0 left-0 ' +
+                      'absolute inset-y-0 left-0 eink:bg-black ' +
                       (isCorrect ? 'bg-accent/15' : 'bg-ink-200/60 dark:bg-ink-600/40')
                     }
                     style={{ width: `${pct}%` }}
