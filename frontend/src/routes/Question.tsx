@@ -39,16 +39,23 @@ import { useGamepad, useGamepadScroll } from "../hooks/useGamepad";
 import { RichEditor } from "../components/RichEditor";
 import { AnnotatableContent } from "../components/AnnotatableContent";
 import { NoteContent } from "../components/NoteContent";
+import { NoteLinkList, type NoteLinkItem } from "../components/NoteLinkList";
 import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
 import { BackToTopFab } from "../components/BackToTopFab";
 import { searchNeighbors } from "../lib/searchCache";
 import {
+	HEADING_SELECTOR,
+	nextHeadingIndex,
+	nextSlot,
+} from "../lib/headingCursor";
+import {
 	questionCache,
 	yearListCache,
 	type YearListItem,
 } from "../lib/questionCache";
+import { withAnswer, withProgressCleared } from "../lib/questionProgress";
 import { rememberAutoCloze, wasAutoCloze } from "../lib/clozePref";
 import {
 	VideoTopicSection,
@@ -83,6 +90,27 @@ const GAMEPAD_HINTS_ANSWERING: GamepadHint[] = [
 ];
 const GAMEPAD_HINTS_REVEALED: GamepadHint[] = [
 	{ btn: "DPAD ↑ ↓", label: "捲動詳解" },
+	...GAMEPAD_HINTS_SHARED,
+];
+// 讀詳解時四顆面鍵改對應詳解工具列。這裡不 spread SHARED —— FACE ▲ / ▶ 的
+// 意思被換掉了,照抄那份會寫出兩行互相矛盾的說明。
+const GAMEPAD_HINTS_EXPLANATION: GamepadHint[] = [
+	{ btn: "DPAD ↑ ↓", label: "捲動詳解" },
+	{ btn: "FACE ▼", label: "顯示詳解" },
+	{ btn: "FACE ▲", label: "自動挖空" },
+	{ btn: "FACE ◀", label: "防劇透" },
+	{ btn: "FACE ▶", label: "編輯詳解" },
+	{ btn: "L1 / R1", label: "上一題 / 下一題" },
+	{ btn: "L2 / R2", label: "上一個 / 下一個分頁" },
+	{ btn: "START", label: "回年度列表" },
+	{ btn: "左搖桿", label: "捲動" },
+];
+// 看個人筆記時十字鍵改成走訪筆記本身。三份說明而不是一份:同一顆十字鍵在
+// 作答前選選項、揭曉後捲頁面、看筆記時跳標題,寫成一份會騙人。
+const GAMEPAD_HINTS_NOTE: GamepadHint[] = [
+	{ btn: "DPAD ↑ ↓", label: "在筆記標題之間移動" },
+	{ btn: "FACE ▼", label: "展開 / 收合這一段" },
+	{ btn: "DPAD ← →", label: "切換筆記(有多則時)" },
 	...GAMEPAD_HINTS_SHARED,
 ];
 const SPLIT_DEFAULT = 42; // ≈ the previous fixed 5fr / 7fr ratio
@@ -132,20 +160,14 @@ type SimilarItem = {
 	source: "vec" | "tag" | "fts";
 };
 
-type NoteLink = {
-	targetKind: "note" | "question";
-	targetId: string;
-	year: number;
-	number: number;
-	stem: string;
-	group: string | null;
-	sharedTerms: string[];
-};
+// 建議的目標自 0040 起多了 'free'(自由筆記)—— 型別跟渲染共用同一份定義,
+// 免得又出現「多一種 kind 但某一邊沒處理」的死連結。
+type NoteLink = NoteLinkItem;
 
 export function Question() {
 	const { id } = useParams<{ id: string }>();
 	const { me } = useMe();
-	const { data, error, reload } = useQuestion(id);
+	const { data, error, reload, setData } = useQuestion(id);
 	const { state: lockState, acquire, release } = useLock(id || "");
 	// 詳解 is behind a pessimistic server lock — attempting to edit offline can
 	// only ever fail, and would strand a draft against a lock we never held.
@@ -161,15 +183,53 @@ export function Question() {
 				: null;
 		return raw === "tabs" ? "tabs" : "columns";
 	});
-	// Which pane is visible in tabs mode (≥md only).
+	// Which pane is visible in tabs mode.
 	const [mainTab, setMainTab] = useState<MainTab>("question");
-	const tabsMode = layout === "tabs";
+
+	// ── 手機沿用桌機那一組分頁,不另做一套 (#96) ──────────────────────────
+	// <md 以前是把兩欄直接疊起來:題目卡在上、詳解/筆記/討論全部在下。一張含五個
+	// 選項的題目卡就吃掉一整個手機螢幕,所以「看詳解」永遠要先捲過整張卡。
+	//
+	// 修法是**讓窄螢幕直接進入 tabs 模式**,而不是給手機另一套兩段式導覽 —— 一頁
+	// 兩層分頁(題目/詳解區 再 詳解共筆/個人筆記/…)光是要解釋「哪一層管什麼」就
+	// 已經輸了,而且每次加分頁都要記得改兩個地方。`layout` 仍然只記桌機的偏好,
+	// 窄螢幕只是無條件覆寫成 tabs。
+	const [narrow, setNarrow] = useState(
+		() =>
+			typeof window !== "undefined" &&
+			!window.matchMedia("(min-width: 768px)").matches,
+	);
+	useEffect(() => {
+		const mq = window.matchMedia("(min-width: 768px)");
+		const onChange = () => setNarrow(!mq.matches);
+		mq.addEventListener("change", onChange);
+		return () => mq.removeEventListener("change", onChange);
+	}, []);
+	const tabsMode = layout === "tabs" || narrow;
+
+	// tabs 模式底下所有的顯示/隱藏原本都寫成 `md:hidden` / `md:block` —— 那是因為
+	// 它以前只在 ≥md 存在。窄螢幕也走 tabs 之後,那些前綴在 <md 一律不生效,分頁
+	// 會全部同時攤開。這兩個字串把「該用哪一種」集中在一處,而不是散在十處
+	// `narrow ? … : …` 三元式裡。
+	const mdHidden = narrow ? "hidden" : "md:hidden";
+	const mdBlock = narrow ? "block" : "md:block";
+	// 切分頁要回到頂端:窄螢幕下每個分頁共用同一條頁面捲軸,不歸零的話從長長的
+	// 詳解切回題目,會落在題目卡底下的空白處,看起來像整頁空了。
+	const pickTab = useCallback(
+		(t: MainTab) => {
+			setMainTab(t);
+			if (narrow) window.scrollTo({ top: 0 });
+		},
+		[narrow],
+	);
 
 	// Reported up by QuestionCard so the gamepad knows whether the d-pad is
 	// still picking options or has become a scroll control. The right column is
 	// the scroll container in columns mode.
 	const [cardRevealed, setCardRevealed] = useState(false);
 	const rightColRef = useRef<HTMLDivElement>(null);
+	// 個人筆記面板的容器 —— 手把在裡面找可展開的標題按鈕。
+	const notePaneRef = useRef<HTMLDivElement>(null);
 
 	// The inner 詳解共筆/… tab strip is sticky (see below); its measured height
 	// drives where the sticky per-pane toolbar (自動挖空/防劇透/編輯) pins, so the
@@ -540,10 +600,15 @@ export function Question() {
 		}
 	}, [data?.id, data?.comment_count]);
 
-	// If the user is on a columns-only inner tab (討論串 / 相似題目, both hidden
-	// below md) and the viewport shrinks below md, snap them back to the
-	// explanation tab so they aren't stuck on an invisible tab with no content.
+	// 雙欄模式下 討論串 / 相似題目 這兩個內層分頁是 md 以上才有的(窄螢幕那時候
+	// 它們攤在頁面流的底部),所以視窗縮到 <md 要把人拉回詳解,免得停在一個看不見
+	// 又沒有內容的分頁上。
+	//
+	// **窄螢幕現在一律走 tabs 模式,那裡這兩個分頁是真的存在的** —— 少了 tabsMode
+	// 這個條件,使用者在手機上點「討論串」會被這條 effect 立刻彈回詳解:上面那條
+	// strip 顯示討論串已選取,底下卻是詳解,而且完全無聲。
 	useEffect(() => {
+		if (tabsMode) return;
 		if (tab !== "discussion" && tab !== "similar") return;
 		const mq = window.matchMedia("(min-width: 768px)");
 		const sync = () => {
@@ -552,7 +617,7 @@ export function Question() {
 		sync();
 		mq.addEventListener("change", sync);
 		return () => mq.removeEventListener("change", sync);
-	}, [tab]);
+	}, [tab, tabsMode]);
 
 	// 相似題目 — lazy-loaded after the main question payload arrives.
 	// Kept off the hot /api/questions/:id path so navigation stays snappy.
@@ -1048,12 +1113,129 @@ export function Question() {
 	}
 	useGamepadScroll(gamepadScrollEl);
 
+	// 個人筆記在看的時候,十字鍵改成走訪筆記本身,而不是捲頁面:
+	//   ↑ ↓  在**目前展開得到的** h1/h2/h3 之間移動
+	//   FACE ▼ 展開 / 收合游標所在的那個區段
+	//   ← →  切換這一題底下的多則筆記
+	// 標題清單直接問 DOM —— 收合的區段不渲染子節點,所以 DOM 裡有的按鈕定義上
+	// 就是使用者現在看得到的那些,展開一個區段它的子標題自動加入,不必同步。
+	const noteHeadings = useCallback(
+		() =>
+			Array.from(
+				notePaneRef.current?.querySelectorAll<HTMLElement>(
+					HEADING_SELECTOR,
+				) ?? [],
+			),
+		[],
+	);
+	const headingIdx = useRef(-1);
+	// 換題、換筆記、收合造成清單變動 → 游標重來,免得指到別份內容的第 N 個標題。
+	useEffect(() => {
+		headingIdx.current = -1;
+	}, [data?.id, activeSlot]);
+
+	function moveHeading(delta: number) {
+		const items = noteHeadings();
+		const next = nextHeadingIndex(headingIdx.current, items.length, delta);
+		headingIdx.current = next;
+		if (next < 0) return false;
+		items[next].focus();
+		items[next].scrollIntoView({ block: "center", behavior: "smooth" });
+		return true;
+	}
+
+	// 筆記分頁是不是正在被看:欄位版兩欄同時可見,分頁版要看 mainTab。
+	const noteTabVisible =
+		tab === "note" && (!tabsMode || mainTab === "note") && !noteEditing;
+
+	// 讀詳解時四顆面鍵改對應詳解工具列 —— 那排按鈕是讀的時候真正會用到的東西,
+	// 而「複製題目」「收藏」在讀的時候用不上。
+	//
+	// 一定要 cardRevealed:還沒作答時 FACE ▼ 是送出、FACE ◀ 是略過看答案,那兩顆
+	// 歸 QuestionCard。搶在答題前接管,等於按下送出的同時把詳解也掀開了。
+	const expKeysActive =
+		tab === "explanation" &&
+		(!tabsMode || mainTab === "note") &&
+		cardRevealed &&
+		!editing &&
+		!noteEditing;
+
 	// Gamepad page bindings. Options / 送出 / 複製 / 收藏 are QuestionCard's;
 	// these are the ones that need page context. The d-pad is shared: the card
 	// owns ↑↓ while unanswered (option cursor), the page takes it over once the
 	// answer is showing and there's a 詳解 to read — hence `cardRevealed`.
 	useGamepad((action) => {
 		if (!data || editing || noteEditing) return;
+
+		if (expKeysActive) {
+			switch (action) {
+				case "faceDown":
+					// 詳解預設是糊的(「點擊以顯示詳解」)—— 這顆就是那一下點擊。
+					if (!revealedExp) {
+						setRevealedExp(true);
+						return;
+					}
+					break;
+				case "faceUp":
+					// 工具列只在揭曉後才在,所以沒揭曉時這顆不該有反應。
+					if (revealedExp && !autoClozeLoading) {
+						toggleAutoCloze(data.id, "exp");
+						return;
+					}
+					break;
+				case "faceLeft":
+					if (revealedExp) {
+						setExpCloze((v) => !v);
+						return;
+					}
+					break;
+				case "faceRight":
+					// 跟「編輯」按鈕自己的停用條件對齊 —— 手把不該繞過鎖。
+					if (
+						online &&
+						lockState.status !== "acquiring" &&
+						lockState.status !== "locked-by-other"
+					) {
+						void startEdit();
+						return;
+					}
+					break;
+			}
+		}
+
+		if (noteTabVisible) {
+			switch (action) {
+				case "up":
+					if (moveHeading(-1)) return;
+					break; // 這則筆記沒有標題 → 落回原本的捲動行為
+				case "down":
+					if (moveHeading(1)) return;
+					break;
+				case "faceDown": {
+					const items = noteHeadings();
+					const at = headingIdx.current;
+					if (at >= 0 && at < items.length) {
+						items[at].click();
+						return;
+					}
+					break;
+				}
+				case "left":
+				case "right":
+					if (notes.length > 1) {
+						setNoteSlot(
+							nextSlot(
+								notes.map((n) => n.slot),
+								activeSlot,
+								action === "right" ? 1 : -1,
+							),
+						);
+						return;
+					}
+					break;
+			}
+		}
+
 		switch (action) {
 			case "l1":
 				if (navPrev) navigate(`/q/${navPrev}`, { state: location.state });
@@ -1230,22 +1412,28 @@ export function Question() {
 			      strip, with normal page scrolling and a comfortable reading width.
 			    Below md both modes collapse to the same single stacked column. */}
 				{tabsMode && (
-					<div className="hidden md:flex flex-wrap border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto pt-1 pb-0">
+					<div
+						className={
+							"flex-wrap border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto pt-1 pb-0 " +
+							// 窄螢幕一律 tabs,所以這條要顯示;≥md 才由 tabsMode 決定。
+							(narrow ? "flex" : "hidden md:flex")
+						}
+					>
 						<TabButton
 							active={mainTab === "question"}
-							onClick={() => setMainTab("question")}
+							onClick={() => pickTab("question")}
 						>
 							題目
 						</TabButton>
 						<TabButton
 							active={mainTab === "explanation"}
-							onClick={() => setMainTab("explanation")}
+							onClick={() => pickTab("explanation")}
 						>
 							詳解
 						</TabButton>
 						<TabButton
 							active={mainTab === "note"}
-							onClick={() => setMainTab("note")}
+							onClick={() => pickTab("note")}
 						>
 							個人筆記
 							{data.my_note && (
@@ -1256,7 +1444,7 @@ export function Question() {
 						</TabButton>
 						<TabButton
 							active={mainTab === "discussion"}
-							onClick={() => setMainTab("discussion")}
+							onClick={() => pickTab("discussion")}
 						>
 							討論串
 							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
@@ -1265,7 +1453,7 @@ export function Question() {
 						</TabButton>
 						<TabButton
 							active={mainTab === "similar"}
-							onClick={() => setMainTab("similar")}
+							onClick={() => pickTab("similar")}
 						>
 							相似題目
 							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
@@ -1275,7 +1463,7 @@ export function Question() {
 						{hasVideos && (
 							<TabButton
 								active={mainTab === "video"}
-								onClick={() => setMainTab("video")}
+								onClick={() => pickTab("video")}
 							>
 								影片
 								<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
@@ -1293,18 +1481,24 @@ export function Question() {
 				{/* Left: question stem / options / answer */}
 				<div
 					className={
-						tabsMode
+						(tabsMode
 							? "md:max-w-4xl md:mx-auto md:pb-12" +
-								(mainTab === "question" ? "" : " md:hidden")
-							: "md:h-full md:min-w-0 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8"
+								(mainTab === "question" ? "" : ` ${mdHidden}`)
+							: "md:h-full md:min-w-0 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8")
 					}
 					style={tabsMode ? undefined : { flexBasis: `${splitPct}%` }}
 				>
 					<QuestionCard
 						key={data.id}
+						yieldFaceKeys={expKeysActive}
 						question={data}
-						onAnswered={reload}
-						onProgressCleared={reload}
+						// 不用 reload:那會強制重抓一份我們已經知道答案的 payload,而在
+						// 慢網路上 SW 會拿三秒前的快取回來把剛作答的狀態洗掉(#95)。
+						// 見 lib/questionCache.ts 的 withAnswer。
+						onAnswered={(chosen, correct) =>
+							setData(withAnswer(data, chosen, correct))
+						}
+						onProgressCleared={() => setData(withProgressCleared(data))}
 						onRevealedChange={setCardRevealed}
 					/>
 				</div>
@@ -1333,10 +1527,13 @@ export function Question() {
 				<div
 					ref={rightColRef}
 					className={
-						"tiptap-compact mt-8 md:mt-0 " +
+						"tiptap-compact md:mt-0 " +
+						// 分頁之後這一欄不再接在題目卡下面,`mt-8` 那道間距就變成標籤列
+						// 與內容之間一塊沒來由的空白。
+						(narrow ? "" : "mt-8 ") +
 						(tabsMode
 							? "md:max-w-4xl md:mx-auto md:pb-12" +
-								(mainTab === "question" ? " md:hidden" : "")
+								(mainTab === "question" ? ` ${mdHidden}` : "")
 							: "md:h-full md:min-w-0 md:flex-1 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8")
 					}
 				>
@@ -1347,7 +1544,7 @@ export function Question() {
 						className={
 							"mt-0" +
 							(tabsMode && (mainTab === "similar" || mainTab === "video")
-								? " md:hidden"
+								? ` ${mdHidden}`
 								: "")
 						}
 					>
@@ -1366,7 +1563,7 @@ export function Question() {
 							<div
 								className={
 									"flex flex-wrap border-b border-ink-200 dark:border-ink-700" +
-									(tabsMode ? " md:hidden" : "")
+									(tabsMode ? ` ${mdHidden}` : "")
 								}
 							>
 								<TabButton
@@ -1735,12 +1932,15 @@ export function Question() {
 											<Trash2 size={14} /> 刪除
 										</button>
 									</div>
-									<NoteContent
-										content={noteJson}
-										annotateKeyPrefix={`anno:note:${data.id}`}
-										cloze={noteCloze}
-										autoTerms={noteAutoTerms ?? undefined}
-									/>
+									{/* 手把導覽以這個容器為範圍找標題按鈕(見 noteHeadings)。 */}
+									<div ref={notePaneRef}>
+										<NoteContent
+											content={noteJson}
+											annotateKeyPrefix={`anno:note:${data.id}`}
+											cloze={noteCloze}
+											autoTerms={noteAutoTerms ?? undefined}
+										/>
+									</div>
 									<footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
 										僅你可見
 										{activeNote?.updated_at && (
@@ -1754,49 +1954,7 @@ export function Question() {
 										)}
 									</footer>
 
-									{/* 你可能想連結 — 依筆記命中的受控關鍵字(疾病/主題)建議
-							    相關題目 與你自己的其他筆記。最多 5 條(連結密度護欄)。 */}
-									{noteLinks.length > 0 && (
-										<section className="mt-5 pt-4 border-t border-ink-100 dark:border-ink-700">
-											<h3 className="flex items-center gap-1.5 text-sm font-medium text-ink-600 dark:text-ink-300 mb-2">
-												<LinkIcon size={14} /> 你可能想連結
-											</h3>
-											<ul className="space-y-1">
-												{noteLinks.map((l) => (
-													<li key={`${l.targetKind}:${l.targetId}`}>
-														<Link
-															to={`/q/${l.targetId}`}
-															className="group flex items-start gap-2 rounded p-2 -mx-2 hover:bg-ink-50 dark:hover:bg-ink-800/60 transition"
-														>
-															<span className="font-mono text-xs text-ink-500 dark:text-ink-400 shrink-0 mt-0.5">
-																{l.year}-{String(l.number).padStart(3, "0")}
-															</span>
-															<span className="min-w-0 flex-1">
-																<span className="block text-sm text-ink-700 dark:text-ink-200 line-clamp-1 group-hover:text-accent">
-																	{l.stem}
-																</span>
-																<span className="mt-1 flex flex-wrap items-center gap-1">
-																	{l.targetKind === "note" && (
-																		<span className="rounded-full bg-accent/10 text-accent text-[11px] px-1.5 py-0.5">
-																			你的筆記
-																		</span>
-																	)}
-																	{l.sharedTerms.slice(0, 4).map((t) => (
-																		<span
-																			key={t}
-																			className="rounded-full bg-ink-100 dark:bg-ink-700 text-ink-500 dark:text-ink-300 text-[11px] px-1.5 py-0.5"
-																		>
-																			{t}
-																		</span>
-																	))}
-																</span>
-															</span>
-														</Link>
-													</li>
-												))}
-											</ul>
-										</section>
-									)}
+									<NoteLinkList links={noteLinks} />
 								</article>
 							) : (
 								<div className="bg-ink-50 dark:bg-ink-800/60 border border-dashed border-ink-200 dark:border-ink-700 rounded-lg p-8 text-center">
@@ -1818,7 +1976,7 @@ export function Question() {
 				    below lg while this tab is active, so we never land in a state
 				    where the tab is set to "discussion" but invisible. */}
 						{tab === "discussion" && (
-							<div className="hidden md:block mt-2">
+							<div className={(narrow ? "block" : "hidden md:block") + " mt-2"}>
 								{me ? (
 									<CommentThread
 										questionId={data.id}
@@ -1840,11 +1998,16 @@ export function Question() {
 					{hasVideos && (
 						<section
 							className={
-								(tab === "video" ? "block" : "hidden") +
+								// 同 相似題目:窄螢幕的顯示交給下面那段(由 mainTab 決定)。
+								// `tab` 不會跟著 mainTab 走到 video —— 上面那條同步 effect 只處理
+								// explanation/note/discussion,所以留著舊判斷的話 "hidden" 會贏過
+								// 後面的 "block"(Tailwind 的 .hidden 排在 .block 之後),影片分頁
+								// 就永遠是空白的。
+								(narrow ? "" : tab === "video" ? "block" : "hidden") +
 								" mt-8 " +
 								((tabsMode ? mainTab === "video" : tab === "video")
-									? "md:block"
-									: "md:hidden")
+									? mdBlock
+									: mdHidden)
 							}
 						>
 							<div className="mb-4 flex items-baseline justify-between gap-3">
@@ -1879,10 +2042,12 @@ export function Question() {
 					<section
 						className={
 							"mt-8 " +
-							(similar.length > 0 ? "block" : "hidden") +
+							// 窄螢幕的顯示完全交給下面那段(含「尚無相似題目」空狀態,跟桌機
+							// 分頁一致);寬螢幕維持原本「有才佔位」的流式版面。
+							(narrow ? "" : similar.length > 0 ? "block" : "hidden") +
 							((tabsMode ? mainTab === "similar" : tab === "similar")
-								? " md:block"
-								: " md:hidden")
+								? ` ${mdBlock}`
+								: ` ${mdHidden}`)
 						}
 					>
 						<div className="flex items-center justify-between mb-3">
@@ -1955,7 +2120,7 @@ export function Question() {
 							className={
 								"mt-10" +
 								((tabsMode ? mainTab !== "similar" : tab !== "similar")
-									? " md:hidden"
+									? ` ${mdHidden}`
 									: "")
 							}
 						>
@@ -1997,11 +2162,10 @@ export function Question() {
 						</section>
 					)}
 
-					{/* Comments — mobile only. At lg+ this content is shown inside the
-			    詳解共筆 / 個人筆記 / 討論串 tab strip above (the 討論串 tab is
-			    `hidden md:inline-flex`), so we hide this bottom section there to
-			    avoid rendering CommentThread twice and double-fetching. */}
-					<section className="mt-12 md:hidden">
+					{/* Comments — 只有雙欄模式殘留的窄版面才需要。tabs 模式(≥md 的分頁檢視,
+			    以及所有 <md)上面那條 strip 裡就有「討論串」分頁,這裡再渲染一次會讓
+			    CommentThread 掛兩份、重複抓一次留言。 */}
+					<section className={"mt-12 " + (tabsMode ? "hidden" : "md:hidden")}>
 						<h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-3">
 							討論
 						</h2>
@@ -2024,7 +2188,13 @@ export function Question() {
 			<BackToTopFab />
 			<GamepadFab
 				hints={
-					cardRevealed ? GAMEPAD_HINTS_REVEALED : GAMEPAD_HINTS_ANSWERING
+					noteTabVisible
+						? GAMEPAD_HINTS_NOTE
+						: expKeysActive
+							? GAMEPAD_HINTS_EXPLANATION
+							: cardRevealed
+								? GAMEPAD_HINTS_REVEALED
+								: GAMEPAD_HINTS_ANSWERING
 				}
 			/>
 		</div>

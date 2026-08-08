@@ -38,7 +38,10 @@ export function OnlineUsers() {
 
   return (
     <div
-      className="relative hidden sm:flex items-center"
+      // lg 而不是 sm:這塊的寬度隨線上人數變動(1–4 顆頭像 + 「+N」),是整條
+      // header 唯一寬度不固定的東西 —— 擺在窄的那幾階,溢出與否就取決於當下有
+      // 幾個人在線,而那是無法用斷點事先算準的(#94)。
+      className="relative hidden lg:flex items-center"
       onMouseLeave={() => setOpen(false)}
     >
       <button
@@ -57,7 +60,9 @@ export function OnlineUsers() {
               name={u.display_name}
               size={24}
             />
-            <span className="absolute -bottom-0 -right-0 w-2 h-2 bg-emerald-500 rounded-full ring-1 ring-white dark:ring-ink-900" />
+            {/* 純色小圓點在 1-bit 下會被洗白、整個消失 —— 撈回實心黑
+                (外圈的 ring-white 保留,黑點在任何底色上都看得見)。 */}
+            <span className="absolute -bottom-0 -right-0 w-2 h-2 bg-emerald-500 eink:bg-black rounded-full ring-1 ring-white dark:ring-ink-900" />
           </span>
         ))}
         {more > 0 && (
@@ -76,7 +81,7 @@ export function OnlineUsers() {
             <div key={u.email} className="px-3 py-1.5 flex items-center gap-2 text-sm">
               <Avatar email={u.email} avatarKey={u.avatar_key} name={u.display_name} size={20} />
               <span className="text-ink-800 dark:text-ink-200">{u.display_name}</span>
-              <span className="ml-auto w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+              <span className="ml-auto w-1.5 h-1.5 bg-emerald-500 eink:bg-black rounded-full" />
             </div>
           ))}
         </div>

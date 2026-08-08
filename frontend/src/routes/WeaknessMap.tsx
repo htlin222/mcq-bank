@@ -13,7 +13,14 @@ type Cluster = {
 	anchor: string;
 	question_ids: string[];
 };
-type Payload = { clusters: Cluster[]; wrong_count: number };
+// basis 說明這批群是怎麼分出來的:semantic 走 Vectorize 語意分群(品質較好),
+// topic 走 tag_topics 白名單的確定性分群(索引沒涵蓋到時的保底)。舊版 Worker
+// 不回這個欄位,所以是選填。
+type Payload = {
+	clusters: Cluster[];
+	wrong_count: number;
+	basis?: "semantic" | "topic";
+};
 
 export function WeaknessMap() {
 	const [data, setData] = useState<Payload | null>(null);
@@ -56,13 +63,19 @@ export function WeaknessMap() {
 						<p>多做幾題(並累積一些錯題)再回來,這裡就會長出你的弱點分布。</p>
 					) : (
 						<>
-							<p>目前分不出明顯的弱點群。</p>
+							<p>你的 {data.wrong_count} 題錯題還沒有兩題落在同一個主題上。</p>
 							<p className="text-sm mt-2">
-								(語意索引可能尚未建立,或你的錯題主題太分散。)
+								再多做一些,重複踩到的主題就會浮出來。
 							</p>
 						</>
 					)}
 				</div>
+			)}
+
+			{loaded && data && data.clusters.length > 0 && data.basis === "topic" && (
+				<p className="text-xs text-ink-400 dark:text-ink-500 mb-4">
+					依主題標籤分群(語意索引尚未涵蓋你最近的錯題)。
+				</p>
 			)}
 
 			{loaded && data && data.clusters.length > 0 && (

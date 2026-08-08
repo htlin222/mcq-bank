@@ -268,14 +268,16 @@ test('FACE ▼ 送出答案,並且震動', async (t) => {
   const text = await page.evaluate(() => document.body.innerText);
   assert.ok(text.includes('答對了'), `應該送出並判定答對;實際:${text.slice(0, 300)}`);
 
+  // 只震「對錯」那一段。舊版會先震一下 60ms 的 tap,因為揭曉要等一趟網路、
+  // 只震結果會像按鍵沒被收到;現在揭曉是即時的(#89),那個理由不成立,多震
+  // 一下反而變成雜訊。
   const rumbles = await page.evaluate(() => window.__rumbles);
-  assert.ok(rumbles.length >= 2, `送出應該震兩段(按下 + 對錯),實際 ${rumbles.length} 段`);
+  assert.ok(rumbles.length >= 1, `送出應該有震動回饋,實際 ${rumbles.length} 段`);
   assert.equal(rumbles[0].type, 'dual-rumble');
-  assert.equal(rumbles[0].duration, 60, '第一段是按下的 tap');
   // 答對是兩下 40ms 輕快;答錯會是一段 180ms 重的。
   assert.ok(
-    rumbles.slice(1).every((r) => r.duration === 40),
-    `答對的回饋應該是兩下 40ms;實際:${JSON.stringify(rumbles.slice(1))}`,
+    rumbles.every((r) => r.duration === 40),
+    `答對的回饋應該全是 40ms(沒有按下的 60ms tap);實際:${JSON.stringify(rumbles)}`,
   );
 
   assert.deepEqual(errors, [], '不該有未捕捉例外');
@@ -385,6 +387,149 @@ test('回年度列表再進另一題,也不會把「已連線」提示再放一�
 
   const onQuestion = await page.evaluate(() => document.body.innerText);
   assert.ok(!onQuestion.includes('已連線'), '回題目頁又宣告了一次');
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+// ── 詳解分頁的面鍵 (#81 / #82 / #83) ─────────────────────────────────
+//
+// 揭曉答案之後,四顆面鍵改對應詳解工具列。驗的重點有兩個:換了意思、以及
+// **沒有雙重觸發** —— FACE ▲ / ▶ 原本是 QuestionCard 的複製 / 收藏,兩邊都掛
+// 的話按一下會同時做兩件事。
+
+test('詳解分頁:FACE ▼ 顯示詳解,▲ 自動挖空,◀ 防劇透', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+
+  // 先揭曉答案 —— 沒揭曉時 ▼ / ◀ 還歸 QuestionCard(送出 / 略過)。
+  await tap(page, BTN.FACE_LEFT);
+  await page.waitForTimeout(600);
+
+  // 詳解預設是糊的,工具列還沒出現。
+  assert.equal(
+    await page.getByRole('button', { name: /自動挖空/ }).count(),
+    0,
+    '還沒顯示詳解時不該有工具列',
+  );
+
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(600);
+  await page
+    .getByRole('button', { name: /防劇透/ })
+    .first()
+    .waitFor({ timeout: 5_000 });
+
+  const cloze = page.getByRole('button', { name: /防劇透|取消/ }).first();
+  assert.equal(
+    await cloze.getAttribute('aria-pressed'),
+    'false',
+    '防劇透預設關著',
+  );
+  await tap(page, BTN.FACE_LEFT);
+  await page.waitForTimeout(400);
+  assert.equal(
+    await page.getByRole('button', { name: /防劇透|取消/ }).first().getAttribute('aria-pressed'),
+    'true',
+    'FACE ◀ 該把防劇透打開',
+  );
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('詳解分頁:FACE ▶ 開啟編輯器,而不是收藏', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await tap(page, BTN.FACE_LEFT);
+  await page.waitForTimeout(600);
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(600);
+
+  // 驗**正面效果**而不是「收藏沒變」:後者在功能沒接上時也會通過(FACE ▶ 落到
+  // QuestionCard 的收藏,而 fixture 的收藏 API 回空物件、狀態本來就不會動),
+  // 那種斷言看起來像在把關,其實什麼都沒守住。
+  assert.equal(
+    await page.getByRole('button', { name: '儲存' }).count(),
+    0,
+    '前置條件:還沒進編輯模式',
+  );
+
+  await tap(page, BTN.FACE_RIGHT);
+  await page.waitForTimeout(1_200);
+  assert.ok(
+    (await page.getByRole('button', { name: '儲存' }).count()) > 0,
+    'FACE ▶ 該開啟詳解編輯器(工具列出現「儲存」)',
+  );
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+// ── 個人筆記分頁的十字鍵 (#79 / #80) ──────────────────────────────────
+//
+// 這一組驗的是「同一顆十字鍵在不同情境下換了意思」—— 看筆記時它走訪筆記標題,
+// 而不是捲頁面。fixture 的 113-050 帶兩則筆記,第一則有 h1/h2/h1 三個標題。
+
+/** 切到個人筆記分頁(快捷鍵 n 會直接進編輯,所以用滑鼠點分頁)。 */
+async function openNoteTab(page) {
+  await page.getByRole('button', { name: /個人筆記/ }).first().click();
+  await page.waitForTimeout(400);
+}
+
+test('筆記分頁:DPAD ↓ 在標題之間移動,FACE ▼ 展開收合', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await openNoteTab(page);
+
+  const headings = page.locator('[data-note-heading]');
+  // 手風琴預設收合,所以一開始只看得到兩個最外層的 h1。
+  assert.equal(await headings.count(), 2, '一開始只該有兩個頂層標題');
+
+  await tap(page, BTN.DPAD_DOWN);
+  await page.waitForTimeout(300);
+  assert.equal(
+    await page.evaluate(() =>
+      document.activeElement?.getAttribute('data-note-heading') === ''
+        ? document.activeElement.textContent.trim()
+        : null,
+    ),
+    '溶血機轉',
+    'DPAD ↓ 第一下該把游標放在第一個標題上',
+  );
+
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(400);
+  assert.equal(
+    await headings.count(),
+    3,
+    'FACE ▼ 展開之後,裡面的 h2 也該進入走訪範圍',
+  );
+
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(400);
+  assert.equal(await headings.count(), 2, '再按一次該收回去');
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('筆記分頁:DPAD ← → 切換多則筆記', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await openNoteTab(page);
+
+  const titles = () =>
+    page.locator('[data-note-heading]').first().textContent();
+  assert.equal((await titles()).trim(), '溶血機轉', '起點是第一則');
+
+  await tap(page, BTN.DPAD_RIGHT);
+  await page.waitForTimeout(400);
+  assert.equal(
+    (await titles()).trim(),
+    '第二則筆記的標題',
+    'DPAD → 該換到第二則',
+  );
+
+  await tap(page, BTN.DPAD_RIGHT);
+  await page.waitForTimeout(400);
+  assert.equal((await titles()).trim(), '溶血機轉', '只有兩則,再按一次繞回第一則');
+
   assert.deepEqual(errors, [], '不該有未捕捉例外');
 });
 

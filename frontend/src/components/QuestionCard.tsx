@@ -10,6 +10,7 @@ import { ChallengePanel } from './ChallengePanel';
 import { groupBadgeClass } from '../lib/groups';
 import { startTimer, hide, show, read, type TimerState } from '../lib/questionTimer';
 import { choicePct, type StatsPayload } from '../lib/choiceStats';
+import { normalizeStemBreaks } from '../lib/stemBreaks';
 
 type Props = {
   question: QuestionFull;
@@ -20,6 +21,9 @@ type Props = {
   // this: the d-pad selects options while unanswered and scrolls the panel
   // afterwards, and the scroll target is the page's business, not the card's.
   onRevealedChange?: (revealed: boolean) => void;
+  // 讀詳解時,FACE ▲ / ▶ 要讓給詳解工具列(自動挖空 / 編輯)。同一顆鍵兩邊
+  // 都掛的話會一次觸發兩件事,所以由頁面明說「這兩顆現在歸我」。
+  yieldFaceKeys?: boolean;
 };
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
@@ -31,7 +35,7 @@ function fmtSeconds(ms: number): string {
   return `${Math.floor(sec / 60)} 分 ${sec % 60} 秒`;
 }
 
-export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared, onRevealedChange }: Props) {
+export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgressCleared, onRevealedChange, yieldFaceKeys }: Props) {
   const bookmarkSet = useBookmarkSet();
   const { me } = useMe();
   const [chosen, setChosen] = useState<string | null>(
@@ -46,6 +50,9 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     question.my_progress?.bookmark_folder_id ?? null,
   );
   const [submitting, setSubmitting] = useState(false);
+  // 送出失敗(多半是離線)。揭曉是樂觀的,所以這個提示是它的另一半 —— 沒有它,
+  // 使用者會以為作答已經記進去了。
+  const [saveFailed, setSaveFailed] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState(question.answer);
   const [answerEditing, setAnswerEditing] = useState(false);
   const [answerDraft, setAnswerDraft] = useState(question.answer);
@@ -78,23 +85,44 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
 
   // Aggregate (anonymous) review-mode stats. Lazy-loaded once the answer
   // is revealed — adds one extra request per card view, not per page load.
+  //
+  // 條件不是 `revealed` 而是「這次作答已經記錄進去了」。揭曉現在是樂觀的(見
+  // submit),而 /stats 在伺服器端會對還沒作答的人回 `not_answered` —— 搶在
+  // POST 完成前問,拿到的必然是空的,長條圖就永遠不會出現。
+  //
+  // 這個「答完才給統計」是刻意的防劇透,所以也**不能**在載入時預抓(#89 問到
+  // 這點):提早拿到各選項的作答分布,等於提早看到大家選什麼。
+  const [statsReady, setStatsReady] = useState(
+    !!question.my_progress?.last_chosen,
+  );
   const [stats, setStats] = useState<StatsPayload | null>(null);
   useEffect(() => {
-    if (!revealed) return;
+    if (!statsReady) return;
     let cancelled = false;
     api.get<StatsPayload>(`/api/questions/${question.id}/stats`).then(
       (r) => { if (!cancelled) setStats(r); },
     ).catch(() => { /* stats are best-effort */ });
     return () => { cancelled = true; };
-  }, [revealed, question.id]);
+  }, [statsReady, question.id]);
 
   async function submit() {
     if (!chosen || submitting) return;
+
+    // 立刻揭曉,不等網路。正解(currentAnswer)本來就在這張卡片手上 —— 畫面
+    // 判對錯用的一直是它,POST 回應的 correct_answer 連讀都沒讀。舊版把
+    // setRevealed 排在 await 之後,等於為了一個「client 早就知道」的答案付一趟
+    // 到 D1 的來回,那就是回報裡的卡頓感(#89)。
+    //
+    // 送出仍然照送:它負責記錄作答歷史、更新進度、餵統計。只是它不再擋在使用者
+    // 與答案之間。
+    const correct = chosen === currentAnswer;
+    setRevealed(true);
+    // 一次震動就夠了。舊版先震 'tap' 再震對錯,是因為中間隔著一趟網路,只震
+    // 結果會像按鍵沒被收到 —— 現在結果是即時的,那個理由不成立。
+    void rumble(correct ? 'correct' : 'wrong');
+
     setSubmitting(true);
-    // Rumble the moment the button goes down. The round trip below is long
-    // enough that buzzing only on the response feels like a dropped input; the
-    // correct/wrong buzz is the second half of the same feedback.
-    void rumble('tap');
+    setSaveFailed(false);
     if (!answerIdemKey.current || answerIdemKey.current.qid !== question.id) {
       answerIdemKey.current = { qid: question.id, key: crypto.randomUUID() };
     }
@@ -110,9 +138,13 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
         answerIdemKey.current.key,
       );
       answerIdemKey.current = null;
-      setRevealed(true);
-      void rumble(r.correct ? 'correct' : 'wrong');
+      setStatsReady(true);
       onAnswered?.(chosen, r.correct);
+    } catch {
+      // 樂觀 UI 沒有失敗提示就是在騙人:畫面說「答對了」,而伺服器上根本沒有
+      // 這筆紀錄。答案本身仍然是對的(那是本地資料),所以不收回揭曉 —— 只說
+      // 清楚「這次沒被記錄到」。
+      setSaveFailed(true);
     } finally {
       setSubmitting(false);
     }
@@ -123,7 +155,7 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     const lines: string[] = [];
     lines.push(`**民國 ${question.year} 年 · 第 ${question.number} 題**${question.group ? ` (${question.group})` : ''}`);
     lines.push('');
-    lines.push(question.stem);
+    lines.push(normalizeStemBreaks(question.stem));
     lines.push('');
     for (const { L, text } of options) {
       lines.push(`- ${L}. ${text}`);
@@ -311,8 +343,11 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
       case 'right': moveConfidence(1); break;
       case 'faceDown': if (!revealed) submit(); break;
       case 'faceLeft': if (!revealed) setRevealed(true); break;
-      case 'faceUp': copyAsMarkdown(); break;
-      case 'faceRight': toggleBookmark(); break;
+      // 讀詳解時這兩顆改給詳解工具列(自動挖空 / 編輯),由頁面接手 —— 兩邊
+      // 都掛的話同一下會觸發兩件事。↓ ← 不必判斷:揭曉後 QuestionCard 本來就
+      // 不吃它們。
+      case 'faceUp': if (!yieldFaceKeys) copyAsMarkdown(); break;
+      case 'faceRight': if (!yieldFaceKeys) toggleBookmark(); break;
     }
   });
 
@@ -368,8 +403,11 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
         </div>
       </header>
 
+      {/* normalizeStemBreaks:把官方 PDF 折行造成的句中硬斷行接回去,保留編號
+          項目前的真分行。做在這裡而不是改資料 —— 判斷終究是啟發式的,猜錯只是
+          這一題看起來怪,重新部署就回到原狀(#91)。 */}
       <p className="font-serif text-lg sm:text-xl leading-relaxed text-ink-900 dark:text-ink-100 whitespace-pre-wrap">
-        {question.stem}
+        {normalizeStemBreaks(question.stem)}
       </p>
 
       <ul className="mt-6 space-y-2.5">
@@ -380,15 +418,21 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
           const pct = choicePct(stats, L);
           let cls =
             'relative overflow-hidden flex gap-3 items-start p-3 rounded border cursor-pointer transition';
+          // 電子紙(1-bit)下這四種狀態原本全靠色相區分,中和成黑白後會變成
+          // 同一個樣子。改用**填充 vs 線寬**兩個正交維度重新表達:
+          //   正解      → 整列反白(eink-invert,唯一有填充的)
+          //   答錯/已選 → 白底粗框(答錯另外在文字上加刪除線)
+          //   其他      → 白底細框
+          // `eink-invert` 在非 eink 主題下沒有任何樣式,所以無條件掛著就好。
           if (!revealed) {
             cls += selected
-              ? ' border-accent bg-accent/5 dark:bg-accent/15'
+              ? ' border-accent bg-accent/5 dark:bg-accent/15 eink:border-2'
               : ' border-ink-200 dark:border-ink-700 hover:border-ink-400 dark:hover:border-ink-500 hover:bg-ink-50 dark:hover:bg-ink-700/40';
           } else {
             if (isCorrect)
-              cls += ' border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15';
+              cls += ' border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 eink-invert';
             else if (selected)
-              cls += ' border-rose-500 bg-rose-50 dark:bg-rose-500/15';
+              cls += ' border-rose-500 bg-rose-50 dark:bg-rose-500/15 eink:border-2';
             else cls += ' border-ink-200 dark:border-ink-700 opacity-70';
           }
           return (
@@ -408,19 +452,37 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
                   aria-hidden
                   className={
                     'absolute inset-y-0 left-0 pointer-events-none ' +
-                    (isCorrect ? 'bg-accent/15' : 'bg-ink-200/60 dark:bg-ink-600/40')
+                    (isCorrect ? 'bg-accent/15' : 'bg-ink-200/60 dark:bg-ink-600/40') +
+                    // 淡色填充在 1-bit 下會被洗白 → 整條消失。改成貼底的細黑槓:
+                    // 資訊(選了幾成)還在,但不會跟「正解=整列反白」搶同一個維度。
+                    // 正解列不加 —— 黑槓畫在黑底上看不見,而反白本身已經是最強的訊號。
+                    (isCorrect ? '' : ' eink:inset-y-auto eink:bottom-0 eink:h-px eink:bg-black')
                   }
                   style={{ width: `${pct}%` }}
                 />
               )}
-              <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
+              {/* 作答中「已選」的訊號集中在字母圓圈上(反白),而不是整列 ——
+                  整列反白在電子紙上要刷一大塊,而且長選項讀起來像被劃掉。 */}
+              <span
+                className={
+                  'relative inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0' +
+                  (selected && !revealed ? ' eink-invert' : '')
+                }
+              >
                 {L}
               </span>
               {/* min-w-0 + break-words:flex 子項的最小尺寸預設是 min-content,
                   而選項裡的 (p23.3;q34.1)/DEK::NUP214 這種基因命名整串不可斷,
                   手機上就把右邊的「✓ 正解」擠出 li 外、被 overflow-hidden 切掉。
                   兩個一起才有用 —— break-words 不會改變 min-content 寬度。 */}
-              <span className="relative min-w-0 break-words leading-relaxed text-ink-800 dark:text-ink-200">
+              <span
+                className={
+                  'relative min-w-0 break-words leading-relaxed text-ink-800 dark:text-ink-200' +
+                  // 答錯的選項:刪除線。顏色沒了之後,這是唯一不必讀右側標籤
+                  // 就能一眼看出「這個不對」的訊號。
+                  (revealed && selected && !isCorrect ? ' eink:line-through' : '')
+                }
+              >
                 {text}
               </span>
               {(revealed || pct !== null) && (
@@ -489,6 +551,12 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
             提交答案
           </button>
         </div>
+      )}
+
+      {saveFailed && (
+        <p className="mt-3 text-sm text-amber-700 dark:text-amber-500">
+          這次作答沒有記錄成功(可能離線)。答案本身沒問題,但進度與統計不會更新。
+        </p>
       )}
 
       {revealed && (

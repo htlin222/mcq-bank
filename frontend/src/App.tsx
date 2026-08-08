@@ -35,6 +35,7 @@ import { FeedbackButton } from "./components/FeedbackButton";
 import { OnlineUsers } from "./components/OnlineUsers";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { PomodoroFab } from "./components/PomodoroFab";
+import { ViewportModeFab } from "./components/ViewportModeFab";
 import { UpdatePrompt } from "./components/UpdatePrompt";
 import { ChatProvider } from "./chat/ChatProvider";
 import { ChatToaster } from "./chat/ChatToaster";
@@ -67,6 +68,8 @@ import Videos from "./routes/Videos";
 // Lazy — keeps EmbedPDF's pdfium-wasm bundle off every other route.
 const Lectures = lazy(() => import("./routes/Lectures"));
 const LectureReader = lazy(() => import("./routes/LectureReader"));
+// 跟講義閱讀器同一個理由 lazy:整包 TipTap 編輯器只有真的開筆記才需要。
+const FreeNote = lazy(() => import("./routes/FreeNote"));
 
 export default function App() {
 	const { me, loading } = useMe();
@@ -129,30 +132,44 @@ export default function App() {
 			{/* Top bar */}
 			<header className="sticky top-0 z-30 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+					{/* 品牌是這一列唯一可以讓步的東西,所以由它吸收壓縮(`min-w-0` +
+					    `truncate`),其餘兩塊 `shrink-0`。這條是結構性保證:不管品牌
+					    名多長、線上人數幾個,頁面都不會因為 header 而產生水平捲動
+					    (#94)。斷點階梯是為了讓它「幾乎永遠用不到」,不是替代品。 */}
 					<Link
 						to="/"
-						className="font-serif text-xl text-ink-900 dark:text-ink-100 hover:text-accent transition whitespace-nowrap"
+						className="font-serif text-xl text-ink-900 dark:text-ink-100 hover:text-accent transition whitespace-nowrap min-w-0 truncate"
 					>
 						{config.brand.short_name}
 					</Link>
 
 					{/* Desktop nav — tail items fold into a 更多 dropdown as the
-					    viewport narrows, so labels never wrap into two lines. */}
-					<nav className="hidden sm:flex items-center gap-1 ml-6 text-sm">
+					    viewport narrows, so labels never wrap into two lines.
+					    每一階都比「塞得下的寬度」晚一個斷點才出現。量出來的需求是:
+					    4 項 + 更多 需要 ~704px、6 項需要 ~816px、8 項需要 ~936px,
+					    而舊版分別在 640 / 768 / 1024 就放出來 —— 每個斷點**當下那一刻**
+					    都是最擠的,於是 640、768 這兩個寬度必定溢出(320 則是連
+					    品牌 + 工具列都塞不下)。底部列因此一路撐到 md,640–767 這段
+					    由它負責導覽,上面那條就只剩品牌 + 工具列。 */}
+					<nav className="hidden md:flex items-center gap-1 ml-6 text-sm shrink-0">
 						<NavItem to="/" end>
 							首頁
 						</NavItem>
 						<NavItem to="/review">複習</NavItem>
 						<NavItem to="/exam">全真</NavItem>
 						<NavItem to="/search">搜尋</NavItem>
-						<NavItem to="/bookmarks" className="hidden md:block">收藏</NavItem>
-						<NavItem to="/wrong" className="hidden md:block">錯題</NavItem>
-						<NavItem to="/lectures" className="hidden lg:block">講義</NavItem>
-						<NavItem to="/challenges" className="hidden lg:block">答案挑戰</NavItem>
+						<NavItem to="/bookmarks" className="hidden lg:block">收藏</NavItem>
+						<NavItem to="/wrong" className="hidden lg:block">錯題</NavItem>
+						<NavItem to="/lectures" className="hidden xl:block">講義</NavItem>
+						{/* 影片以前只活在 更多 裡,而 更多 在最寬的那一階整個消失 ——
+						    於是 ≥xl 完全走不到 /videos。凡是只存在於下拉裡的項目,
+						    下拉收起來的那一階都得在列上補一顆。 */}
+						<NavItem to="/videos" className="hidden xl:block">影片</NavItem>
+						<NavItem to="/challenges" className="hidden xl:block">答案挑戰</NavItem>
 						<NavMore />
 					</nav>
 
-					<div className="ml-auto flex items-center gap-2">
+					<div className="ml-auto flex items-center gap-2 shrink-0">
 						<OnlineUsers />
 						<ChatBell />
 						<ChallengeBell />
@@ -218,6 +235,15 @@ export default function App() {
 							</Suspense>
 						}
 					/>
+					{/* 其他筆記(自由筆記)—— 入口在 /lectures?tab=note */}
+					<Route
+						path="/notes/:id"
+						element={
+							<Suspense fallback={<BootSplash />}>
+								<FreeNote />
+							</Suspense>
+						}
+					/>
 					<Route path="/videos" element={<Videos />} />
 					<Route path="/videos/:slug" element={<Videos />} />
 					<Route path="/profile" element={<Profile />} />
@@ -235,11 +261,18 @@ export default function App() {
 			{/* 番茄鐘 — 站內每一頁都在。右下角是它的位置,BackToTopFab 讓在左下。 */}
 			<PomodoroFab />
 
+			{/* 強制手機版面 — 疊在左下 BackToTopFab 上方。只在 (pointer: coarse) 的
+			    裝置出現,桌機瀏覽器根本不理 viewport meta(見 lib/viewportMode.ts)。 */}
+			<ViewportModeFab />
+
 			{/* "有新版本" strip — only visible when a new SW is waiting. */}
 			<UpdatePrompt />
 
-			{/* Mobile bottom nav */}
-			<nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-ink-800 border-t border-ink-200 dark:border-ink-700 grid grid-cols-5 z-20 safe-bottom">
+			{/* Mobile bottom nav。撐到 md(不是 sm):640–767 這一段上面那條導覽
+			    塞不下(見 header 的說明),由它接手導覽。斷點要跟 styles.css 的
+			    `--bottom-nav-h` 一起改,否則 <main> 的下方留白會跟這條列對不上 ——
+			    差的那一塊剛好會蓋住頁尾。 */}
+			<nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-ink-800 border-t border-ink-200 dark:border-ink-700 grid grid-cols-5 z-20 safe-bottom">
 				<BottomItem to="/" Icon={HomeIcon} label="首頁" end />
 				<BottomItem to="/review" Icon={BookOpen} label="複習" />
 				<BottomItem to="/exam" Icon={PenLine} label="全真" />
@@ -319,7 +352,7 @@ function NavMore() {
 		}`;
 
 	return (
-		<div ref={ref} className="relative lg:hidden">
+		<div ref={ref} className="relative xl:hidden">
 			<button
 				onClick={() => setOpen((v) => !v)}
 				className="px-2.5 py-1.5 rounded flex items-center gap-0.5 whitespace-nowrap text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-700 transition"
@@ -332,8 +365,10 @@ function NavMore() {
 					onClick={() => setOpen(false)}
 					className="absolute left-0 top-full mt-1 w-32 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-lg py-1 z-30"
 				>
-					<NavLink to="/bookmarks" className={(s) => `md:hidden ${itemCls(s)}`}>收藏</NavLink>
-					<NavLink to="/wrong" className={(s) => `md:hidden ${itemCls(s)}`}>錯題</NavLink>
+					{/* 這兩條的 `lg:hidden` 必須跟上面 NavItem 的 `lg:block` 對齊 ——
+					    一邊改了另一邊沒改,不是重複出現就是整條到不了,而且無聲。 */}
+					<NavLink to="/bookmarks" className={(s) => `lg:hidden ${itemCls(s)}`}>收藏</NavLink>
+					<NavLink to="/wrong" className={(s) => `lg:hidden ${itemCls(s)}`}>錯題</NavLink>
 					<NavLink to="/lectures" className={itemCls}>講義</NavLink>
 					<NavLink to="/videos" className={itemCls}>影片</NavLink>
 					<NavLink to="/challenges" className={itemCls}>答案挑戰</NavLink>

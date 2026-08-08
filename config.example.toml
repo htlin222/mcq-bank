@@ -61,6 +61,8 @@ og_invite_line = "Invite-only · Cloudflare Zero Trust"
 # localStorage key for the theme picker — namespaced so forks don't
 # collide on the same browser when developing locally.
 theme_storage_key = "my-qa-bank:theme"
+# 同上,給「強制手機版面」的 FAB 用(見 frontend/src/lib/viewportMode.ts)。
+viewport_storage_key = "my-qa-bank:viewport"
 
 [telegram]
 # Telegram 出題機器人的 bot username(不含 @)。前端「個人」頁用它組綁定

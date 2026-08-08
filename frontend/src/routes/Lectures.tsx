@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Highlighter, NotebookPen, Search } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Highlighter, NotebookPen, Plus, Search } from "lucide-react";
 import {
-	listLectures,
+	lectureListCache,
 	searchLectures,
 	type LectureDoc,
 	type LectureSearchHit,
 	type LectureSearchScope,
 } from "../lib/lectureApi";
+import {
+	FREE_NOTE_LIST_KEY,
+	createFreeNote,
+	freeNoteListCache,
+	type FreeNoteSummary,
+} from "../lib/freeNoteApi";
 import { HighlightedSnippet } from "../components/lecture/HighlightedSnippet";
 import { TextbookToc } from "../components/lecture/TextbookToc";
 import {
@@ -18,21 +24,30 @@ import {
 // Wait this long after the last keystroke before firing the search request.
 const SEARCH_DEBOUNCE_MS = 250;
 
-// Which registry the grid is showing: 複習班講義 vs. the Wintrobe textbook.
-type LectureView = "lecture" | "textbook";
+// Which registry the grid is showing: 複習班講義, the Wintrobe textbook, or
+// 其他筆記 —— the reader's own question-agnostic notes (migration 0040).
+type LectureView = "lecture" | "textbook" | "note";
+
+const TAB_TITLE: Record<LectureView, string> = {
+	lecture: "複習班講義",
+	textbook: "Wintrobe 教科書",
+	note: "其他筆記",
+};
 
 export default function Lectures() {
 	// The active tab lives in the URL (?tab=textbook) so the reader's back link
 	// can return here to the right tab and the choice is shareable/bookmarkable.
+	const navigate = useNavigate();
 	const [searchParams, setSearchParams] = useSearchParams();
+	const tabParam = searchParams.get("tab");
 	const view: LectureView =
-		searchParams.get("tab") === "textbook" ? "textbook" : "lecture";
+		tabParam === "textbook" || tabParam === "note" ? tabParam : "lecture";
 	const setView = (v: LectureView) =>
 		setSearchParams(
 			(prev) => {
 				const next = new URLSearchParams(prev);
-				if (v === "textbook") next.set("tab", "textbook");
-				else next.delete("tab");
+				if (v === "lecture") next.delete("tab");
+				else next.set("tab", v);
 				return next;
 			},
 			{ replace: true },
@@ -50,18 +65,51 @@ export default function Lectures() {
 	const trimmed = query.trim();
 	const searchMode = trimmed.length > 0;
 
-	// Registry load — refetches when the view tab changes. Reset docs to null
-	// first so the skeleton shows instead of the previous tab's cards.
+	// Registry load — 走 lectureListCache,所以切回看過的分頁是即時的。
+	//
+	// 原本每次切分頁都 setDocs(null) 再重抓,於是來回比對講義與教科書時每一下都
+	// 閃一輪骨架(#77)—— 而這份清單只有匯入時才會變。快取過期仍然先畫舊的再背景
+	// 重抓,不會退回骨架。
+	// 其他筆記 has its own registry (own endpoint, own shape), so it opts out.
 	useEffect(() => {
+		if (view === "note") return;
 		let alive = true;
-		setDocs(null);
+		const cached = lectureListCache.peek(view);
+		setDocs(cached ?? null);
 		setError(null);
-		listLectures(view)
+		if (cached && lectureListCache.isFresh(view)) return;
+		lectureListCache
+			.get(view)
 			.then((d) => {
 				if (alive) setDocs(d);
 			})
 			.catch((e) => {
-				if (alive) setError(e?.message || "載入失敗");
+				if (alive && !cached) setError(e?.message || "載入失敗");
+			});
+		return () => {
+			alive = false;
+		};
+	}, [view]);
+
+	// 其他筆記 —— 一次撈完(幾十則的量級),搜尋在前端就地過濾。這裡刻意
+	// 不開 FTS 端點:私人筆記全部拉回來過濾比建索引便宜,而且是立即的。
+	const [notes, setNotes] = useState<FreeNoteSummary[] | null>(null);
+	const [notesError, setNotesError] = useState<string | null>(null);
+	const [creating, setCreating] = useState(false);
+	useEffect(() => {
+		if (view !== "note") return;
+		let alive = true;
+		const cached = freeNoteListCache.peek(FREE_NOTE_LIST_KEY);
+		setNotes(cached ?? null);
+		setNotesError(null);
+		if (cached && freeNoteListCache.isFresh(FREE_NOTE_LIST_KEY)) return;
+		freeNoteListCache
+			.get(FREE_NOTE_LIST_KEY)
+			.then((n) => {
+				if (alive) setNotes(n);
+			})
+			.catch((e) => {
+				if (alive && !cached) setNotesError(e?.message || "載入失敗");
 			});
 		return () => {
 			alive = false;
@@ -70,7 +118,9 @@ export default function Lectures() {
 
 	// Debounced search. The cleanup races a stale request: if the query
 	// changes while a fetch is in flight, we ignore its result.
+	// 其他筆記 filters locally, so it never hits this endpoint.
 	useEffect(() => {
+		if (view === "note") return;
 		if (!searchMode) {
 			setResults(null);
 			setSearching(false);
@@ -103,9 +153,28 @@ export default function Lectures() {
 		<div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 py-8">
 			<div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-3">
 				<h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100">
-					{view === "textbook" ? "Wintrobe 教科書" : "複習班講義"}
+					{TAB_TITLE[view]}
 				</h1>
 				<ViewTabs view={view} onView={setView} />
+				{view === "note" && (
+					<button
+						type="button"
+						onClick={async () => {
+							setCreating(true);
+							try {
+								const { id } = await createFreeNote();
+								navigate(`/notes/${id}`);
+							} catch (e: any) {
+								setNotesError(e?.message || "新增失敗");
+								setCreating(false);
+							}
+						}}
+						disabled={creating}
+						className="ml-auto inline-flex items-center gap-1.5 rounded bg-accent hover:bg-accent-dark text-white px-3 py-1.5 text-sm disabled:opacity-50"
+					>
+						<Plus size={15} /> {creating ? "建立中…" : "新增筆記"}
+					</button>
+				)}
 			</div>
 
 			<SearchBar
@@ -114,9 +183,14 @@ export default function Lectures() {
 				scope={scope}
 				onScope={setScope}
 				busy={searching}
+				// 其他筆記在前端就地過濾,沒有「PDF 內文 / 筆記」這個維度可切。
+				showScope={view !== "note"}
+				placeholder={view === "note" ? "搜尋標題、標籤或內容…" : undefined}
 			/>
 
-			{searchMode ? (
+			{view === "note" ? (
+				<FreeNoteGrid notes={notes} error={notesError} query={trimmed} />
+			) : searchMode ? (
 				<SearchResults
 					results={results}
 					loading={searching}
@@ -153,8 +227,8 @@ function ViewTabs({
 	view,
 	onView,
 }: {
-	view: "lecture" | "textbook";
-	onView: (v: "lecture" | "textbook") => void;
+	view: LectureView;
+	onView: (v: LectureView) => void;
 }) {
 	return (
 		<div
@@ -162,16 +236,14 @@ function ViewTabs({
 			role="tablist"
 			aria-label="講義類別"
 		>
-			<ViewTab
-				active={view === "lecture"}
-				onClick={() => onView("lecture")}
-				label="複習班講義"
-			/>
-			<ViewTab
-				active={view === "textbook"}
-				onClick={() => onView("textbook")}
-				label="Wintrobe 教科書"
-			/>
+			{(["lecture", "textbook", "note"] as const).map((v) => (
+				<ViewTab
+					key={v}
+					active={view === v}
+					onClick={() => onView(v)}
+					label={TAB_TITLE[v]}
+				/>
+			))}
 		</div>
 	);
 }
@@ -211,12 +283,16 @@ function SearchBar({
 	scope,
 	onScope,
 	busy,
+	showScope = true,
+	placeholder,
 }: {
 	query: string;
 	onQuery: (q: string) => void;
 	scope: LectureSearchScope;
 	onScope: (s: LectureSearchScope) => void;
 	busy: boolean;
+	showScope?: boolean;
+	placeholder?: string;
 }) {
 	return (
 		<div className="mb-6 flex flex-col sm:flex-row gap-3">
@@ -236,30 +312,31 @@ function SearchBar({
 					value={query}
 					onChange={(e) => onQuery(e.target.value)}
 					placeholder={
-						scope === "pdf"
-							? "搜尋講義 PDF 內文…"
-							: "搜尋你的筆記內容…"
+						placeholder ??
+						(scope === "pdf" ? "搜尋講義 PDF 內文…" : "搜尋你的筆記內容…")
 					}
 					aria-label="搜尋講義"
 					className="w-full border border-ink-200 dark:border-ink-700 dark:bg-ink-800 rounded pl-9 pr-4 py-2 focus:outline-none focus:border-accent text-ink-900 dark:text-ink-100 placeholder:text-ink-400 dark:placeholder:text-ink-500"
 				/>
 			</div>
-			<div
-				className="inline-flex rounded border border-ink-200 dark:border-ink-700 overflow-hidden self-start sm:self-auto"
-				role="group"
-				aria-label="搜尋範圍"
-			>
-				<ScopeButton
-					active={scope === "pdf"}
-					onClick={() => onScope("pdf")}
-					label="PDF 內文"
-				/>
-				<ScopeButton
-					active={scope === "notes"}
-					onClick={() => onScope("notes")}
-					label="筆記"
-				/>
-			</div>
+			{showScope && (
+				<div
+					className="inline-flex rounded border border-ink-200 dark:border-ink-700 overflow-hidden self-start sm:self-auto"
+					role="group"
+					aria-label="搜尋範圍"
+				>
+					<ScopeButton
+						active={scope === "pdf"}
+						onClick={() => onScope("pdf")}
+						label="PDF 內文"
+					/>
+					<ScopeButton
+						active={scope === "notes"}
+						onClick={() => onScope("notes")}
+						label="筆記"
+					/>
+				</div>
+			)}
 		</div>
 	);
 }
@@ -346,6 +423,98 @@ function SearchResults({
 				</li>
 			))}
 		</ul>
+	);
+}
+
+// ── 其他筆記(自由筆記)───────────────────────────────────────────────
+
+// 前端就地過濾。標題 / 標籤 / 摘要三處任一命中即可 —— 摘要只有前 140 字,
+// 所以長筆記的內文深處搜不到。這是刻意的取捨:換到的是零延遲與零索引,
+// 而「找自己寫過的哪一則」靠標題與標籤幾乎都夠。
+function matchesNote(n: FreeNoteSummary, q: string): boolean {
+	if (!q) return true;
+	const needle = q.toLowerCase();
+	return (
+		n.title.toLowerCase().includes(needle) ||
+		n.excerpt.toLowerCase().includes(needle) ||
+		n.tags.some((t) => t.toLowerCase().includes(needle))
+	);
+}
+
+function FreeNoteGrid({
+	notes,
+	error,
+	query,
+}: {
+	notes: FreeNoteSummary[] | null;
+	error: string | null;
+	query: string;
+}) {
+	if (error) {
+		return (
+			<p className="text-rose-600 dark:text-rose-400 text-sm">
+				無法載入筆記:{error}
+			</p>
+		);
+	}
+	if (notes === null) return <LectureCardSkeletonGrid count={6} />;
+	if (notes.length === 0) {
+		return (
+			<div className="bg-ink-50 dark:bg-ink-800/60 border border-dashed border-ink-200 dark:border-ink-700 rounded-lg p-8 text-center">
+				<p className="text-ink-500 dark:text-ink-400">
+					還沒有任何筆記。這裡放的是不屬於某一題的整理 —— 疾病總覽、
+					機轉、讀書心得都可以。
+				</p>
+			</div>
+		);
+	}
+
+	const shown = notes.filter((n) => matchesNote(n, query));
+	if (shown.length === 0) {
+		return (
+			<p className="text-ink-400 dark:text-ink-500 text-sm">
+				沒有找到符合的筆記。
+			</p>
+		);
+	}
+
+	return (
+		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			{shown.map((n) => (
+				<FreeNoteCard key={n.id} note={n} />
+			))}
+		</div>
+	);
+}
+
+function FreeNoteCard({ note }: { note: FreeNoteSummary }) {
+	return (
+		<Link
+			to={`/notes/${note.id}`}
+			className="group flex flex-col bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 hover:border-accent transition"
+		>
+			<h2 className="font-serif text-lg leading-snug text-ink-900 dark:text-ink-100 group-hover:text-accent transition">
+				{note.title || "(未命名筆記)"}
+			</h2>
+			{note.excerpt && (
+				<p className="mt-1 text-sm text-ink-500 dark:text-ink-400 line-clamp-3">
+					{note.excerpt}
+				</p>
+			)}
+			<div className="mt-auto pt-4 flex flex-wrap items-center gap-1.5 text-xs">
+				{note.tags.slice(0, 3).map((t) => (
+					<span
+						key={t}
+						className="rounded-full bg-accent/10 text-accent px-1.5 py-0.5"
+					>
+						{t}
+					</span>
+				))}
+				<span className="ml-auto text-ink-400 dark:text-ink-500 shrink-0">
+					{new Date(note.updated_at).toLocaleDateString("zh-TW")}
+				</span>
+			</div>
+		</Link>
 	);
 }
 

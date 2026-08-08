@@ -1,0 +1,41 @@
+{
+  "today": "2026-08-07",
+  "exam_date": "2026-09-05",
+  "years": [
+    {
+      "year": 114,
+      "total": 100,
+      "completed": 40,
+      "accuracy": 0.62
+    },
+    {
+      "year": 113,
+      "total": 100,
+      "completed": 30,
+      "accuracy": 0.55
+    },
+    {
+      "year": 112,
+      "total": 100,
+      "completed": 12,
+      "accuracy": 0.58
+    },
+    {
+      "year": 111,
+      "total": 100,
+      "completed": 0,
+      "accuracy": null
+    },
+    {
+      "year": 110,
+      "total": 100,
+      "completed": 0,
+      "accuracy": null
+    }
+  ],
+  "total": 500,
+  "completed": 82,
+  "suggested_seconds": 85,
+  "saved": null,
+  "saved_at": null
+}

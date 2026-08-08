@@ -71,8 +71,13 @@ export function extractTerms(
 	return hits;
 }
 
+// 建議的來源/目標種類。'question' = 公開題目;'note' = 自己掛在某題下的
+// 個人筆記;'free' = 自己的自由筆記(其他筆記分頁)。
+export type OwnerKind = "question" | "free";
+export type TargetKind = "question" | "note" | "free";
+
 export type Candidate = {
-	targetKind: "note" | "question";
+	targetKind: TargetKind;
 	targetId: string;
 	score: number;
 	sharedTerms: string[];

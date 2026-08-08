@@ -762,15 +762,20 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
                   <button
                     key={qq.id}
                     onClick={() => setActiveIdx(i)}
+                    // 電子紙:四種狀態原本全靠色相,1-bit 下會塌成兩種。拆成三個
+                    // **正交**維度就不會互相蓋掉 ——
+                    //   填充(黑/白)  = 答了沒
+                    //   外框 outline = 是不是當前這題(畫在框外,黑白填充都疊得上)
+                    //   虛線邊       = 有沒有標記(再加上原本就有的 Flag 圖示)
                     className={`relative aspect-square text-xs font-mono rounded border transition ${
                       i === activeIdx
-                        ? 'border-accent bg-accent text-white'
+                        ? 'border-accent bg-accent text-white eink:outline eink:outline-2 eink:outline-offset-2 eink:outline-black'
                         : m
                         ? a
-                          ? 'border-amber-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200'
-                          : 'border-amber-500 bg-amber-50 dark:bg-amber-900/30 text-amber-900 dark:text-amber-200'
+                          ? 'border-amber-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200 eink-invert eink:border-2 eink:border-dashed'
+                          : 'border-amber-500 bg-amber-50 dark:bg-amber-900/30 text-amber-900 dark:text-amber-200 eink:border-2 eink:border-dashed eink:border-black'
                         : a
-                        ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200'
+                        ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200 eink-invert'
                         : 'border-ink-200 dark:border-ink-700 text-ink-500 dark:text-ink-400 hover:border-ink-400'
                     }`}
                   >

@@ -289,6 +289,45 @@ pattern as the mcq bundle) so `/api/me/bank-skill` can zip it with a freshly
 baked per-admin `.env`. Editing the skill means re-running `pnpm gen:bundles`
 — wired into `dev` and `predeploy`.
 
+### 其他筆記: 不掛題目的私人筆記,以及那張表為什麼要重建
+
+`/lectures?tab=note` 是講義/教科書旁的第三個分頁,每張卡片是一則
+**question-agnostic** 的私人筆記(`free_notes`,migration 0040)。設計:
+`docs/plans/2026-08-07-free-notes-design.md`。
+
+`personal_notes.question_id` 有 `REFERENCES questions(id)`,所以「用假題號當
+佔位」這條路走不通 —— 得先在 `questions` 插一列假題目,而題數統計、隨機出題、
+匯出全都是 `SELECT ... FROM questions`。故另開一張表。
+
+真正值得記住的是連帶動的那兩張表。`note_terms` / `note_link_suggestions` 原本
+的鍵是 `(user_email, question_id)`,0040 改成 `owner_kind` + `owner_id`
+(`'question' | 'free'`),`target_kind` 多一個 `'free'`。**沒有把自由筆記的 id
+塞進 `question_id` 欄位**:格式不會撞(`114-001` vs UUID)所以「能動」,但那會
+讓欄名說謊,而這兩張表的每一條查詢都靠欄名讀懂。換到的是單一程式路徑 ——
+自由筆記與題目筆記互相推薦是同一段 SQL,不是兩套。
+
+- **讀取端不能用單一 `JOIN questions`。** 原本 `notes.ts` 是
+  `JOIN questions q ON q.id = s.target_id`,自由筆記目標的 `target_id` 不是
+  題號,會被**靜默丟掉** —— 建議少一種來源而且完全無聲。改成依 `target_kind`
+  分別 LEFT JOIN(`lib/note-links.ts` 的 `loadSuggestions`),`free` 那條還要
+  `AND user_email = ?`,否則會漏出別人的標題。
+- **標籤的刪除要留墓碑(`source='hidden'`),不能真的刪列。** AI 重跑是
+  `DELETE WHERE source='ai'` + `INSERT OR IGNORE`;真的刪掉的話,模型看同一份
+  內容會再給出同一個標籤,使用者刪過的標籤下次打開筆記就又回來了。
+- **重跑的判準是內容雜湊(`tagged_hash`),不是髒旗標。** 旗標會被
+  「存檔 → 還沒產標籤 → 又存檔回原內容」騙到。
+- **寫入端不呼叫 Workers AI。** debounce 存檔一秒好幾次,在那裡叫模型等於把
+  免費額度燒在沒人看的中間狀態上。產生點在 `GET /:id/tags`,且與筆記本體分開
+  取得,詳情頁才不會為了等標籤空著一兩秒。
+- **`/api/free-notes*` 不進 `sw-guards.ts` 的 `CACHEABLE_API`**(有測試鎖著)。
+  可變的私人狀態被 SW 快取住,使用者會存完筆記、重整,然後看到自己剛寫的東西
+  沒有變 —— 而且無聲。名稱跟可快取的 `/api/lectures` 很像,特別容易誤加。
+- 畫記沿用既有機制,`highlights` 一列 schema 都沒動:前綴 `anno:free:<id>`,
+  收藏頁「我的畫記」多撈一次 `?prefix=anno:free:`。標題不在 key 裡,所以要併
+  著 `listFreeNotes()` 一起拿;查不到標題就整組略過(筆記已刪)。
+- 連到題目的 `@114-010` **一行新程式都沒有** —— `RichEditor` 用的
+  `buildExtensions()` 本來就含 `QuestionRef` 與 mention suggestion。
+
 ### 2048: 純休息,而且刻意跟題庫零耦合
 
 `/play` 是個休息小遊戲(設計:
@@ -441,6 +480,214 @@ highlights and `/pdf/*` must stay out — see the comment block there for why.
 - 驗證在 `frontend/e2e/nav-prefetch.test.mjs`:fixture 伺服器每個 `/api/` 延遲
   700ms,把「有沒有預抓到」變成可觀測的時間差。改動預抓邏輯後這支會紅。
 
+**作答完不要為了「我剛才選了什麼」再問一次伺服器。** 舊版是
+`onAnswered={reload}`(強制重抓整份 payload),而 `/api/questions/:id` 在 SW 是
+NetworkFirst + **3 秒 timeout** —— 網路一慢,回的是**答題前**那份快取,
+`last_chosen` 還是 null,於是「強制重抓」反而把剛作答的狀態洗掉,還會一路
+`questionCache.set()` 寫回應用層快取。加上 POST 失敗時 `onAnswered` 根本不會被
+呼叫,合起來就是回報 #95 的「上一題/下一題 來回切換,作答紀錄就不見了」。
+改成 `lib/questionProgress.ts` 的純函式就地補寫 `my_progress` —— client 手上本來
+就有選了哪個、對不對,不需要一趟 RTT 來告訴我們。**收藏欄位要原封不動帶過去**:
+它跟作答只是剛好共用同一個物件,漏帶的症狀是「答一題就把收藏取消了」,而且要
+重新整理才看得出來。它單獨一個檔案而不是放進 `questionCache.ts`,因為那支會
+`import './api'`,整個模組在 `node --test` 底下載不起來。
+
+**`/q/:id` 在 <md 是分頁的,不是堆疊的(#96)。** 一張含五個選項的題目卡就吃掉
+一整個手機螢幕,堆疊版等於「看詳解永遠要先捲過整張卡」。手機那層刻意**不**沿用
+桌機的 `mainTab`(六個值,每個 pane 一個):右欄頂端那條 詳解共筆/個人筆記/… 的
+strip 本來就在而且是 sticky 的,直接當第二層,手機只需要回答「看題目,還是看
+題目以外的東西」。兩件事容易漏:**換題要把它重設回題目**(否則從詳解按下一題會
+直接落在下一題的詳解上 —— 那是劇透),以及**切換時捲回頂端**(兩個 pane 共用同
+一條頁面捲軸)。隱藏只能用 JS 算出來的布林,`md:hidden` 之類的字首寫不出「只在
+<md 依狀態隱藏」。
+
+**`createQuestionStore` 是通用的,不只給題目用。** 名字是歷史包袱 —— 它同時是
+`/lectures` 三個分頁(`lectureListCache`)與其他筆記清單(`freeNoteListCache`)
+的快取。下次再收到「切 X 分頁都要重新載入,蠻卡的」這類回報,先看是不是同一個
+病灶:切換時 `setState(null)` 再重抓。套用方式固定三步 ——
+render 當下 `peek()` 同步取、`isFresh()` 決定要不要背景重抓、**把失效寫進
+API 模組自己的變更函式裡**(`freeNoteApi.ts` 的 `dropListCache()`)而不是交給
+呼叫端記得。清單帶著標題之類的可變欄位時,漏掉失效的症狀是「改完名回到清單還是
+舊的」,而且無聲。
+
+### 手把: 同一顆鍵在不同情境換意思,而且說明要跟著換
+
+`/q/:id` 的手把綁定分散在兩層:`QuestionCard` 擁有選項游標與送出/複製/收藏,
+`Question.tsx` 擁有需要頁面脈絡的那些(換題、換分頁、捲動)。在這之上再疊三種
+**情境**,由 `Question.tsx` 判斷後接管:
+
+| 情境 | 條件 | 十字鍵 | 面鍵 |
+|---|---|---|---|
+| 作答中 | `!cardRevealed` | 選選項 / 調信心 | 送出 · 略過 · 複製 · 收藏 |
+| 讀詳解 | `expKeysActive` | 捲動 | 顯示詳解 · 自動挖空 · 防劇透 · 編輯 |
+| 讀筆記 | `noteTabVisible` | 走訪標題 / 切換筆記 | 展開收合 |
+
+擴充時的三條規矩:
+
+- **接管前先確認卡片不要那顆鍵,否則一次按鍵會做兩件事。** `FACE ▲ / ▶` 卡片
+  無條件吃,所以要靠 `yieldFaceKeys` prop 讓它明確讓出;`FACE ▼ / ◀` 只在未揭曉
+  時吃,揭曉後直接接管即可。**一定要等 `cardRevealed`** —— 搶在答題前接管 ▼,
+  等於按下送出的同時把詳解也掀開。
+- **每種情境一份 `GamepadHint[]`,不要 spread 共用那份再蓋。** 意思被換掉的鍵
+  會留下兩行互相矛盾的說明。
+- **走訪清單優先問 DOM,不要另外維護狀態。** `NoteContent` 的每個手風琴各自持有
+  `open`(刻意的:巢狀、彼此獨立),而收合的區段不渲染子節點 —— 所以
+  `[data-note-heading]` 查到的按鈕,定義上就是使用者現在看得到的那些。焦點環用
+  `:focus` 而非 `:focus-visible`:程式呼叫 `.focus()` 不一定被判定成
+  focus-visible,那樣游標是隱形的。
+
+驗證都在 `frontend/e2e/gamepad.test.mjs`(假 `navigator.getGamepads`)。**寫這裡
+的測試要驗正面效果,不要驗「某個副作用沒發生」** —— 後者在功能根本沒接上時也會
+通過。真的踩過:「FACE ▶ 之後收藏狀態不變」在功能停用時照樣綠,因為那顆鍵落回
+卡片的收藏,而 fixture 的收藏 API 回空物件、狀態本來就不會動。**確認新測試會紅
+的時候不要用 `pnpm build >/dev/null 2>&1`** —— 建置失敗被吃掉,測試會跑在舊
+bundle 上,得到「停用了還是綠」的假結論。
+
+### 讀書計畫產生器: 排程是純函式,AI 只負責語氣
+
+首頁倒數卡片右側的「生成讀書計畫」開一個對話式問卷(七題),產出到考試當天的
+逐日計畫表(單檔 HTML)與可匯入行事曆的 `.ics`。設計:
+`docs/plans/2026-08-07-study-plan-generator-design.md`。
+
+跟 `PacingCard` 的分工要先講清楚,不然日後會有人想把兩者合併:`PacingCard`
+是後視鏡(「以我**目前**的速度做得完嗎」,輸入全來自 `attempts` 的既成事實);
+這裡是前瞻(「我**打算**每天 90 分鐘、只寫五年、跑兩輪,排得出來嗎」,輸入是
+意圖)。天數兩邊都取 `/api/review/readiness` 的 `days_left`(ceil),不混用首頁
+倒數卡的 `countdown.days`(floor)—— 差一天,同畫面兩個數字是體感 bug。
+
+- **`worker/lib/study-plan.ts` 的 `buildPlan()` 是純函式**,不碰 D1、不碰
+  `Date.now()`。前端不重算排程,只顯示 `/api/study-plan/preview` 回來的結果 ——
+  兩邊各算一次必然會在某個邊界條件上算出不同數字。
+- **第二輪起只排錯題(× 錯誤率遞減),不重跑全題。** 若每輪都排全題,「剩 28 天
+  跑兩輪 1000 題」會算出一天 71 題 —— 那不是計畫,是一張看一眼就關掉的表。
+- **排不完就說排不完。** `shortfall` 帶著差額回傳,UI 與 HTML 都把它放在所有
+  表格**之前**,並附三顆一鍵重算的按鈕(加時間 / 砍最舊年份 / 減一輪)。那句話
+  是使用者現在就該做決定的唯一理由,被行事曆推到看不見的地方等於沒說。
+- **`study_plans` 只存問卷輸入,不存排程結果**(migration `0039`)。排程可從
+  「輸入 + 當下進度」重算,存下來就會跟真實進度漂移,而漂移的計畫表沒人會發現
+  它錯了。同 `review_progress` 是快取、`attempts` 才是真相的那條規則。
+- **弱點不走 `/api/review/weakness-map`** —— 它依賴 Vectorize 索引,未回填時直接
+  回空陣列,拿它當計畫的基礎會在多數使用者身上開天窗。改用逐年正確率 +
+  `tag_topics`/`video_topics` 白名單的確定性 SQL,並濾掉作答數 < 8 的主題
+  (「1 題錯 1 題 = 0%」是雜訊,不是弱點)。
+- **Workers AI 只寫弱點導讀那一段,不碰任何一個數字。** 送出去的只有一張最多
+  12 列的彙總表,不含題目內容也不含 email;6 秒 timeout,失敗整段省略,計畫表
+  照出。export 的導讀文字由 client 帶回而不是再打一次 AI —— 同一份計畫燒兩次
+  神經元,還可能拿到兩段不一樣的文字。
+- **真 PDF 是 non-goal**,理由同 `export-html.ts`:Browser Rendering 要付費、
+  CJK 字型塞不進 bundle、從 R2 拉字型再 subset 撐不住 free plan 的 10ms CPU。
+  HTML 帶 `@media print` 與一顆列印時自己隱藏的按鈕,瀏覽器列印的輸出跟真 PDF
+  沒有差別。
+- **`.ics` 用定時事件而非全天事件**(考試當天除外 —— 不知道幾點入場)。手機只有
+  定時事件才會跳提醒,而不會提醒的計畫表不會被執行。跨午夜的時段(23:30–01:00、
+  21:00 起的三小時模擬考)**必須把日期一起進位**;只取 `mod 1440` 會產出「開始
+  21:00、結束同日 00:00」的負長度事件 —— 這個 bug 單元測試沒抓到,是實際產一份
+  `.ics` 出來看才發現的。
+- **`/api/study-plan` 不在 `sw-guards.ts` 的 `CACHEABLE_API`** —— 可變狀態被 SW
+  快取住,使用者會看到上一版的計畫還以為沒存到。
+- 驗證:`worker/lib/study-plan*.test.ts`(排程 / HTML / ICS),以及
+  `frontend/e2e/study-plan.test.mjs` —— 這個功能整個活在 portal 掛載的 modal 裡,
+  `smoke.test.mjs` 只會開路徑、碰不到它。fixture 由
+  `scripts/gen-study-plan-fixture.mjs` 跑真的 `buildPlan()` 產出,手寫的 JSON 會
+  在 `PlanResult` 改欄位時悄悄過期。
+
+### 電子紙模式: 第四個主題,而且它是一整層 CSS 覆寫,不是一組色票
+
+`ThemeToggle` 的第四態(`light`/`dark`/`eink`/`system`)。狀態抽到
+`frontend/src/lib/theme.ts`(localStorage-only,`useIsEink()` 給那些必須改渲染
+的元件用)。全站規則寫在 `frontend/src/styles.css` 檔尾一整區。
+
+**`.eink` 絕不同時掛 `.dark`** —— 這是整層的前提,寫在 `applyTheme()` 的註解裡。
+`darkMode: 'class'` 只認 `.dark`,所以 e-ink 下全站 1604 處 `dark:` 一律失效、
+走 light 那一套,我們只需要中和「一套」配色。兩個 class 同時在的話,那 1604 處
+會復活並蓋過中和層。
+
+**沒有把 `ink-*`/`accent` 變數化。** 那條路看起來能讓 3143 處 token 自動跟隨,
+但 `ink-200` 既是 `bg-ink-200`(淺底,1-bit 下要白)也是 `border-ink-200`
+(分隔線,要黑)—— 一個變數服務不了兩個相反的角色;而且那會動到現有 light/dark
+的資料來源,手抄 hex 抄錯一位不會報錯,只會讓某個灰稍微不同。改成**全滅 + 撈回**:
+凡 class 名帶 `bg-`/`text-`/`border-`/`fill-`/`ring-`/`outline-` 的一律塗黑白,
+再把「純色即語意」的少數(`[class~="bg-accent"]`、`bg-black`)撈回實心黑。
+不列舉色系 —— 那份清單會腐爛,而且漏掉 `text-ink-400`(#8a7d65,是灰)。
+hover 態不必特別處理:`hover:bg-accent` 是 (0,2,0),打不過中和層的 (0,3,0)。
+
+**Specificity 契約是承重的,不是風格。** Tailwind 的 `@layer` 不是原生 cascade
+layer,輸出後就是普通 CSS,**specificity 先於順序**:
+
+| 層 | Specificity |
+|---|---|
+| 一般 utility / `hover:` | (0,1,0) / (0,2,0) |
+| 中和層 `.eink.eink [class*="bg-"]` | (0,3,0) |
+| `.eink-invert` 的後代規則 | (0,4,0) |
+| `eink:` variant(`tailwind.config.js` 的 `.eink×4 &`) | (0,5,0) |
+
+所有 `:not()` 一律包 `:where()` 讓排除項不加權,整層才停在 (0,3,0)。少了那層
+`:where()`,帶兩個 `:not` 的規則會爬到 (0,5,0) 跟 variant 平手,逐元件精修就會
+被通則蓋掉 —— 而且是無聲的。**別「順手清理」重複的 `.eink`**。
+唯一的例外是 `::placeholder`:它要跟 `placeholder:text-ink-400` 這種 utility
+競爭,所以寫成 `.eink.eink ::placeholder`。單個 `.eink` 只能打平,然後輸給檔案
+順序 —— 打包後 utilities 排在本區塊**之後**,這點跟直覺相反,實際踩過。
+
+**三個語意 class 在非 eink 主題下沒有任何樣式**,所以元件可以無條件掛著,
+light/dark 一個像素都不動:`eink-invert`(整塊反白,含後代文字/圖示轉白)、
+`eink-mark-ok` / `eink-mark-bad`(`::before` 補 ✓ / ✗)。後兩者的存在理由是成績頁
+那個「85%」—— 及格與否**只**寫在 emerald/rose 裡,數字本身不帶判斷。
+
+**顏色沒了之後,語意要換一個維度重講,而不是擠在同一個維度。** 模擬考題號格是
+標準示範:填充(黑/白)= 答了沒、`outline`(畫在框外,黑白填充都疊得上)= 是不是
+當前這題、虛線邊 = 有沒有標記。三個正交,所以不會互相蓋掉。同理選項列是
+「正解=整列反白 / 答錯=粗框+刪除線 / 其他=細框」,分類 badge 是四種框線語彙
+(填充只有兩種,線型有四種)。
+
+**「透明的 utility」不是要中和的對象,是要排除的對象。** `text-transparent` /
+`border-transparent` 從一開始就在 `:not(:where(…))` 裡,但同一類的
+**`outline-none` 漏了** —— Tailwind 的 `outline-none` 不是 `outline-style: none`,
+而是**留給 focus ring 用的 2px 透明外框**。塗黑之後它就憑空長出一個實心黑框:
+防劇透那顆 `inset-0` 的按鈕變成回報 #95 說的「奇怪的長方形 overlay」,全站 30 處
+`focus:outline-none` 的輸入框一 focus 也各多一個黑框。用 `[class*=]` 排除(不是
+`[class~=]`),才連 `focus:` / `md:` 這些前綴變體一起中掉。**顏色掃描抓不到這種
+錯**:黑色在 1-bit 下完全合法。所以驗的是反面 —— 掛了 `outline-none` 的元素本來
+就不該看得見外框。
+
+**`backdrop-filter: none` 關不到 `filter`。** 防劇透用的是後者(`blur-md`),
+於是中和層一路放行,詳解在 e-ink 上糊成一團灰 —— 而灰正是整層在消滅的東西。
+改成 `display: none`(不是 `visibility: hidden`:後者讓被遮的詳解照原高度占位,
+揭曉前是一大片空白)。選 `[class~="blur-md"]` 而非 `[class*="blur-"]`,否則會連
+App bar 的 `backdrop-blur` 一起 `display:none`,整條導覽列消失。
+
+**兩個 getComputedStyle(el) 讀不到、只能靠看畫面抓的破口**(同 `::placeholder`):
+`::selection` 的預設反白(半透明藍/灰 —— 選字查教科書、畫螢光每天都會撞到),
+以及 `-webkit-tap-highlight-color`(Android 預設 `rgba(0,0,0,.18)`;LCD 上一閃就
+沒了,e-ink 的殘影會讓它留在畫面上,於是**只有使用者點過的**按鈕看起來莫名有灰底,
+沒點過的連結完全正常 —— 很容易誤判成某幾個元件的樣式壞了)。兩者都在
+`html.eink` / `.eink ::selection` 直接宣告。
+
+**必須改渲染、CSS 構不到的只有三處**:`Avatar`(react-animals 是 inline style
+的彩色 SVG → 改渲染首字 + 四種框線)、`ActivityHeatmap`(顏色 bake 進 SVG,五階
+明度改成 `<pattern>` 網底密度;空白格靠 `:not([fill])` 認 —— 有活動的格子才會被
+d3 寫上 `fill` attribute)、以及 `.tiptap` 底下那些沒有 class 的元素
+(`<pre>`/`<mark>`/`<th>`)。螢光筆與 AI 自動挖空在灰階下必撞,改用線型區分:
+**手動螢光 = 實線/實心**(使用者自己畫的),**AI 挖空 = 虛線**(機器猜的)。
+
+**使用者上傳的醫學圖片與 PDF 內容刻意豁免,不二值化。** 血液抹片、免疫染色、
+流式散點圖的顏色本身就是要學的診斷資訊;CSS 的 `contrast()` 是硬閾值不是
+dithering,結果比原圖更難讀;真 e-ink 硬體本來就會做抖動處理。
+
+驗證在 `frontend/e2e/eink.test.mjs`:走訪路由,斷言每個看得見的元素的每個顏色
+屬性**不是全透明,就是 r===g===b 且 ∈ {0,255} 且 alpha===1**。`alpha===1` 是
+關鍵 —— 半透明黑疊在白底上就是灰。**它有盲區,而且盲區是實際踩到的**:
+`getComputedStyle(el)` 讀不到偽元素,所以搜尋框的淺褐色 placeholder 掃描全綠、
+只有把畫面截圖出來看才發現(現在偽元素也掃了,但 hover/focus/拖曳中仍掃不到 ——
+那些靠中和層 specificity 高於 `hover:` 來保證,不靠測試)。
+**掃描只掃得到「畫在畫面上」的元素**,而 `/q/:id` 在手機是分頁的(見下面的
+換題/版面那節):詳解那一欄在題目分頁下是 `display:none`,整欄會被
+`getClientRects()` 跳過。防劇透的那團灰能活到使用者手上,正是因為沒有任何一條
+路由走到詳解分頁 —— 現在多了一條專門走過去的。**加新分頁時要問的是「這一頁有
+沒有哪一塊從來沒被掃過」**,不是「路由列表有沒有這條路徑」。
+另外**題目頁的選項是 `<li>` 不是 `<button>`**:用 role 找會什麼都點不到而測試
+照樣全綠,所以那條路徑有 `expectAfter` 的正面斷言擋著。改動這支測試時,先確認
+它在停用中和層時會紅。
+
 ### Images: R2 via Worker proxy (not public bucket)
 
 Uploads: `POST /api/upload` (multipart) → Worker validates size/MIME → R2 put with UUID key → returns `/img/<key>` URL.
@@ -573,6 +820,51 @@ The UI aesthetic is **scholarly/editorial**, not generic SaaS. Specifically:
 - No purple gradients, no glassmorphism, no excessive shadow
 
 When extending the UI, preserve this voice. It's a serious study tool — looks should match.
+
+### 導覽階梯:項目要**晚**一個斷點才出現,以及那顆強制手機版面的 FAB
+
+頂端導覽用「尾端項目摺進 `更多` 下拉」的作法,但舊版每一階都比塞得下的寬度**早**
+一個斷點放出來,於是 **斷點本身那一刻最擠**:量出來 4 項 + 更多 需要 ~704px、
+6 項 ~816px、8 項 ~936px,而它們分別在 640 / 768 / 1024 就冒出來 —— 640 與 768
+必定溢出整頁,320 則是連品牌 + 右側工具列都塞不下(回報 #94)。常用的
+390 / 414 / 1440 剛好全都沒事,所以它活了很久。
+
+- **底部導覽列因此撐到 `md`(不是 `sm`)。** 640–767 這段上面那條放不下,由它接手;
+  `App.tsx` 的 `md:hidden` 與 `styles.css` 的 `--bottom-nav-h` 是同一件事的兩半,
+  **改一邊沒改另一邊**,`<main>` 的下方留白就會跟導覽列對不上而蓋住頁尾。
+- **`更多` 下拉裡的 `xx:hidden` 必須跟列上 `NavItem` 的 `xx:block` 對齊**,否則
+  不是同時出現兩次,就是整條到不了 —— 兩種都無聲。**只存在於下拉裡的項目**
+  (影片)要在下拉收起來的那一階補一顆到列上,不然最寬的畫面反而走不到。
+- **`OnlineUsers` 移到 `lg`**:它的寬度隨線上人數變動,是整條 header 唯一寬度不
+  固定的東西。擺在窄的那幾階,溢出與否就取決於當下有幾個人在線 —— 用斷點事先算
+  不準的東西,不要放在算得剛剛好的地方。
+- **品牌是唯一可讓步的元素**(`min-w-0 truncate`,其餘 `shrink-0`)。這是結構性
+  保證,不是階梯的替代品:品牌名是 `config.toml` 來的,fork 換個長名字階梯就不準了。
+- 守門在 `frontend/e2e/overflow.test.mjs`,寬度**繞著斷點兩側取樣**
+  (639/640、767/768、1023/1024、1279/1280)。**`users_online.json` fixture 要保持
+  非空** —— 空的時候 700/767/820/1024 四個寬度全是綠的,而那正是漏掉的原因。
+  只認頁面層級的捲動;內部自己捲的容器(寬表格、程式碼區塊)是刻意設計。
+
+**「強制手機版面」只有改 viewport meta 這一條路**(`lib/viewportMode.ts` +
+`ViewportModeFab`)。版面幾乎都寫在 `md:`/`lg:` utility 裡,而 media query 問的是
+視窗寬度、不是任何 React state —— 要嘛把三千多處改成 container query,要嘛讓瀏覽器
+相信視窗就是那麼窄。寬度 560 是同時小於 `sm`(底部導覽列才會回來)與 `md`(才拿得到
+手機版面)。**桌機瀏覽器完全忽略 viewport meta**,所以 FAB 只在 `(pointer: coarse)`
+出現:一顆在 Mac 上按了沒反應的按鈕比沒有更糟。**而且這個效果在測試環境驗不到** ——
+Playwright 兩個引擎都用 `setDeviceMetricsOverride` 把版面視窗釘死,meta 寫對了
+`innerWidth` 也不會變,所以測試只鎖「寫進去的內容對不對」。元件因此在點擊後 300ms
+自己量一次寬度,沒變就重新載入(從 HTML 解析進來的 meta 是所有引擎都認的)—— 常見
+情況不會重整,編輯中的草稿不受影響。
+
+**FAB 的垂直位置只准吃 `--bottom-nav-h`,不要再掛第二個斷點。** 番茄鐘原本寫的是
+`bottom-[calc(var(--bottom-nav-h)+1rem)] sm:bottom-6` —— 那個 `sm:` 是「底部導覽列
+到 `sm` 為止」那個年代留下來的。導覽列延到 `md` 之後 `--bottom-nav-h` 跟著改,斷點
+沒跟著改,於是 640–767 整段番茄鐘正好壓在導覽列最右邊那顆(收藏)上。`--bottom-nav-h`
+本身就已經回答了「導覽列在不在」,再寫一次斷點就是第二個真相來源,而且兩者不同步時
+完全無聲。守門在 `frontend/e2e/fab-overlap.test.mjs`(同樣繞著 639/640、767/768 取樣;
+`hasTouch`/`isMobile` 是強制手機版面那顆的出現條件,少了它左下角那一疊掃不到)。
+**它先斷言「找得到番茄鐘」再斷言不重疊** —— 少了前半段,選擇器一腐爛就變成空掃的
+綠燈,跟 `users_online.json` 那個坑同一種。
 
 ## Testing & Debugging
 

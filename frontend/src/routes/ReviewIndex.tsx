@@ -173,7 +173,8 @@ export function ReviewIndex() {
               </div>
 
               {/* Progress bar — % of questions in this year ever attempted */}
-              <div className="mt-3 h-1.5 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden">
+              {/* eink:軌道補黑框,否則 0% 時整條被洗白、看不見 */}
+              <div className="mt-3 h-1.5 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden eink:border eink:border-black">
                 <div
                   className="h-full bg-accent transition-[width]"
                   style={{ width: `${Math.min(100, seenPct)}%` }}
