@@ -37,6 +37,7 @@ import { stateRoutes } from './routes/state';
 import { playRoutes } from './routes/play';
 import { exportRoutes } from './routes/export';
 import { studyPlanRoutes } from './routes/study-plan';
+import { attemptLogRoutes } from './routes/attempt-log';
 import { drillRoutes } from './routes/drill';
 import { highlightsRoutes } from './routes/highlights';
 import { webhookRoutes, telegramApiRoutes } from './routes/telegram';
@@ -137,6 +138,7 @@ app.route('/api/state', stateRoutes);
 app.route('/api/play', playRoutes);   // 2048 休息小遊戲
 app.route('/api/export', exportRoutes);
 app.route('/api/study-plan', studyPlanRoutes);  // 讀書計畫產生器
+app.route('/api/attempt-log', attemptLogRoutes); // 答題狀態分析:長表 CSV
 app.route('/api/telegram', telegramApiRoutes);
 app.route('/api/videos', videosRoutes);
 
