@@ -834,6 +834,16 @@ Playwright 兩個引擎都用 `setDeviceMetricsOverride` 把版面視窗釘死,m
 自己量一次寬度,沒變就重新載入(從 HTML 解析進來的 meta 是所有引擎都認的)—— 常見
 情況不會重整,編輯中的草稿不受影響。
 
+**FAB 的垂直位置只准吃 `--bottom-nav-h`,不要再掛第二個斷點。** 番茄鐘原本寫的是
+`bottom-[calc(var(--bottom-nav-h)+1rem)] sm:bottom-6` —— 那個 `sm:` 是「底部導覽列
+到 `sm` 為止」那個年代留下來的。導覽列延到 `md` 之後 `--bottom-nav-h` 跟著改,斷點
+沒跟著改,於是 640–767 整段番茄鐘正好壓在導覽列最右邊那顆(收藏)上。`--bottom-nav-h`
+本身就已經回答了「導覽列在不在」,再寫一次斷點就是第二個真相來源,而且兩者不同步時
+完全無聲。守門在 `frontend/e2e/fab-overlap.test.mjs`(同樣繞著 639/640、767/768 取樣;
+`hasTouch`/`isMobile` 是強制手機版面那顆的出現條件,少了它左下角那一疊掃不到)。
+**它先斷言「找得到番茄鐘」再斷言不重疊** —— 少了前半段,選擇器一腐爛就變成空掃的
+綠燈,跟 `users_online.json` 那個坑同一種。
+
 ## Testing & Debugging
 
 - Local D1 lives at `.wrangler/state/v3/d1/`

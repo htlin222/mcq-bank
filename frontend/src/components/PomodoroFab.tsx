@@ -31,6 +31,15 @@ import {
 //
 // 右下角是它的位置;BackToTopFab 已經讓在左下,兩顆不會疊。
 //
+// 垂直位置**只**吃 `--bottom-nav-h`,不再多掛一個斷點。原本是
+// `bottom-[calc(var(--bottom-nav-h)+1rem)] sm:bottom-6`,那個 `sm:` 是「底部導覽列
+// 到 sm 為止」那個年代留下來的;#94 把導覽列延到 `md`(640–767 那段上面那條 header
+// 塞不下,由它接手)之後,`--bottom-nav-h` 跟著改成 `max-width: 767px` 才有值,但這
+// 顆的斷點沒一起改 —— 於是 640–767 整段,番茄鐘正好壓在導覽列最右邊那顆(收藏)上。
+// `--bottom-nav-h` 本來就已經回答了「導覽列在不在」,再寫一次斷點就是第二個真相
+// 來源;拿掉之後 md+ 仍是 1.5rem,跟以前的 `sm:bottom-6` 同一個位置。
+// 守門在 frontend/e2e/fab-overlap.test.mjs。
+//
 // The countdown is derived from an absolute `endsAt` timestamp rather than
 // decremented per tick — a throttled background tab fires setInterval far less
 // often than every 250ms, and a decrementing timer would drift by minutes.
@@ -178,7 +187,7 @@ export function PomodoroFab() {
   return (
     <div
       ref={panelRef}
-      className="fixed right-4 sm:right-6 z-30 bottom-[calc(var(--bottom-nav-h)+1rem)] sm:bottom-6 flex flex-col items-end gap-2"
+      className="fixed right-4 sm:right-6 z-30 bottom-[calc(var(--bottom-nav-h)+1.5rem)] flex flex-col items-end gap-2"
     >
       {open && (
         <div className="w-72 max-h-[calc(100dvh-var(--bottom-nav-h)-9rem)] overflow-y-auto rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-paper p-4 animate-fade-in">
