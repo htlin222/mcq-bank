@@ -458,6 +458,27 @@ highlights and `/pdf/*` must stay out — see the comment block there for why.
 - 驗證在 `frontend/e2e/nav-prefetch.test.mjs`:fixture 伺服器每個 `/api/` 延遲
   700ms,把「有沒有預抓到」變成可觀測的時間差。改動預抓邏輯後這支會紅。
 
+**作答完不要為了「我剛才選了什麼」再問一次伺服器。** 舊版是
+`onAnswered={reload}`(強制重抓整份 payload),而 `/api/questions/:id` 在 SW 是
+NetworkFirst + **3 秒 timeout** —— 網路一慢,回的是**答題前**那份快取,
+`last_chosen` 還是 null,於是「強制重抓」反而把剛作答的狀態洗掉,還會一路
+`questionCache.set()` 寫回應用層快取。加上 POST 失敗時 `onAnswered` 根本不會被
+呼叫,合起來就是回報 #95 的「上一題/下一題 來回切換,作答紀錄就不見了」。
+改成 `lib/questionProgress.ts` 的純函式就地補寫 `my_progress` —— client 手上本來
+就有選了哪個、對不對,不需要一趟 RTT 來告訴我們。**收藏欄位要原封不動帶過去**:
+它跟作答只是剛好共用同一個物件,漏帶的症狀是「答一題就把收藏取消了」,而且要
+重新整理才看得出來。它單獨一個檔案而不是放進 `questionCache.ts`,因為那支會
+`import './api'`,整個模組在 `node --test` 底下載不起來。
+
+**`/q/:id` 在 <md 是分頁的,不是堆疊的(#96)。** 一張含五個選項的題目卡就吃掉
+一整個手機螢幕,堆疊版等於「看詳解永遠要先捲過整張卡」。手機那層刻意**不**沿用
+桌機的 `mainTab`(六個值,每個 pane 一個):右欄頂端那條 詳解共筆/個人筆記/… 的
+strip 本來就在而且是 sticky 的,直接當第二層,手機只需要回答「看題目,還是看
+題目以外的東西」。兩件事容易漏:**換題要把它重設回題目**(否則從詳解按下一題會
+直接落在下一題的詳解上 —— 那是劇透),以及**切換時捲回頂端**(兩個 pane 共用同
+一條頁面捲軸)。隱藏只能用 JS 算出來的布林,`md:hidden` 之類的字首寫不出「只在
+<md 依狀態隱藏」。
+
 **`createQuestionStore` 是通用的,不只給題目用。** 名字是歷史包袱 —— 它同時是
 `/lectures` 三個分頁(`lectureListCache`)與其他筆記清單(`freeNoteListCache`)
 的快取。下次再收到「切 X 分頁都要重新載入,蠻卡的」這類回報,先看是不是同一個
@@ -596,6 +617,29 @@ light/dark 一個像素都不動:`eink-invert`(整塊反白,含後代文字/圖�
 「正解=整列反白 / 答錯=粗框+刪除線 / 其他=細框」,分類 badge 是四種框線語彙
 (填充只有兩種,線型有四種)。
 
+**「透明的 utility」不是要中和的對象,是要排除的對象。** `text-transparent` /
+`border-transparent` 從一開始就在 `:not(:where(…))` 裡,但同一類的
+**`outline-none` 漏了** —— Tailwind 的 `outline-none` 不是 `outline-style: none`,
+而是**留給 focus ring 用的 2px 透明外框**。塗黑之後它就憑空長出一個實心黑框:
+防劇透那顆 `inset-0` 的按鈕變成回報 #95 說的「奇怪的長方形 overlay」,全站 30 處
+`focus:outline-none` 的輸入框一 focus 也各多一個黑框。用 `[class*=]` 排除(不是
+`[class~=]`),才連 `focus:` / `md:` 這些前綴變體一起中掉。**顏色掃描抓不到這種
+錯**:黑色在 1-bit 下完全合法。所以驗的是反面 —— 掛了 `outline-none` 的元素本來
+就不該看得見外框。
+
+**`backdrop-filter: none` 關不到 `filter`。** 防劇透用的是後者(`blur-md`),
+於是中和層一路放行,詳解在 e-ink 上糊成一團灰 —— 而灰正是整層在消滅的東西。
+改成 `display: none`(不是 `visibility: hidden`:後者讓被遮的詳解照原高度占位,
+揭曉前是一大片空白)。選 `[class~="blur-md"]` 而非 `[class*="blur-"]`,否則會連
+App bar 的 `backdrop-blur` 一起 `display:none`,整條導覽列消失。
+
+**兩個 getComputedStyle(el) 讀不到、只能靠看畫面抓的破口**(同 `::placeholder`):
+`::selection` 的預設反白(半透明藍/灰 —— 選字查教科書、畫螢光每天都會撞到),
+以及 `-webkit-tap-highlight-color`(Android 預設 `rgba(0,0,0,.18)`;LCD 上一閃就
+沒了,e-ink 的殘影會讓它留在畫面上,於是**只有使用者點過的**按鈕看起來莫名有灰底,
+沒點過的連結完全正常 —— 很容易誤判成某幾個元件的樣式壞了)。兩者都在
+`html.eink` / `.eink ::selection` 直接宣告。
+
 **必須改渲染、CSS 構不到的只有三處**:`Avatar`(react-animals 是 inline style
 的彩色 SVG → 改渲染首字 + 四種框線)、`ActivityHeatmap`(顏色 bake 進 SVG,五階
 明度改成 `<pattern>` 網底密度;空白格靠 `:not([fill])` 認 —— 有活動的格子才會被
@@ -613,6 +657,11 @@ dithering,結果比原圖更難讀;真 e-ink 硬體本來就會做抖動處理�
 `getComputedStyle(el)` 讀不到偽元素,所以搜尋框的淺褐色 placeholder 掃描全綠、
 只有把畫面截圖出來看才發現(現在偽元素也掃了,但 hover/focus/拖曳中仍掃不到 ——
 那些靠中和層 specificity 高於 `hover:` 來保證,不靠測試)。
+**掃描只掃得到「畫在畫面上」的元素**,而 `/q/:id` 在手機是分頁的(見下面的
+換題/版面那節):詳解那一欄在題目分頁下是 `display:none`,整欄會被
+`getClientRects()` 跳過。防劇透的那團灰能活到使用者手上,正是因為沒有任何一條
+路由走到詳解分頁 —— 現在多了一條專門走過去的。**加新分頁時要問的是「這一頁有
+沒有哪一塊從來沒被掃過」**,不是「路由列表有沒有這條路徑」。
 另外**題目頁的選項是 `<li>` 不是 `<button>`**:用 role 找會什麼都點不到而測試
 照樣全綠,所以那條路徑有 `expectAfter` 的正面斷言擋著。改動這支測試時,先確認
 它在停用中和層時會紅。
@@ -749,6 +798,41 @@ The UI aesthetic is **scholarly/editorial**, not generic SaaS. Specifically:
 - No purple gradients, no glassmorphism, no excessive shadow
 
 When extending the UI, preserve this voice. It's a serious study tool — looks should match.
+
+### 導覽階梯:項目要**晚**一個斷點才出現,以及那顆強制手機版面的 FAB
+
+頂端導覽用「尾端項目摺進 `更多` 下拉」的作法,但舊版每一階都比塞得下的寬度**早**
+一個斷點放出來,於是 **斷點本身那一刻最擠**:量出來 4 項 + 更多 需要 ~704px、
+6 項 ~816px、8 項 ~936px,而它們分別在 640 / 768 / 1024 就冒出來 —— 640 與 768
+必定溢出整頁,320 則是連品牌 + 右側工具列都塞不下(回報 #94)。常用的
+390 / 414 / 1440 剛好全都沒事,所以它活了很久。
+
+- **底部導覽列因此撐到 `md`(不是 `sm`)。** 640–767 這段上面那條放不下,由它接手;
+  `App.tsx` 的 `md:hidden` 與 `styles.css` 的 `--bottom-nav-h` 是同一件事的兩半,
+  **改一邊沒改另一邊**,`<main>` 的下方留白就會跟導覽列對不上而蓋住頁尾。
+- **`更多` 下拉裡的 `xx:hidden` 必須跟列上 `NavItem` 的 `xx:block` 對齊**,否則
+  不是同時出現兩次,就是整條到不了 —— 兩種都無聲。**只存在於下拉裡的項目**
+  (影片)要在下拉收起來的那一階補一顆到列上,不然最寬的畫面反而走不到。
+- **`OnlineUsers` 移到 `lg`**:它的寬度隨線上人數變動,是整條 header 唯一寬度不
+  固定的東西。擺在窄的那幾階,溢出與否就取決於當下有幾個人在線 —— 用斷點事先算
+  不準的東西,不要放在算得剛剛好的地方。
+- **品牌是唯一可讓步的元素**(`min-w-0 truncate`,其餘 `shrink-0`)。這是結構性
+  保證,不是階梯的替代品:品牌名是 `config.toml` 來的,fork 換個長名字階梯就不準了。
+- 守門在 `frontend/e2e/overflow.test.mjs`,寬度**繞著斷點兩側取樣**
+  (639/640、767/768、1023/1024、1279/1280)。**`users_online.json` fixture 要保持
+  非空** —— 空的時候 700/767/820/1024 四個寬度全是綠的,而那正是漏掉的原因。
+  只認頁面層級的捲動;內部自己捲的容器(寬表格、程式碼區塊)是刻意設計。
+
+**「強制手機版面」只有改 viewport meta 這一條路**(`lib/viewportMode.ts` +
+`ViewportModeFab`)。版面幾乎都寫在 `md:`/`lg:` utility 裡,而 media query 問的是
+視窗寬度、不是任何 React state —— 要嘛把三千多處改成 container query,要嘛讓瀏覽器
+相信視窗就是那麼窄。寬度 560 是同時小於 `sm`(底部導覽列才會回來)與 `md`(才拿得到
+手機版面)。**桌機瀏覽器完全忽略 viewport meta**,所以 FAB 只在 `(pointer: coarse)`
+出現:一顆在 Mac 上按了沒反應的按鈕比沒有更糟。**而且這個效果在測試環境驗不到** ——
+Playwright 兩個引擎都用 `setDeviceMetricsOverride` 把版面視窗釘死,meta 寫對了
+`innerWidth` 也不會變,所以測試只鎖「寫進去的內容對不對」。元件因此在點擊後 300ms
+自己量一次寬度,沒變就重新載入(從 HTML 解析進來的 meta 是所有引擎都認的)—— 常見
+情況不會重整,編輯中的草稿不受影響。
 
 ## Testing & Debugging
 
