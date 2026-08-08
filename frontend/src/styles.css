@@ -4,61 +4,67 @@
 
 /* === Base typography === */
 @layer base {
-  :root {
-    --reading-width: min(70ch, 100% - 2rem);
-  }
+	:root {
+		--reading-width: min(70ch, 100% - 2rem);
+	}
 
-  /* Always reserve the vertical scrollbar's space so pages that grow/shrink
+	/* Always reserve the vertical scrollbar's space so pages that grow/shrink
      past one viewport don't shift the whole layout sideways (the "wiggle"). */
-  html {
-    scrollbar-gutter: stable;
-  }
+	html {
+		scrollbar-gutter: stable;
+	}
 
-  /* 原生控制項(time/date input、checkbox、捲軸、下拉選單)的配色不吃 Tailwind
+	/* 原生控制項(time/date input、checkbox、捲軸、下拉選單)的配色不吃 Tailwind
      的 dark: —— 它們由瀏覽器依 color-scheme 繪製。沒宣告的話一律以淺色模式繪製,
      於是深色底上的 <input type="time"> 會拿到瀏覽器預設的近黑色文字,黑到看不見
      (issue #75 的讀書計畫時段就是這樣)。
      darkMode: 'class',所以跟著 <html class="dark"> 走。 */
-  :root {
-    color-scheme: light;
-  }
-  :root.dark {
-    color-scheme: dark;
-  }
-  /* 電子紙模式:原生控制項也要 1-bit。`accent-color` 是最容易漏的彩色破口 ——
+	:root {
+		color-scheme: light;
+	}
+	:root.dark {
+		color-scheme: dark;
+	}
+	/* 電子紙模式:原生控制項也要 1-bit。`accent-color` 是最容易漏的彩色破口 ——
      沒宣告的話 checkbox/radio/range 會拿到系統色(iOS 是藍的),而那是瀏覽器
      自己畫的,檔尾那層 class 選擇器完全構不到。 */
-  :root.eink {
-    color-scheme: light;
-    accent-color: #000;
-    caret-color: #000;
-  }
+	:root.eink {
+		color-scheme: light;
+		accent-color: #000;
+		caret-color: #000;
+	}
 
-  body {
-    font-feature-settings: "ss01", "cv11";
-  }
+	body {
+		font-feature-settings: "ss01", "cv11";
+	}
 
-  h1, h2, h3, h4 {
-    @apply font-serif text-ink-800 dark:text-ink-100 tracking-tight;
-  }
+	h1,
+	h2,
+	h3,
+	h4 {
+		@apply font-serif text-ink-800 dark:text-ink-100 tracking-tight;
+	}
 
-  /* Subtle paper texture on cards */
-  .paper {
-    background-color: #fdfaf5;
-    background-image:
-      radial-gradient(circle at 1px 1px, rgba(0,0,0,0.015) 1px, transparent 0);
-    background-size: 24px 24px;
-  }
+	/* Subtle paper texture on cards */
+	.paper {
+		background-color: #fdfaf5;
+		background-image: radial-gradient(
+			circle at 1px 1px,
+			rgba(0, 0, 0, 0.015) 1px,
+			transparent 0
+		);
+		background-size: 24px 24px;
+	}
 
-  /* Drop cap for question stem */
-  .stem-display::first-letter {
-    @apply font-serif font-bold;
-  }
+	/* Drop cap for question stem */
+	.stem-display::first-letter {
+		@apply font-serif font-bold;
+	}
 }
 
 /* === TipTap editor (ProseMirror) === */
 .tiptap {
-  @apply font-serif text-ink-800 dark:text-ink-100 leading-relaxed outline-none min-h-[140px];
+	@apply font-serif text-ink-800 dark:text-ink-100 leading-relaxed outline-none min-h-[140px];
 }
 
 /* The 140px min-height is a click target for the EDITABLE editor only. Read-only
@@ -66,58 +72,86 @@
    note section (e.g. a paragraph + <hr>) reserves a big empty gap before the
    next heading/accordion. */
 .tiptap[contenteditable="false"] {
-  @apply min-h-0;
+	@apply min-h-0;
 }
 
 .tiptap > * + * {
-  @apply mt-3;
+	@apply mt-3;
 }
 
 .tiptap p.is-editor-empty:first-child::before {
-  content: attr(data-placeholder);
-  @apply text-ink-400 dark:text-ink-500 italic float-left h-0 pointer-events-none;
+	content: attr(data-placeholder);
+	@apply text-ink-400 dark:text-ink-500 italic float-left h-0 pointer-events-none;
 }
 
-.tiptap h1 { @apply text-2xl font-bold mt-6; }
-.tiptap h2 { @apply text-xl  font-bold mt-5; }
-.tiptap h3 { @apply text-lg  font-semibold mt-4; }
+.tiptap h1 {
+	@apply text-2xl font-bold mt-6;
+}
+.tiptap h2 {
+	@apply text-xl  font-bold mt-5;
+}
+.tiptap h3 {
+	@apply text-lg  font-semibold mt-4;
+}
 
-.tiptap p { @apply leading-7; }
+.tiptap p {
+	@apply leading-7;
+}
 
 /* Lists — padding-left (not margin) so the marker sits inside and each nested
    level compounds the indent, making the hierarchy obvious. Marker shape also
    changes per depth so a sub-list reads as a sub-list. */
-.tiptap ul, .tiptap ol {
-  @apply my-3 pl-6;
-  list-style-position: outside;
+.tiptap ul,
+.tiptap ol {
+	@apply my-3 pl-6;
+	list-style-position: outside;
 }
-.tiptap ul { list-style-type: disc; }
-.tiptap ul ul { list-style-type: circle; }
-.tiptap ul ul ul { list-style-type: square; }
-.tiptap ol { list-style-type: decimal; }
-.tiptap ol ol { list-style-type: lower-alpha; }
-.tiptap ol ol ol { list-style-type: lower-roman; }
-.tiptap li { @apply my-1; }
+.tiptap ul {
+	list-style-type: disc;
+}
+.tiptap ul ul {
+	list-style-type: circle;
+}
+.tiptap ul ul ul {
+	list-style-type: square;
+}
+.tiptap ol {
+	list-style-type: decimal;
+}
+.tiptap ol ol {
+	list-style-type: lower-alpha;
+}
+.tiptap ol ol ol {
+	list-style-type: lower-roman;
+}
+.tiptap li {
+	@apply my-1;
+}
 /* Nested lists hug their parent item rather than opening a big gap. */
-.tiptap li > ul, .tiptap li > ol { @apply my-1; }
+.tiptap li > ul,
+.tiptap li > ol {
+	@apply my-1;
+}
 
 .tiptap blockquote {
-  @apply border-l-4 border-ink-300 dark:border-ink-600 pl-4 italic text-ink-600 dark:text-ink-300 my-4;
+	@apply border-l-4 border-ink-300 dark:border-ink-600 pl-4 italic text-ink-600 dark:text-ink-300 my-4;
 }
 
 .tiptap code {
-  @apply font-mono text-sm bg-ink-100 dark:bg-ink-700 dark:text-ink-100 px-1.5 py-0.5 rounded;
+	@apply font-mono text-sm bg-ink-100 dark:bg-ink-700 dark:text-ink-100 px-1.5 py-0.5 rounded;
 }
 
 .tiptap pre {
-  @apply font-mono text-sm bg-ink-800 dark:bg-ink-900 text-ink-50 p-3 rounded-lg overflow-x-auto;
+	@apply font-mono text-sm bg-ink-800 dark:bg-ink-900 text-ink-50 p-3 rounded-lg overflow-x-auto;
 }
 
-.tiptap pre code { @apply bg-transparent p-0; }
+.tiptap pre code {
+	@apply bg-transparent p-0;
+}
 
 /* Highlight mark (@tiptap/extension-highlight) — yellow marker pen. */
 .tiptap mark {
-  @apply bg-yellow-200 dark:bg-yellow-400/30 text-inherit rounded-sm px-0.5;
+	@apply bg-yellow-200 dark:bg-yellow-400/30 text-inherit rounded-sm px-0.5;
 }
 
 /* 防劇透 cloze self-test (AnnotatableContent): while active, every highlight is
@@ -127,18 +161,18 @@
    redaction bar) and goes full strength on hover to signal it is clickable. A
    click reveals just that one (`.cloze-revealed`). */
 .cloze-active .tiptap mark {
-  @apply bg-yellow-300/40 dark:bg-yellow-500/25 rounded-sm px-0.5 cursor-pointer select-none transition-colors;
-  color: transparent;
+	@apply bg-yellow-300/40 dark:bg-yellow-500/25 rounded-sm px-0.5 cursor-pointer select-none transition-colors;
+	color: transparent;
 }
 .cloze-active .tiptap mark:hover {
-  @apply bg-yellow-300 dark:bg-yellow-500/60;
+	@apply bg-yellow-300 dark:bg-yellow-500/60;
 }
 .cloze-active .tiptap mark::selection {
-  color: transparent;
+	color: transparent;
 }
 .cloze-active .tiptap mark.cloze-revealed {
-  @apply bg-yellow-200 dark:bg-yellow-400/30;
-  color: inherit;
+	@apply bg-yellow-200 dark:bg-yellow-400/30;
+	color: inherit;
 }
 
 /* 自動挖空 (AI) blanks. A decoration layer, not a mark — it exists only while
@@ -146,18 +180,18 @@
    saved as) the reader's own 螢光標記. Tinted with the accent rather than
    marker-yellow so the two kinds of blank stay tellable apart at a glance. */
 .cloze-active .tiptap .cloze-auto {
-  @apply bg-accent/15 border-b border-accent/40 rounded-sm px-0.5 cursor-pointer select-none transition-colors;
-  color: transparent;
+	@apply bg-accent/15 border-b border-accent/40 rounded-sm px-0.5 cursor-pointer select-none transition-colors;
+	color: transparent;
 }
 .cloze-active .tiptap .cloze-auto:hover {
-  @apply bg-accent/40;
+	@apply bg-accent/40;
 }
 .cloze-active .tiptap .cloze-auto::selection {
-  color: transparent;
+	color: transparent;
 }
 .cloze-active .tiptap .cloze-auto.cloze-revealed {
-  @apply bg-accent/10;
-  color: inherit;
+	@apply bg-accent/10;
+	color: inherit;
 }
 
 /* Tables (@tiptap/extension-table). Base table fills the reading column and
@@ -165,58 +199,62 @@
    `.table-scroll`; there the table keeps a min width so one too wide for the
    column scrolls left/right (via the wrapper) instead of overflowing. */
 .tiptap table {
-  @apply border-collapse w-full text-sm;
+	@apply border-collapse w-full text-sm;
 }
 .tiptap .table-scroll {
-  @apply my-4 overflow-x-auto;
+	@apply my-4 overflow-x-auto;
 }
 .tiptap .table-scroll table {
-  @apply my-0;
-  min-width: 36rem;
+	@apply my-0;
+	min-width: 36rem;
 }
 .tiptap th,
 .tiptap td {
-  @apply border border-ink-300 dark:border-ink-600 px-3 py-1.5 align-top text-left;
+	@apply border border-ink-300 dark:border-ink-600 px-3 py-1.5 align-top text-left;
 }
 .tiptap th {
-  @apply bg-ink-100 dark:bg-ink-700 font-semibold;
+	@apply bg-ink-100 dark:bg-ink-700 font-semibold;
 }
 .tiptap td > p,
 .tiptap th > p {
-  @apply my-0;
+	@apply my-0;
 }
 
 .tiptap hr {
-  @apply my-6 border-0 border-t border-ink-200 dark:border-ink-700;
+	@apply my-6 border-0 border-t border-ink-200 dark:border-ink-700;
 }
 
 /* Indeterminate progress bar — shown while pasted images upload to R2. */
 @keyframes progress-bar {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(400%); }
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(400%);
+	}
 }
 .animate-progress-bar {
-  animation: progress-bar 1.1s ease-in-out infinite;
+	animation: progress-bar 1.1s ease-in-out infinite;
 }
 
 .tiptap img {
-  @apply rounded-lg my-4 max-w-full h-auto shadow-sm border border-ink-200 dark:border-ink-700;
+	@apply rounded-lg my-4 max-w-full h-auto shadow-sm border border-ink-200 dark:border-ink-700;
 }
 
 .tiptap a {
-  @apply text-accent dark:text-accent-light underline decoration-accent/30 underline-offset-2 hover:decoration-accent;
+	@apply text-accent dark:text-accent-light underline decoration-accent/30 underline-offset-2 hover:decoration-accent;
 }
 
 .tiptap .mention {
-  @apply bg-accent/10 dark:bg-accent/20 text-accent-dark dark:text-accent-light px-1.5 py-0.5 rounded font-medium no-underline;
+	@apply bg-accent/10 dark:bg-accent/20 text-accent-dark dark:text-accent-light px-1.5 py-0.5 rounded font-medium no-underline;
 }
 
 .tiptap .qref,
 .tiptap a.qref {
-  @apply bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 px-1.5 py-0.5 rounded font-mono text-[0.92em] no-underline decoration-transparent;
+	@apply bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 px-1.5 py-0.5 rounded font-mono text-[0.92em] no-underline decoration-transparent;
 }
 .tiptap a.qref:hover {
-  @apply bg-emerald-100 dark:bg-emerald-900/50 underline decoration-emerald-700 dark:decoration-emerald-300;
+	@apply bg-emerald-100 dark:bg-emerald-900/50 underline decoration-emerald-700 dark:decoration-emerald-300;
 }
 
 /* Selected-node indicator — editing affordance only. A read-only editor can
@@ -224,43 +262,66 @@
    which would otherwise paint an accent outline that reads as a bold divider.
    Scope it to the focused (editable) editor so read-only views stay clean. */
 .tiptap.ProseMirror-focused .ProseMirror-selectednode {
-  @apply outline outline-2 outline-accent;
+	@apply outline outline-2 outline-accent;
 }
 
 /* cal-heatmap month labels — SVG text, so Tailwind text-* doesn't reach it */
-.cal-heatmap-host text { fill: #8a7d65; } /* ink-400 */
-.dark .cal-heatmap-host text { fill: #b8ac96; } /* ink-300 */
+.cal-heatmap-host text {
+	fill: #8a7d65;
+} /* ink-400 */
+.dark .cal-heatmap-host text {
+	fill: #b8ac96;
+} /* ink-300 */
 
 /* Compact variant — question-page right pane (詳解共筆 / 個人筆記 / 討論).
    Denser type than the global .tiptap so long explanations fit the split view. */
-.tiptap-compact .tiptap { @apply text-[15px]; }
-.tiptap-compact .tiptap > * + * { @apply mt-2; }
-.tiptap-compact .tiptap p { @apply leading-6; }
-.tiptap-compact .tiptap h1 { @apply text-lg mt-4; }
-.tiptap-compact .tiptap h2 { @apply text-base mt-3; }
-.tiptap-compact .tiptap h3 { @apply text-[15px] mt-3; }
-.tiptap-compact .tiptap ul, .tiptap-compact .tiptap ol { @apply ml-0 pl-5 my-2; }
-.tiptap-compact .tiptap li { @apply my-0.5; }
-.tiptap-compact .tiptap blockquote { @apply my-3; }
+.tiptap-compact .tiptap {
+	@apply text-[15px];
+}
+.tiptap-compact .tiptap > * + * {
+	@apply mt-2;
+}
+.tiptap-compact .tiptap p {
+	@apply leading-6;
+}
+.tiptap-compact .tiptap h1 {
+	@apply text-lg mt-4;
+}
+.tiptap-compact .tiptap h2 {
+	@apply text-base mt-3;
+}
+.tiptap-compact .tiptap h3 {
+	@apply text-[15px] mt-3;
+}
+.tiptap-compact .tiptap ul,
+.tiptap-compact .tiptap ol {
+	@apply ml-0 pl-5 my-2;
+}
+.tiptap-compact .tiptap li {
+	@apply my-0.5;
+}
+.tiptap-compact .tiptap blockquote {
+	@apply my-3;
+}
 
 /* === Mention dropdown === */
 .mention-list {
-  @apply bg-white dark:bg-ink-800 shadow-lg rounded-lg border border-ink-200 dark:border-ink-700 overflow-hidden;
-  @apply text-sm max-h-72 overflow-y-auto text-ink-800 dark:text-ink-100;
+	@apply bg-white dark:bg-ink-800 shadow-lg rounded-lg border border-ink-200 dark:border-ink-700 overflow-hidden;
+	@apply text-sm max-h-72 overflow-y-auto text-ink-800 dark:text-ink-100;
 }
 .mention-item {
-  @apply flex items-center gap-2 px-3 py-2 cursor-pointer;
+	@apply flex items-center gap-2 px-3 py-2 cursor-pointer;
 }
 .mention-item:hover,
 .mention-item.is-selected {
-  @apply bg-accent/10 dark:bg-accent/20;
+	@apply bg-accent/10 dark:bg-accent/20;
 }
 
 /* === Editor toolbar === */
 /* Individual buttons handle their own sizing/colors via the IconBtn
    component; this rule just lays out the strip. */
 .editor-toolbar {
-  @apply flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-ink-200 dark:border-ink-700 bg-ink-50/60 dark:bg-ink-800/60 shrink-0;
+	@apply flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-ink-200 dark:border-ink-700 bg-ink-50/60 dark:bg-ink-800/60 shrink-0;
 }
 
 /* Per-pane toolbar (自動挖空/防劇透/編輯) that pins just under the sticky
@@ -270,34 +331,38 @@
    header plus those two sticky rows, so the offset stacks all three; at md the
    right column is its own scroll container and the strip pins at its top. */
 .substick {
-  position: sticky;
-  top: calc(3.5rem + var(--nav-h, 0px) + var(--strip-h, 0px));
-  z-index: 9;
+	position: sticky;
+	top: calc(3.5rem + var(--nav-h, 0px) + var(--strip-h, 0px));
+	z-index: 9;
 }
 @media (min-width: 768px) {
-  .substick {
-    top: var(--strip-h, 0px);
-  }
+	.substick {
+		top: var(--strip-h, 0px);
+	}
 }
 
 /* === Animations === */
-.fade-in { animation: fadeIn 0.3s ease-out; }
+.fade-in {
+	animation: fadeIn 0.3s ease-out;
+}
 
 /* === Safari mobile bottom safe-area === */
 .safe-bottom {
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+	padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
 /* Height reserved for the fixed mobile bottom nav (item h-14 + .safe-bottom).
-   0 at sm+ where the nav is hidden. <main> pads by this so content never
-   hides behind the nav; Chat subtracts it from its full-height layout. */
+   0 at md+ where the nav is hidden. <main> pads by this so content never
+   hides behind the nav; Chat subtracts it from its full-height layout.
+   767px 要跟 App.tsx 那條 <nav className="md:hidden"> 一起改 —— 只改一邊的話,
+   <main> 的下方留白會跟導覽列對不上,差的那一塊剛好蓋住頁尾。 */
 :root {
-  --bottom-nav-h: 0px;
+	--bottom-nav-h: 0px;
 }
-@media (max-width: 639px) {
-  :root {
-    --bottom-nav-h: calc(3.5rem + max(1rem, env(safe-area-inset-bottom)));
-  }
+@media (max-width: 767px) {
+	:root {
+		--bottom-nav-h: calc(3.5rem + max(1rem, env(safe-area-inset-bottom)));
+	}
 }
 
 /* ==========================================================================
@@ -341,41 +406,62 @@
    ========================================================================== */
 
 html.eink {
-  background: #fff;
-  color: #000;
+	background: #fff;
+	color: #000;
+	/* Android(BOOX 是 Android)點下去會畫一層 rgba(0,0,0,.18) 的灰底。LCD 上它
+     一閃就沒了;e-ink 的殘影會讓它留在畫面上,看起來就是「按鈕莫名其妙有灰底」
+     —— 而且只發生在使用者**點過**的元素上(上一題/下一題、各個 tab),沒點過的
+     連結看起來完全正常,所以很容易誤判成某幾個元件的樣式壞了。 */
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* 選取反白由瀏覽器畫(預設是半透明藍/灰),1-bit 下就是一塊灰。選字查教科書、
+   畫螢光都得先選字,所以這是每天都會撞到的破口 —— 而它是偽元素,
+   getComputedStyle(el) 讀不到,同 ::placeholder。
+   `.cloze-active .tiptap mark::selection`(挖空時把字藏起來)是 (0,2,1),壓得過
+   這裡的 (0,1,0),所以選到挖空的字不會被反白洩題。 */
+.eink ::selection {
+	background-color: #000;
+	color: #fff;
 }
 
 /* ── 顏色全滅 ── */
 .eink.eink [class*="bg-"] {
-  background-color: #fff;
-  background-image: none;
+	background-color: #fff;
+	background-image: none;
 }
 .eink.eink [class*="text-"]:not(:where([class~="text-transparent"])) {
-  color: #000;
+	color: #000;
 }
 .eink.eink [class*="border-"]:not(:where([class~="border-transparent"])) {
-  border-color: #000;
+	border-color: #000;
 }
 .eink.eink [class*="divide-"] > * + * {
-  border-color: #000;
+	border-color: #000;
 }
 .eink.eink [class*="ring-"] {
-  --tw-ring-color: #000;
-  --tw-ring-offset-color: #fff;
+	--tw-ring-color: #000;
+	--tw-ring-offset-color: #fff;
 }
-.eink.eink [class*="outline-"] {
-  outline-color: #000;
+/* `outline-none` 要排除,理由跟 `border-transparent` / `text-transparent` 完全
+   一樣 —— Tailwind 的 `outline-none` 不是 `outline-style: none`,而是**留給 focus
+   ring 用的 2px 透明外框**。把它塗黑等於憑空長出一個實心黑框:防劇透那顆 inset-0
+   的按鈕正是這樣變成回報 #95 裡「奇怪的長方形 overlay」,而全站 30 處
+   `focus:outline-none` 的輸入框一 focus 也會各多一個黑框。
+   用 `[class*=]` 而不是 `[class~=]`:要一起中掉 `focus:` / `md:` 這些前綴變體。 */
+.eink.eink [class*="outline-"]:not(:where([class*="outline-none"])) {
+	outline-color: #000;
 }
 .eink.eink [class*="fill-"]:not(:where([class~="fill-none"])) {
-  fill: #000;
+	fill: #000;
 }
 .eink.eink [class*="stroke-"]:not(:where([class~="stroke-none"])) {
-  stroke: #000;
+	stroke: #000;
 }
 /* `.paper` 的 class 名不含 `bg-`,通則抓不到它的暖白底與紙紋點陣 */
 .eink.eink .paper {
-  background-color: #fff;
-  background-image: none;
+	background-color: #fff;
+	background-image: none;
 }
 
 /* ── 撈回:純色即語意的實心塊 ──
@@ -387,9 +473,9 @@ html.eink {
 .eink.eink [class~="bg-accent"],
 .eink.eink [class*="bg-black"],
 .eink.eink .eink-invert {
-  background-color: #000;
-  color: #fff;
-  border-color: #fff;
+	background-color: #000;
+	color: #fff;
+	border-color: #fff;
 }
 /* 反白區的後代:文字/圖示轉白。少了這條,子元素只要自己帶一個 text-* class
    就會被上面的通則塗黑,變成黑底黑字 —— 而 `text-white` 不能靠 :not() 排除,
@@ -397,19 +483,19 @@ html.eink {
 .eink.eink [class~="bg-accent"] [class*="text-"],
 .eink.eink [class*="bg-black"] [class*="text-"],
 .eink.eink .eink-invert [class*="text-"] {
-  color: #fff;
+	color: #fff;
 }
 .eink.eink [class~="bg-accent"] [class*="bg-"],
 .eink.eink .eink-invert [class*="bg-"] {
-  background-color: transparent;
+	background-color: transparent;
 }
 .eink.eink [class~="bg-accent"] [class*="fill-"],
 .eink.eink .eink-invert [class*="fill-"] {
-  fill: #fff;
+	fill: #fff;
 }
 .eink.eink [class~="bg-accent"] [class*="border-"],
 .eink.eink .eink-invert [class*="border-"] {
-  border-color: #fff;
+	border-color: #fff;
 }
 
 /* ── 動態效果 ──
@@ -419,30 +505,43 @@ html.eink {
 .eink.eink *,
 .eink.eink *::before,
 .eink.eink *::after {
-  transition-property: none;
-  animation: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  /* 不寫 `box-shadow: none` —— Tailwind 的 ring-* 是用 box-shadow 實作的,
+	transition-property: none;
+	animation: none;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+	/* 不寫 `box-shadow: none` —— Tailwind 的 ring-* 是用 box-shadow 實作的,
      一起關掉會把未讀圓點的白色外環之類的分隔線也殺掉。只把陰影變數歸零。 */
-  --tw-shadow: 0 0 #0000;
-  --tw-shadow-colored: 0 0 #0000;
+	--tw-shadow: 0 0 #0000;
+	--tw-shadow-colored: 0 0 #0000;
+}
+/* 上面關的是 `backdrop-filter`,關不到 `filter` —— 防劇透用的是後者
+   (`blur-md` = `filter: blur(12px)`),所以中和層一路放行,詳解在 1-bit 下糊成
+   一團灰。灰階本來就沒有「模糊」這個維度可用:模糊過的黑字疊在白底,得到的正是
+   整層在消滅的那種中間灰。
+   改成整塊不畫 —— `display:none` 而不是 `visibility:hidden`:後者會讓被遮的詳解
+   **照原高度**占位,揭曉前是一大片空白;前者讓容器落回 `min-h-[6rem]`,剩一個
+   剛好放得下「點擊顯示詳解」的小框。遮蔽效果反而更徹底(模糊過的標題字其實還
+   讀得出輪廓)。
+   `[class~=]` 是精準 token 比對:只中 `blur-md`,不中 App bar 的 `backdrop-blur`
+   —— 那個要是被 display:none,整條導覽列會消失。 */
+.eink.eink [class~="blur-md"] {
+	display: none;
 }
 /* 浮層失去 shadow-lg/xl 就沒有「浮起來」的訊號了,用外框補回 */
 .eink.eink [class*="shadow-lg"],
 .eink.eink [class*="shadow-xl"] {
-  outline: 2px solid #000;
+	outline: 2px solid #000;
 }
 /* 半透明疊在白底上就是灰。opacity-0 是機能性的(hover 才顯示),整條跳過 ——
    同時帶 opacity-0 與 group-hover:opacity-100 的元素會被 :not 排除,行為不變。 */
 .eink.eink [class*="opacity-"]:not(:where([class~="opacity-0"])) {
-  opacity: 1;
+	opacity: 1;
 }
 /* disabled 原本靠 opacity-40 表達,灰不允許 → 改用虛線框 + 游標 */
 .eink.eink :disabled {
-  opacity: 1;
-  cursor: not-allowed;
-  border-style: dashed;
+	opacity: 1;
+	cursor: not-allowed;
+	border-style: dashed;
 }
 
 /* placeholder 是偽元素,上面那層 `[class*="text-"]` 構不到它(而且
@@ -454,9 +553,9 @@ html.eink {
    (打包後 utilities 排在本區塊之後)。同一層的其他規則對手都是非 utility 的
    `.tiptap pre` 之類,單個 .eink 就夠。 */
 .eink.eink ::placeholder {
-  color: #000;
-  opacity: 1;
-  font-style: italic;
+	color: #000;
+	opacity: 1;
+	font-style: italic;
 }
 
 /* ── 用符號補回「只有顏色在講」的語意 ──
@@ -464,10 +563,10 @@ html.eink {
    「85%」—— 及格與否只寫在 emerald/rose 裡)。這兩個 class 在非 eink 主題下
    沒有任何樣式,所以元件可以無條件掛著,light/dark 的既有版面一個像素都不動。 */
 .eink .eink-mark-ok::before {
-  content: '✓ ';
+	content: "✓ ";
 }
 .eink .eink-mark-bad::before {
-  content: '✗ ';
+	content: "✗ ";
 }
 
 /* base layer 的 h1-h4 是 `@apply text-ink-800` 產生的直接屬性,而 <h1> 身上
@@ -476,50 +575,50 @@ html.eink {
 .eink h2,
 .eink h3,
 .eink h4 {
-  color: #000;
+	color: #000;
 }
 
 /* ── cal-heatmap ── */
 /* 月份標籤是 SVG text,Tailwind 的 text-* 構不到 */
 .eink .cal-heatmap-host text {
-  fill: #000;
+	fill: #000;
 }
 /* 沒有活動的格子由 cal-heatmap 自己填 #ededed(灰)。1-bit 下改成白底 —— 但
    白底在白紙上等於沒有格子,所以每一格都要細黑框,整張圖的骨架才看得見。
    有活動的格子由 EINK_RANGE 的 <pattern> 上色,不受這條影響。 */
 .eink .cal-heatmap-host rect.ch-subdomain-bg {
-  stroke: #000;
-  stroke-width: 1px;
+	stroke: #000;
+	stroke-width: 1px;
 }
 /* 空白格的 #ededed 來自 cal-heatmap 自己的 stylesheet(不是 fill attribute),
    所以只能從反面認:**有活動的格子才會被 d3 寫上 fill attribute**。用
    `:not([fill])` 精準只洗白空白格,不碰上面那組 <pattern> 網底。 */
 .eink .cal-heatmap-host rect.ch-subdomain-bg:not([fill]) {
-  fill: #fff;
+	fill: #fff;
 }
 
 /* ── loading 態:動畫關掉之後還要看得出「這裡在等」── */
 @keyframes eink-spin {
-  to {
-    transform: rotate(360deg);
-  }
+	to {
+		transform: rotate(360deg);
+	}
 }
 /* 唯一保留的動畫。e-ink 做得到低頻的局部刷新,做不到的是連續補間 —— 所以
    改成一秒八格的階梯旋轉,而不是整個拿掉(拿掉的話 11 處 <Loader2> 會變成
    一個靜止不動的圈,看起來像當掉)。 */
 .eink.eink [class~="animate-spin"] {
-  animation: eink-spin 1.2s steps(8) infinite;
+	animation: eink-spin 1.2s steps(8) infinite;
 }
 /* 骨架屏中和後是一片全白 = 畫面空白,使用者會以為壞了。虛線框天然帶有
    「這裡還沒有東西」的語意,靜止也讀得懂。 */
 .eink.eink [class~="animate-pulse"] {
-  border: 1px dashed #000;
+	border: 1px dashed #000;
 }
 /* 圖片上傳的無限捲動條停下來會凍在 1/3 寬,看起來像卡住 → 改成滿版實心黑 */
 .eink.eink [class~="animate-progress-bar"] {
-  transform: none;
-  width: 100%;
-  background-color: #000;
+	transform: none;
+	width: 100%;
+	background-color: #000;
 }
 
 /* ── TipTap:@apply 產生的是直接屬性,而 <pre>/<mark>/<th> 這些元素身上沒有
@@ -530,59 +629,59 @@ html.eink {
 .eink .tiptap h1,
 .eink .tiptap h2,
 .eink .tiptap h3 {
-  color: #000;
+	color: #000;
 }
 .eink .tiptap p.is-editor-empty:first-child::before {
-  color: #000;
+	color: #000;
 }
 .eink .tiptap blockquote {
-  border-color: #000;
-  color: #000;
+	border-color: #000;
+	color: #000;
 }
 .eink .tiptap code {
-  background-color: #fff;
-  color: #000;
-  border: 1px solid #000;
+	background-color: #fff;
+	color: #000;
+	border: 1px solid #000;
 }
 /* 原本是 bg-ink-800 + text-ink-50 的深底淺字;底被洗白後字必須跟著轉黑 */
 .eink .tiptap pre {
-  background-color: #fff;
-  color: #000;
-  border: 1px solid #000;
+	background-color: #fff;
+	color: #000;
+	border: 1px solid #000;
 }
 .eink .tiptap pre code {
-  border: 0;
+	border: 0;
 }
 .eink .tiptap th,
 .eink .tiptap td {
-  border-color: #000;
+	border-color: #000;
 }
 .eink .tiptap th {
-  background-color: #fff;
+	background-color: #fff;
 }
 .eink .tiptap hr {
-  border-color: #000;
+	border-color: #000;
 }
 .eink .tiptap img {
-  border-color: #000;
+	border-color: #000;
 }
 .eink .tiptap a {
-  color: #000;
-  text-decoration-color: #000;
+	color: #000;
+	text-decoration-color: #000;
 }
 /* mention 與 qref 原本靠 accent/emerald 兩種色相區分 → 改成反白 vs 細框 */
 .eink .tiptap .mention {
-  background-color: #000;
-  color: #fff;
+	background-color: #000;
+	color: #fff;
 }
 .eink .tiptap .qref,
 .eink .tiptap a.qref {
-  background-color: #fff;
-  color: #000;
-  border: 1px solid #000;
+	background-color: #fff;
+	color: #000;
+	border: 1px solid #000;
 }
 .eink .tiptap.ProseMirror-focused .ProseMirror-selectednode {
-  outline-color: #000;
+	outline-color: #000;
 }
 
 /* 螢光筆 vs AI 自動挖空 —— 灰階下兩者必撞(一個是黃、一個是 accent),所以改用
@@ -590,43 +689,43 @@ html.eink {
    **AI 自動挖空 = 虛線**(機器猜的,輕)。長段落被螢光時只是底線加粗,不會整段
    反白吃掉 e-ink 的重繪預算。 */
 .eink .tiptap mark {
-  background-color: transparent;
-  color: #000;
-  border-bottom: 3px solid #000;
-  border-radius: 0;
+	background-color: transparent;
+	color: #000;
+	border-bottom: 3px solid #000;
+	border-radius: 0;
 }
 .eink .cloze-active .tiptap mark,
 .eink .cloze-active .tiptap mark:hover {
-  background-color: #000;
-  border-bottom: 0;
+	background-color: #000;
+	border-bottom: 0;
 }
 .eink .cloze-active .tiptap mark.cloze-revealed {
-  background-color: transparent;
-  border-bottom: 3px solid #000;
+	background-color: transparent;
+	border-bottom: 3px solid #000;
 }
 .eink .cloze-active .tiptap .cloze-auto,
 .eink .cloze-active .tiptap .cloze-auto:hover {
-  background-color: #fff;
-  border: 2px dashed #000;
+	background-color: #fff;
+	border: 2px dashed #000;
 }
 .eink .cloze-active .tiptap .cloze-auto.cloze-revealed {
-  background-color: transparent;
-  border: 0;
-  border-bottom: 2px dashed #000;
+	background-color: transparent;
+	border: 0;
+	border-bottom: 2px dashed #000;
 }
 
 /* ── mention 下拉與編輯器工具列(class 名不帶 bg-/text-)── */
 .eink .mention-list {
-  background-color: #fff;
-  color: #000;
-  border-color: #000;
+	background-color: #fff;
+	color: #000;
+	border-color: #000;
 }
 .eink .mention-item:hover,
 .eink .mention-item.is-selected {
-  background-color: #000;
-  color: #fff;
+	background-color: #000;
+	color: #fff;
 }
 .eink .editor-toolbar {
-  background-color: #fff;
-  border-color: #000;
+	background-color: #fff;
+	border-color: #000;
 }
