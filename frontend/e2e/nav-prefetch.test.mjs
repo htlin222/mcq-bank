@@ -132,6 +132,36 @@ test('換題後畫面上不會殘留上一題的內容', async (t) => {
   }
 });
 
+test('提交答案立刻揭曉,不等 /api/review/answer 回來', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const { ctx, page, errors } = await openQuestionPage();
+  try {
+    // 選 B(正解),再送出。伺服器每個 /api/ 都延遲 700ms,所以「有沒有等網路」
+    // 是可觀測的:等了就至少 700ms,沒等就是幾十毫秒。
+    // 選項是 <li> 不是 button,所以用文字點。113-050 的正解是 (B) 亞孟買血型。
+    await page.getByText('先生為亞孟買血型').first().click();
+    await page.getByRole('button', { name: '提交答案' }).waitFor({ timeout: 10_000 });
+
+    const t0 = Date.now();
+    await page.getByRole('button', { name: '提交答案' }).click();
+    await page.getByText('答對了').first().waitFor({ timeout: 20_000 });
+    const elapsed = Date.now() - t0;
+
+    assert.ok(
+      elapsed < 300,
+      `送出到看見答案花了 ${elapsed}ms —— 超過門檻表示又在等那趟 ${API_DELAY_MS}ms 的 POST。` +
+        '正解本來就在 client 手上,沒有理由等網路(#89)',
+    );
+    assert.deepEqual(errors, [], `送出時有未捕捉例外:\n${errors.join('\n---\n')}`);
+  } finally {
+    await ctx.close();
+  }
+});
+
 test('同一年度換題不會重抓年度清單(prev/next 按鈕跟題目同一幀出現)', async (t) => {
   if (skipReason) {
     if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);

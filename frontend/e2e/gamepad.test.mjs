@@ -268,14 +268,16 @@ test('FACE ▼ 送出答案,並且震動', async (t) => {
   const text = await page.evaluate(() => document.body.innerText);
   assert.ok(text.includes('答對了'), `應該送出並判定答對;實際:${text.slice(0, 300)}`);
 
+  // 只震「對錯」那一段。舊版會先震一下 60ms 的 tap,因為揭曉要等一趟網路、
+  // 只震結果會像按鍵沒被收到;現在揭曉是即時的(#89),那個理由不成立,多震
+  // 一下反而變成雜訊。
   const rumbles = await page.evaluate(() => window.__rumbles);
-  assert.ok(rumbles.length >= 2, `送出應該震兩段(按下 + 對錯),實際 ${rumbles.length} 段`);
+  assert.ok(rumbles.length >= 1, `送出應該有震動回饋,實際 ${rumbles.length} 段`);
   assert.equal(rumbles[0].type, 'dual-rumble');
-  assert.equal(rumbles[0].duration, 60, '第一段是按下的 tap');
   // 答對是兩下 40ms 輕快;答錯會是一段 180ms 重的。
   assert.ok(
-    rumbles.slice(1).every((r) => r.duration === 40),
-    `答對的回饋應該是兩下 40ms;實際:${JSON.stringify(rumbles.slice(1))}`,
+    rumbles.every((r) => r.duration === 40),
+    `答對的回饋應該全是 40ms(沒有按下的 60ms tap);實際:${JSON.stringify(rumbles)}`,
   );
 
   assert.deepEqual(errors, [], '不該有未捕捉例外');

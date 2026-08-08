@@ -87,13 +87,36 @@ def squash(s: str) -> str:
     return re.sub(r"\s+", "", s or "")
 
 
+def as_options(raw) -> dict:
+    """把兩種 options 形狀正規化成 {key: text}。
+
+    104 年整年是 `[{"key":"A","text":...}]`,113 年是 `{"A": ...}`,而 108 與
+    114 兩種都有(114 甚至有 None)。第一版只收 dict,於是**整個 104 年、以及
+    108/114 的一部分被靜默跳過** —— 掃出 0 個問題,不是因為乾淨,是因為根本沒看。
+    """
+    if isinstance(raw, dict):
+        return {k: v or "" for k, v in raw.items()}
+    if isinstance(raw, list):
+        out = {}
+        for i, o in enumerate(raw):
+            if isinstance(o, dict):
+                out[o.get("key") or KEYS[i]] = o.get("text") or ""
+            else:
+                out[KEYS[i]] = str(o)
+        return out
+    return {}
+
+
 def load_questions(year: str) -> dict:
-    """number -> options dict,從該年度所有 batch 檔彙整。"""
+    """number -> {key: text},從該年度所有 batch 檔彙整。"""
     out = {}
     for f in sorted(glob.glob(f"years/{year}/batches/*.json")):
         for q in json.load(open(f)):
-            if isinstance(q, dict) and isinstance(q.get("options"), dict):
-                out[q["number"]] = q["options"]
+            if not isinstance(q, dict):
+                continue
+            opts = as_options(q.get("options"))
+            if opts:
+                out[q["number"]] = opts
     return out
 
 
@@ -243,6 +266,13 @@ def self_test() -> int:
     check("吞掉詳解抓得到", [(h[0], h[1]) for h in find_swallowed(qs)], [(1, "E")])
     qs = {1: {"A": "x" * 130, "B": "x" * 140, "C": "x" * 150}}
     check("每個選項都長 → 不報吞詳解", find_swallowed(qs), [])
+
+    # 兩種 options 形狀都要收 —— 只收 dict 的話整個 104 年會被靜默跳過。
+    check("list 形狀的 options 也讀得到",
+          as_options([{"key": "A", "text": "x"}, {"key": "B", "text": "y"}]),
+          {"A": "x", "B": "y"})
+    check("dict 形狀照舊", as_options({"A": "x"}), {"A": "x"})
+    check("None 不炸", as_options(None), {})
 
     bad = [(n, d) for n, ok, d in cases if not ok]
     for n, ok, _ in cases:
