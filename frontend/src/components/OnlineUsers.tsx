@@ -38,7 +38,10 @@ export function OnlineUsers() {
 
   return (
     <div
-      className="relative hidden sm:flex items-center"
+      // lg 而不是 sm:這塊的寬度隨線上人數變動(1–4 顆頭像 + 「+N」),是整條
+      // header 唯一寬度不固定的東西 —— 擺在窄的那幾階,溢出與否就取決於當下有
+      // 幾個人在線,而那是無法用斷點事先算準的(#94)。
+      className="relative hidden lg:flex items-center"
       onMouseLeave={() => setOpen(false)}
     >
       <button
