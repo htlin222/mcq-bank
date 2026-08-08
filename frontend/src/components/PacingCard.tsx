@@ -133,7 +133,8 @@ export function PacingCard() {
           </span>
         </div>
         <div
-          className="mt-2 h-1.5 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden"
+          // eink:軌道補黑框,否則 0% 時淡色軌道被洗白、整條看不見
+          className="mt-2 h-1.5 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden eink:border eink:border-black"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}

@@ -386,15 +386,21 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
           const pct = choicePct(stats, L);
           let cls =
             'relative overflow-hidden flex gap-3 items-start p-3 rounded border cursor-pointer transition';
+          // 電子紙(1-bit)下這四種狀態原本全靠色相區分,中和成黑白後會變成
+          // 同一個樣子。改用**填充 vs 線寬**兩個正交維度重新表達:
+          //   正解      → 整列反白(eink-invert,唯一有填充的)
+          //   答錯/已選 → 白底粗框(答錯另外在文字上加刪除線)
+          //   其他      → 白底細框
+          // `eink-invert` 在非 eink 主題下沒有任何樣式,所以無條件掛著就好。
           if (!revealed) {
             cls += selected
-              ? ' border-accent bg-accent/5 dark:bg-accent/15'
+              ? ' border-accent bg-accent/5 dark:bg-accent/15 eink:border-2'
               : ' border-ink-200 dark:border-ink-700 hover:border-ink-400 dark:hover:border-ink-500 hover:bg-ink-50 dark:hover:bg-ink-700/40';
           } else {
             if (isCorrect)
-              cls += ' border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15';
+              cls += ' border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 eink-invert';
             else if (selected)
-              cls += ' border-rose-500 bg-rose-50 dark:bg-rose-500/15';
+              cls += ' border-rose-500 bg-rose-50 dark:bg-rose-500/15 eink:border-2';
             else cls += ' border-ink-200 dark:border-ink-700 opacity-70';
           }
           return (
@@ -414,19 +420,37 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
                   aria-hidden
                   className={
                     'absolute inset-y-0 left-0 pointer-events-none ' +
-                    (isCorrect ? 'bg-accent/15' : 'bg-ink-200/60 dark:bg-ink-600/40')
+                    (isCorrect ? 'bg-accent/15' : 'bg-ink-200/60 dark:bg-ink-600/40') +
+                    // 淡色填充在 1-bit 下會被洗白 → 整條消失。改成貼底的細黑槓:
+                    // 資訊(選了幾成)還在,但不會跟「正解=整列反白」搶同一個維度。
+                    // 正解列不加 —— 黑槓畫在黑底上看不見,而反白本身已經是最強的訊號。
+                    (isCorrect ? '' : ' eink:inset-y-auto eink:bottom-0 eink:h-px eink:bg-black')
                   }
                   style={{ width: `${pct}%` }}
                 />
               )}
-              <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0">
+              {/* 作答中「已選」的訊號集中在字母圓圈上(反白),而不是整列 ——
+                  整列反白在電子紙上要刷一大塊,而且長選項讀起來像被劃掉。 */}
+              <span
+                className={
+                  'relative inline-flex items-center justify-center w-7 h-7 rounded-full border border-current text-sm font-semibold shrink-0' +
+                  (selected && !revealed ? ' eink-invert' : '')
+                }
+              >
                 {L}
               </span>
               {/* min-w-0 + break-words:flex 子項的最小尺寸預設是 min-content,
                   而選項裡的 (p23.3;q34.1)/DEK::NUP214 這種基因命名整串不可斷,
                   手機上就把右邊的「✓ 正解」擠出 li 外、被 overflow-hidden 切掉。
                   兩個一起才有用 —— break-words 不會改變 min-content 寬度。 */}
-              <span className="relative min-w-0 break-words leading-relaxed text-ink-800 dark:text-ink-200">
+              <span
+                className={
+                  'relative min-w-0 break-words leading-relaxed text-ink-800 dark:text-ink-200' +
+                  // 答錯的選項:刪除線。顏色沒了之後,這是唯一不必讀右側標籤
+                  // 就能一眼看出「這個不對」的訊號。
+                  (revealed && selected && !isCorrect ? ' eink:line-through' : '')
+                }
+              >
                 {text}
               </span>
               {(revealed || pct !== null) && (

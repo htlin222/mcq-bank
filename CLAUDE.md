@@ -548,6 +548,75 @@ bundle 上,得到「停用了還是綠」的假結論。
   `scripts/gen-study-plan-fixture.mjs` 跑真的 `buildPlan()` 產出,手寫的 JSON 會
   在 `PlanResult` 改欄位時悄悄過期。
 
+### 電子紙模式: 第四個主題,而且它是一整層 CSS 覆寫,不是一組色票
+
+`ThemeToggle` 的第四態(`light`/`dark`/`eink`/`system`)。狀態抽到
+`frontend/src/lib/theme.ts`(localStorage-only,`useIsEink()` 給那些必須改渲染
+的元件用)。全站規則寫在 `frontend/src/styles.css` 檔尾一整區。
+
+**`.eink` 絕不同時掛 `.dark`** —— 這是整層的前提,寫在 `applyTheme()` 的註解裡。
+`darkMode: 'class'` 只認 `.dark`,所以 e-ink 下全站 1604 處 `dark:` 一律失效、
+走 light 那一套,我們只需要中和「一套」配色。兩個 class 同時在的話,那 1604 處
+會復活並蓋過中和層。
+
+**沒有把 `ink-*`/`accent` 變數化。** 那條路看起來能讓 3143 處 token 自動跟隨,
+但 `ink-200` 既是 `bg-ink-200`(淺底,1-bit 下要白)也是 `border-ink-200`
+(分隔線,要黑)—— 一個變數服務不了兩個相反的角色;而且那會動到現有 light/dark
+的資料來源,手抄 hex 抄錯一位不會報錯,只會讓某個灰稍微不同。改成**全滅 + 撈回**:
+凡 class 名帶 `bg-`/`text-`/`border-`/`fill-`/`ring-`/`outline-` 的一律塗黑白,
+再把「純色即語意」的少數(`[class~="bg-accent"]`、`bg-black`)撈回實心黑。
+不列舉色系 —— 那份清單會腐爛,而且漏掉 `text-ink-400`(#8a7d65,是灰)。
+hover 態不必特別處理:`hover:bg-accent` 是 (0,2,0),打不過中和層的 (0,3,0)。
+
+**Specificity 契約是承重的,不是風格。** Tailwind 的 `@layer` 不是原生 cascade
+layer,輸出後就是普通 CSS,**specificity 先於順序**:
+
+| 層 | Specificity |
+|---|---|
+| 一般 utility / `hover:` | (0,1,0) / (0,2,0) |
+| 中和層 `.eink.eink [class*="bg-"]` | (0,3,0) |
+| `.eink-invert` 的後代規則 | (0,4,0) |
+| `eink:` variant(`tailwind.config.js` 的 `.eink×4 &`) | (0,5,0) |
+
+所有 `:not()` 一律包 `:where()` 讓排除項不加權,整層才停在 (0,3,0)。少了那層
+`:where()`,帶兩個 `:not` 的規則會爬到 (0,5,0) 跟 variant 平手,逐元件精修就會
+被通則蓋掉 —— 而且是無聲的。**別「順手清理」重複的 `.eink`**。
+唯一的例外是 `::placeholder`:它要跟 `placeholder:text-ink-400` 這種 utility
+競爭,所以寫成 `.eink.eink ::placeholder`。單個 `.eink` 只能打平,然後輸給檔案
+順序 —— 打包後 utilities 排在本區塊**之後**,這點跟直覺相反,實際踩過。
+
+**三個語意 class 在非 eink 主題下沒有任何樣式**,所以元件可以無條件掛著,
+light/dark 一個像素都不動:`eink-invert`(整塊反白,含後代文字/圖示轉白)、
+`eink-mark-ok` / `eink-mark-bad`(`::before` 補 ✓ / ✗)。後兩者的存在理由是成績頁
+那個「85%」—— 及格與否**只**寫在 emerald/rose 裡,數字本身不帶判斷。
+
+**顏色沒了之後,語意要換一個維度重講,而不是擠在同一個維度。** 模擬考題號格是
+標準示範:填充(黑/白)= 答了沒、`outline`(畫在框外,黑白填充都疊得上)= 是不是
+當前這題、虛線邊 = 有沒有標記。三個正交,所以不會互相蓋掉。同理選項列是
+「正解=整列反白 / 答錯=粗框+刪除線 / 其他=細框」,分類 badge 是四種框線語彙
+(填充只有兩種,線型有四種)。
+
+**必須改渲染、CSS 構不到的只有三處**:`Avatar`(react-animals 是 inline style
+的彩色 SVG → 改渲染首字 + 四種框線)、`ActivityHeatmap`(顏色 bake 進 SVG,五階
+明度改成 `<pattern>` 網底密度;空白格靠 `:not([fill])` 認 —— 有活動的格子才會被
+d3 寫上 `fill` attribute)、以及 `.tiptap` 底下那些沒有 class 的元素
+(`<pre>`/`<mark>`/`<th>`)。螢光筆與 AI 自動挖空在灰階下必撞,改用線型區分:
+**手動螢光 = 實線/實心**(使用者自己畫的),**AI 挖空 = 虛線**(機器猜的)。
+
+**使用者上傳的醫學圖片與 PDF 內容刻意豁免,不二值化。** 血液抹片、免疫染色、
+流式散點圖的顏色本身就是要學的診斷資訊;CSS 的 `contrast()` 是硬閾值不是
+dithering,結果比原圖更難讀;真 e-ink 硬體本來就會做抖動處理。
+
+驗證在 `frontend/e2e/eink.test.mjs`:走訪路由,斷言每個看得見的元素的每個顏色
+屬性**不是全透明,就是 r===g===b 且 ∈ {0,255} 且 alpha===1**。`alpha===1` 是
+關鍵 —— 半透明黑疊在白底上就是灰。**它有盲區,而且盲區是實際踩到的**:
+`getComputedStyle(el)` 讀不到偽元素,所以搜尋框的淺褐色 placeholder 掃描全綠、
+只有把畫面截圖出來看才發現(現在偽元素也掃了,但 hover/focus/拖曳中仍掃不到 ——
+那些靠中和層 specificity 高於 `hover:` 來保證,不靠測試)。
+另外**題目頁的選項是 `<li>` 不是 `<button>`**:用 role 找會什麼都點不到而測試
+照樣全綠,所以那條路徑有 `expectAfter` 的正面斷言擋著。改動這支測試時,先確認
+它在停用中和層時會紅。
+
 ### Images: R2 via Worker proxy (not public bucket)
 
 Uploads: `POST /api/upload` (multipart) → Worker validates size/MIME → R2 put with UUID key → returns `/img/<key>` URL.

@@ -25,6 +25,14 @@
   :root.dark {
     color-scheme: dark;
   }
+  /* 電子紙模式:原生控制項也要 1-bit。`accent-color` 是最容易漏的彩色破口 ——
+     沒宣告的話 checkbox/radio/range 會拿到系統色(iOS 是藍的),而那是瀏覽器
+     自己畫的,檔尾那層 class 選擇器完全構不到。 */
+  :root.eink {
+    color-scheme: light;
+    accent-color: #000;
+    caret-color: #000;
+  }
 
   body {
     font-feature-settings: "ss01", "cv11";
@@ -290,4 +298,335 @@
   :root {
     --bottom-nav-h: calc(3.5rem + max(1rem, env(safe-area-inset-bottom)));
   }
+}
+
+/* ==========================================================================
+   電子紙模式(1-bit 純黑白)
+   ==========================================================================
+
+   `<html class="eink">` 時生效。整層的前提是 **eink 絕不同時掛 `.dark`**
+   (見 lib/theme.ts 的 applyTheme):darkMode:'class' 只認 `.dark`,所以全站
+   1604 處 `dark:` utility 在這裡一律失效、走 light 那一套,我們只需要中和
+   「一套」配色。
+
+   ── 為什麼不改 tailwind.config.js 的色票 ──────────────────────────────
+   把 ink-* 與 accent 變數化、在 .eink 下重定義,看起來能讓 3143 處 token 自動
+   跟隨。不採用:`ink-200` 既是 `bg-ink-200`(淺底,1-bit 下要白)也是
+   `border-ink-200`(分隔線,要黑),一個變數服務不了兩個相反的角色;而且那會
+   動到現有 light/dark 的資料來源,手抄 hex 抄錯一位不會報錯、只會讓某個灰
+   稍微不同。
+
+   ── 策略:全滅 + 撈回 ────────────────────────────────────────────────
+   不列舉色系(`bg-emerald-` `bg-rose-` …)—— 那份清單會腐爛,而且漏掉
+   `text-ink-400`(#8a7d65,是灰)。改成:凡 class 名帶 bg-/text-/border-/
+   fill-/ring-/outline- 的元素一律塗黑白,再把「純色即語意」的少數撈回實心黑。
+   這同時吃掉 243 處 alpha modifier(`bg-emerald-900/30` 這種半透明色疊在白底
+   上就是灰)—— 直接覆蓋 background-color 本身,alpha 就不參與計算了。
+   hover 態也自動全滅:`hover:bg-accent` 是 (0,2,0),打不過下面的 (0,3,0)。
+
+   ── Specificity 契約(取代「靠檔案順序」)────────────────────────────
+   Tailwind 的 @layer 不是原生 cascade layer,輸出後就是普通 CSS,
+   specificity 先於順序。本區塊裸寫在 `@tailwind utilities` 之後(不進
+   @layer,否則 `[class*=]` 這種非 class-name 選擇器有被 tree-shake 的風險)。
+
+     一般 utility  `.bg-emerald-100`              (0,1,0)
+     hover:        `.hover\:bg-x:hover`           (0,2,0)
+     中和層        `.eink.eink [class*="bg-"]`    (0,3,0)  ← 本區塊,上限
+     反白後代      `.eink.eink .eink-invert […]`  (0,4,0)
+     eink: variant `.eink×4 .eink\:bg-black`      (0,5,0)  ← 恆勝,見 tailwind.config.js
+
+   所有 :not() 一律包 `:where()`,讓排除項的 specificity 歸零、整層維持在
+   (0,3,0) —— 沒有這層 :where(),帶兩個 :not 的規則會爬到 (0,5,0) 跟 variant
+   平手,精修就會被通則蓋掉(而且是無聲的)。
+   ========================================================================== */
+
+html.eink {
+  background: #fff;
+  color: #000;
+}
+
+/* ── 顏色全滅 ── */
+.eink.eink [class*="bg-"] {
+  background-color: #fff;
+  background-image: none;
+}
+.eink.eink [class*="text-"]:not(:where([class~="text-transparent"])) {
+  color: #000;
+}
+.eink.eink [class*="border-"]:not(:where([class~="border-transparent"])) {
+  border-color: #000;
+}
+.eink.eink [class*="divide-"] > * + * {
+  border-color: #000;
+}
+.eink.eink [class*="ring-"] {
+  --tw-ring-color: #000;
+  --tw-ring-offset-color: #fff;
+}
+.eink.eink [class*="outline-"] {
+  outline-color: #000;
+}
+.eink.eink [class*="fill-"]:not(:where([class~="fill-none"])) {
+  fill: #000;
+}
+.eink.eink [class*="stroke-"]:not(:where([class~="stroke-none"])) {
+  stroke: #000;
+}
+/* `.paper` 的 class 名不含 `bg-`,通則抓不到它的暖白底與紙紋點陣 */
+.eink.eink .paper {
+  background-color: #fff;
+  background-image: none;
+}
+
+/* ── 撈回:純色即語意的實心塊 ──
+   這些元素沒有文字,顏色就是它們的全部 —— 塗白等於讓它們消失。
+   `~=` 是精準的 token 比對:只中 `bg-accent` 本身,不中 `bg-accent/15`
+   (淡底,該白)也不中 `hover:bg-accent`(hover 態該全滅)。
+   `.eink-invert` 是給元件用的語意標記:在非 eink 主題下沒有任何樣式,
+   所以元件可以無條件掛著,不必寫成 `eink:` 條件式。 */
+.eink.eink [class~="bg-accent"],
+.eink.eink [class*="bg-black"],
+.eink.eink .eink-invert {
+  background-color: #000;
+  color: #fff;
+  border-color: #fff;
+}
+/* 反白區的後代:文字/圖示轉白。少了這條,子元素只要自己帶一個 text-* class
+   就會被上面的通則塗黑,變成黑底黑字 —— 而 `text-white` 不能靠 :not() 排除,
+   因為 `bg-emerald-500 text-white` 那種(底被塗白)會變成白底白字。 */
+.eink.eink [class~="bg-accent"] [class*="text-"],
+.eink.eink [class*="bg-black"] [class*="text-"],
+.eink.eink .eink-invert [class*="text-"] {
+  color: #fff;
+}
+.eink.eink [class~="bg-accent"] [class*="bg-"],
+.eink.eink .eink-invert [class*="bg-"] {
+  background-color: transparent;
+}
+.eink.eink [class~="bg-accent"] [class*="fill-"],
+.eink.eink .eink-invert [class*="fill-"] {
+  fill: #fff;
+}
+.eink.eink [class~="bg-accent"] [class*="border-"],
+.eink.eink .eink-invert [class*="border-"] {
+  border-color: #fff;
+}
+
+/* ── 動態效果 ──
+   e-ink 面板的重繪是整片刷新,連續動畫會留下殘影並吃光電量。這一條同時關掉
+   172 處 transition、41 處 animate-*、10 處 backdrop-blur、58 處 shadow-paper,
+   以及 .fade-in 與 @keyframes progress-bar。 */
+.eink.eink *,
+.eink.eink *::before,
+.eink.eink *::after {
+  transition-property: none;
+  animation: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  /* 不寫 `box-shadow: none` —— Tailwind 的 ring-* 是用 box-shadow 實作的,
+     一起關掉會把未讀圓點的白色外環之類的分隔線也殺掉。只把陰影變數歸零。 */
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+}
+/* 浮層失去 shadow-lg/xl 就沒有「浮起來」的訊號了,用外框補回 */
+.eink.eink [class*="shadow-lg"],
+.eink.eink [class*="shadow-xl"] {
+  outline: 2px solid #000;
+}
+/* 半透明疊在白底上就是灰。opacity-0 是機能性的(hover 才顯示),整條跳過 ——
+   同時帶 opacity-0 與 group-hover:opacity-100 的元素會被 :not 排除,行為不變。 */
+.eink.eink [class*="opacity-"]:not(:where([class~="opacity-0"])) {
+  opacity: 1;
+}
+/* disabled 原本靠 opacity-40 表達,灰不允許 → 改用虛線框 + 游標 */
+.eink.eink :disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+/* placeholder 是偽元素,上面那層 `[class*="text-"]` 構不到它(而且
+   getComputedStyle(el) 也讀不到 —— 這是靠掃描測試發現不了、只能靠看畫面
+   抓到的一種破口)。1-bit 沒有灰可以用來表示「這只是提示字」,改用斜體:
+   全黑又非斜體的話,使用者會以為欄位裡已經有內容。 */
+/* `.eink.eink` 而不是 `.eink` —— 這條要跟 `placeholder:text-ink-400` 這種
+   utility 競爭,而它是 (0,1,1),單個 .eink 只能打平、然後輸給檔案順序
+   (打包後 utilities 排在本區塊之後)。同一層的其他規則對手都是非 utility 的
+   `.tiptap pre` 之類,單個 .eink 就夠。 */
+.eink.eink ::placeholder {
+  color: #000;
+  opacity: 1;
+  font-style: italic;
+}
+
+/* ── 用符號補回「只有顏色在講」的語意 ──
+   有些地方的成敗完全靠色相傳達,文字本身不帶判斷(最典型的是成績頁那個
+   「85%」—— 及格與否只寫在 emerald/rose 裡)。這兩個 class 在非 eink 主題下
+   沒有任何樣式,所以元件可以無條件掛著,light/dark 的既有版面一個像素都不動。 */
+.eink .eink-mark-ok::before {
+  content: '✓ ';
+}
+.eink .eink-mark-bad::before {
+  content: '✗ ';
+}
+
+/* base layer 的 h1-h4 是 `@apply text-ink-800` 產生的直接屬性,而 <h1> 身上
+   通常只有 `mb-3` 之類的排版 class —— 上面那條 `[class*="text-"]` 構不到它。 */
+.eink h1,
+.eink h2,
+.eink h3,
+.eink h4 {
+  color: #000;
+}
+
+/* ── cal-heatmap ── */
+/* 月份標籤是 SVG text,Tailwind 的 text-* 構不到 */
+.eink .cal-heatmap-host text {
+  fill: #000;
+}
+/* 沒有活動的格子由 cal-heatmap 自己填 #ededed(灰)。1-bit 下改成白底 —— 但
+   白底在白紙上等於沒有格子,所以每一格都要細黑框,整張圖的骨架才看得見。
+   有活動的格子由 EINK_RANGE 的 <pattern> 上色,不受這條影響。 */
+.eink .cal-heatmap-host rect.ch-subdomain-bg {
+  stroke: #000;
+  stroke-width: 1px;
+}
+/* 空白格的 #ededed 來自 cal-heatmap 自己的 stylesheet(不是 fill attribute),
+   所以只能從反面認:**有活動的格子才會被 d3 寫上 fill attribute**。用
+   `:not([fill])` 精準只洗白空白格,不碰上面那組 <pattern> 網底。 */
+.eink .cal-heatmap-host rect.ch-subdomain-bg:not([fill]) {
+  fill: #fff;
+}
+
+/* ── loading 態:動畫關掉之後還要看得出「這裡在等」── */
+@keyframes eink-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* 唯一保留的動畫。e-ink 做得到低頻的局部刷新,做不到的是連續補間 —— 所以
+   改成一秒八格的階梯旋轉,而不是整個拿掉(拿掉的話 11 處 <Loader2> 會變成
+   一個靜止不動的圈,看起來像當掉)。 */
+.eink.eink [class~="animate-spin"] {
+  animation: eink-spin 1.2s steps(8) infinite;
+}
+/* 骨架屏中和後是一片全白 = 畫面空白,使用者會以為壞了。虛線框天然帶有
+   「這裡還沒有東西」的語意,靜止也讀得懂。 */
+.eink.eink [class~="animate-pulse"] {
+  border: 1px dashed #000;
+}
+/* 圖片上傳的無限捲動條停下來會凍在 1/3 寬,看起來像卡住 → 改成滿版實心黑 */
+.eink.eink [class~="animate-progress-bar"] {
+  transform: none;
+  width: 100%;
+  background-color: #000;
+}
+
+/* ── TipTap:@apply 產生的是直接屬性,而 <pre>/<mark>/<th> 這些元素身上沒有
+   class,所以上面那層 `[class*=]` 通則完全構不到,得逐一覆寫。 ── */
+.eink .tiptap,
+.eink .tiptap p,
+.eink .tiptap li,
+.eink .tiptap h1,
+.eink .tiptap h2,
+.eink .tiptap h3 {
+  color: #000;
+}
+.eink .tiptap p.is-editor-empty:first-child::before {
+  color: #000;
+}
+.eink .tiptap blockquote {
+  border-color: #000;
+  color: #000;
+}
+.eink .tiptap code {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+}
+/* 原本是 bg-ink-800 + text-ink-50 的深底淺字;底被洗白後字必須跟著轉黑 */
+.eink .tiptap pre {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+}
+.eink .tiptap pre code {
+  border: 0;
+}
+.eink .tiptap th,
+.eink .tiptap td {
+  border-color: #000;
+}
+.eink .tiptap th {
+  background-color: #fff;
+}
+.eink .tiptap hr {
+  border-color: #000;
+}
+.eink .tiptap img {
+  border-color: #000;
+}
+.eink .tiptap a {
+  color: #000;
+  text-decoration-color: #000;
+}
+/* mention 與 qref 原本靠 accent/emerald 兩種色相區分 → 改成反白 vs 細框 */
+.eink .tiptap .mention {
+  background-color: #000;
+  color: #fff;
+}
+.eink .tiptap .qref,
+.eink .tiptap a.qref {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+}
+.eink .tiptap.ProseMirror-focused .ProseMirror-selectednode {
+  outline-color: #000;
+}
+
+/* 螢光筆 vs AI 自動挖空 —— 灰階下兩者必撞(一個是黃、一個是 accent),所以改用
+   完全不同的視覺語彙:**手動螢光 = 實線/實心**(使用者自己畫的,重)、
+   **AI 自動挖空 = 虛線**(機器猜的,輕)。長段落被螢光時只是底線加粗,不會整段
+   反白吃掉 e-ink 的重繪預算。 */
+.eink .tiptap mark {
+  background-color: transparent;
+  color: #000;
+  border-bottom: 3px solid #000;
+  border-radius: 0;
+}
+.eink .cloze-active .tiptap mark,
+.eink .cloze-active .tiptap mark:hover {
+  background-color: #000;
+  border-bottom: 0;
+}
+.eink .cloze-active .tiptap mark.cloze-revealed {
+  background-color: transparent;
+  border-bottom: 3px solid #000;
+}
+.eink .cloze-active .tiptap .cloze-auto,
+.eink .cloze-active .tiptap .cloze-auto:hover {
+  background-color: #fff;
+  border: 2px dashed #000;
+}
+.eink .cloze-active .tiptap .cloze-auto.cloze-revealed {
+  background-color: transparent;
+  border: 0;
+  border-bottom: 2px dashed #000;
+}
+
+/* ── mention 下拉與編輯器工具列(class 名不帶 bg-/text-)── */
+.eink .mention-list {
+  background-color: #fff;
+  color: #000;
+  border-color: #000;
+}
+.eink .mention-item:hover,
+.eink .mention-item.is-selected {
+  background-color: #000;
+  color: #fff;
+}
+.eink .editor-toolbar {
+  background-color: #fff;
+  border-color: #000;
 }

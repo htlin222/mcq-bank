@@ -29,19 +29,22 @@ type LeaderRow = {
 
 // 磚塊配色:單一色相的明度階梯,低數字貼近 cream 底、越大越往 ink 走,
 // 最後兩階交給 accent 收尾。不發明九種顏色,對比度也就不必逐格調。
+// 電子紙:九階明度在 1-bit 下會全部塌成白底,盤面只剩浮空的數字、看不出格線
+// (實際截圖確認過)。改用三階的框線語彙 —— 數字本身才是這個遊戲的主要資訊,
+// 明度階梯一直都只是輔助。
 const TILE: Record<number, string> = {
-  2: 'bg-ink-100 text-ink-600 dark:bg-ink-700 dark:text-ink-200',
-  4: 'bg-ink-200 text-ink-700 dark:bg-ink-600 dark:text-ink-100',
-  8: 'bg-ink-300 text-ink-800 dark:bg-ink-500 dark:text-ink-50',
-  16: 'bg-ink-400 text-ink-50',
-  32: 'bg-ink-500 text-ink-50',
-  64: 'bg-ink-600 text-ink-50',
-  128: 'bg-ink-700 text-ink-50',
-  256: 'bg-ink-800 text-ink-50',
-  512: 'bg-ink-900 text-ink-50',
-  1024: 'bg-accent-light text-white',
+  2: 'bg-ink-100 text-ink-600 dark:bg-ink-700 dark:text-ink-200 eink:border eink:border-black',
+  4: 'bg-ink-200 text-ink-700 dark:bg-ink-600 dark:text-ink-100 eink:border eink:border-black',
+  8: 'bg-ink-300 text-ink-800 dark:bg-ink-500 dark:text-ink-50 eink:border eink:border-black',
+  16: 'bg-ink-400 text-ink-50 eink:border eink:border-black',
+  32: 'bg-ink-500 text-ink-50 eink:border eink:border-black',
+  64: 'bg-ink-600 text-ink-50 eink:border eink:border-black',
+  128: 'bg-ink-700 text-ink-50 eink:border-2 eink:border-black',
+  256: 'bg-ink-800 text-ink-50 eink:border-2 eink:border-black',
+  512: 'bg-ink-900 text-ink-50 eink:border-2 eink:border-black',
+  1024: 'bg-accent-light text-white eink-invert',
 };
-const TILE_2048 = 'bg-accent text-white';
+const TILE_2048 = 'bg-accent text-white eink-invert';
 
 function tileClass(v: number): string {
   return TILE[v] ?? TILE_2048;

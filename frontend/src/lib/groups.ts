@@ -27,11 +27,14 @@ export function isGroupLabel(value: string | null | undefined): value is string 
 // Stable colour assignment by index, so the first configured group is
 // always amber, the second sky, etc. Wraps after 4 — projects with more
 // than 4 categories should extend this palette.
+// 電子紙(1-bit)下色相全部塌成同一個灰,所以每一格另外綁一種**框線語彙**。
+// 填充只能有兩種(黑/白),線型卻有四種,剛好對得上這份調色盤的長度。badge 裡
+// 本來就有科別文字,顏色從來不是唯一線索 —— 這是讓它在遠距/瞄一眼時也能分辨。
 const BADGE_PALETTE = [
-  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300',
-  'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300',
-  'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 eink-invert',
+  'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300 eink:border eink:border-black',
+  'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300 eink:border-4 eink:border-double eink:border-black',
+  'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 eink:border-2 eink:border-dashed eink:border-black',
 ] as const;
 
 export function groupBadgeClass(label: string | null | undefined): string {

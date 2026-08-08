@@ -1,4 +1,5 @@
 import Animal from 'react-animals';
+import { useIsEink } from '../lib/theme';
 
 type Props = {
   email: string;
@@ -24,6 +25,17 @@ const ANIMALS = [
 ];
 const ANIMAL_COLORS = ['red', 'blue', 'yellow', 'purple', 'orange', 'green', 'teal'];
 
+// 電子紙模式的替身。react-animals 是 inline style 上色的彩色 SVG,styles.css
+// 那層 class 選擇器完全構不到它 —— 這是少數必須改渲染、而不是覆寫樣式的地方。
+// 四種框線讓「每個人有固定的長相」這件事在 1-bit 下仍然成立(顏色沒了,但
+// 首字 + 框型的組合還在)。
+const EINK_RINGS = [
+  'border-2 border-solid',
+  'border-[3px] border-double',
+  'border-2 border-dashed',
+  'border-2 border-dotted',
+];
+
 function hashEmail(email: string): number {
   let h = 0;
   for (let i = 0; i < email.length; i++) {
@@ -34,6 +46,7 @@ function hashEmail(email: string): number {
 
 export function Avatar({ email, avatarKey, name, size = 32 }: Props) {
   const style = { width: size, height: size };
+  const eink = useIsEink();
 
   if (avatarKey) {
     return (
@@ -50,6 +63,20 @@ export function Avatar({ email, avatarKey, name, size = 32 }: Props) {
   // "Random" but derived from the email hash, so each user keeps the same
   // animal/color across sessions and devices.
   const h = hashEmail(email);
+
+  if (eink) {
+    const initial = (name || email).trim().charAt(0).toUpperCase() || '?';
+    return (
+      <div
+        className={`rounded-full bg-white text-black grid place-items-center font-bold shrink-0 select-none leading-none ${EINK_RINGS[h % EINK_RINGS.length]}`}
+        style={{ ...style, fontSize: size * 0.45 }}
+        title={name || email}
+      >
+        {initial}
+      </div>
+    );
+  }
+
   const animal = ANIMALS[h % ANIMALS.length];
   const color = ANIMAL_COLORS[Math.floor(h / ANIMALS.length) % ANIMAL_COLORS.length];
 

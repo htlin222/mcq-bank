@@ -1,3 +1,5 @@
+import plugin from 'tailwindcss/plugin';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
@@ -52,5 +54,16 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addVariant }) => {
+      // 電子紙(1-bit 純黑白)模式的逐元件精修前綴:`eink:bg-black` 等。
+      //
+      // 重複四次的 `.eink` 是刻意的 specificity 加權,不是手滑。產出的規則是
+      // (0,5,0),恆勝 styles.css 檔尾那層 1-bit 中和層的 (0,4,0) —— 所以精修
+      // 不必用 !important 就能蓋過「全部塗白/塗黑」的通則。
+      // 別「順手清理」成 `.eink &`:那是 (0,2,0),會輸給中和層,所有精修一次
+      // 全部失效,而且是無聲的。
+      addVariant('eink', '.eink.eink.eink.eink &');
+    }),
+  ],
 };

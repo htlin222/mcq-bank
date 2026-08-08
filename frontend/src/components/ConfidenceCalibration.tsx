@@ -66,7 +66,7 @@ export function ConfidenceCalibration() {
 							<span className="w-14 shrink-0 text-sm text-ink-600 dark:text-ink-300">
 								{LABEL[b.confidence]}
 							</span>
-							<div className="flex-1 h-3 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden">
+							<div className="flex-1 h-3 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden eink:border eink:border-black">
 								<div
 									className="h-full bg-accent rounded-full transition-all"
 									style={{ width: `${pct}%` }}
