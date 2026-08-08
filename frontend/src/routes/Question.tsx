@@ -183,19 +183,17 @@ export function Question() {
 				: null;
 		return raw === "tabs" ? "tabs" : "columns";
 	});
-	// Which pane is visible in tabs mode (≥md only).
+	// Which pane is visible in tabs mode.
 	const [mainTab, setMainTab] = useState<MainTab>("question");
-	const tabsMode = layout === "tabs";
 
-	// ── 手機也走分頁 (#96) ────────────────────────────────────────────────
+	// ── 手機沿用桌機那一組分頁,不另做一套 (#96) ──────────────────────────
 	// <md 以前是把兩欄直接疊起來:題目卡在上、詳解/筆記/討論全部在下。一張含五個
-	// 選項的題目卡就吃掉一整個手機螢幕,所以「看詳解」永遠要先捲過整張卡 —— 回報
-	// 說的「擠到下面去」。
+	// 選項的題目卡就吃掉一整個手機螢幕,所以「看詳解」永遠要先捲過整張卡。
 	//
-	// 這裡刻意**不**沿用桌機的 `mainTab`(六個值,每個 pane 一個):手機用不到那麼
-	// 細,內層那條 詳解共筆/個人筆記/討論串/… 的 strip 本來就在右欄頂端而且是
-	// sticky 的,直接當第二層導覽就好。手機只需要回答一個問題:現在看的是題目,
-	// 還是題目以外的東西。
+	// 修法是**讓窄螢幕直接進入 tabs 模式**,而不是給手機另一套兩段式導覽 —— 一頁
+	// 兩層分頁(題目/詳解區 再 詳解共筆/個人筆記/…)光是要解釋「哪一層管什麼」就
+	// 已經輸了,而且每次加分頁都要記得改兩個地方。`layout` 仍然只記桌機的偏好,
+	// 窄螢幕只是無條件覆寫成 tabs。
 	const [narrow, setNarrow] = useState(
 		() =>
 			typeof window !== "undefined" &&
@@ -207,24 +205,23 @@ export function Question() {
 		mq.addEventListener("change", onChange);
 		return () => mq.removeEventListener("change", onChange);
 	}, []);
-	const [mobilePane, setMobilePane] = useState<"question" | "content">(
-		"question",
+	const tabsMode = layout === "tabs" || narrow;
+
+	// tabs 模式底下所有的顯示/隱藏原本都寫成 `md:hidden` / `md:block` —— 那是因為
+	// 它以前只在 ≥md 存在。窄螢幕也走 tabs 之後,那些前綴在 <md 一律不生效,分頁
+	// 會全部同時攤開。這兩個字串把「該用哪一種」集中在一處,而不是散在十處
+	// `narrow ? … : …` 三元式裡。
+	const mdHidden = narrow ? "hidden" : "md:hidden";
+	const mdBlock = narrow ? "block" : "md:block";
+	// 切分頁要回到頂端:窄螢幕下每個分頁共用同一條頁面捲軸,不歸零的話從長長的
+	// 詳解切回題目,會落在題目卡底下的空白處,看起來像整頁空了。
+	const pickTab = useCallback(
+		(t: MainTab) => {
+			setMainTab(t);
+			if (narrow) window.scrollTo({ top: 0 });
+		},
+		[narrow],
 	);
-	// 換題一定回到題目。少了這行,從詳解頁按「下一題」會直接落在下一題的詳解上 ——
-	// 那是劇透,不是便利。
-	useEffect(() => {
-		setMobilePane("question");
-	}, [id]);
-	// 兩欄模式在 ≥md 是同時可見的,所以窄螢幕的隱藏只能靠 JS 算(用 `md:hidden`
-	// 之類的字首寫不出「只在 <md 依狀態隱藏」)。
-	const showQuestionPane = !narrow || mobilePane === "question";
-	const showContentPane = !narrow || mobilePane === "content";
-	// 換頁要回到頂端。兩個 pane 共用同一條頁面捲軸,不歸零的話從長長的詳解切回
-	// 題目,會落在題目卡底下的空白處 —— 看起來像整頁空了。
-	const switchMobilePane = useCallback((pane: "question" | "content") => {
-		setMobilePane(pane);
-		window.scrollTo({ top: 0 });
-	}, []);
 
 	// Reported up by QuestionCard so the gamepad knows whether the d-pad is
 	// still picking options or has become a scroll control. The right column is
@@ -603,10 +600,15 @@ export function Question() {
 		}
 	}, [data?.id, data?.comment_count]);
 
-	// If the user is on a columns-only inner tab (討論串 / 相似題目, both hidden
-	// below md) and the viewport shrinks below md, snap them back to the
-	// explanation tab so they aren't stuck on an invisible tab with no content.
+	// 雙欄模式下 討論串 / 相似題目 這兩個內層分頁是 md 以上才有的(窄螢幕那時候
+	// 它們攤在頁面流的底部),所以視窗縮到 <md 要把人拉回詳解,免得停在一個看不見
+	// 又沒有內容的分頁上。
+	//
+	// **窄螢幕現在一律走 tabs 模式,那裡這兩個分頁是真的存在的** —— 少了 tabsMode
+	// 這個條件,使用者在手機上點「討論串」會被這條 effect 立刻彈回詳解:上面那條
+	// strip 顯示討論串已選取,底下卻是詳解,而且完全無聲。
 	useEffect(() => {
+		if (tabsMode) return;
 		if (tab !== "discussion" && tab !== "similar") return;
 		const mq = window.matchMedia("(min-width: 768px)");
 		const sync = () => {
@@ -615,7 +617,7 @@ export function Question() {
 		sync();
 		mq.addEventListener("change", sync);
 		return () => mq.removeEventListener("change", sync);
-	}, [tab]);
+	}, [tab, tabsMode]);
 
 	// 相似題目 — lazy-loaded after the main question payload arrives.
 	// Kept off the hot /api/questions/:id path so navigation stays snappy.
@@ -1401,33 +1403,6 @@ export function Question() {
 					</div>
 				</header>
 
-				{/* 手機的第一層分頁 (#96)。只有兩顆 —— 第二層(詳解共筆/個人筆記/
-			    討論串/…)是右欄頂端那條既有的 strip,它在 <md 一直都在。
-			    放在 navBarRef 這個 sticky 區塊裡面,所以捲動時它跟「上一題/下一題」
-			    一起釘在頂端,而底下兩層 sticky 的 --nav-h 位移是量出來的,會自己
-			    把這條的高度算進去。 */}
-				{narrow && (
-					<div className="flex border-b border-ink-200 dark:border-ink-700 md:hidden">
-						<TabButton
-							active={mobilePane === "question"}
-							onClick={() => switchMobilePane("question")}
-						>
-							題目
-						</TabButton>
-						<TabButton
-							active={mobilePane === "content"}
-							onClick={() => switchMobilePane("content")}
-						>
-							詳解區
-							{data.my_note && (
-								<span className="ml-1.5 text-[10px] text-ink-400 dark:text-ink-500">
-									●
-								</span>
-							)}
-						</TabButton>
-					</div>
-				)}
-
 				{/* ≥md has two view modes (header toggle / `t` shortcut):
 			    - columns: question left, everything else right — a flex row pinned
 			      to the remaining viewport height; each pane is its own scroll
@@ -1437,22 +1412,28 @@ export function Question() {
 			      strip, with normal page scrolling and a comfortable reading width.
 			    Below md both modes collapse to the same single stacked column. */}
 				{tabsMode && (
-					<div className="hidden md:flex flex-wrap border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto pt-1 pb-0">
+					<div
+						className={
+							"flex-wrap border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto pt-1 pb-0 " +
+							// 窄螢幕一律 tabs,所以這條要顯示;≥md 才由 tabsMode 決定。
+							(narrow ? "flex" : "hidden md:flex")
+						}
+					>
 						<TabButton
 							active={mainTab === "question"}
-							onClick={() => setMainTab("question")}
+							onClick={() => pickTab("question")}
 						>
 							題目
 						</TabButton>
 						<TabButton
 							active={mainTab === "explanation"}
-							onClick={() => setMainTab("explanation")}
+							onClick={() => pickTab("explanation")}
 						>
 							詳解
 						</TabButton>
 						<TabButton
 							active={mainTab === "note"}
-							onClick={() => setMainTab("note")}
+							onClick={() => pickTab("note")}
 						>
 							個人筆記
 							{data.my_note && (
@@ -1463,7 +1444,7 @@ export function Question() {
 						</TabButton>
 						<TabButton
 							active={mainTab === "discussion"}
-							onClick={() => setMainTab("discussion")}
+							onClick={() => pickTab("discussion")}
 						>
 							討論串
 							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
@@ -1472,7 +1453,7 @@ export function Question() {
 						</TabButton>
 						<TabButton
 							active={mainTab === "similar"}
-							onClick={() => setMainTab("similar")}
+							onClick={() => pickTab("similar")}
 						>
 							相似題目
 							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
@@ -1482,7 +1463,7 @@ export function Question() {
 						{hasVideos && (
 							<TabButton
 								active={mainTab === "video"}
-								onClick={() => setMainTab("video")}
+								onClick={() => pickTab("video")}
 							>
 								影片
 								<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
@@ -1500,10 +1481,9 @@ export function Question() {
 				{/* Left: question stem / options / answer */}
 				<div
 					className={
-						(showQuestionPane ? "" : "hidden ") +
 						(tabsMode
 							? "md:max-w-4xl md:mx-auto md:pb-12" +
-								(mainTab === "question" ? "" : " md:hidden")
+								(mainTab === "question" ? "" : ` ${mdHidden}`)
 							: "md:h-full md:min-w-0 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8")
 					}
 					style={tabsMode ? undefined : { flexBasis: `${splitPct}%` }}
@@ -1548,13 +1528,12 @@ export function Question() {
 					ref={rightColRef}
 					className={
 						"tiptap-compact md:mt-0 " +
-						// 手機分頁後這一欄不再接在題目卡下面,`mt-8` 那道間距就變成
-						// 標籤列與內容之間一塊沒來由的空白。
+						// 分頁之後這一欄不再接在題目卡下面,`mt-8` 那道間距就變成標籤列
+						// 與內容之間一塊沒來由的空白。
 						(narrow ? "" : "mt-8 ") +
-						(showContentPane ? "" : "hidden ") +
 						(tabsMode
 							? "md:max-w-4xl md:mx-auto md:pb-12" +
-								(mainTab === "question" ? " md:hidden" : "")
+								(mainTab === "question" ? ` ${mdHidden}` : "")
 							: "md:h-full md:min-w-0 md:flex-1 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8")
 					}
 				>
@@ -1565,7 +1544,7 @@ export function Question() {
 						className={
 							"mt-0" +
 							(tabsMode && (mainTab === "similar" || mainTab === "video")
-								? " md:hidden"
+								? ` ${mdHidden}`
 								: "")
 						}
 					>
@@ -1584,7 +1563,7 @@ export function Question() {
 							<div
 								className={
 									"flex flex-wrap border-b border-ink-200 dark:border-ink-700" +
-									(tabsMode ? " md:hidden" : "")
+									(tabsMode ? ` ${mdHidden}` : "")
 								}
 							>
 								<TabButton
@@ -1997,7 +1976,7 @@ export function Question() {
 				    below lg while this tab is active, so we never land in a state
 				    where the tab is set to "discussion" but invisible. */}
 						{tab === "discussion" && (
-							<div className="hidden md:block mt-2">
+							<div className={(narrow ? "block" : "hidden md:block") + " mt-2"}>
 								{me ? (
 									<CommentThread
 										questionId={data.id}
@@ -2019,11 +1998,16 @@ export function Question() {
 					{hasVideos && (
 						<section
 							className={
-								(tab === "video" ? "block" : "hidden") +
+								// 同 相似題目:窄螢幕的顯示交給下面那段(由 mainTab 決定)。
+								// `tab` 不會跟著 mainTab 走到 video —— 上面那條同步 effect 只處理
+								// explanation/note/discussion,所以留著舊判斷的話 "hidden" 會贏過
+								// 後面的 "block"(Tailwind 的 .hidden 排在 .block 之後),影片分頁
+								// 就永遠是空白的。
+								(narrow ? "" : tab === "video" ? "block" : "hidden") +
 								" mt-8 " +
 								((tabsMode ? mainTab === "video" : tab === "video")
-									? "md:block"
-									: "md:hidden")
+									? mdBlock
+									: mdHidden)
 							}
 						>
 							<div className="mb-4 flex items-baseline justify-between gap-3">
@@ -2058,10 +2042,12 @@ export function Question() {
 					<section
 						className={
 							"mt-8 " +
-							(similar.length > 0 ? "block" : "hidden") +
+							// 窄螢幕的顯示完全交給下面那段(含「尚無相似題目」空狀態,跟桌機
+							// 分頁一致);寬螢幕維持原本「有才佔位」的流式版面。
+							(narrow ? "" : similar.length > 0 ? "block" : "hidden") +
 							((tabsMode ? mainTab === "similar" : tab === "similar")
-								? " md:block"
-								: " md:hidden")
+								? ` ${mdBlock}`
+								: ` ${mdHidden}`)
 						}
 					>
 						<div className="flex items-center justify-between mb-3">
@@ -2134,7 +2120,7 @@ export function Question() {
 							className={
 								"mt-10" +
 								((tabsMode ? mainTab !== "similar" : tab !== "similar")
-									? " md:hidden"
+									? ` ${mdHidden}`
 									: "")
 							}
 						>
@@ -2176,11 +2162,10 @@ export function Question() {
 						</section>
 					)}
 
-					{/* Comments — mobile only. At lg+ this content is shown inside the
-			    詳解共筆 / 個人筆記 / 討論串 tab strip above (the 討論串 tab is
-			    `hidden md:inline-flex`), so we hide this bottom section there to
-			    avoid rendering CommentThread twice and double-fetching. */}
-					<section className="mt-12 md:hidden">
+					{/* Comments — 只有雙欄模式殘留的窄版面才需要。tabs 模式(≥md 的分頁檢視,
+			    以及所有 <md)上面那條 strip 裡就有「討論串」分頁,這裡再渲染一次會讓
+			    CommentThread 掛兩份、重複抓一次留言。 */}
+					<section className={"mt-12 " + (tabsMode ? "hidden" : "md:hidden")}>
 						<h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-3">
 							討論
 						</h2>

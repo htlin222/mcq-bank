@@ -70,11 +70,12 @@ const ROUTES = [
   {
     path: '/q/113-050',
     name: '題目頁 → 詳解分頁(防劇透遮罩)',
-    // 必須單獨走一條路由:手機一律分頁 (#96) 之後,詳解那一欄在題目分頁下是
+    // 必須單獨走一條路由:手機一律走分頁 (#96) 之後,詳解那一欄在「題目」分頁下是
     // display:none,掃描迴圈的 getClientRects() 會整欄跳過 —— 上面那條路由再怎麼
     // 掃都碰不到防劇透遮罩。這正是「模糊成一團灰」能活到使用者手上的原因。
+    // 用 /^詳解/ 而不是精確字串:分頁列上「詳解」與內層可能同名,取第一顆(上層)。
     async interact(page) {
-      await page.getByRole('button', { name: '詳解區' }).click();
+      await page.getByRole('button', { name: /^詳解/ }).first().click();
       await page.waitForTimeout(500);
     },
     expectAfter: ['點擊顯示詳解'],
