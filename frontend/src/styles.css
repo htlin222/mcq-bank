@@ -452,6 +452,23 @@ html.eink {
 .eink.eink [class*="outline-"]:not(:where([class*="outline-none"])) {
 	outline-color: #000;
 }
+/* 上面那條是**靠 class 名選取**的,所以構不到「元素自己沒帶任何 outline utility」
+   的情況 —— 而那時畫外框的是 UA:Chromium/Android 的預設 focus ring 是
+   `outline: auto 1px rgb(16, 16, 16)`,深灰(不是黑),且 `auto` 在 Blink 下是一圈
+   **雙色環**。1-bit 面板把它畫成灰,e-ink 的殘影再讓它留在畫面上,於是「點過的
+   按鈕莫名有灰框、沒點過的完全正常」—— 跟 tap-highlight 那個坑症狀一模一樣,
+   所以很容易誤以為已經修掉了。實際命中的是上一題/下一題、整條分頁列、底部導覽,
+   以及筆記內文的 @題號 連結:它們一個 outline utility 都沒帶。
+   帶 `focus:outline-none` 的(手風琴標題、輸入框)要排除,理由同上面那條 —— 它們
+   用 ring 表達 focus,再加一個 outline 就是兩層指示。`:where()` 讓排除項不加權,
+   整條停在 (0,2,0):意圖寫在選擇器裡,不靠「utilities 打包後排在本區塊之後」那個
+   反直覺的檔案順序(那正是 ::placeholder 踩過的坑)。
+   靜態掃描抓不到這個破口:平常 outline-style 是 none,只有 :focus-visible 成立的
+   那一瞬間才變 auto —— 得真的把焦點移上去才量得到。 */
+.eink :focus-visible:not(:where([class*="outline-none"])) {
+	outline: 2px solid #000;
+	outline-offset: 2px;
+}
 .eink.eink [class*="fill-"]:not(:where([class~="fill-none"])) {
 	fill: #000;
 }

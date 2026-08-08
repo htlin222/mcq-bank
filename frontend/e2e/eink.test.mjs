@@ -130,8 +130,12 @@ function cssPath(el) {
 `;
 
 let browser;
+// 焦點外框那幾條專用 —— 見下面的說明:那個破口是 Blink 的 UA stylesheet 行為,
+// 拿 WebKit 驗會全綠。
+let blink;
 let server;
 let skipReason = null;
+let blinkSkipReason = null;
 let THEME_KEY;
 
 before(async () => {
@@ -141,24 +145,32 @@ before(async () => {
     return;
   }
   let webkit;
+  let chromium;
   try {
-    ({ webkit } = await import('playwright'));
+    ({ webkit, chromium } = await import('playwright'));
   } catch {
     skipReason = '沒有 playwright(pnpm --dir frontend add -D playwright)';
+    blinkSkipReason = skipReason;
     return;
   }
   try {
     browser = await webkit.launch();
   } catch (e) {
     skipReason = `WebKit 起不來(pnpm exec playwright install webkit):${e.message.split('\n')[0]}`;
-    return;
   }
+  try {
+    blink = await chromium.launch();
+  } catch (e) {
+    blinkSkipReason = `Chromium 起不來(pnpm exec playwright install chromium):${e.message.split('\n')[0]}`;
+  }
+  if (skipReason && blinkSkipReason) return;
   server = await startServer({ dist: DIST });
 });
 
 after(async () => {
   if (server) await server.close();
   if (browser) await browser.close();
+  if (blink) await blink.close();
 });
 
 for (const route of ROUTES) {
@@ -266,6 +278,90 @@ for (const route of ROUTES) {
         uniq.slice(0, 40).map((b) => `${b.prop}: ${b.value}  ← ${b.sel}`),
         [],
         `${route.path} 有非 1-bit 的顏色(共 ${uniq.length} 處,列出前 40)`,
+      );
+    } finally {
+      await ctx.close();
+    }
+  });
+}
+
+// 焦點外框:上面那套掃描永遠抓不到的一種灰。
+//
+// 平常 outline-style 是 none,只有 :focus-visible 成立的那一瞬間,UA 才畫出
+// 它的預設 focus ring —— Chromium/Android 上是 `outline: auto 1px rgb(16,16,16)`,
+// 深灰而且是雙色環。中和層是**靠 class 名選取**的(`[class*="outline-"]`),而
+// 上一題/下一題、分頁列、底部導覽、筆記內文的 @題號 連結一個 outline utility
+// 都沒帶,所以那圈灰一路放行。e-ink 的殘影再讓它留在畫面上,症狀就是「點過的
+// 按鈕莫名有灰框、沒點過的完全正常」—— 跟 tap-highlight 那個坑長得一樣,所以
+// 很容易誤以為早就修掉了。
+//
+// 這支**跑 Chromium,不是 WebKit** —— 整個 e2e 套件為了 iOS 用 WebKit,但這個
+// 破口是 Blink 的 UA stylesheet 行為(WebKit 畫的 focus ring 不一樣),而回報的
+// 裝置是 BOOX,BOOX 是 Android,跑的就是 Blink。拿 WebKit 驗這條會全綠。
+//
+// 驗的是正面效果:先斷言「真的量到**看得見的**外框」,再斷言每個都是黑白。
+// 「看得見」那三個字是承重的 —— 全站有 30 處 `focus:outline-none`,它們的外框是
+// 2px 透明,計進去的話正面斷言必然成立,測試就退化成空掃的綠燈(同
+// users_online.json 那個坑)。
+const FOCUS_ROUTES = ['/q/113-050', '/notes/n1', '/', '/year/113'];
+
+for (const routePath of FOCUS_ROUTES) {
+  test(`e-ink 1-bit:焦點外框(UA 預設 focus ring 是灰的)${routePath}`, async (t) => {
+    if (blinkSkipReason) {
+      if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${blinkSkipReason}`);
+      return t.skip(blinkSkipReason);
+    }
+
+    // 不用 iPhone 13 device —— 那會把引擎的觸控啟發式帶進來,而 BOOX 是一台
+    // 用實體按鍵/手寫筆操作的 Android 平板。純 viewport 就好。
+    const ctx = await blink.newContext({ viewport: { width: 420, height: 900 } });
+    await ctx.addInitScript((k) => localStorage.setItem(k, 'eink'), THEME_KEY);
+    const page = await ctx.newPage();
+    await ctx.route('**/*', (r) =>
+      r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+    );
+
+    try {
+      await page.goto(server.origin + routePath, {
+        waitUntil: 'domcontentloaded',
+        timeout: 30_000,
+      });
+      await page.waitForTimeout(3_000);
+
+      const bad = [];
+      let framed = 0;
+      // 鍵盤走訪 —— 用 Tab 而不是 .focus():程式呼叫的 focus 不一定被判定成
+      // focus-visible,而 UA 的 focus ring 只在 focus-visible 成立時才畫。
+      for (let i = 0; i < 30; i++) {
+        await page.keyboard.press('Tab');
+        const seen = await page.evaluate(() => {
+          const el = document.activeElement;
+          if (!el || el === document.body) return null;
+          const cs = getComputedStyle(el);
+          if (cs.outlineStyle === 'none' || (parseFloat(cs.outlineWidth) || 0) === 0) return null;
+          const label = (el.innerText || el.getAttribute('aria-label') || el.tagName).trim().slice(0, 24);
+          return { label, color: cs.outlineColor, style: `${cs.outlineStyle} ${cs.outlineWidth}` };
+        });
+        if (!seen) continue;
+        const m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?/.exec(seen.color);
+        if (!m) continue;
+        const [r, g, b] = [+m[1], +m[2], +m[3]];
+        const a = m[4] === undefined ? 1 : +m[4];
+        if (a === 0) continue; // 透明外框(focus:outline-none,用 ring 表達焦點)
+        framed++;
+        if (!(r === g && g === b && (r === 0 || r === 255) && a === 1)) {
+          bad.push(`${seen.style} ${seen.color}  ← 「${seen.label}」`);
+        }
+      }
+
+      assert.ok(
+        framed > 0,
+        `${routePath} 走訪 30 次都沒量到任何**看得見的**焦點外框 —— 這次掃描什麼都沒驗到`,
+      );
+      assert.deepEqual(
+        [...new Set(bad)],
+        [],
+        `${routePath} 的焦點外框不是 1-bit(共 ${bad.length} 處)`,
       );
     } finally {
       await ctx.close();

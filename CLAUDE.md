@@ -662,6 +662,26 @@ App bar 的 `backdrop-blur` 一起 `display:none`,整條導覽列消失。
 沒點過的連結完全正常 —— 很容易誤判成某幾個元件的樣式壞了)。兩者都在
 `html.eink` / `.eink ::selection` 直接宣告。
 
+**第三個是 UA 的預設 focus ring,而且它的症狀跟 tap-highlight 一模一樣** ——
+所以第一次看到會以為是那條沒修好,往 `-webkit-tap-highlight-color` 方向查然後
+一無所獲。Chromium/Android 沒帶 outline utility 的元素聚焦時畫的是
+`outline: auto 1px rgb(16,16,16)`:深灰,不是黑,而且 `auto` 在 Blink 下是一圈
+**雙色環**。中和層 `[class*="outline-"]` 是**靠 class 名選取**的,構不到「元素
+自己什麼都沒帶、由 UA 補上」這種情況 —— 實際命中上一題/下一題、整條分頁列、
+底部導覽、筆記內文的 `@題號` 連結。修法是 `.eink :focus-visible` 直接接管畫成
+純黑實線,並用 `:not(:where([class*="outline-none"]))` 讓帶 ring 的元素(手風琴
+標題、輸入框)維持原樣,否則焦點會有兩層指示。
+
+這個破口有兩層防禦盲區,加測試時要一起繞過:
+- **靜態掃描永遠抓不到** —— 平常 `outline-style` 是 `none`,只有 `:focus-visible`
+  成立的那一瞬間才變 `auto`。得真的用 **Tab** 把焦點移上去(`.focus()` 不一定被
+  判定成 focus-visible)。
+- **拿 WebKit 驗會全綠** —— 這是 Blink 的 UA stylesheet 行為。整個 e2e 套件為了
+  iOS 跑 WebKit,但回報的裝置是 BOOX,BOOX 是 Android。`eink.test.mjs` 因此為這
+  幾條**另外開一個 chromium**,理由寫在該處。
+- 正面斷言要數的是**看得見的**外框:全站 30 處 `focus:outline-none` 的外框是 2px
+  透明,計進去的話「有量到東西」必然成立,測試就退化成空掃的綠燈。
+
 **必須改渲染、CSS 構不到的只有三處**:`Avatar`(react-animals 是 inline style
 的彩色 SVG → 改渲染首字 + 四種框線)、`ActivityHeatmap`(顏色 bake 進 SVG,五階
 明度改成 `<pattern>` 網底密度;空白格靠 `:not([fill])` 認 —— 有活動的格子才會被
