@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "heme-review-01",
+    "title": "紅血球生成與貧血概論",
+    "sort_order": 1,
+    "r2_key": "lectures/heme-review-01.pdf",
+    "page_count": 48,
+    "bytes": 3145728,
+    "created_at": 1754000000000,
+    "anno_count": 3,
+    "note_count": 1,
+    "kind": "lecture"
+  },
+  {
+    "slug": "heme-review-02",
+    "title": "白血病分類與治療原則",
+    "sort_order": 2,
+    "r2_key": "lectures/heme-review-02.pdf",
+    "page_count": 62,
+    "bytes": 4194304,
+    "created_at": 1754100000000,
+    "anno_count": 0,
+    "note_count": 0,
+    "kind": "lecture"
+  }
+]
