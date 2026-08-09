@@ -369,25 +369,23 @@ for (const routePath of FOCUS_ROUTES) {
   });
 }
 
-// 原生控制項繪製:整套顏色掃描結構性看不見的一塊灰。
+// 每顆按鈕都要有**不透明**底,否則 BOOX 的瀏覽器會在底下畫自己的底色。
 //
-// Tailwind preflight 給每個 <button> 設 `-webkit-appearance: button`,那會讓
-// 瀏覽器改用平台的原生按鈕外觀畫底 —— Android(BOOX)的 Material 按鈕底是灰的。
-// 它有三層偽裝:原生繪製**不出現在 getComputedStyle 裡**(background-color 永遠
-// 讀到 preflight 的 transparent);macOS/桌機 Chromium 根本不畫;而且只要作者給了
-// 不透明背景就會被蓋掉 —— 中和層把「class 含 bg-*」的按鈕塗成 #fff,**意外**替
-// 那些擋掉了,於是只有 class 裡一個 bg- 都沒有的按鈕露出灰底。
+// 那塊底色是誰畫的,查了四輪沒收斂(tap-highlight、UA focus ring、原生控制項
+// 繪製、accent-color 全部被實機一一否證),而且它結構性地量不到 —— 桌機引擎不畫,
+// getComputedStyle 也讀不到。所以這裡驗的不是「底色不見了」,而是**已知有效的
+// 那個條件有沒有成立**:
 //
-// 回報裡那四筆對照就是被這條線一刀切開的,而且 class 幾乎一樣:
-//   「民國 xx 年」<a> 正常 vs「上一題/下一題」<button> 灰底(class 一字不差)
-//   「複製為 Markdown」(有 hover:bg-ink-100)正常 vs「收藏」(無 bg-)灰底
+//   「複製為 Markdown」在實機上正常,唯一的原因是它剛好帶了 hover:bg-ink-100,
+//   於是被中和層通則塗上不透明 #fff,把底下那塊蓋住了。同一列的「收藏」沒有任何
+//   bg- class,就露了出來。兩顆都是 <button>,class 只差這一個 token。
 //
-// 所以這裡驗的不是顏色 —— 顏色驗不到。驗的是 `appearance` 這個**讀得到**的
-// 代理指標:只要它不是 none,原生繪製這條路就還開著。
-const APPEARANCE_ROUTES = ['/q/113-050', '/', '/year/113', '/notes/n1'];
+// `transparent` 不算數(等於沒背景,蓋不住東西),所以斷言要看 alpha === 1。
+// 反白區(bg-accent / eink-invert)裡的按鈕本來就該是透明的,排除。
+const OPAQUE_BTN_ROUTES = ['/q/113-050', '/', '/year/113', '/notes/n1'];
 
-for (const routePath of APPEARANCE_ROUTES) {
-  test(`e-ink 1-bit:按鈕不走原生控制項繪製 ${routePath}`, async (t) => {
+for (const routePath of OPAQUE_BTN_ROUTES) {
+  test(`e-ink 1-bit:按鈕都有不透明底(蓋住瀏覽器自己畫的底色)${routePath}`, async (t) => {
     if (blinkSkipReason) {
       if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${blinkSkipReason}`);
       return t.skip(blinkSkipReason);
@@ -413,15 +411,18 @@ for (const routePath of APPEARANCE_ROUTES) {
         const sel = 'button, [type="button"], [type="reset"], [type="submit"]';
         for (const el of document.querySelectorAll(sel)) {
           if (!el.getClientRects().length) continue;
+          // 反白區的按鈕該是透明的 —— 給它白底會在黑塊上開一個洞。
+          if (el.closest('[class~="bg-accent"], [class*="bg-black"], .eink-invert')) continue;
           n++;
-          const cs = getComputedStyle(el);
-          const appearance = cs.appearance || cs.webkitAppearance;
-          if (appearance !== 'none') {
+          const bg = getComputedStyle(el).backgroundColor;
+          const m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?/.exec(bg);
+          const alpha = m && m[4] !== undefined ? +m[4] : 1;
+          if (!m || alpha !== 1) {
             const label = (el.innerText || el.getAttribute('aria-label') || el.tagName)
               .trim()
               .slice(0, 24);
             out.push(
-              `appearance: ${appearance}  ← 「${label}」class="${(el.getAttribute('class') || '').slice(0, 60)}"`,
+              `${bg}  ← 「${label}」class="${(el.getAttribute('class') || '').slice(0, 50)}"`,
             );
           }
         }
@@ -433,7 +434,8 @@ for (const routePath of APPEARANCE_ROUTES) {
       assert.deepEqual(
         [...new Set(bad)],
         [],
-        `${routePath} 有 ${bad.length}/${total} 顆按鈕仍走原生控制項繪製(Android 上會畫出灰底,而且 getComputedStyle 的 background-color 讀不到它)`,
+        `${routePath} 有 ${bad.length}/${total} 顆按鈕的底是半透明或全透明,` +
+          `蓋不住 BOOX 瀏覽器自己畫的底色`,
       );
     } finally {
       await ctx.close();

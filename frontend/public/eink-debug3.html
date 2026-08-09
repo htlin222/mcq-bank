@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>e-ink 診斷 3 — 一次只加一個屬性</title>
+    <style>
+      /* 這一頁**不**載入 app 的 CSS。診斷 2 證明了「app CSS + class=eink」會讓
+         所有 <button> 變黑底,這裡把那個環境裡的每一個候選屬性拆開,一格只加
+         一個,好知道到底是哪一個幹的。
+         Tailwind preflight 的 button reset 手抄在下面(所有格子共用),因為它是
+         真實環境的一部分。 */
+      html {
+        background: #fff;
+        color: #000;
+      }
+      body {
+        margin: 0;
+        padding: 16px 14px 64px;
+        font: 16px/1.6 system-ui, "Noto Sans TC", sans-serif;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .lede {
+        font-size: 14px;
+        margin: 0 0 18px;
+      }
+      .case {
+        border-top: 1px solid #000;
+        padding: 10px 0;
+      }
+      .n {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .code {
+        font: 12px/1.5 ui-monospace, monospace;
+        margin: 2px 0 8px;
+      }
+      .track {
+        background: #fff;
+        border: 1px dashed #000;
+        padding: 10px 12px;
+      }
+      /* 每一格的按鈕都套這個(= Tailwind preflight),變因只有容器上那一個屬性 */
+      .track button {
+        -webkit-appearance: button;
+        background-color: transparent;
+        background-image: none;
+        font-family: inherit;
+        font-size: 100%;
+        line-height: inherit;
+        color: inherit;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-style: solid;
+        border-width: 0;
+      }
+
+      /* ── 候選變因,一格一個 ── */
+      .t-accent {
+        accent-color: #000;
+      }
+      .t-scheme {
+        color-scheme: light;
+      }
+      .t-caret {
+        caret-color: #000;
+      }
+      .t-appearance button {
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .t-all {
+        accent-color: #000;
+        color-scheme: light;
+        caret-color: #000;
+      }
+      .t-all button {
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      /* 候選修法:明確把背景釘成不透明白 */
+      .t-fix button {
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: #fff;
+      }
+      .t-fix {
+        accent-color: #000;
+        color-scheme: light;
+      }
+      /* 候選修法 2:accent-color 改回 auto,只留 checkbox 需要的地方另外處理 */
+      .t-fix2 {
+        accent-color: auto;
+        color-scheme: light;
+      }
+      .t-fix2 button {
+        -webkit-appearance: none;
+        appearance: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>診斷 3 — 一次只加一個屬性</h1>
+    <p class="lede">
+      每一格都是同一顆裸 <code>&lt;button&gt;</code>,只有容器上的那一行 CSS 不同。
+      <strong>告訴我哪幾號是黑底(或深色底)。</strong>
+      1 號是基準,它應該是白的 —— 如果連 1 號都黑,那我全部想錯了。
+    </p>
+
+    <div class="case">
+      <div class="n">1 — 基準:什麼都不加</div>
+      <div class="code">(只有 preflight)</div>
+      <div class="track"><button>上一題</button></div>
+    </div>
+
+    <div class="case">
+      <div class="n">2 — accent-color: #000</div>
+      <div class="code">:root.eink 有這一行。最大嫌疑。</div>
+      <div class="track t-accent"><button>上一題</button></div>
+    </div>
+
+    <div class="case">
+      <div class="n">3 — color-scheme: light</div>
+      <div class="code">:root.eink 也有這一行。</div>
+      <div class="track t-scheme"><button>上一題</button></div>
+    </div>
+
+    <div class="case">
+      <div class="n">4 — caret-color: #000</div>
+      <div class="code">:root.eink 的第三行。應該與背景無關,列出來排除。</div>
+      <div class="track t-caret"><button>上一題</button></div>
+    </div>
+
+    <div class="case">
+      <div class="n">5 — appearance: none(只有這個)</div>
+      <div class="code">我上一版加的那條規則。診斷 1 的 3 號說它單獨沒問題。</div>
+      <div class="track t-appearance"><button>上一題</button></div>
+    </div>
+
+    <div class="case">
+      <div class="n">6 — 全部一起(= 站上 e-ink 的真實環境)</div>
+      <div class="code">accent-color + color-scheme + caret-color + appearance:none</div>
+      <div class="track t-all"><button>上一題</button></div>
+    </div>
+
+    <div class="case">
+      <div class="n">7 — 候選修法 A:真實環境 + 不透明白底</div>
+      <div class="code">background-color: #fff。「複製為 Markdown」意外拿到的就是這個。</div>
+      <div class="track t-fix"><button>上一題</button></div>
+    </div>
+
+    <div class="case">
+      <div class="n">8 — 候選修法 B:accent-color 改回 auto</div>
+      <div class="code">如果 2 號是黑的而這格是白的,那元兇就是 accent-color。</div>
+      <div class="track t-fix2"><button>上一題</button></div>
+    </div>
+
+    <div class="case">
+      <div class="n">9 — 對照:&lt;a&gt; 在真實環境下</div>
+      <div class="code">你說 A 一直都是好的,這格用來確認環境沒問題。</div>
+      <div class="track t-all"><a href="#">民國 113 年</a></div>
+    </div>
+
+    <p class="lede" style="margin-top: 20px">
+      最有用的三個答案:<strong>2 號黑不黑</strong>(是不是 accent-color)、
+      <strong>5 號黑不黑</strong>(是不是我上一版加的 appearance)、
+      <strong>7 和 8 哪個變白</strong>(該用哪個修法)。
+    </p>
+  </body>
+</html>

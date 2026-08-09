@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-TW" class="eink">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>e-ink 診斷 4 — 問瀏覽器:哪條規則命中了這顆按鈕</title>
+    <style>
+      .lab {
+        margin: 0;
+        padding: 16px 14px 64px;
+        font: 16px/1.6 system-ui, "Noto Sans TC", sans-serif;
+        background: #fff;
+        color: #000;
+      }
+      .lab h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .lede {
+        font-size: 14px;
+        margin: 0 0 18px;
+      }
+      .track {
+        background: #fff;
+        border: 1px dashed #000;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+      }
+      pre {
+        font: 11px/1.5 ui-monospace, monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+        border-top: 1px solid #000;
+        padding-top: 8px;
+      }
+      #copy4 {
+        -webkit-appearance: none;
+        appearance: none;
+        background: #000;
+        color: #fff;
+        border: 0;
+        padding: 12px 18px;
+        font: inherit;
+        font-size: 15px;
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body class="lab">
+    <h1>診斷 4 — 讓瀏覽器自己招</h1>
+    <p class="lede">
+      診斷 3 洗清了 accent-color / color-scheme / appearance,所以元兇是 app CSS 裡
+      某一條規則。這一頁載入 app CSS,然後**逐條問瀏覽器**「你有沒有命中這顆按鈕」,
+      把有設背景/邊框/陰影的那些印出來。<strong>不用你判斷,按最下面那顆按鈕複製結果
+      貼給我就好。</strong>
+    </p>
+
+    <div class="track"><button id="bare">裸 button(診斷 2 的 G,你說它黑)</button></div>
+    <div class="track"><a href="#" id="link">裸 a(診斷 2 的 A,你說它正常)</a></div>
+
+    <pre id="out">分析中…</pre>
+    <button id="copy4">複製結果</button>
+
+    <script>
+      const out = document.getElementById('out');
+
+      function declsOfInterest(style) {
+        const keys = [
+          'background', 'background-color', 'background-image', 'border', 'border-color',
+          'border-width', 'border-style', 'box-shadow', 'outline', 'outline-color',
+          'outline-width', 'outline-style', 'filter', 'color', 'opacity', 'appearance',
+          '-webkit-appearance', 'mix-blend-mode', 'backdrop-filter', 'forced-color-adjust',
+        ];
+        const hit = [];
+        for (const k of keys) {
+          const v = style.getPropertyValue(k);
+          if (v) hit.push(k + ':' + v);
+        }
+        return hit;
+      }
+
+      function collect(el, label, lines) {
+        lines.push('══ ' + label + ' ══');
+        const cs = getComputedStyle(el);
+        lines.push('computed: bg=' + cs.backgroundColor +
+          ' bgImg=' + (cs.backgroundImage === 'none' ? 'none' : cs.backgroundImage.slice(0, 40)) +
+          ' color=' + cs.color +
+          ' border=' + cs.borderTopWidth + ' ' + cs.borderTopStyle + ' ' + cs.borderTopColor +
+          ' shadow=' + (cs.boxShadow === 'none' ? 'none' : cs.boxShadow.slice(0, 50)) +
+          ' outline=' + cs.outlineStyle + ' ' + cs.outlineWidth + ' ' + cs.outlineColor +
+          ' filter=' + cs.filter +
+          ' appearance=' + (cs.appearance || cs.webkitAppearance) +
+          ' forcedColorAdjust=' + (cs.forcedColorAdjust || 'n/a'));
+
+        let n = 0;
+        for (const sheet of document.styleSheets) {
+          let rules;
+          try {
+            rules = sheet.cssRules;
+          } catch {
+            lines.push('  (跨網域樣式表讀不到:' + (sheet.href || '?') + ')');
+            continue;
+          }
+          const walk = (rs, prefix) => {
+            for (const r of rs) {
+              if (r.cssRules) {
+                walk(r.cssRules, prefix + (r.conditionText ? '@' + r.conditionText + ' ' : ''));
+                continue;
+              }
+              if (!r.selectorText) continue;
+              let matched = false;
+              try {
+                matched = el.matches(r.selectorText);
+              } catch {
+                continue; // :hover 之類的選擇器 matches() 會丟
+              }
+              if (!matched) continue;
+              const decls = declsOfInterest(r.style);
+              if (!decls.length) continue;
+              n++;
+              lines.push('  ' + prefix + r.selectorText.slice(0, 110));
+              lines.push('      ' + decls.join(' ; ').slice(0, 200));
+            }
+          };
+          walk(rules, '');
+        }
+        lines.push('  → 命中且設了視覺屬性的規則共 ' + n + ' 條');
+        lines.push('');
+      }
+
+      (async () => {
+        const lines = [];
+        try {
+          const html = await (await fetch('/index.html', { cache: 'no-store' })).text();
+          const m = html.match(/assets\/index-[A-Za-z0-9_.-]+\.css/);
+          if (!m) throw new Error('找不到 app CSS');
+          await new Promise((res, rej) => {
+            const l = document.createElement('link');
+            l.rel = 'stylesheet';
+            l.href = '/' + m[0];
+            l.onload = res;
+            l.onerror = () => rej(new Error('CSS 載入失敗'));
+            document.head.appendChild(l);
+          });
+          lines.push('app CSS: ' + m[0]);
+        } catch (e) {
+          lines.push('⚠️ ' + e.message);
+        }
+        await new Promise((r) => setTimeout(r, 500));
+
+        lines.push('UA: ' + navigator.userAgent);
+        lines.push('<html> class = ' + document.documentElement.className);
+        // 引擎有沒有把「沒有 class 屬性的元素」誤判成符合 [class*=…]?
+        const bare = document.getElementById('bare');
+        lines.push('裸 button 有 class 屬性嗎: ' + bare.hasAttribute('class'));
+        lines.push('bare.matches(\'[class*="bg-"]\') = ' + safeMatch(bare, '[class*="bg-"]'));
+        lines.push('bare.matches(\'[class*="bg-black"]\') = ' + safeMatch(bare, '[class*="bg-black"]'));
+        lines.push('bare.matches(\'[class~="bg-accent"]\') = ' + safeMatch(bare, '[class~="bg-accent"]'));
+        lines.push('bare.matches(\'.eink-invert\') = ' + safeMatch(bare, '.eink-invert'));
+        lines.push('');
+
+        collect(bare, '裸 button', lines);
+        collect(document.getElementById('link'), '裸 a', lines);
+
+        out.textContent = lines.join('\n');
+      })();
+
+      function safeMatch(el, sel) {
+        try {
+          return el.matches(sel);
+        } catch (e) {
+          return 'ERROR ' + e.message;
+        }
+      }
+
+      document.getElementById('copy4').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(out.textContent);
+          document.getElementById('copy4').textContent = '已複製 ✓ 貼給我';
+        } catch {
+          document.getElementById('copy4').textContent = '複製失敗,請截圖';
+        }
+      });
+    </script>
+  </body>
+</html>

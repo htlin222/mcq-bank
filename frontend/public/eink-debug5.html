@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-TW" class="eink">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>e-ink 診斷 5 — 點一下就試修法</title>
+    <style>
+      .lab {
+        margin: 0;
+        padding: 14px 12px 80px;
+        font: 16px/1.6 system-ui, "Noto Sans TC", sans-serif;
+        background: #fff;
+        color: #000;
+      }
+      .lab h1 {
+        font-size: 19px;
+        margin: 0 0 4px;
+      }
+      .lede {
+        font-size: 14px;
+        margin: 0 0 16px;
+      }
+      /* 結論用大字,好在電子紙上一眼讀完、也好念出來 */
+      #verdict {
+        border: 3px solid #000;
+        padding: 12px;
+        margin-bottom: 20px;
+        font: 700 17px/1.5 ui-monospace, monospace;
+        word-break: break-all;
+      }
+      .demo {
+        border: 2px solid #000;
+        padding: 14px;
+        margin-bottom: 18px;
+      }
+      .demo .row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 8px;
+      }
+      .demo .label {
+        font-size: 13px;
+        min-width: 92px;
+      }
+      /* 已知是白的參照塊,拿來跟按鈕比對 */
+      .ref {
+        display: inline-block;
+        width: 96px;
+        height: 34px;
+        background: #fff;
+        border: 1px solid #000;
+      }
+      /* 開關做成 <a>,因為你已經確認 <a> 一直是正常的 —— 用 button 做開關,
+         開關自己也會黑,那就沒得比了。 */
+      .sw {
+        display: block;
+        border: 2px solid #000;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        text-decoration: none;
+        color: #000;
+        background: #fff;
+        font-size: 15px;
+      }
+      .sw.on {
+        background: #000;
+        color: #fff;
+      }
+      .sw .k {
+        font: 12px/1.4 ui-monospace, monospace;
+        display: block;
+        margin-top: 3px;
+      }
+    </style>
+  </head>
+  <body class="lab">
+    <h1>診斷 5 — 不用複製,點一下就好</h1>
+    <p class="lede">
+      下面那顆「上一題」現在應該是黑底的。<strong>依序點各個修法,哪一個讓它變回
+      白色(跟右邊的參照塊一樣),就告訴我編號。</strong>可以重複點來開關。
+    </p>
+
+    <div id="verdict">分析中…</div>
+
+    <div class="demo">
+      <div class="row">
+        <span class="label">受測按鈕</span>
+        <button id="demo">上一題</button>
+      </div>
+      <div class="row">
+        <span class="label">白色參照</span>
+        <span class="ref"></span>
+      </div>
+      <div class="row">
+        <span class="label">正常的 a</span>
+        <a href="#">民國 113 年</a>
+      </div>
+    </div>
+
+    <a class="sw" href="#" data-fix="bgwhite">
+      修法 1:給按鈕不透明白底
+      <span class="k">background-color: #fff !important</span>
+    </a>
+    <a class="sw" href="#" data-fix="bgtransparent">
+      修法 2:強制透明背景
+      <span class="k">background-color: transparent !important</span>
+    </a>
+    <a class="sw" href="#" data-fix="appearanceauto">
+      修法 3:把 appearance 改回 auto(拆掉我上一版加的規則)
+      <span class="k">appearance: auto !important</span>
+    </a>
+    <a class="sw" href="#" data-fix="forced">
+      修法 4:關掉強制配色調整
+      <span class="k">forced-color-adjust: none !important</span>
+    </a>
+    <a class="sw" href="#" data-fix="revert">
+      修法 5:整顆按鈕的樣式全部 revert
+      <span class="k">all: revert</span>
+    </a>
+    <a class="sw" href="#" data-fix="noshadow">
+      修法 6:清掉陰影與邊框
+      <span class="k">box-shadow: none; border: 0; outline: 0 !important</span>
+    </a>
+    <a class="sw" href="#" data-fix="nofilter">
+      修法 7:清掉濾鏡與混色
+      <span class="k">filter: none; mix-blend-mode: normal !important</span>
+    </a>
+
+    <script>
+      const FIXES = {
+        bgwhite: 'background-color:#fff !important;',
+        bgtransparent: 'background-color:transparent !important;',
+        appearanceauto: '-webkit-appearance:auto !important;appearance:auto !important;',
+        forced: 'forced-color-adjust:none !important;',
+        revert: 'all:revert;',
+        noshadow: 'box-shadow:none !important;border:0 !important;outline:0 !important;',
+        nofilter: 'filter:none !important;mix-blend-mode:normal !important;backdrop-filter:none !important;',
+      };
+      const on = new Set();
+      const styleEl = document.createElement('style');
+      document.head.appendChild(styleEl);
+
+      function apply() {
+        let css = '';
+        for (const k of on) css += FIXES[k];
+        styleEl.textContent = css ? '#demo{' + css + '}' : '';
+        for (const a of document.querySelectorAll('.sw')) {
+          a.classList.toggle('on', on.has(a.getAttribute('data-fix')));
+        }
+      }
+
+      for (const a of document.querySelectorAll('.sw')) {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const k = a.getAttribute('data-fix');
+          if (on.has(k)) on.delete(k);
+          else on.add(k);
+          apply();
+        });
+      }
+
+      // ── 自動分析:哪條 app CSS 規則命中了這顆裸 button 且設了背景 ──
+      (async () => {
+        const v = document.getElementById('verdict');
+        const lines = [];
+        try {
+          const html = await (await fetch('/index.html', { cache: 'no-store' })).text();
+          const m = html.match(/assets\/index-[A-Za-z0-9_.-]+\.css/);
+          if (!m) throw new Error('找不到 app CSS');
+          await new Promise((res, rej) => {
+            const l = document.createElement('link');
+            l.rel = 'stylesheet';
+            l.href = '/' + m[0];
+            l.onload = res;
+            l.onerror = () => rej(new Error('CSS 載入失敗'));
+            document.head.appendChild(l);
+          });
+        } catch (e) {
+          lines.push('⚠ ' + e.message);
+        }
+        await new Promise((r) => setTimeout(r, 400));
+
+        const el = document.getElementById('demo');
+        const cs = getComputedStyle(el);
+        const culprits = [];
+        for (const sheet of document.styleSheets) {
+          let rules;
+          try {
+            rules = sheet.cssRules;
+          } catch {
+            continue;
+          }
+          const walk = (rs) => {
+            for (const r of rs) {
+              if (r.cssRules) {
+                walk(r.cssRules);
+                continue;
+              }
+              if (!r.selectorText) continue;
+              let ok = false;
+              try {
+                ok = el.matches(r.selectorText);
+              } catch {
+                continue;
+              }
+              if (!ok) continue;
+              const bg =
+                r.style.getPropertyValue('background') ||
+                r.style.getPropertyValue('background-color');
+              if (bg) culprits.push(r.selectorText.slice(0, 80) + ' → ' + bg);
+            }
+          };
+          walk(rules);
+        }
+
+        lines.push('這顆按鈕算出來的背景 = ' + cs.backgroundColor);
+        lines.push('');
+        if (culprits.length) {
+          lines.push('設了背景、而且命中它的規則:');
+          culprits.forEach((c, i) => lines.push('  ' + (i + 1) + '. ' + c));
+        } else {
+          lines.push('沒有任何 CSS 規則給它設背景。');
+          lines.push('→ 如果它看起來仍是黑的,那就不是 CSS 畫的。');
+        }
+        lines.push('');
+        lines.push('[class*=bg-black] 誤判? ' + safeM(el, '[class*="bg-black"]'));
+        lines.push('forced-colors 生效? ' + matchMedia('(forced-colors: active)').matches);
+        v.textContent = lines.join('\n');
+        v.style.whiteSpace = 'pre-wrap';
+      })();
+
+      function safeM(el, sel) {
+        try {
+          return el.matches(sel);
+        } catch (e) {
+          return 'ERR';
+        }
+      }
+    </script>
+  </body>
+</html>

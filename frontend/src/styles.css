@@ -426,34 +426,37 @@ html.eink {
 }
 
 /* ── 顏色全滅 ── */
-/* 這一條「靠 class 名選取」的前提,有一個它自己看不見的例外:**原生控制項繪製**。
-   Tailwind preflight 給每個 <button> 設了 `-webkit-appearance: button`(為了修
-   iOS Safari 的一個渲染問題),而那會讓瀏覽器改用平台的原生按鈕外觀來畫底 ——
-   Android(BOOX 是 Android)的 Material 按鈕底是灰的。
-   三件事讓它極難抓:
-   1. **原生繪製不出現在 getComputedStyle 裡**。`background-color` 讀到的永遠是
-      preflight 給的 `rgba(0,0,0,0)`,所以整套顏色掃描全綠。這比 ::placeholder
-      更隱蔽 —— 它連偽元素都不是,沒有任何 API 讀得到。
-   2. **macOS/桌機 Chromium 不畫**,只有 Android 畫。本機怎麼測都是白的。
-   3. **它會被不透明背景蓋掉**,而 preflight 的 `transparent` 不算(等於沒背景)。
-      於是上面那條中和層把「class 含 bg-*」的按鈕塗成不透明 #fff,**意外**替它們
-      擋掉了原生繪製 —— 只有 class 裡一個 bg- 都沒有的按鈕會露出灰底。
-   回報 #? 的四筆對照正是這樣一刀切開的,而且 class 幾乎一樣:
-     「民國 xx 年」<a>  無 bg- → 正常(<a> 的 appearance 本來就是 none)
-     「上一題/下一題」<button> 無 bg- → 灰底   ← class 與上一行**一字不差**
-     「複製為 Markdown」<button> 有 hover:bg-ink-100 → 正常(被中和層塗白)
-     「收藏」<button> 無 bg- → 灰底
-   根治是明確關掉原生繪製,不要依賴「剛好有沒有背景」。放在通則**之前**,
-   specificity (0,2,1) 低於中和層 (0,3,0) 與撈回層,所以 bg-accent 的實心黑底、
-   .eink-invert 內的透明按鈕全都不受影響。
-   只碰按鈕類 —— checkbox/radio/range/select 的原生外觀是要留的(它們靠
-   `:root.eink` 的 accent-color 上色)。 */
+/* 下面那條通則是**靠 class 名選取**的,於是有一整類元素在它的射程之外:
+   class 裡一個 `bg-*` 都沒有的 `<button>`。它們的背景停在 preflight 的
+   `transparent`,而 BOOX 的 NeoBrowser 會在那底下畫出一塊自己的底色。
+
+   這個修法刻意**不**建立在「那塊底色是誰畫的」之上 —— 那個問題查了四輪都沒收斂
+   (tap-highlight、UA focus ring、原生控制項繪製、accent-color 全部被實機一一
+   否證)。但**已知有效的條件**一直擺在眼前,回報裡那四筆對照就是它:
+
+     「民國 xx 年」   <a>       無 bg-                → 正常
+     「上一題/下一題」 <button>  無 bg-                → 有底色  ← class 與上一行一字不差
+     「複製為 Markdown」<button> 有 hover:bg-ink-100  → 正常
+     「收藏」         <button>  無 bg-                → 有底色
+
+   「複製為 Markdown」之所以沒事,純粹是因為它剛好帶了一個 `hover:bg-` ——
+   `[class*="bg-"]` 命中它,通則塗上**不透明** `#fff`,底色就被蓋住了。那把每顆
+   按鈕都給同一個條件即可:通則對有 `bg-` 的按鈕做什麼,這裡就對其餘的做什麼。
+   不透明是重點,`transparent` 等於沒背景、蓋不住任何東西。
+
+   specificity (0,2,1),低於通則 (0,3,0) 與撈回層 —— 所以 `bg-accent` 的實心黑底
+   按鈕照常是黑的。但反白區裡**沒有** `bg-` class 的按鈕不會被撈回層接住(它只看
+   `[class*="bg-"]`),得另外補一條,否則黑底上會憑空多出一塊白。 */
 .eink.eink button,
 .eink.eink [type="button"],
 .eink.eink [type="reset"],
 .eink.eink [type="submit"] {
-	-webkit-appearance: none;
-	appearance: none;
+	background-color: #fff;
+}
+.eink.eink [class~="bg-accent"] button,
+.eink.eink [class*="bg-black"] button,
+.eink.eink .eink-invert button {
+	background-color: transparent;
 }
 .eink.eink [class*="bg-"] {
 	background-color: #fff;

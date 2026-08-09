@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>e-ink 灰底診斷</title>
+    <style>
+      /* 這一頁刻意**不**載入 app 的 CSS。要找的是「瀏覽器自己畫了什麼」,
+         多一層 Tailwind 只會多一組變因。 */
+      html {
+        background: #fff;
+        color: #000;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        margin: 0;
+        padding: 16px 14px 64px;
+        font: 16px/1.6 system-ui, "Noto Sans TC", sans-serif;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .lede {
+        font-size: 14px;
+        margin: 0 0 20px;
+      }
+      .case {
+        border-top: 1px solid #000;
+        padding: 12px 0;
+      }
+      .n {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .desc {
+        font-size: 13px;
+        margin: 2px 0 8px;
+      }
+      /* 受測元件放在一條白色的軌道上,灰底才有東西可以對比。 */
+      .track {
+        background: #fff;
+        padding: 10px 12px;
+        border: 1px dashed #000;
+      }
+      .cs {
+        font: 12px/1.5 ui-monospace, monospace;
+        margin-top: 6px;
+        word-break: break-all;
+      }
+
+      /* ── Tailwind preflight 的 button reset,一字不差 ── */
+      .pf {
+        -webkit-appearance: button;
+        background-color: transparent;
+        background-image: none;
+        font-family: inherit;
+        font-feature-settings: inherit;
+        font-variation-settings: inherit;
+        font-size: 100%;
+        font-weight: inherit;
+        line-height: inherit;
+        color: inherit;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-style: solid;
+        border-width: 0;
+      }
+      /* 各候選修法 —— 一次只加一個變因 */
+      .v-appearance {
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .v-bgwhite {
+        background-color: #fff;
+      }
+      .v-unset {
+        all: unset;
+      }
+      .v-nobg {
+        background: none;
+        border: none;
+      }
+      .v-pad {
+        padding: 6px 10px;
+      }
+
+      #env {
+        border-top: 2px solid #000;
+        margin-top: 24px;
+        padding-top: 12px;
+        font: 12px/1.6 ui-monospace, monospace;
+        word-break: break-all;
+      }
+      #copy {
+        -webkit-appearance: none;
+        appearance: none;
+        background: #000;
+        color: #fff;
+        border: 0;
+        padding: 10px 16px;
+        font: inherit;
+        font-size: 14px;
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>e-ink 灰底診斷</h1>
+    <p class="lede">
+      每一格是一顆按鈕。<strong>只要告訴我哪幾號看起來有灰底</strong>(或整頁截圖)。
+      虛線框是白色軌道,用來對比 —— 灰底會在虛線框裡顯出一塊比較深的區域。
+    </p>
+
+    <div class="case">
+      <div class="n">1 — &lt;a&gt; 連結(對照組)</div>
+      <div class="desc">站上「民國 xx 年」就是這種。你說它正常。</div>
+      <div class="track"><a href="#" id="c1">上一題</a></div>
+      <div class="cs" data-for="c1"></div>
+    </div>
+
+    <div class="case">
+      <div class="n">2 — &lt;button&gt; 只有 preflight</div>
+      <div class="desc">站上「上一題/下一題」「收藏」「分頁列」「手風琴」就是這種。你說它有灰底。</div>
+      <div class="track"><button class="pf" id="c2">上一題</button></div>
+      <div class="cs" data-for="c2"></div>
+    </div>
+
+    <div class="case">
+      <div class="n">3 — preflight + appearance:none</div>
+      <div class="desc">我上一版的修法。如果這格還是灰的,就代表那個方向錯了。</div>
+      <div class="track"><button class="pf v-appearance" id="c3">上一題</button></div>
+      <div class="cs" data-for="c3"></div>
+    </div>
+
+    <div class="case">
+      <div class="n">4 — preflight + 不透明白底</div>
+      <div class="desc">站上「複製為 Markdown」實際拿到的條件(中和層塗的 #fff)。你說它正常。</div>
+      <div class="track"><button class="pf v-bgwhite" id="c4">上一題</button></div>
+      <div class="cs" data-for="c4"></div>
+    </div>
+
+    <div class="case">
+      <div class="n">5 — appearance:none + 白底(兩個都上)</div>
+      <div class="track">
+        <button class="pf v-appearance v-bgwhite" id="c5">上一題</button>
+      </div>
+      <div class="cs" data-for="c5"></div>
+    </div>
+
+    <div class="case">
+      <div class="n">6 — all: unset</div>
+      <div class="desc">把所有繼承與 UA 樣式整個掀掉,最激進的一種。</div>
+      <div class="track"><button class="v-unset" id="c6">上一題</button></div>
+      <div class="cs" data-for="c6"></div>
+    </div>
+
+    <div class="case">
+      <div class="n">7 — background:none + border:none</div>
+      <div class="track"><button class="pf v-nobg" id="c7">上一題</button></div>
+      <div class="cs" data-for="c7"></div>
+    </div>
+
+    <div class="case">
+      <div class="n">8 — 有內距的 button(preflight)</div>
+      <div class="desc">2 號的按鈕緊貼文字。如果灰底其實一直都在、只是太窄看不出來,這格會很明顯。</div>
+      <div class="track"><button class="pf v-pad" id="c8">上一題</button></div>
+      <div class="cs" data-for="c8"></div>
+    </div>
+
+    <div class="case">
+      <div class="n">9 — &lt;div role="button"&gt;</div>
+      <div class="desc">完全不是 button 元素。如果連這格都灰,那就不是 UA 按鈕樣式的問題。</div>
+      <div class="track"><div role="button" tabindex="0" id="c9">上一題</div></div>
+      <div class="cs" data-for="c9"></div>
+    </div>
+
+    <h1 style="margin-top: 32px">你這台裝置拿到的是哪一版?</h1>
+    <p class="lede">
+      這一段跟上面的灰底無關,是在回答另一個問題:<strong>service worker 是不是
+      抱著舊的 app 不放</strong>。修好的東西沒有變、早就修掉的 bug 又出現,通常
+      是同一個原因。
+    </p>
+    <div id="ver">檢查中…</div>
+    <button id="refresh">強制拿最新版(清掉 service worker 與快取)</button>
+
+    <div id="env"></div>
+    <button id="copy">複製這頁的環境資訊</button>
+
+    <script>
+      // 把每格的 computed style 印在畫面上 —— 重點是比對「瀏覽器說它是透明的」
+      // 跟「你眼睛看到灰底」之間的落差。原生控制項繪製不會出現在這裡。
+      for (const el of document.querySelectorAll('[data-for]')) {
+        const t = document.getElementById(el.getAttribute('data-for'));
+        const s = getComputedStyle(t);
+        el.textContent =
+          'bg=' + s.backgroundColor +
+          ' | bgImg=' + (s.backgroundImage === 'none' ? 'none' : s.backgroundImage.slice(0, 40)) +
+          ' | appearance=' + (s.appearance || s.webkitAppearance) +
+          ' | border=' + s.borderTopWidth + ' ' + s.borderTopStyle + ' ' + s.borderTopColor;
+      }
+
+      const env = [
+        'UA: ' + navigator.userAgent,
+        'screen: ' + screen.width + 'x' + screen.height + ' dpr=' + devicePixelRatio,
+        'viewport: ' + innerWidth + 'x' + innerHeight,
+        'prefers-color-scheme: ' +
+          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+        'prefers-contrast: more? ' + matchMedia('(prefers-contrast: more)').matches,
+        'forced-colors: ' + (matchMedia('(forced-colors: active)').matches ? 'ACTIVE' : 'none'),
+        'inverted-colors: ' + (matchMedia('(inverted-colors: inverted)').matches ? 'inverted' : 'none'),
+        'pointer: coarse? ' + matchMedia('(pointer: coarse)').matches,
+        'monochrome: ' + (matchMedia('(monochrome)').matches ? 'YES' : 'no'),
+        ':where() 支援: ' + (CSS.supports('selector(:where(a))') ? 'yes' : 'NO ← 會讓中和層整條失效'),
+        'appearance 支援: ' + CSS.supports('appearance', 'none'),
+      ].join('\n');
+      document.getElementById('env').textContent = env;
+
+      // ── service worker / bundle 版本 ──
+      // 「修好的東西沒變」與「早就修掉的 bug 又出現」通常同一個成因:SW 抱著
+      // 舊的 app shell。這裡把三邊攤開比對:網路上的 index.html 引用哪個 bundle、
+      // SW 快取裡存的是哪個、SW 本身註冊在哪。
+      const verEl = document.getElementById('ver');
+      (async () => {
+        const lines = [];
+        try {
+          const res = await fetch('/index.html', { cache: 'no-store' });
+          const html = await res.text();
+          const live = [...html.matchAll(/assets\/([A-Za-z0-9_.-]+\.(?:js|css))/g)].map((m) => m[1]);
+          lines.push('網路上的最新版引用:');
+          live.forEach((f) => lines.push('   ' + f));
+
+          if ('caches' in window) {
+            const names = await caches.keys();
+            lines.push('', 'SW 快取(' + names.length + ' 個):');
+            let cachedAssets = [];
+            for (const n of names) {
+              const c = await caches.open(n);
+              const keys = await c.keys();
+              const assets = keys
+                .map((r) => (r.url.match(/assets\/([A-Za-z0-9_.-]+\.(?:js|css))/) || [])[1])
+                .filter(Boolean);
+              cachedAssets = cachedAssets.concat(assets);
+              lines.push('   ' + n + ' — ' + keys.length + ' 筆');
+            }
+            const stale = cachedAssets.filter((a) => a.startsWith('index-') && !live.includes(a));
+            lines.push('');
+            if (stale.length) {
+              lines.push('⚠️  快取裡有**舊版**的主 bundle:');
+              [...new Set(stale)].forEach((f) => lines.push('   ' + f));
+              lines.push('→ 這台裝置很可能一直在跑舊版。按下面那顆按鈕。');
+            } else if (cachedAssets.length) {
+              lines.push('✓ 快取裡的主 bundle 與線上一致。');
+            } else {
+              lines.push('快取裡沒有 assets(可能還沒 precache 完)。');
+            }
+          } else {
+            lines.push('', '這個瀏覽器沒有 Cache Storage API。');
+          }
+
+          if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            lines.push('', 'service worker: ' + regs.length + ' 個註冊');
+            regs.forEach((r) =>
+              lines.push(
+                '   scope=' + r.scope +
+                  ' active=' + (r.active ? r.active.scriptURL.split('/').pop() : '—') +
+                  ' waiting=' + (r.waiting ? 'YES(有新版在等)' : 'no'),
+              ),
+            );
+          } else {
+            lines.push('', '這個瀏覽器沒有 service worker。');
+          }
+        } catch (e) {
+          lines.push('檢查失敗:' + e.message);
+        }
+        verEl.textContent = lines.join('\n');
+        verEl.style.font = '12px/1.6 ui-monospace, monospace';
+        verEl.style.whiteSpace = 'pre-wrap';
+        verEl.style.wordBreak = 'break-all';
+      })();
+
+      document.getElementById('refresh').addEventListener('click', async () => {
+        const btn = document.getElementById('refresh');
+        btn.textContent = '清除中…';
+        try {
+          if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+          }
+          if ('caches' in window) {
+            const names = await caches.keys();
+            await Promise.all(names.map((n) => caches.delete(n)));
+          }
+          btn.textContent = '已清除 ✓ 請關掉所有分頁再重開網站';
+        } catch (e) {
+          btn.textContent = '清除失敗:' + e.message;
+        }
+      });
+
+      document.getElementById('copy').addEventListener('click', async () => {
+        const rows = [...document.querySelectorAll('[data-for]')].map(
+          (el) => el.getAttribute('data-for') + ' ' + el.textContent,
+        );
+        const text = env + '\n\n' + rows.join('\n') + '\n\n' + verEl.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          document.getElementById('copy').textContent = '已複製 ✓';
+        } catch {
+          document.getElementById('copy').textContent = '複製失敗,請直接截圖';
+        }
+      });
+    </script>
+  </body>
+</html>
