@@ -118,9 +118,9 @@ after(async () => {
 // 每個案例一份乾淨的 context:localStorage(版型、震動偏好)與作答狀態都會
 // 互相汙染。serviceWorkers: 'block' —— 正式建置會註冊 SW,讓它插手快取會把
 // 失敗變成看起來像時序問題的東西。
-async function open(t, route) {
+async function open(t, route, viewport = { width: 1280, height: 900 }) {
   const ctx = await browser.newContext({
-    viewport: { width: 1280, height: 900 },
+    viewport,
     serviceWorkers: 'block',
   });
   const page = await ctx.newPage();
@@ -586,6 +586,50 @@ test('長按 DPAD ↓ 會連續移動,放開就停', async (t) => {
   // 放開之後不能再自己走。
   await page.waitForTimeout(500);
   assert.equal(await cursorAt(), moved, '放開後游標應該停住');
+});
+
+// 窄螢幕上的 L2/R2。這裡刻意用手機寬度,雖然檔頭那段註解說「接手把的人不會在
+// 手機上」—— 那句話對 e-ink 平板不成立:BOOX 這類機器是 Android、CSS 寬度落在
+// <md,而且站上還有一顆「強制手機版面」FAB 會把視窗釘在 560px。
+//
+// #96 把 <md 一併改成 tabs 模式之後,`cycleTab` 的分支條件(`md && tabsMode`)
+// 沒跟著改,窄螢幕會落到 else 去切「右欄自己的 tab」—— 而右欄在題目分頁下整欄
+// `hidden`,於是按下去畫面一個像素都不動,看起來就像手把那兩顆鍵壞了。
+test('窄螢幕:L2/R2 切的是看得見的那條分頁', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050', {
+    width: 390,
+    height: 844,
+  });
+
+  // 高亮的那顆分頁鈕 —— 使用者判斷「現在在哪一頁」的唯一信號。
+  const activeTab = () =>
+    page.evaluate(() =>
+      Array.from(document.querySelectorAll('button'))
+        .filter((b) => b.className.includes('border-accent'))
+        .map((b) => b.textContent.trim().replace(/\s*\(\d+\)$/, ''))
+        .find((t) => ['題目', '詳解', '個人筆記', '討論串', '相似題目', '影片'].includes(t)) ?? null,
+    );
+  // 右欄(詳解/筆記/討論)有沒有真的畫出來。只斷言分頁高亮不夠 —— 高亮動了但
+  // 內容沒換,對使用者仍然是壞的。
+  const rightPaneShown = () =>
+    page.evaluate(
+      () =>
+        (document.querySelector('.tiptap-compact')?.getClientRects().length ?? 0) > 0,
+    );
+
+  assert.equal(await activeTab(), '題目', '一開始應該停在題目分頁');
+  assert.equal(await rightPaneShown(), false, '題目分頁下右欄應該是收起來的');
+
+  await tap(page, BTN.R2);
+  assert.equal(await activeTab(), '詳解', 'R2 應該往後切一格到詳解');
+  assert.equal(await rightPaneShown(), true, '切過去之後詳解那一欄要真的出現');
+
+  await tap(page, BTN.L2);
+  assert.equal(await activeTab(), '題目', 'L2 應該切回題目');
+  assert.equal(await rightPaneShown(), false, '回到題目分頁,右欄要收起來');
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
 });
 
 test('非標準配置的手把會被警告,而不是靜默錯位', async (t) => {

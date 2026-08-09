@@ -1006,11 +1006,16 @@ export function Question() {
 	}
 
 	// Cycle the tab strip one step. Which strip that is depends on the layout:
-	// tabs mode at ≥md drives the top 題目/詳解/… strip, everything else drives
-	// the right column's own. Shared by the h/l keys and L2/R2 on the gamepad.
+	// tabs mode drives the top 題目/詳解/… strip, columns mode drives the right
+	// column's own. Shared by the h/l keys and L2/R2 on the gamepad.
+	//
+	// 判準是 `tabsMode`,不是「≥md 而且 tabsMode」。#96 之後窄螢幕一律是 tabs
+	// 模式,而那裡的右欄在題目分頁下整欄 `hidden` —— 去切它自己的 tab 畫面一個
+	// 像素都不會動,按起來就像手把那兩顆鍵壞了(桌機看不出來,那裡走另一條分支)。
+	// 反過來說,非 tabs 模式只可能發生在 ≥md(窄螢幕被無條件覆寫成 tabs),所以
+	// else 分支不必再問一次寬度。
 	function cycleTab(dir: 1 | -1) {
-		const md = window.matchMedia("(min-width: 768px)").matches;
-		if (md && tabsMode) {
+		if (tabsMode) {
 			// 影片 tab 只在有影片時存在,循環順序也要跟著少一格。
 			const order: MainTab[] = [
 				"question",
@@ -1020,19 +1025,18 @@ export function Question() {
 				"similar",
 				...(hasVideos ? (["video"] as MainTab[]) : []),
 			];
-			setMainTab(
-				(cur) => order[(order.indexOf(cur) + dir + order.length) % order.length],
-			);
+			const i = order.indexOf(mainTab);
+			// pickTab 而不是 setMainTab:窄螢幕下所有分頁共用同一條頁面捲軸,不捲
+			// 回頂端的話,從長長的詳解切回題目會落在題目卡底下的空白處。
+			pickTab(order[((i < 0 ? 0 : i) + dir + order.length) % order.length]);
 		} else {
-			const order: Tab[] = md
-				? [
-						"explanation",
-						"note",
-						"discussion",
-						"similar",
-						...(hasVideos ? (["video"] as Tab[]) : []),
-					]
-				: ["explanation", "note", ...(hasVideos ? (["video"] as Tab[]) : [])];
+			const order: Tab[] = [
+				"explanation",
+				"note",
+				"discussion",
+				"similar",
+				...(hasVideos ? (["video"] as Tab[]) : []),
+			];
 			const i = order.indexOf(tab);
 			const base = i < 0 ? 0 : i;
 			setTab(order[(base + dir + order.length) % order.length]);
