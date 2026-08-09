@@ -575,6 +575,41 @@ test('筆記分頁:DPAD ↓ 在標題之間移動,FACE ▼ 展開收合', async 
   assert.deepEqual(errors, [], '不該有未捕捉例外');
 });
 
+// 回報:「A(FACE ▼)換成 Xbox 360 就沒反應」。跟哪支手把無關 —— 游標的初始值是
+// -1,舊版的 FACE ▼ 在那個狀態直接 break,於是**剛切到筆記分頁按下去什麼都不會
+// 發生**,而說明列只寫「展開 / 收合這一段」,沒說得先用 ↑↓ 選一段。
+//
+// 這條刻意**不先按 DPAD ↓** —— 先按了就等於在驗上面那支已經驗過的路徑,而漏掉
+// 真正壞掉的那個起始狀態。
+test('筆記分頁:游標還沒開始走,FACE ▼ 也要能展開第一段', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await openNoteTab(page);
+
+  const headings = page.locator('[data-note-heading]');
+  assert.equal(await headings.count(), 2, '前置條件:兩個頂層標題,都是收合的');
+
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(400);
+  assert.equal(
+    await headings.count(),
+    3,
+    'FACE ▼ 該展開第一段(不必先用 ↑↓ 把游標放上去)',
+  );
+  // 展開之後游標要落在那一段上,否則接下來的 ↑↓ 又得從頭猜自己在哪。
+  assert.equal(
+    await page.evaluate(() =>
+      document.activeElement?.getAttribute('data-note-heading') === ''
+        ? document.activeElement.textContent.trim()
+        : null,
+    ),
+    '溶血機轉',
+    '展開的同時焦點要跟著落在第一個標題上',
+  );
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
 test('筆記分頁:DPAD ← → 切換多則筆記', async (t) => {
   if (guard(t)) return;
   const { page, errors } = await open(t, '/q/113-050');
@@ -596,6 +631,76 @@ test('筆記分頁:DPAD ← → 切換多則筆記', async (t) => {
   await page.waitForTimeout(400);
   assert.equal((await titles()).trim(), '溶血機轉', '只有兩則,再按一次繞回第一則');
 
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+// ── D-pad 與軸搶同一幀 ────────────────────────────────────────────────
+//
+// 回報:Xbox 360 上 DPAD ↑↓「怪怪的,也會 scroll」。成因在硬體不在語意 ——
+// hat switch 型的 D-pad 被 driver 同時回報成 buttons 12–15 **和**一組軸值,
+// 於是按鈕路徑(選選項 / 走訪標題)與軸路徑(捲動)同一幀都在跑。
+//
+// 這裡驗的是整條路徑,不是 axisScrollFrame 本身(那有單元測試)。**對照組是
+// 承重的**:少了它,萬一頁面根本捲不動,實驗組的「沒捲」會是空掃的綠燈。
+
+/**
+ * 「畫面被捲了多少」的指標。
+ *
+ * 不能只看 window.scrollY:≥md 的雙欄版型下,頁面本身不捲,長內容在右欄自己的
+ * 捲動容器裡(gamepadScrollEl 的分支)。第一版對照組就是這樣掛掉的 —— 而它
+ * 掛掉才讓人發現實驗組的「沒捲」是空掃的綠燈。
+ */
+const scrolledPx = () =>
+  Math.max(
+    Math.round(scrollY),
+    ...[...document.querySelectorAll('*')].map((el) => Math.round(el.scrollTop)),
+  );
+
+/**
+ * 把視窗壓矮,讓真實內容溢出捲動容器。
+ *
+ * 預設的 1280×900 底下這一題**完全沒有東西可捲**(量過:docScrollable=0、
+ * 沒有任何 scrollHeight 超出的容器,連 window.scrollBy 都不動)。不先做這件事,
+ * 「沒被捲走」這個斷言恆真,測試看起來在把關、其實什麼都沒守住。
+ */
+async function squash(page) {
+  await page.setViewportSize({ width: 1280, height: 300 });
+  await page.waitForTimeout(500);
+}
+
+/** 按住某顆鍵並同時把左搖桿推到底,持續 ms 毫秒。 */
+async function holdWithStick(page, index, ms) {
+  await page.evaluate((i) => {
+    window.__pad.axes[1] = 1;
+    if (i !== null) window.__press(i, true);
+  }, index);
+  await page.waitForTimeout(ms);
+  await page.evaluate((i) => {
+    window.__pad.axes[1] = 0;
+    if (i !== null) window.__press(i, false);
+  }, index);
+  await page.waitForTimeout(200);
+}
+
+test('左搖桿推到底會捲動(對照組)', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await squash(page);
+  await holdWithStick(page, null, 600);
+  const y = await page.evaluate(scrolledPx);
+  assert.ok(y > 100, `搖桿該捲得動內容,實際位移=${y}px`);
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('D-pad 按著時,同一幀回報的軸值不該把頁面捲走', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+  await squash(page);
+  await holdWithStick(page, BTN.DPAD_DOWN, 600);
+  const y = await page.evaluate(scrolledPx);
+  // 未揭曉時 DPAD ↓ 歸 QuestionCard(移動選項游標),不捲任何東西 —— 所以這裡的
+  // 任何位移都只可能來自軸。
+  assert.equal(y, 0, `D-pad 該獨佔那幾幀,實際位移=${y}px`);
   assert.deepEqual(errors, [], '不該有未捕捉例外');
 });
 

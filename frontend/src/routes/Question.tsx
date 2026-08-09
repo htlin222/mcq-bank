@@ -1152,7 +1152,12 @@ export function Question() {
 		headingIdx.current = next;
 		if (next < 0) return false;
 		items[next].focus();
-		items[next].scrollIntoView({ block: "center", behavior: "smooth" });
+		// 刻意**不**用 behavior: "smooth"。走訪是「跳到下一個標題」這個離散動作,
+		// 平滑捲動會把它畫成一段連續位移 —— 而量出來每跳一次是 45–63px,跟
+		// GAMEPAD_SCROLL_STEP 的 120px 同一量級,於是使用者讀到的是「頁面在捲」
+		// 而不是「游標在動」,整個功能看起來像沒接上。e-ink 上還多一層代價:
+		// 平滑捲動的每一幀都是一次全螢幕重繪,拖出一連串殘影。
+		items[next].scrollIntoView({ block: "center" });
 		return true;
 	}
 
@@ -1230,8 +1235,16 @@ export function Question() {
 					break;
 				case "faceDown": {
 					const items = noteHeadings();
+					// 游標還沒開始走(-1)不是「沒東西可展開」,是「從第一個開始」。
+					// 原本這裡直接 break,於是剛切到筆記分頁按 FACE ▼ 完全沒反應 ——
+					// 而說明列只寫「展開 / 收合這一段」,沒告訴使用者得先用 ↑↓ 選一段。
+					// 一顆按下去什麼都不發生的鍵,讀起來就是「這功能在我的手把上壞了」。
+					if (headingIdx.current < 0 && items.length > 0) headingIdx.current = 0;
 					const at = headingIdx.current;
 					if (at >= 0 && at < items.length) {
+						// click() 不會移動焦點,所以 -1 那條路徑得自己補 —— 少了它,
+						// 展開了但游標仍是隱形的,下一顆 ↑↓ 又要重新猜自己在哪。
+						items[at].focus();
 						items[at].click();
 						return;
 					}

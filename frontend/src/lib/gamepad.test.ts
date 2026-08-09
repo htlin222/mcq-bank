@@ -4,6 +4,8 @@ import {
   AXIS_DEADZONE,
   stepAnnounce,
   axisScrollDelta,
+  axisScrollFrame,
+  DPAD_BUTTONS,
   BUTTON_ACTIONS,
   IDLE_BUTTON,
   REPEAT_DELAY_MS,
@@ -108,6 +110,39 @@ test('axisScrollDelta scales with frame time, not frame count', () => {
   const one = axisScrollDelta(1, 16);
   const two = axisScrollDelta(1, 32);
   assert.ok(Math.abs(two - one * 2) < 1e-9);
+});
+
+// ---- D-pad 與軸搶同一幀 ----------------------------------------------------
+// 回報:Xbox 360 上按 DPAD ↑↓「怪怪的,也會 scroll」。成因不在語意層而在硬體 ——
+// hat switch 型的 D-pad 會同時被回報成 buttons 12–15 與一組軸值,兩條路徑一起
+// 跑。軸的上限 1400px/s 遠大於按鈕那條的 120px/次,所以蓋過去的是軸。
+
+const NONE = [false, false, false, false];
+
+test('D-pad 沒按時,軸照常捲動', () => {
+  const { y } = axisScrollFrame([0, 1], NONE, 16);
+  assert.ok(y > 0);
+});
+
+test('D-pad 按著時,同一幀的軸值一律不捲(hat switch 會兩邊都報)', () => {
+  for (let i = 0; i < DPAD_BUTTONS.length; i++) {
+    const pressed = NONE.map((_, j) => j === i);
+    assert.deepEqual(
+      axisScrollFrame([1, 1], pressed, 16),
+      { x: 0, y: 0 },
+      `第 ${i} 顆方向鍵按著時不該有軸捲動`,
+    );
+  }
+});
+
+test('軸的兩軸都讀,而且只讀 [0] [1](hat 常落在更後面的軸)', () => {
+  const { x, y } = axisScrollFrame([1, -1, 1, 1, 1, 1, 1, 1, 1, 1], NONE, 16);
+  assert.ok(x > 0);
+  assert.ok(y < 0);
+});
+
+test('軸陣列短少時當作 0,不是 NaN', () => {
+  assert.deepEqual(axisScrollFrame([], NONE, 16), { x: 0, y: 0 });
 });
 
 // ---- 「已連線」提示的歸屬 --------------------------------------------------
