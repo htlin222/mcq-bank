@@ -151,30 +151,37 @@ export default function Lectures() {
 
 	return (
 		<div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 py-8">
-			<div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-3">
-				<h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100">
-					{TAB_TITLE[view]}
-				</h1>
-				<ViewTabs view={view} onView={setView} />
-				{view === "note" && (
-					<button
-						type="button"
-						onClick={async () => {
-							setCreating(true);
-							try {
-								const { id } = await createFreeNote();
-								navigate(`/notes/${id}`);
-							} catch (e: any) {
-								setNotesError(e?.message || "新增失敗");
-								setCreating(false);
-							}
-						}}
-						disabled={creating}
-						className="ml-auto inline-flex items-center gap-1.5 rounded bg-accent hover:bg-accent-dark text-white px-3 py-1.5 text-sm disabled:opacity-50"
-					>
-						<Plus size={15} /> {creating ? "建立中…" : "新增筆記"}
-					</button>
-				)}
+			{/* 標題與分頁列刻意分成兩行:標題的字數隨分頁改變(「複習班講義」/
+			    「Wintrobe 教科書」/「其他筆記」),同一行的話分頁列會跟著左右漂移,
+			    切換時看起來像整條在跳。分頁列自己一行,x 位置就固定了。 */}
+			<div className="mb-6">
+				<div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+					<h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100">
+						{TAB_TITLE[view]}
+					</h1>
+					{view === "note" && (
+						<button
+							type="button"
+							onClick={async () => {
+								setCreating(true);
+								try {
+									const { id } = await createFreeNote();
+									navigate(`/notes/${id}`);
+								} catch (e: any) {
+									setNotesError(e?.message || "新增失敗");
+									setCreating(false);
+								}
+							}}
+							disabled={creating}
+							className="ml-auto inline-flex items-center gap-1.5 rounded bg-accent hover:bg-accent-dark text-white px-3 py-1.5 text-sm disabled:opacity-50"
+						>
+							<Plus size={15} /> {creating ? "建立中…" : "新增筆記"}
+						</button>
+					)}
+				</div>
+				<div className="mt-3">
+					<ViewTabs view={view} onView={setView} />
+				</div>
 			</div>
 
 			<SearchBar
