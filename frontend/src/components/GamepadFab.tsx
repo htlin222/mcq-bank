@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Gamepad2, TriangleAlert, X } from "lucide-react";
-import { useGamepadConnected } from "../hooks/useGamepad";
+import { useGamepad, useGamepadConnected } from "../hooks/useGamepad";
 import {
 	claimConnectionAnnouncement,
 	rumble,
@@ -60,6 +60,16 @@ export function GamepadFab({ hints }: { hints: GamepadHint[] }) {
 			document.removeEventListener("keydown", onKey);
 		};
 	}, [open]);
+
+	// SELECT 開關這份說明 —— 唯一「不放下手把」也看得到說明的路。少了它,想知道
+	// 手把能做什麼就得先伸手去點螢幕,而那正是接手把的人在避免的事。
+	//
+	// 綁在 FAB 自己身上而不是三條路由裡:面板的開合是這顆元件的狀態,路由不需要
+	// 知道它存在。SELECT 在 Question / YearList / Exam 的 handler 裡都沒有用到,
+	// 所以不會有一按兩動的問題 —— 新增路由綁定時,這一顆要留給說明面板。
+	useGamepad((action) => {
+		if (action === "select") setOpen((o) => !o);
+	});
 
 	if (!connected) return null;
 
