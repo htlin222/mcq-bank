@@ -38,14 +38,28 @@ export type ResolvedChallenge = {
   resolution_reason: string | null;
 };
 
+/** The "recently corrected" pill only shows challenges that have resolved. */
+const resolvedOnly = (all: ResolvedChallenge[]) =>
+  all.filter((c) => c.status !== 'open' && c.status !== 'contested');
+
+/**
+ * Every mutating endpoint echoes the question's post-mutation state, so a
+ * vote costs one round trip rather than POST + two GETs.
+ */
+type MutationEcho = {
+  active?: ActiveChallenge[];
+  recent?: ResolvedChallenge[];
+};
+
 /**
  * Subscribe to the active challenges (if any) for a question. Multiple may
  * coexist — one per proposed letter.
  * - `active`: undefined while loading, [] when none, rows when present
  * - `recent`: latest resolved challenges (for the "recently corrected" pill)
  *
- * No polling; refresh is manual via `refresh()`. Vote/withdraw helpers
- * automatically refresh on success.
+ * No polling; refresh is manual via `refresh()`. The vote/withdraw helpers
+ * apply the state the server echoed back, falling back to a full `refresh()`
+ * if a response predates that (older Worker still deployed).
  */
 export function useChallenge(questionId: string | null | undefined) {
   const [active, setActive] = useState<ActiveChallenge[] | undefined>(undefined);
@@ -60,8 +74,17 @@ export function useChallenge(questionId: string | null | undefined) {
       api.get<ResolvedChallenge[]>(`/api/questions/${questionId}/challenges?limit=5`),
     ]);
     setActive(Array.isArray(a) ? a : []);
-    setRecent(all.filter((c) => c.status !== 'open' && c.status !== 'contested'));
+    setRecent(resolvedOnly(all));
   }, [questionId]);
+
+  // Returns false when the response carried no usable state, so the caller
+  // can fall back to refresh() rather than leave a stale banner on screen.
+  const applyEcho = useCallback((res: MutationEcho | null | undefined) => {
+    if (!res || !Array.isArray(res.active)) return false;
+    setActive(res.active);
+    if (Array.isArray(res.recent)) setRecent(resolvedOnly(res.recent));
+    return true;
+  }, []);
 
   useEffect(() => {
     if (questionId) {
@@ -78,50 +101,50 @@ export function useChallenge(questionId: string | null | undefined) {
   const file = useCallback(
     async (proposedAnswer: string, rationaleJson: unknown) => {
       if (!questionId) return;
-      await api.post(`/api/questions/${questionId}/challenges`, {
-        proposed_answer: proposedAnswer,
-        rationale_json: rationaleJson,
-      });
-      await refresh();
+      const res = await api.post<MutationEcho>(
+        `/api/questions/${questionId}/challenges`,
+        { proposed_answer: proposedAnswer, rationale_json: rationaleJson },
+      );
+      if (!applyEcho(res)) await refresh();
     },
-    [questionId, refresh],
+    [questionId, refresh, applyEcho],
   );
 
   const vote = useCallback(
     async (challengeId: string, vote: 'agree' | 'disagree', commentJson?: unknown) => {
-      await api.post(`/api/challenges/${challengeId}/votes`, {
+      const res = await api.post<MutationEcho>(`/api/challenges/${challengeId}/votes`, {
         vote,
         comment_json: commentJson,
       });
-      await refresh();
+      if (!applyEcho(res)) await refresh();
     },
-    [refresh],
+    [refresh, applyEcho],
   );
 
   const retract = useCallback(
     async (challengeId: string) => {
-      await api.del(`/api/challenges/${challengeId}/votes`);
-      await refresh();
+      const res = await api.del<MutationEcho>(`/api/challenges/${challengeId}/votes`);
+      if (!applyEcho(res)) await refresh();
     },
-    [refresh],
+    [refresh, applyEcho],
   );
 
   const withdraw = useCallback(
     async (challengeId: string) => {
-      await api.post(`/api/challenges/${challengeId}/withdraw`);
-      await refresh();
+      const res = await api.post<MutationEcho>(`/api/challenges/${challengeId}/withdraw`);
+      if (!applyEcho(res)) await refresh();
     },
-    [refresh],
+    [refresh, applyEcho],
   );
 
   const editRationale = useCallback(
     async (challengeId: string, rationaleJson: unknown) => {
-      await api.patch(`/api/challenges/${challengeId}/rationale`, {
+      const res = await api.patch<MutationEcho>(`/api/challenges/${challengeId}/rationale`, {
         rationale_json: rationaleJson,
       });
-      await refresh();
+      if (!applyEcho(res)) await refresh();
     },
-    [refresh],
+    [refresh, applyEcho],
   );
 
   return { active, recent, refresh, file, vote, retract, withdraw, editRationale };

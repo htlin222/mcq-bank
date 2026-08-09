@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, Check, X, MessageSquare, Pencil } from 'lucide-react';
+import { AlertTriangle, Check, X, MessageSquare, Pencil, Loader2 } from 'lucide-react';
 import { ApiError } from '../lib/api';
 import { useChallenge, type ActiveChallenge, type ResolvedChallenge } from '../hooks/useChallenge';
 import { RichEditor } from './RichEditor';
@@ -52,6 +52,18 @@ export function ChallengePanel({ questionId, currentAnswer, availableLetters, me
 
       {active.length === 0 && recentPromotion && (
         <RecentPromotionPill challenge={recentPromotion} />
+      )}
+
+      {/* Vote/withdraw failures used to set `error` and then render nowhere —
+          the modal is the only thing that ever displayed it. On a slow link
+          that reads exactly like the request still being in flight. */}
+      {error && !filing && (
+        <div
+          role="alert"
+          className="p-2 rounded bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-700/60 text-rose-800 dark:text-rose-300 text-sm"
+        >
+          {error}
+        </div>
       )}
 
       <FileChallengeButton
@@ -132,6 +144,13 @@ function ActiveBanner({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<unknown>(null);
   const [saving, setSaving] = useState(false);
+  // Which action is in flight. Voting is a single round trip to a Worker over
+  // an Access-authenticated connection — on a cold Worker that is seconds, not
+  // milliseconds, and without this the row does not change in any way while it
+  // runs, so the press reads as dropped and gets repeated.
+  const [pending, setPending] = useState<'agree' | 'disagree' | 'retract' | 'withdraw' | null>(
+    null,
+  );
   const isProposer = meEmail !== null && meEmail === challenge.proposer_email;
   const proposerLabel =
     challenge.proposer_name && challenge.proposer_name.trim().length > 0
@@ -188,18 +207,25 @@ function ActiveBanner({
             <VoteButton
               variant="agree"
               active={challenge.my_vote === 'agree'}
-              onClick={() => onVote('agree')}
+              loading={pending === 'agree'}
+              disabled={pending !== null}
+              onClick={() => run('agree', () => onVote('agree'))}
             />
             <VoteButton
               variant="disagree"
               active={challenge.my_vote === 'disagree'}
-              onClick={() => onVote('disagree')}
+              loading={pending === 'disagree'}
+              disabled={pending !== null}
+              onClick={() => run('disagree', () => onVote('disagree'))}
             />
             {challenge.my_vote !== null && (
               <button
-                onClick={onRetract}
-                className="text-xs text-ink-500 hover:text-ink-700 dark:hover:text-ink-300"
+                onClick={() => run('retract', onRetract)}
+                disabled={pending !== null}
+                aria-busy={pending === 'retract'}
+                className="text-xs text-ink-500 hover:text-ink-700 dark:hover:text-ink-300 inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                {pending === 'retract' && <Loader2 size={11} className="animate-spin" />}
                 撤回投票
               </button>
             )}
@@ -207,9 +233,12 @@ function ActiveBanner({
         )}
         {isProposer && (
           <button
-            onClick={onWithdraw}
-            className="px-3 py-1.5 text-sm rounded border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-700"
+            onClick={() => run('withdraw', onWithdraw)}
+            disabled={pending !== null}
+            aria-busy={pending === 'withdraw'}
+            className="px-3 py-1.5 text-sm rounded border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-700 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
+            {pending === 'withdraw' && <Loader2 size={13} className="animate-spin" />}
             撤回挑戰
           </button>
         )}
@@ -275,15 +304,36 @@ function ActiveBanner({
       )}
     </div>
   );
+
+  // The banner unmounts when a vote resolves the challenge; the trailing
+  // setPending is then a no-op rather than a leak (React 18).
+  async function run(
+    kind: 'agree' | 'disagree' | 'retract' | 'withdraw',
+    fn: () => void | Promise<void>,
+  ) {
+    if (pending) return;
+    setPending(kind);
+    try {
+      await fn();
+    } finally {
+      setPending(null);
+    }
+  }
 }
 
 function VoteButton({
   variant,
   active,
+  loading,
+  disabled,
   onClick,
 }: {
   variant: 'agree' | 'disagree';
   active: boolean;
+  /** This button's own request is in flight — it gets the spinner. */
+  loading: boolean;
+  /** Any action on the banner is in flight — everything else just dims. */
+  disabled: boolean;
   onClick: () => void;
 }) {
   const isAgree = variant === 'agree';
@@ -295,9 +345,27 @@ function VoteButton({
   const idleCls = isAgree
     ? ' border-emerald-300 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30'
     : ' border-rose-300 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/30';
+  // The spinner replaces the icon rather than sitting next to it, so the row
+  // doesn't reflow the moment you press — a shifting button under the cursor
+  // is its own kind of "did that register?".
   return (
-    <button onClick={onClick} className={base + (active ? activeCls : idleCls)}>
-      {isAgree ? <Check size={14} /> : <X size={14} />}
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-busy={loading}
+      className={
+        base +
+        (active ? activeCls : idleCls) +
+        ' disabled:opacity-50 disabled:cursor-not-allowed'
+      }
+    >
+      {loading ? (
+        <Loader2 size={14} className="animate-spin" />
+      ) : isAgree ? (
+        <Check size={14} />
+      ) : (
+        <X size={14} />
+      )}
       {isAgree ? '同意挑戰' : '反對'}
     </button>
   );

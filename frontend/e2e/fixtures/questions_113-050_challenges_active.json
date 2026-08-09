@@ -1,0 +1,17 @@
+[
+  {
+    "id": "ch-e2e-1",
+    "question_id": "113-050",
+    "proposer_email": "peer@example.com",
+    "proposer_name": "同儕",
+    "proposed_answer": "D",
+    "original_answer_at_challenge": "B",
+    "rationale_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"依據新版指引,D 才是首選。\"}]}]}",
+    "status": "open",
+    "contested_at": null,
+    "created_at": 1780000000000,
+    "agrees": 0,
+    "disagrees": 0,
+    "my_vote": null
+  }
+]
