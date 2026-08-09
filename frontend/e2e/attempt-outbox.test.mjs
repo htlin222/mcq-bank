@@ -155,3 +155,53 @@ test('送得出去的時候不留佇列 —— 常態路徑不該累積東西', 
     await ctx.close();
   }
 });
+
+// 斷網那幾題 → 網路回來 → 繼續作答。積壓的必須跟著送出去,不能等下一次
+// online / 切回前景 —— 在一台會自己關 WiFi 的裝置上,那兩個事件不一定會再來。
+// 「這一趟 POST 成功」本身就是「網路現在通了」最強的證據。
+test('網路恢復後的下一次作答,會把先前積壓的一起送出去', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const { devices } = await import('playwright');
+  const ctx = await browser.newContext({ ...devices['Desktop Safari'], serviceWorkers: 'block' });
+  const page = await ctx.newPage();
+  await ctx.route('**/*', (r) =>
+    r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+  );
+
+  try {
+    await page.goto(server.origin + '/q/113-050', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.getByText('孟買血型').first().waitFor({ timeout: 20_000 });
+
+    // 先手動塞兩筆積壓,模擬「斷網時答的那幾題」。直接寫 localStorage 而不是
+    // 真的斷網再作答:這條要驗的是「積壓會不會被帶出去」,不是「怎麼進去的」。
+    await page.evaluate(() => {
+      localStorage.setItem('mcq:attempt-outbox:v1', JSON.stringify([
+        { idem: 'stale-1', question_id: '113-097', chosen: 'A', confidence: 2, elapsed_ms: 900, queued_at: 1 },
+        { idem: 'stale-2', question_id: '113-098', chosen: 'C', confidence: 4, elapsed_ms: 800, queued_at: 2 },
+      ]));
+    });
+
+    const before = posts();
+    await page.getByText('先生為亞孟買血型').first().click();
+    await page.getByRole('button', { name: '提交答案' }).click();
+    await page.getByText('答對了').first().waitFor({ timeout: 20_000 });
+    await page.waitForTimeout(2_500);
+
+    // 這一題 + 兩筆積壓 = 至少 3 趟
+    assert.ok(
+      posts() - before >= 3,
+      `只送了 ${posts() - before} 趟 —— 積壓沒有跟著出去(應該是 1 題 + 2 筆積壓)`,
+    );
+    const left = await page.evaluate(() => {
+      const raw = localStorage.getItem('mcq:attempt-outbox:v1');
+      return raw ? JSON.parse(raw).length : 0;
+    });
+    assert.equal(left, 0, '積壓送出後佇列該清空');
+  } finally {
+    await ctx.close();
+  }
+});

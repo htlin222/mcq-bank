@@ -149,6 +149,11 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
         idem,
       );
       removeAttempt(idem);
+      // 這一趟成功,是「網路現在確實通了」最強的證據 —— 積壓的舊作答就趁這個
+      // 時候送。不這樣做的話,網路恢復後使用者一路答下去,先前斷網那幾題會一直
+      // 躺在佇列裡,要等下一次 online / 切回前景才有機會。而在一台會自己關 WiFi
+      // 的裝置上,那兩個事件不一定會再來。
+      void flushAttempts();
       answerIdemKey.current = null;
       setStatsReady(true);
       onAnswered?.(chosen, r.correct);

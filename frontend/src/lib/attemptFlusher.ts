@@ -36,8 +36,15 @@ export function subscribePending(fn: (pending: number) => void): () => void {
 export async function flushAttempts(): Promise<void> {
 	if (running) return;
 	if (size() === 0) return;
-	// 明確離線就別試 —— 失敗一次要等一個 timeout,在弱網路上那是好幾秒。
-	if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+
+	// **刻意不看 `navigator.onLine`。** 直覺上「離線就別白費一次 timeout」是對的,
+	// 但那個值在 Android WebView 上不可靠 —— 而這個功能存在的理由,正是一台
+	// 會自己把 WiFi 關掉的 Android 平板(BOOX 的省電模式)。它可能在網路已經
+	// 回來之後仍卡在 false,那樣補送就永遠不會執行:佇列存住了,卻送不出去,
+	// 等於白做。
+	//
+	// 代價有界:`flush()` 遇到第一個失敗就停,所以離線時最多付**一次** timeout,
+	// 而且觸發點只有四個事件(不是輪詢)。用一次 timeout 換「不會永久卡住」,划算。
 
 	running = true;
 	try {
