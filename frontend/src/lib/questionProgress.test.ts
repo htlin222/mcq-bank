@@ -7,7 +7,11 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { withAnswer, withProgressCleared } from "./questionProgress.ts";
+import {
+	withAnswer,
+	withProgressCleared,
+	preserveLocalAnswer,
+} from "./questionProgress.ts";
 import type { QuestionFull } from "../hooks/useQuestion.ts";
 
 function q(progress: QuestionFull["my_progress"]): QuestionFull {
@@ -120,4 +124,80 @@ test("是純函式:不動輸入", () => {
 	assert.equal(input.my_progress?.times_seen, 1, "輸入被就地改掉了");
 	assert.notEqual(out, input);
 	assert.equal(out.stem, input.stem);
+});
+
+// ── 重抓回來的 payload 不可以蓋掉本地剛寫入的作答紀錄 ──
+//
+// withAnswer() 把作答就地寫進快取之後,還有一條路會把它洗掉:**離開這一題時的
+// 閒置預抓**。Question.tsx 在鄰居題上會預抓它的鄰居,而剛作答那一題正好是其中
+// 之一;抓回來的 payload 被無條件 set() 進快取,蓋掉本地那份。
+//
+// 覆蓋發生在「離開」而不是「回來」,所以從「回到這題時有沒有重抓」這個角度永遠
+// 看不到它 —— 回來時 peek 就命中了,一次網路都不會發。
+//
+// 線上為什麼會拿到「沒有作答紀錄」的 payload:`/api/questions/:id` 在 Service
+// Worker 是 NetworkFirst + 3 秒 timeout,弱訊號下回的是答題前存下的那份快取。
+// 伺服器其實記得,但那趟請求根本沒到伺服器。
+
+test("重抓回來的沒有作答紀錄時,保留本地那一份", () => {
+	const local = withAnswer(q(null), "B", true);
+	const merged = preserveLocalAnswer(q(null), local);
+	assert.equal(merged.my_progress?.last_chosen, "B");
+	assert.equal(merged.my_progress?.times_seen, 1);
+});
+
+test("伺服器也有作答紀錄時以伺服器為準 —— 它才是真相,本地那份只是估算", () => {
+	const local = withAnswer(q(null), "B", true);
+	const server = q({
+		times_seen: 7,
+		times_correct: 5,
+		last_chosen: "D",
+		last_correct: 0,
+		bookmarked: 0,
+		bookmark_folder_id: null,
+	});
+	const merged = preserveLocalAnswer(server, local);
+	assert.equal(merged.my_progress?.last_chosen, "D");
+	assert.equal(merged.my_progress?.times_seen, 7);
+});
+
+test("本地沒有東西可以保護時,原樣回傳", () => {
+	const incoming = q(null);
+	assert.equal(preserveLocalAnswer(incoming, undefined), incoming);
+	assert.equal(preserveLocalAnswer(incoming, q(null)), incoming);
+});
+
+test("使用者主動清除過作答紀錄的話,不要把它救回來", () => {
+	// withProgressCleared 把 last_chosen 設成 null,所以本地已經沒有「作答過」
+	// 這件事可保留 —— 少了這條,清除紀錄會在下一次重抓時原地復活。
+	const cleared = withProgressCleared(withAnswer(q(null), "B", true));
+	const merged = preserveLocalAnswer(q(null), cleared);
+	assert.equal(merged.my_progress?.last_chosen ?? null, null);
+});
+
+test("保留時整份 my_progress 一起帶過去,收藏欄位不會在中途掉了", () => {
+	const local = withAnswer(
+		q({
+			times_seen: 0,
+			times_correct: 0,
+			last_chosen: null,
+			last_correct: null,
+			bookmarked: 1,
+			bookmark_folder_id: "f1",
+		}),
+		"B",
+		true,
+	);
+	const merged = preserveLocalAnswer(q(null), local);
+	assert.equal(merged.my_progress?.bookmarked, 1);
+	assert.equal(merged.my_progress?.bookmark_folder_id, "f1");
+});
+
+test("是純函式:不動輸入,而且題目本體用重抓回來的那份", () => {
+	const local = withAnswer(q(null), "B", true);
+	const incoming = { ...q(null), stem: "伺服器上被改過的題幹" };
+	const merged = preserveLocalAnswer(incoming, local);
+	assert.equal(merged.stem, "伺服器上被改過的題幹", "題目本體應該用新的");
+	assert.equal(incoming.my_progress, null, "輸入被就地改掉了");
+	assert.notEqual(merged, incoming);
 });

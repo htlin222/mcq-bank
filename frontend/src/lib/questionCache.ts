@@ -1,6 +1,7 @@
 import type { QuestionFull } from "../hooks/useQuestion";
 import { api } from "./api";
-import { createQuestionStore } from "./questionStore";
+import { preserveLocalAnswer } from "./questionProgress";
+import { createQuestionStore, type QuestionStore } from "./questionStore";
 
 /**
  * 單題 payload 的應用層快取。`peek()` 同步可讀,所以預抓命中時換題完全不進
@@ -9,9 +10,13 @@ import { createQuestionStore } from "./questionStore";
  * ttl 60s 是刻意的短命:詳解是共筆,別人可能剛改過。過期不代表丟掉 —— 仍然先把
  * 舊的畫出來(stale-while-revalidate),同時背景重抓。
  */
-export const questionCache = createQuestionStore<QuestionFull>((id) =>
-	api.get<QuestionFull>(`/api/questions/${id}`),
-);
+export const questionCache: QuestionStore<QuestionFull> = createQuestionStore<QuestionFull>(async (id) => {
+	const fresh = await api.get<QuestionFull>(`/api/questions/${id}`);
+	// 掛在 fetcher 上,因為這是**每一條**重抓路徑的唯一交會點 —— 背景重抓、
+	// reload({force}),以及最容易被忽略的那條:離開這一題時、鄰居頁的閒置預抓。
+	// 見 preserveLocalAnswer 的說明(#95 的後半)。
+	return preserveLocalAnswer(fresh, questionCache.peek(id));
+});
 
 export type YearListItem = { id: string; number: number };
 

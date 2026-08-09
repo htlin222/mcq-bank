@@ -45,6 +45,37 @@ export function withAnswer(
 	};
 }
 
+/**
+ * 重抓回來的 payload 要不要沿用本地那份 `my_progress`。
+ *
+ * `withAnswer()` 把作答就地寫進快取之後,還有一條路會把它洗掉,而且位置跟直覺
+ * 相反 —— 是**離開這一題的時候**,不是回來的時候。Question.tsx 在鄰居題上閒置時
+ * 會預抓它自己的鄰居,剛作答那一題正好是其中之一;抓回來的 payload 被無條件
+ * `set()` 進快取,蓋掉本地那份。回到這一題時 peek 直接命中被蓋過的版本,連一次
+ * 網路都不會發 —— 所以從「回來時有沒有重抓」的角度永遠看不到它。
+ *
+ * 線上為什麼會拿到「沒有作答紀錄」的 payload:`/api/questions/:id` 在 Service
+ * Worker 是 NetworkFirst + **3 秒 timeout**,弱訊號(e-ink 平板正是這個情境)下回
+ * 的是答題前存下的那份快取。伺服器其實記得這次作答,但那趟請求根本沒到伺服器。
+ *
+ * 判準刻意收得很窄:**只有在對方沒有 `last_chosen`、而本地有的時候**才保留。
+ * 伺服器有紀錄時一律以伺服器為準(times_seen 之類的統計才不會停在本地估算);
+ * 使用者主動清除過的話,本地的 `last_chosen` 也已經是 null,不會把它救回來。
+ * 剩下的邊界是「在另一台裝置清除紀錄」—— 那會被這裡擋住,但重新整理就會拿到
+ * 伺服器的真相(整頁重載時 questionCache 是空的,沒有本地那份可以保留)。
+ *
+ * 純函式:回新物件,不動輸入;題目本體一律用重抓回來的那份。
+ */
+export function preserveLocalAnswer(
+	incoming: QuestionFull,
+	local: QuestionFull | undefined,
+): QuestionFull {
+	const mine = local?.my_progress;
+	if (!mine?.last_chosen) return incoming;
+	if (incoming.my_progress?.last_chosen) return incoming;
+	return { ...incoming, my_progress: mine };
+}
+
 /** 「清除本題作答紀錄」的對應面。收藏同樣不動。 */
 export function withProgressCleared(q: QuestionFull): QuestionFull {
 	const p = q.my_progress;
