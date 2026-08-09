@@ -1,0 +1,284 @@
+name: Deploy
+
+# 一次 push 到 main → classify 決定要部署什麼 → pages / worker 各自跑。
+#
+# 這支取代了原本的 deploy-pages.yml + deploy-worker.yml。舊版兩支各自帶一份
+# 「只有 X 變更才部署」的 guard,而判準是 allowlist(「有沒有非 frontend 的
+# 檔案」)—— 於是 CLAUDE.md、package.json、scripts/ 底下任何一個檔案都會讓部署
+# 靜靜跳過,而且 job 顯示綠色。最近 30 個 commit 拿新舊判準各跑一次:
+#
+#   前端部署   舊 10 → 新 21
+#   Worker 部署 舊  1 → 新  3
+#   真的需要人   0
+#
+# 判準本身抽到 scripts/lib/classify-deploy.sh(有測試)。內嵌在 YAML 裡的
+# shell 只能靠「推上去看看」來驗,而部署邏輯最不該用那種方式驗。
+#
+# on.push 刻意**不帶 paths 過濾**:過濾掉的 push 連 job 都不會建立,也就沒有
+# 任何地方能說「這次沒有部署,因為 X」。讓 classify 永遠跑,由它決定並留下紀錄。
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   Pages:Edit + Workers Scripts:Edit
+#   CLOUDFLARE_ACCOUNT_ID  the Cloudflare account id
+#   CONFIG_TOML            the full config.toml (gitignored → vite 建置與部署後
+#                          驗證都要讀它拿 public.host / pages_project)
+#   WRANGLER_TOML          the full wrangler.toml (gitignored → 帶 bindings + [vars])
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-main
+  # 不 cancel-in-progress:砍掉跑到一半的部署,留下的是「Worker 新、前端舊」
+  # 這種看起來像快取問題的半套狀態(CLAUDE.md 的 worktree 那條坑同一種)。
+  # 排隊比較慢,但每一次都是完整的。
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    outputs:
+      pages: ${{ steps.c.outputs.pages }}
+      worker: ${{ steps.c.outputs.worker }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 需要歷史才能 diff 這次 push 的範圍
+
+      - name: Classify what this push needs
+        id: c
+        run: |
+          set -euo pipefail
+
+          # 手動觸發沒有 before/after 可比,而按下它的人要的就是「現在整包上線」。
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            echo "manual dispatch → 部署 Pages + Worker"
+            {
+              echo 'pages=true'
+              echo 'worker=true'
+            } >> "$GITHUB_OUTPUT"
+            echo '手動觸發:Pages + Worker 全部部署。' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          BEFORE='${{ github.event.before }}'
+          AFTER='${{ github.sha }}'
+          # before 在首次 push / force-push 時是全 0,也可能是我們沒抓到的 commit
+          # —— 退回用新 tip 的 parent。
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            BEFORE="$(git rev-parse "${AFTER}~1" 2>/dev/null || echo '')"
+          fi
+          if [ -n "$BEFORE" ]; then
+            CHANGED="$(git diff --name-only "$BEFORE" "$AFTER")"
+          else
+            CHANGED="$(git show --name-only --pretty=format: "$AFTER")"
+          fi
+
+          echo "Changed files:"
+          printf '%s\n' "$CHANGED" | sed 's/^/  /'
+
+          RESULT="$(printf '%s\n' "$CHANGED" | bash scripts/lib/classify-deploy.sh)"
+          printf '%s\n' "$RESULT"
+          PAGES="$(printf '%s\n' "$RESULT"   | sed -n 's/^pages=//p')"
+          WORKER="$(printf '%s\n' "$RESULT"  | sed -n 's/^worker=//p')"
+          BLOCKED="$(printf '%s\n' "$RESULT" | sed -n 's/^blocked=//p')"
+          REASON="$(printf '%s\n' "$RESULT"  | sed -n 's/^reason=//p')"
+
+          {
+            echo "### 部署判定"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Pages | \`$PAGES\` |"
+            echo "| Worker | \`$WORKER\` |"
+            echo "| 需要人工 | \`$BLOCKED\` |"
+            echo "| 理由 | $REASON |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # 需要人工時**讓 job 紅**,不要靜靜地綠。舊版最傷的地方不是「跳過」,
+          # 是跳過之後那個綠勾 —— 你看到它會以為上線了。這條路實測 30 個 commit
+          # 一次都沒走到,所以紅燈不會變成噪音;真的走到時它就是「main 還沒上線,
+          # 去跑 ./scripts/deploy.sh」的訊號。
+          if [ "$BLOCKED" = 'true' ]; then
+            echo "::error::這次 push 需要人工部署(./scripts/deploy.sh):$REASON"
+            {
+              echo ""
+              echo "> ⛔️ **main 還沒有上線。** 這次 push 動到了需要人工處理的檔案:"
+              echo "> \`$REASON\`"
+              echo ">"
+              echo "> migration 要 \`d1 migrations apply --remote\`;"
+              echo "> \`wrangler.example.toml\` / \`config.example.toml\` 的新值要先更新對應的 secret。"
+              echo "> 處理完在本機的 main checkout 跑 \`./scripts/deploy.sh\`,"
+              echo "> 或補完 secret 後用 workflow_dispatch 重跑這支。"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          {
+            echo 'pages='"$PAGES"
+            echo 'worker='"$WORKER"
+          } >> "$GITHUB_OUTPUT"
+
+  pages:
+    needs: classify
+    if: needs.classify.outputs.pages == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore config.toml + resolve names
+        env:
+          CONFIG_TOML: ${{ secrets.CONFIG_TOML }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CONFIG_TOML:-}" ]; then
+            echo "::error::CONFIG_TOML secret is empty — add it in repo Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          printf '%s' "$CONFIG_TOML" > config.toml
+          {
+            echo "PAGES_PROJECT=$(node scripts/lib/cfg.mjs project.pages_project)"
+            echo "PUBLIC_HOST=$(node scripts/lib/cfg.mjs public.host)"
+          } >> "$GITHUB_ENV"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Build frontend
+        run: |
+          set -euo pipefail
+          pnpm --dir frontend install --frozen-lockfile
+          pnpm --dir frontend build
+
+      # 部署前的閘門。2026-07-29 之前，所有 iOS 使用者的題目頁都是整頁白屏，
+      # 而 364 個單元測試全綠、Chromium 上完全正常 —— 成因是只在 WebKit 命中的
+      # 時序競賽（見 wiki 的 Gotchas 十四）。iOS 強制所有瀏覽器使用 WebKit，
+      # 所以少了這一關，同一類「整個平台完全不能用」的失敗沒有任何防線。
+      #
+      # E2E_REQUIRE=1：瀏覽器沒裝好時要讓 job 失敗，不能靜靜跳過 —— 跳過的
+      # 測試看起來跟通過一模一樣，那正是這個閘門要防的事。
+      - name: Smoke test on WebKit (iPhone)
+        env:
+          E2E_REQUIRE: '1'
+        run: |
+          set -euo pipefail
+          pnpm --dir frontend exec playwright install --with-deps webkit
+          node --test frontend/e2e/smoke.test.mjs frontend/e2e/nav-prefetch.test.mjs
+
+      # --branch=main 是明寫的:wrangler 從當前 git 分支推導 Pages 環境,推導錯
+      # 的話東西會靜靜地上到 Preview 而不是 Production,看起來像快取問題
+      # (CLAUDE.md 的 worktree 那條坑)。這裡不靠推導。
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy frontend/dist --project-name=${{ env.PAGES_PROJECT }} --branch=main
+
+      # 「部署指令成功」跟「使用者拿得到新版」是兩件事。驗的是後者:線上首頁引用
+      # 的 bundle 檔名要等於剛建出來的那一個。這一步同時證明了它上的是 Production
+      # —— Preview 部署不會改變自訂網域服務的內容。
+      - name: Verify the live site serves this build
+        run: |
+          set -euo pipefail
+          want="$(grep -o 'src="/assets/[^"]*"' frontend/dist/index.html | head -1 | sed 's#.*/assets/##; s#"##')"
+          if [ -z "$want" ]; then
+            echo "::error::在 frontend/dist/index.html 裡找不到 bundle —— 建置產物壞了"
+            exit 1
+          fi
+          echo "expecting assets/$want on https://$PUBLIC_HOST/"
+          # 邊緣傳播有延遲(實測部署完當下第一次讀還是舊的),所以要重試而不是
+          # 一次定生死 —— 一次定生死的話這條會變成不穩定的紅燈。
+          for i in $(seq 1 15); do
+            live="$(curl -fsSL "https://$PUBLIC_HOST/" | grep -o 'src="/assets/[^"]*"' | head -1 | sed 's#.*/assets/##; s#"##' || true)"
+            echo "  try $i: $live"
+            [ "$live" = "$want" ] && { echo "✅ 線上就是這次的建置"; exit 0; }
+            sleep 8
+          done
+          echo "::error::部署後 2 分鐘,https://$PUBLIC_HOST/ 仍然不是這次的 bundle(want=$want got=$live)"
+          exit 1
+
+  worker:
+    needs: classify
+    if: needs.classify.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore wrangler.toml + config.toml from secrets
+        env:
+          WRANGLER_TOML: ${{ secrets.WRANGLER_TOML }}
+          CONFIG_TOML: ${{ secrets.CONFIG_TOML }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WRANGLER_TOML:-}" ]; then
+            echo "::error::WRANGLER_TOML secret is empty — add it in repo Settings → Secrets and variables → Actions (paste your wrangler.toml)."
+            exit 1
+          fi
+          if [ -z "${CONFIG_TOML:-}" ]; then
+            echo "::error::CONFIG_TOML secret is empty — 部署後驗證要從它讀 public.host。"
+            exit 1
+          fi
+          printf '%s' "$WRANGLER_TOML" > wrangler.toml
+          printf '%s' "$CONFIG_TOML" > config.toml
+          echo "PUBLIC_HOST=$(node scripts/lib/cfg.mjs public.host)" >> "$GITHUB_ENV"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install deps + refresh skill bundles
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          # 兩份都要。舊版只跑 gen-mcq-bundle.mjs,於是 bank-ingest 的 skill 改了
+          # 之後 /api/me/bank-skill 下載到的還是舊版 —— 而 predeploy 跑的是
+          # `pnpm gen:bundles`(兩份),CI 與文件說的部署流程不一致。
+          pnpm gen:bundles
+          if ! git diff --quiet -- worker/generated; then
+            echo "::warning::worker/generated 與 .claude/skills 不同步 —— 有人改了 skill 但沒跑 pnpm gen:bundles。這次部署用的是重新產生的版本,但請把它 commit 回去。"
+          fi
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
+      # /api/me 是 Access-bypassed 的 auth probe(setup-public-bypass.sh),所以
+      # 回答的一定是 Worker 本人。驗的是**它在答**:401 + JSON。
+      # 收到 HTML 表示答話的是 Cloudflare Access 的登入頁,也就是 route 沒掛上去
+      # —— 那正是 PWA 那節講的「302 看起來像 200」的同一個陷阱。
+      - name: Verify the Worker answers on its route
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 10); do
+            read -r code ctype <<<"$(curl -s -o /tmp/probe.json -w '%{http_code} %{content_type}' "https://$PUBLIC_HOST/api/me" || echo '000 -')"
+            echo "  try $i: $code $ctype"
+            case "$code:$ctype" in
+              401:application/json*) echo "✅ Worker 在答"; exit 0 ;;
+            esac
+            sleep 6
+          done
+          echo "::error::/api/me 沒有回 401 + application/json(最後一次:$code $ctype)。回 HTML 表示是 Access 的登入頁在答,Worker route 沒掛上。"
+          head -c 300 /tmp/probe.json || true
+          exit 1
