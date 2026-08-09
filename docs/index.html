@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mcq-bank — 專科考試共筆題庫系統</title>
+    <meta
+      name="description"
+      content="專科醫師考試的共筆題庫系統:協作詳解、討論串、全真模擬、間隔複習。建立在實證學習的機制上,全站跑在 Cloudflare 免費額度。不綁任何專科。"
+    />
+    <style>
+      :root {
+        --ink-50: #f7f5f2;
+        --ink-100: #ede9e2;
+        --ink-200: #d8d0c2;
+        --ink-400: #8a7d65;
+        --ink-500: #5d5240;
+        --ink-600: #3f3729;
+        --ink-800: #1a160f;
+        --ink-900: #0c0a06;
+        --paper: #fdfaf5;
+        --accent: #a8442a;
+        --accent-dark: #7a2f1d;
+        --bg: var(--ink-50);
+        --fg: var(--ink-800);
+        --muted: var(--ink-500);
+        --card: #ffffff;
+        --line: var(--ink-200);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14110c;
+          --fg: #ede9e2;
+          --muted: #b8ac96;
+          --card: #1f1a13;
+          --line: #3f3729;
+          --paper: #1a160f;
+          --accent: #cb6845;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.75 "Inter", "Noto Sans TC", system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 62rem; margin: 0 auto; padding: 0 1.25rem; }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      header.hero {
+        padding: 4.5rem 0 3rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .eyebrow {
+        font-size: 0.8rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 0.75rem;
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+        line-height: 1.2;
+        margin: 0 0 1rem;
+        letter-spacing: -0.02em;
+      }
+      .lede {
+        font-size: clamp(1.02rem, 2vw, 1.2rem);
+        color: var(--muted);
+        max-width: 46rem;
+        margin: 0 0 1.75rem;
+      }
+      .cta { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+      .btn {
+        display: inline-block;
+        padding: 0.6rem 1.1rem;
+        border: 1px solid var(--accent);
+        border-radius: 3px;
+        font-size: 0.94rem;
+      }
+      .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+      .btn.primary:hover { background: var(--accent-dark); text-decoration: none; }
+      .btn.ghost:hover { background: var(--card); text-decoration: none; }
+
+      section { padding: 3.25rem 0; border-bottom: 1px solid var(--line); }
+      section:last-of-type { border-bottom: 0; }
+      h2 {
+        font-size: clamp(1.3rem, 2.6vw, 1.65rem);
+        margin: 0 0 0.5rem;
+        letter-spacing: -0.01em;
+      }
+      .sub { color: var(--muted); margin: 0 0 1.75rem; max-width: 46rem; }
+      h3 { font-size: 1.02rem; margin: 0 0 0.35rem; }
+      p { margin: 0 0 1rem; }
+
+      .grid { display: grid; gap: 1rem; }
+      @media (min-width: 40rem) { .grid.two { grid-template-columns: 1fr 1fr; } }
+      @media (min-width: 56rem) { .grid.three { grid-template-columns: repeat(3, 1fr); } }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 1.15rem 1.25rem;
+      }
+      .card p { margin: 0; color: var(--muted); font-size: 0.94rem; }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.93rem;
+        display: block;
+        overflow-x: auto;
+      }
+      th, td {
+        border: 1px solid var(--line);
+        padding: 0.6rem 0.7rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      th { background: var(--paper); font-weight: 600; white-space: nowrap; }
+      td code, p code, li code {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 0.05rem 0.3rem;
+        font-family: ui-monospace, "JetBrains Mono", monospace;
+        font-size: 0.88em;
+      }
+
+      .evidence { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.9rem; }
+      .evidence li {
+        border-left: 3px solid var(--accent);
+        padding: 0.15rem 0 0.15rem 1rem;
+      }
+      .evidence .term { font-weight: 600; }
+      .evidence .en { color: var(--muted); font-weight: 400; font-size: 0.9em; }
+      .evidence .maps {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 0.93rem;
+        color: var(--muted);
+      }
+
+      figure { margin: 0 0 1.25rem; }
+      figure svg { width: 100%; height: auto; display: block; }
+      figcaption { font-size: 0.86rem; color: var(--muted); margin-top: 0.5rem; }
+
+      .note {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--accent);
+        border-radius: 3px;
+        padding: 0.9rem 1.1rem;
+        font-size: 0.93rem;
+      }
+      .note strong { color: var(--fg); }
+
+      ul.plain { padding-left: 1.15rem; }
+      ul.plain li { margin-bottom: 0.4rem; }
+
+      footer {
+        padding: 2.5rem 0 3.5rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+        border-top: 1px solid var(--line);
+      }
+      footer a { color: var(--muted); text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Collaborative MCQ study system</p>
+        <h1>把一群人分頭讀過的東西，留在題目旁邊</h1>
+        <p class="lede">
+          專科醫師考試的共筆題庫系統。每一題底下是全組人共同維護的詳解與討論，
+          搭配全真模擬與間隔複習。功能不是照「題庫網站該有什麼」列出來的，
+          而是照<strong>已被反覆驗證的學習機制</strong>挑的。
+          整套跑在 Cloudflare 免費額度，而且<strong>不綁任何專科</strong>。
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/htlin222/mcq-bank">原始碼</a>
+          <a class="btn ghost" href="https://github.com/htlin222/mcq-bank/wiki">開發 Wiki</a>
+          <a class="btn ghost" href="manual.html">使用手冊</a>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="wrap">
+        <h2>要解決的問題</h2>
+        <p class="sub">
+          準備專科考試的小組，通常已經有一個共用資料夾、一個聊天群組，和一份沒人敢動的
+          Word 詳解檔。三者各自失效的方式不同，但結果一樣。
+        </p>
+        <div class="grid three">
+          <div class="card">
+            <h3>知識沒有留在需要它的地方</h3>
+            <p>
+              查過的資料躺在聊天記錄裡。下一個人讀到同一題時找不到，於是再查一次。
+              一年下來同一題被查了七遍。
+            </p>
+          </div>
+          <div class="card">
+            <h3>只有讀，沒有取回</h3>
+            <p>
+              反覆看詳解會產生「我懂了」的熟悉感，但那不等於考場上叫得出來。
+              熟悉度與提取能力是兩件事。
+            </p>
+          </div>
+          <div class="card">
+            <h3>複習的時間點靠感覺</h3>
+            <p>
+              人傾向重複複習「已經會的」，因為那讓人舒服。真正該複習的，
+              是那些剛好快要忘記的。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="evidence">
+      <div class="wrap">
+        <h2>為什麼是這些模組</h2>
+        <p class="sub">
+          每個模組都對應一個在認知心理學裡被反覆驗證的效應。這是取捨的依據 ——
+          做不到對應某個機制的功能，就不做。
+        </p>
+        <ul class="evidence">
+          <li>
+            <span class="term">測驗效應 <span class="en">testing effect / retrieval practice</span></span>
+            主動把答案<em>提取</em>出來，比重複閱讀更能形成持久記憶。
+            「考試」在這裡不是評量手段，是學習手段本身。
+            <span class="maps">
+              → 複習模式一次只給一題、先作答才揭曉；每日到期佇列；Telegram 每日推題
+            </span>
+          </li>
+          <li>
+            <span class="term">間隔效應 <span class="en">spacing effect</span></span>
+            同樣的總時數，分散在多天的效果遠優於集中在一天。
+            間隔要隨著記憶強度拉長。
+            <span class="maps">
+              → FSRS 排程（依每題的實際表現算下次到期日），而不是固定天數輪迴
+            </span>
+          </li>
+          <li>
+            <span class="term">交錯練習 <span class="en">interleaving</span></span>
+            混合不同主題的題目，比一次只練一個主題更能訓練「判斷這題在問什麼」。
+            block 練習會讓人靠題型慣性作答。
+            <span class="maps">
+              → 跨年份到期佇列、自訂測驗產生器、弱點地圖依主題抽題
+            </span>
+          </li>
+          <li>
+            <span class="term">合意困難 <span class="en">desirable difficulties</span></span>
+            讓提取變難一點（但仍做得到），學習效果反而更好。看得見答案的複習太輕鬆。
+            <span class="maps">
+              → 防劇透遮罩（詳解預設不顯示）、自動挖空 cloze（把關鍵詞蓋起來再讀）
+            </span>
+          </li>
+          <li>
+            <span class="term">生成效應 <span class="en">generation effect</span></span>
+            自己產出的內容比讀來的記得牢。寫給別人看的解釋，會逼出自己沒想清楚的地方。
+            <span class="maps">
+              → 共筆詳解（wiki 式協作、版本歷史）、討論串與 @提及、答案挑戰與投票
+            </span>
+          </li>
+          <li>
+            <span class="term">後設認知校準 <span class="en">metacognitive calibration</span></span>
+            「以為自己會」與「真的會」之間的落差，是考前最貴的盲點。
+            要縮小它，得先讓它可被觀測。
+            <span class="maps">
+              → 作答時同時記錄信心度，事後畫出信心 × 正確率的校準曲線
+            </span>
+          </li>
+          <li>
+            <span class="term">即時回饋 <span class="en">immediate feedback</span></span>
+            答完立刻知道對錯，錯誤才不會被鞏固。回饋延遲愈久，效益衰減愈快。
+            <span class="maps">
+              → 送出當下就揭曉（正解本來就在 client 手上，不等網路來回）
+            </span>
+          </li>
+          <li>
+            <span class="term">分散式規劃 <span class="en">distributed practice</span></span>
+            考前才發現讀不完，通常不是不夠努力，是一開始就沒算過。
+            <span class="maps">
+              → 讀書計畫產生器：依剩餘天數、每日可用時間、輪次算出逐日題數；
+              <strong>排不完就明講排不完</strong>，並給出三個可一鍵重算的調整方向
+            </span>
+          </li>
+        </ul>
+        <p style="margin-top: 1.5rem">
+          <span class="note" style="display: block">
+            <strong>刻意不做的：</strong>排行榜、連續天數徽章、積分。
+            外在誘因會排擠掉本來就存在的內在動機，而準備專科考試的人不缺動機。
+            這裡唯一的「遊戲化」是一個跟刷題<strong>完全零耦合</strong>的 2048 —— 休息就讓它只是休息。
+          </span>
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>功能</h2>
+        <p class="sub">兩種主要讀法，加上圍繞它們的協作與排程。</p>
+        <table>
+          <thead>
+            <tr><th>模組</th><th>做什麼</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>複習模式</strong></td>
+              <td>單題練習，作答後即時揭曉。底下是協作 wiki 詳解（rich text + 圖片）、討論串、個人筆記（一題可多則）、螢光畫記（跨裝置同步）</td>
+            </tr>
+            <tr>
+              <td><strong>全真作答</strong></td>
+              <td>整年份計時模擬，可中途離開再續作。交卷後成績、錯題回顧、標記題複查</td>
+            </tr>
+            <tr>
+              <td><strong>間隔複習</strong></td>
+              <td>FSRS 排程，跨年份到期佇列，每日新卡上限</td>
+            </tr>
+            <tr>
+              <td><strong>共筆與討論</strong></td>
+              <td>詳解採悲觀鎖 + 版本歷史；討論串支援 @提及與 in-app 通知；答案挑戰可對官方答案提異議、投票升級</td>
+            </tr>
+            <tr>
+              <td><strong>讀書計畫</strong></td>
+              <td>對話式問卷 → 逐日計畫表（可列印 HTML）+ 可匯入行事曆的 <code>.ics</code></td>
+            </tr>
+            <tr>
+              <td><strong>學習分析</strong></td>
+              <td>信心校準曲線、弱點地圖（語意分群，索引未涵蓋時退回主題分群）、活動 heatmap、逐次作答 CSV 匯出</td>
+            </tr>
+            <tr>
+              <td><strong>閱讀輔助</strong></td>
+              <td>講義 PDF 線上閱讀器（畫記、便利貼、頁面錨定筆記、全文搜尋）、教科書選字引用、依主題策展的教學影片</td>
+            </tr>
+            <tr>
+              <td><strong>觸達</strong></td>
+              <td>PWA 離線閱讀、Telegram 每日推題機器人、聊天大廳、<strong>電子紙模式</strong>（純黑白 1-bit，給 e-ink 閱讀器）、手把操作</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="agnostic">
+      <div class="wrap">
+        <h2>不綁專科</h2>
+        <p class="sub">
+          這個 repo 本身是「2026 台灣血液腫瘤科專科考試」的部署，
+          但沒有任何一行程式碼知道那件事。
+        </p>
+        <p>
+          所有跟專科有關的東西 —— 名稱、網域、管理者、考試日期、年份範圍、分類標籤 ——
+          全部集中在一個 gitignore 的 <code>config.toml</code>。程式碼讀它，不讀硬編碼的字串。
+          分類（「內科」「共同」之類）是<strong>資料</strong>不是列舉型別，
+          所以換一個專科只要換一份題庫 CSV 和一份設定。
+        </p>
+        <div class="grid two">
+          <div class="card">
+            <h3>可換的</h3>
+            <p>
+              專科名稱、題庫內容、年份範圍、分類體系、考試日期、成員名單、
+              主題白名單（弱點分群與影片策展用）
+            </p>
+          </div>
+          <div class="card">
+            <h3>不必換的</h3>
+            <p>
+              上面「為什麼是這些模組」列的每一條 —— 提取練習、間隔、交錯、
+              合意困難、校準。這些是<strong>人怎麼記東西</strong>，跟考哪一科無關
+            </p>
+          </div>
+        </div>
+        <p class="note" style="margin-top: 1.25rem">
+          <strong>設計上的判準：</strong>任何「只有血液腫瘤科需要」的東西都不寫進核心。
+          會不會判斷紅血球形態、要不要背染色體轉位，那是題庫的事；
+          系統只負責讓題庫被有效率地讀進腦子裡。
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>架構</h2>
+        <p class="sub">
+          全站在 Cloudflare 免費額度內，20 人規模長期零成本。沒有伺服器要顧，也沒有密碼要存。
+        </p>
+        <figure>
+          <svg viewBox="0 0 760 300" role="img" aria-label="架構圖:Cloudflare Access 在前,Pages 與 Worker 在中,D1/R2/AI 在後">
+            <defs>
+              <style>
+                .bx { fill: none; stroke: currentColor; stroke-width: 1.2; }
+                .lbl { font: 600 13px "Inter", "Noto Sans TC", system-ui, sans-serif; fill: currentColor; }
+                .sm { font: 11px "Inter", "Noto Sans TC", system-ui, sans-serif; fill: currentColor; opacity: .72; }
+                .ln { stroke: currentColor; stroke-width: 1.2; fill: none; opacity: .55; }
+                .acc { stroke: #a8442a; }
+              </style>
+            </defs>
+            <rect class="bx acc" x="20" y="16" width="720" height="52" rx="4" />
+            <text class="lbl" x="36" y="38">Cloudflare Access（Zero Trust）</text>
+            <text class="sm" x="36" y="56">Email OTP 白名單 · 驗過身分才把簽章 JWT 交給後面 · 應用層沒有任何密碼邏輯</text>
+
+            <line class="ln" x1="220" y1="68" x2="220" y2="104" />
+            <line class="ln" x1="540" y1="68" x2="540" y2="104" />
+
+            <rect class="bx" x="20" y="104" width="340" height="70" rx="4" />
+            <text class="lbl" x="36" y="128">Pages — 前端</text>
+            <text class="sm" x="36" y="147">React 18 · TypeScript · TailwindCSS</text>
+            <text class="sm" x="36" y="163">TipTap 編輯器 · PWA 離線閱讀</text>
+
+            <rect class="bx" x="400" y="104" width="340" height="70" rx="4" />
+            <text class="lbl" x="416" y="128">Worker — API</text>
+            <text class="sm" x="416" y="147">Hono · 驗 JWT · 全部商業邏輯</text>
+            <text class="sm" x="416" y="163">/api/* 與 /img/*</text>
+
+            <line class="ln" x1="360" y1="139" x2="400" y2="139" />
+            <polygon points="400,139 392,135 392,143" fill="currentColor" opacity=".55" />
+            <polygon points="360,139 368,135 368,143" fill="currentColor" opacity=".55" />
+
+            <line class="ln" x1="570" y1="174" x2="570" y2="210" />
+
+            <rect class="bx" x="400" y="210" width="105" height="62" rx="4" />
+            <text class="lbl" x="416" y="234">D1</text>
+            <text class="sm" x="416" y="252">SQLite</text>
+
+            <rect class="bx" x="518" y="210" width="105" height="62" rx="4" />
+            <text class="lbl" x="534" y="234">R2</text>
+            <text class="sm" x="534" y="252">圖片</text>
+
+            <rect class="bx" x="636" y="210" width="104" height="62" rx="4" />
+            <text class="lbl" x="652" y="234">Workers AI</text>
+            <text class="sm" x="652" y="252">選用</text>
+
+            <line class="ln" x1="452" y1="210" x2="452" y2="196" />
+            <line class="ln" x1="688" y1="210" x2="688" y2="196" />
+            <line class="ln" x1="452" y1="196" x2="688" y2="196" />
+          </svg>
+          <figcaption>
+            身分驗證整層外包給 Access —— repo 裡沒有註冊、沒有密碼重設、沒有 session 表。
+            這不是省事，是把最容易寫錯的那部分移出應用層。
+          </figcaption>
+        </figure>
+        <ul class="plain">
+          <li><strong>詳解存 TipTap JSON，不存 HTML。</strong>渲染走同一組 extension，XSS 風險為零</li>
+          <li><strong>共筆用悲觀鎖，不是 CRDT。</strong>20 人 1000 題的規模下，即時共編是過度設計；升級路徑保留（Durable Object + Yjs），schema 不必改</li>
+          <li><strong>R2 不公開，走 Worker 代理。</strong>否則圖片 URL 等於繞過 Zero Trust</li>
+          <li><strong>PWA 只離線讀，不離線寫。</strong>沒有 outbox、沒有背景同步 —— 寫入衝突的複雜度不值得</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>自己開一個</h2>
+        <p class="sub">
+          需要一個 Cloudflare 帳號（免費）和一份題庫 CSV。所有 per-fork 的識別字串都在
+          <code>config.toml</code>。
+        </p>
+        <table>
+          <thead><tr><th>步驟</th><th>指令</th></tr></thead>
+          <tbody>
+            <tr><td>互動式設定</td><td><code>./scripts/setup.sh</code></td></tr>
+            <tr><td>本機驗證</td><td><code>pnpm dev</code> + <code>pnpm --dir frontend dev</code></td></tr>
+            <tr><td>部署</td><td><code>./scripts/deploy.sh</code></td></tr>
+            <tr><td>白名單</td><td><code>node --experimental-strip-types scripts/sync-access.ts</code></td></tr>
+            <tr><td>匯入題庫</td><td><code>node --experimental-strip-types scripts/import-questions.ts ./questions.csv</code></td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top: 1.25rem">
+          完整步驟見 <a href="https://github.com/htlin222/mcq-bank#forking-this-codebase">README 的 Forking 章節</a>；
+          踩過的坑與架構決策整理在
+          <a href="https://github.com/htlin222/mcq-bank/wiki">Wiki</a>。
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <p>
+          <a href="https://github.com/htlin222/mcq-bank">github.com/htlin222/mcq-bank</a>
+          ·
+          <a href="https://github.com/htlin222/mcq-bank/wiki">Wiki</a>
+          ·
+          <a href="manual.html">使用手冊</a>
+        </p>
+        <p style="margin: 0">
+          此頁介紹的是<strong>系統</strong>，不是題庫內容。
+          題目與詳解屬於各自的部署，不隨程式碼散布。
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
