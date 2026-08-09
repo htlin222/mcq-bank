@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import type { AppContext } from '../types';
 import {
   createChallenge,
@@ -52,6 +52,26 @@ questionChallengeRoutes.post('/:id/challenges', async (c) => {
 // Routes that operate on a challenge_id — mounted under /api/challenges.
 export const challengesRoutes = new Hono<AppContext>();
 
+/**
+ * The question's post-mutation challenge state, echoed back with every
+ * vote/retract/withdraw/rationale response.
+ *
+ * Without this the client had to follow each POST with GET
+ * /challenges/active + GET /challenges before the banner updated — three
+ * serial round trips (each one an Access-authenticated Worker invocation)
+ * for a single button press, which is what made voting feel frozen. The
+ * same two reads cost near-nothing here, next to the D1 binding.
+ *
+ * Sequential on purpose: `getActiveChallenges` lazily resolves time-based
+ * transitions, so reading the list first would race a promotion into
+ * neither array — the banner would vanish with no 已修正 pill to replace it.
+ */
+async function questionState(c: Context<AppContext>, questionId: string) {
+  const active = await getActiveChallenges(c.env.DB, questionId, c.var.email);
+  const recent = await listChallengesForQuestion(c.env.DB, questionId, 5);
+  return { active, recent };
+}
+
 challengesRoutes.post('/:cid/votes', async (c) => {
   const cid = c.req.param('cid');
   const body = await c.req.json<{
@@ -66,14 +86,23 @@ challengesRoutes.post('/:cid/votes', async (c) => {
     body.comment_json ?? null
   );
   if (!result.ok) return c.json({ error: result.error }, result.status);
-  return c.json({ ok: true, status: result.status, resolution: result.resolution ?? null });
+  return c.json({
+    ok: true,
+    status: result.status,
+    resolution: result.resolution ?? null,
+    ...(await questionState(c, result.question_id)),
+  });
 });
 
 challengesRoutes.delete('/:cid/votes', async (c) => {
   const cid = c.req.param('cid');
   const result = await retractVote(c.env.DB, c.var.email, cid);
   if (!result.ok) return c.json({ error: result.error }, result.status);
-  return c.json({ ok: true, status: result.status });
+  return c.json({
+    ok: true,
+    status: result.status,
+    ...(await questionState(c, result.question_id)),
+  });
 });
 
 // Proposer revises the rationale while the challenge is still active.
@@ -85,14 +114,22 @@ challengesRoutes.patch('/:cid/rationale', async (c) => {
   }
   const result = await editChallengeRationale(c.env.DB, c.var.email, cid, body.rationale_json);
   if (!result.ok) return c.json({ error: result.error }, result.status);
-  return c.json({ ok: true, status: result.status });
+  return c.json({
+    ok: true,
+    status: result.status,
+    ...(await questionState(c, result.question_id)),
+  });
 });
 
 challengesRoutes.post('/:cid/withdraw', async (c) => {
   const cid = c.req.param('cid');
   const result = await withdrawChallenge(c.env.DB, c.var.email, cid);
   if (!result.ok) return c.json({ error: result.error }, result.status);
-  return c.json({ ok: true, status: result.status });
+  return c.json({
+    ok: true,
+    status: result.status,
+    ...(await questionState(c, result.question_id)),
+  });
 });
 
 challengesRoutes.post('/:cid/recompute', async (c) => {

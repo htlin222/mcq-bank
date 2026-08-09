@@ -224,8 +224,16 @@ async function fanoutFiledNotifications(
 // Public: castVote / retractVote
 // ──────────────────────────────────────────────────────────────
 
+// `question_id` rides along on success so the route can echo back the
+// question's fresh challenge state without a second lookup — the client then
+// needs one round trip per action instead of three (POST + 2 GETs).
 export type CastVoteResult =
-  | { ok: true; status: ChallengeStatus; resolution?: 'promote' | 'reject' | 'archive' }
+  | {
+      ok: true;
+      status: ChallengeStatus;
+      resolution?: 'promote' | 'reject' | 'archive';
+      question_id: string;
+    }
   | { ok: false; status: 400 | 403 | 404 | 409; error: string };
 
 export async function castVote(
@@ -312,7 +320,7 @@ export async function withdrawChallenge(
     )
     .bind(now, challengeId)
     .run();
-  return { ok: true, status: 'withdrawn' };
+  return { ok: true, status: 'withdrawn', question_id: ch.question_id };
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -342,7 +350,7 @@ export async function editChallengeRationale(
     )
     .bind(JSON.stringify(rationaleJson), challengeId)
     .run();
-  return { ok: true, status: ch.status };
+  return { ok: true, status: ch.status, question_id: ch.question_id };
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -358,7 +366,7 @@ export async function recomputeAndMaybeResolve(
   const ch = await loadChallenge(db, challengeId);
   if (!ch) return { ok: false, status: 404, error: 'challenge not found' };
   if (ch.status !== 'open' && ch.status !== 'contested') {
-    return { ok: true, status: ch.status };
+    return { ok: true, status: ch.status, question_id: ch.question_id };
   }
 
   const counts = await loadCounts(db, challengeId);
@@ -372,7 +380,7 @@ export async function recomputeAndMaybeResolve(
   });
 
   if (decision.next === 'no-change') {
-    return { ok: true, status: ch.status };
+    return { ok: true, status: ch.status, question_id: ch.question_id };
   }
 
   if (decision.next === 'open->contested') {
@@ -386,20 +394,20 @@ export async function recomputeAndMaybeResolve(
       )
       .bind(now, challengeId)
       .run();
-    return { ok: true, status: 'contested' };
+    return { ok: true, status: 'contested', question_id: ch.question_id };
   }
 
   if (decision.next === 'promote') {
     await promote(db, ch, decision.reason, now);
-    return { ok: true, status: 'promoted', resolution: 'promote' };
+    return { ok: true, status: 'promoted', resolution: 'promote', question_id: ch.question_id };
   }
   if (decision.next === 'reject') {
     await reject(db, ch, decision.reason, now);
-    return { ok: true, status: 'rejected', resolution: 'reject' };
+    return { ok: true, status: 'rejected', resolution: 'reject', question_id: ch.question_id };
   }
   // archive
   await archive(db, ch, decision.reason, now);
-  return { ok: true, status: 'archived', resolution: 'archive' };
+  return { ok: true, status: 'archived', resolution: 'archive', question_id: ch.question_id };
 }
 
 // ──────────────────────────────────────────────────────────────
