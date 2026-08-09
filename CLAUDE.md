@@ -798,6 +798,29 @@ dithering,結果比原圖更難讀;真 e-ink 硬體本來就會做抖動處理�
 照樣全綠,所以那條路徑有 `expectAfter` 的正面斷言擋著。改動這支測試時,先確認
 它在停用中和層時會紅。
 
+**上面那些測試全部在 e-ink 底下跑,所以它們結構性地看不到反方向的失敗:
+這一層漏到亮/暗主題上。** 那種錯不報例外、不被顏色掃描抓到(它只在 e-ink 下
+跑),使用者看到的只有「怪怪的、有點太亮」—— 一句很難對應回任何一行程式的話。
+兩層守門補這個方向,而且**它們防的不是同一件事,不能互相取代**:
+
+- **`frontend/src/lib/einkIsolation.test.ts`** —— 純文字掃 `styles.css` 的 e-ink
+  區塊,每條選擇器都必須帶 `eink`。抓的是「規則掉了 `.eink` 前綴」。
+  ⚠️ 逗號要在**括號深度 0** 才算分隔符:`:is(:focus, :focus-visible)` 與
+  `:where([class*="absolute"], …)` 內部的逗號不是。天真的 `split(',')` 會把一條
+  規則切成好幾段然後回報三條不存在的違規 —— 實際踩過,差點去「修」一條本來就
+  正確的規則。所以那支測試自己也有一條測試在守這個解析器。
+- **`eink.test.mjs` 的「亮模式不受 e-ink 干擾」** —— 在瀏覽器裡列出所有含
+  `eink` 的規則,斷言一條都沒命中元素。它涵蓋靜態檢查看不到的 **Tailwind
+  `eink:` variant utility**(打包時才生出來,不在 styles.css 裡),而且**走的是
+  切換路徑**:按四下主題鈕繞 light→dark→eink→system→light,抓的是「切回來時
+  `.eink` 沒被移除」。全新載入驗不到這條 —— 而那正是調 e-ink 那幾天最常走的路。
+
+寫這兩支時踩到的坑,值得記著:**不能用 `if (r.cssRules)` 判斷 CSSRule 是不是
+群組規則。** 支援 CSS Nesting 的引擎(Chromium)給每一條 `CSSStyleRule` 都掛了
+`cssRules`,值是空的 `CSSRuleList` —— 空歸空,它是 truthy。照那樣寫會把所有普通
+規則當成群組、遞迴進空清單然後跳過,一條都收不到。當時是靠「至少要找到 20 條
+eink 規則」那個正面斷言擋下來的,否則就是一支永遠全綠的空測試。
+
 ### Images: R2 via Worker proxy (not public bucket)
 
 Uploads: `POST /api/upload` (multipart) → Worker validates size/MIME → R2 put with UUID key → returns `/img/<key>` URL.

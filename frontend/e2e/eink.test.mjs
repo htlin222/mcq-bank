@@ -530,3 +530,121 @@ test('e-ink 1-bit:焦點環不被後續兄弟的白底蓋掉(展開的手風琴)
     await ctx.close();
   }
 });
+
+// ── 反向守門:亮模式下,e-ink 那層一條都不准生效 ──
+//
+// 上面所有測試都在 e-ink 底下跑,驗的是「該黑白的有沒有黑白」。它們結構性地
+// 看不到反方向的失敗:某條 e-ink 規則漏了 `.eink` 限定,於是在**亮模式**下
+// 把東西塗白。那種錯不會報例外、不會被顏色掃描抓到(它只在 e-ink 下跑),
+// 使用者看到的只是「怪怪的、有點太亮」—— 而那句話很難對應回任何一行程式。
+//
+// `frontend/src/lib/einkIsolation.test.ts` 用純文字檢查 styles.css 的每條選擇器;
+// 這裡補的是它看不到的那半:**Tailwind 由 `eink:` variant 產生的 utility**
+// (`.eink.eink.eink.eink .eink\:border` 之類),那些不在 styles.css 裡,是打包時
+// 才生出來的。
+//
+// 判準是「有沒有命中」,不是「顏色對不對」—— 只要亮模式下沒有任何一條 eink 規則
+// 匹配到元素,就不可能被干擾,不必再去比對每個像素。
+for (const routePath of ['/', '/year/113', '/q/113-050', '/review']) {
+  test(`亮模式不受 e-ink 干擾:沒有任何 eink 規則命中 ${routePath}`, async (t) => {
+    if (blinkSkipReason) {
+      if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${blinkSkipReason}`);
+      return t.skip(blinkSkipReason);
+    }
+
+    const ctx = await blink.newContext({ viewport: { width: 1280, height: 900 } });
+    // 明確指定亮主題(不是 system)—— system 在深色偏好下會解析成 dark,
+    // 那樣測到的是另一件事。
+    await ctx.addInitScript((k) => localStorage.setItem(k, 'light'), THEME_KEY);
+    const page = await ctx.newPage();
+    await ctx.route('**/*', (r) =>
+      r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+    );
+
+    try {
+      await page.goto(server.origin + routePath, {
+        waitUntil: 'domcontentloaded',
+        timeout: 30_000,
+      });
+      await page.waitForTimeout(3_000);
+
+      // **走一趟 e-ink 再回來**,而不是只驗全新載入的亮模式。使用者的實際路徑就是
+      // 這樣(尤其是在調 e-ink 的那幾天),而「切回來時 class 沒被移除」是這一層
+      // 唯一防得到、靜態檢查看不到的失敗模式。ORDER 是 light→dark→eink→system,
+      // 所以按四下正好繞一圈回到亮模式。
+      const toggle = page.getByRole('button', { name: /切換主題/ });
+      await toggle.waitFor({ timeout: 10_000 });
+      await toggle.click();
+      await toggle.click();
+      await page.waitForTimeout(600);
+
+      // 正面斷言:真的經過了 e-ink。少了它,循環順序一改(或按鈕沒點到)就變成
+      // 「只驗了全新載入的亮模式」,而那本來就會過。
+      const wentThroughEink = await page.evaluate(() =>
+        document.documentElement.classList.contains('eink'),
+      );
+      assert.ok(
+        wentThroughEink,
+        '按兩下之後沒有進到 e-ink —— 這次沒走到切換路徑,後面的檢查等於沒做',
+      );
+
+      await toggle.click();
+      await toggle.click();
+      await page.waitForTimeout(800);
+
+      const rootClass = await page.evaluate(() => document.documentElement.className);
+      assert.ok(
+        !rootClass.includes('eink'),
+        `繞回亮模式後 <html class="${rootClass}"> 還掛著 eink —— 切換沒把它移除,` +
+          `整層 1-bit 覆寫會留在亮模式上`,
+      );
+
+      const { einkRules, hits } = await page.evaluate(() => {
+        const rules = [];
+        const hit = [];
+        // ⚠️ 不能用 `if (r.cssRules)` 判斷「這是不是群組規則」。支援 CSS Nesting
+        // 的引擎(Chromium 就是)給**每一條** CSSStyleRule 都掛了 `cssRules`,值是
+        // 空的 CSSRuleList —— 空歸空,它是 truthy。照那樣寫會把所有普通規則都當成
+        // 群組、遞迴進空清單然後跳過,結果一條都收不到,而正面斷言以外看不出來。
+        const walk = (rs) => {
+          for (const r of rs) {
+            if (r.cssRules && r.cssRules.length) walk(r.cssRules);
+            if (!r.selectorText || !r.selectorText.includes('eink')) continue;
+            rules.push(r.selectorText);
+            let matched = null;
+            try {
+              matched = document.querySelector(r.selectorText);
+            } catch {
+              continue; // ::selection 之類,querySelector 不吃
+            }
+            if (matched) {
+              hit.push(
+                r.selectorText.slice(0, 90) +
+                  '  ← 命中 <' + matched.tagName.toLowerCase() +
+                  ' class="' + (matched.getAttribute('class') || '').slice(0, 50) + '">',
+              );
+            }
+          }
+        };
+        for (const sheet of document.styleSheets) {
+          try { walk(sheet.cssRules); } catch { /* 跨網域樣式表 */ }
+        }
+        return { einkRules: rules.length, hits: hit };
+      });
+
+      // 正面斷言:真的看到 e-ink 規則。CSS 沒載到、或選擇器命名改了的話,
+      // 下面那條會在什麼都沒檢查的情況下通過。
+      assert.ok(
+        einkRules > 20,
+        `只找到 ${einkRules} 條 eink 規則,遠少於預期 —— 這次檢查沒有涵蓋到那一層`,
+      );
+      assert.deepEqual(
+        [...new Set(hits)],
+        [],
+        `亮模式下有 ${hits.length} 條 e-ink 規則命中了元素 —— 那一層漏出來了`,
+      );
+    } finally {
+      await ctx.close();
+    }
+  });
+}
