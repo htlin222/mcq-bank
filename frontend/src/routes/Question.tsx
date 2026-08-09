@@ -56,6 +56,10 @@ import {
 	type YearListItem,
 } from "../lib/questionCache";
 import { withAnswer, withProgressCleared } from "../lib/questionProgress";
+import {
+	recordAnswer as recordLocalAnswer,
+	forgetAnswer as forgetLocalAnswer,
+} from "../lib/localAnswers";
 import { rememberAutoCloze, wasAutoCloze } from "../lib/clozePref";
 import {
 	VideoTopicSection,
@@ -1525,10 +1529,18 @@ export function Question() {
 						// 不用 reload:那會強制重抓一份我們已經知道答案的 payload,而在
 						// 慢網路上 SW 會拿三秒前的快取回來把剛作答的狀態洗掉(#95)。
 						// 見 lib/questionCache.ts 的 withAnswer。
-						onAnswered={(chosen, correct) =>
-							setData(withAnswer(data, chosen, correct))
-						}
-						onProgressCleared={() => setData(withProgressCleared(data))}
+						onAnswered={(chosen, correct) => {
+							// 記憶體(setData)給當下的畫面,localStorage 給重載之後 ——
+							// 送出成功也要記,因為下次讀回來仍可能是 SW 那份答題前的
+							// 快取(NetworkFirst + 3 秒 timeout,存 7 天)。
+							recordLocalAnswer(data.id, chosen, correct);
+							setData(withAnswer(data, chosen, correct));
+						}}
+						onProgressCleared={() => {
+							// 本地鏡像要一起忘掉,否則下次讀回來又被它救回去。
+							forgetLocalAnswer(data.id);
+							setData(withProgressCleared(data));
+						}}
 						onRevealedChange={setCardRevealed}
 					/>
 				</div>

@@ -205,3 +205,55 @@ test('網路恢復後的下一次作答,會把先前積壓的一起送出去', a
     await ctx.close();
   }
 });
+
+// 送出**成功**之後仍然可能看不到自己的作答:`/api/questions/:id` 在 Service
+// Worker 是 NetworkFirst + 3 秒 timeout、快取存 7 天,弱訊號下回的就是答題前
+// 那份。`preserveLocalAnswer()` 擋得住,但它的「本地那份」原本只來自記憶體
+// 快取 —— 整頁重載就空了,而使用者的實際動作正好包含重載。
+//
+// fixture 伺服器永遠回 `my_progress: null`,效果與「SW 回了答題前的快取」相同,
+// 所以這條不需要真的裝 SW 就測得到。
+test('作答成功後整頁重載,畫面仍記得答過 —— 伺服器回的是沒有紀錄的版本', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const { devices } = await import('playwright');
+  const ctx = await browser.newContext({ ...devices['Desktop Safari'], serviceWorkers: 'block' });
+  const page = await ctx.newPage();
+  await ctx.route('**/*', (r) =>
+    r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+  );
+
+  try {
+    await page.goto(server.origin + '/q/113-050', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.getByText('孟買血型').first().waitFor({ timeout: 20_000 });
+    await page.getByText('先生為亞孟買血型').first().click();
+    await page.getByRole('button', { name: '提交答案' }).click();
+    await page.getByText('答對了').first().waitFor({ timeout: 20_000 });
+    await page.waitForTimeout(1_200);
+
+    // 正面斷言:確認本地鏡像真的寫下去了。少了它,下面那條在「鏡像沒生效但
+    // 剛好有別的東西擋住」時也會過。
+    const mirrored = await page.evaluate(() => {
+      const raw = localStorage.getItem('mcq:local-answers:v1');
+      return raw ? JSON.parse(raw)['113-050'] : null;
+    });
+    assert.ok(mirrored, '作答沒有寫進本地鏡像');
+    assert.equal(mirrored.chosen, 'B');
+
+    // ── 重載:記憶體快取全空,伺服器回的 my_progress 是 null ──
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.getByText('孟買血型').first().waitFor({ timeout: 20_000 });
+    await page.waitForTimeout(2_500);
+
+    const text = await page.evaluate(() => document.body.innerText);
+    assert.ok(
+      text.includes('答對了') || text.includes('你的選擇'),
+      '重載之後作答紀錄不見了 —— 本地鏡像沒有接上,伺服器那份是答題前的',
+    );
+  } finally {
+    await ctx.close();
+  }
+});

@@ -1,6 +1,7 @@
 import type { QuestionFull } from "../hooks/useQuestion";
 import { api } from "./api";
 import { preserveLocalAnswer } from "./questionProgress";
+import { getAnswer as getLocalAnswer } from "./localAnswers";
 import { createQuestionStore, type QuestionStore } from "./questionStore";
 
 /**
@@ -15,8 +16,34 @@ export const questionCache: QuestionStore<QuestionFull> = createQuestionStore<Qu
 	// 掛在 fetcher 上,因為這是**每一條**重抓路徑的唯一交會點 —— 背景重抓、
 	// reload({force}),以及最容易被忽略的那條:離開這一題時、鄰居頁的閒置預抓。
 	// 見 preserveLocalAnswer 的說明(#95 的後半)。
-	return preserveLocalAnswer(fresh, questionCache.peek(id));
+	// 「本地那份」有兩個來源,記憶體優先(它最完整),localStorage 墊底。
+	// 少了後者,保護會剛好在最需要的時候失效:整頁重載後記憶體是空的,而使用者
+	// 的實際動作正好包含重載(關掉分頁、隔天再開)。見 lib/localAnswers.ts。
+	return preserveLocalAnswer(fresh, questionCache.peek(id) ?? localHint(fresh, id));
 });
+
+/**
+ * 用 localStorage 裡「我答過什麼」拼一份最小的 local payload,只為了讓
+ * `preserveLocalAnswer` 有東西可比。其餘欄位一律沿用伺服器回來的 —— 這裡要救的
+ * 只有作答狀態,不是整份題目。
+ */
+function localHint(fresh: QuestionFull, id: string): QuestionFull | undefined {
+	const mine = getLocalAnswer(id);
+	if (!mine) return undefined;
+	const p = fresh.my_progress;
+	return {
+		...fresh,
+		my_progress: {
+			times_seen: p?.times_seen ?? 1,
+			times_correct: p?.times_correct ?? mine.correct,
+			last_chosen: mine.chosen,
+			last_correct: mine.correct,
+			// 收藏跟作答是兩回事,一律以伺服器為準 —— 本地鏡像根本不記它。
+			bookmarked: p?.bookmarked ?? 0,
+			bookmark_folder_id: p?.bookmark_folder_id ?? null,
+		},
+	};
+}
 
 export type YearListItem = { id: string; number: number };
 
