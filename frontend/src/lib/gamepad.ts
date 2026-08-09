@@ -87,6 +87,8 @@ export function stepButton(
 	return { next: prev, fire: false };
 }
 
+export const DPAD_BUTTONS = [12, 13, 14, 15] as const;
+
 export const AXIS_DEADZONE = 0.25;
 const SCROLL_MAX_PX_PER_SEC = 1400;
 
@@ -101,6 +103,35 @@ export function axisScrollDelta(value: number, dtMs: number): number {
 	if (mag < AXIS_DEADZONE) return 0;
 	const t = (mag - AXIS_DEADZONE) / (1 - AXIS_DEADZONE);
 	return Math.sign(value) * t * t * SCROLL_MAX_PX_PER_SEC * (dtMs / 1000);
+}
+
+/**
+ * 這一幀該送出多少軸捲動。D-pad 按著的時候是 0。
+ *
+ * 那個例外跟語意無關,是硬體:有些手把(實測 Xbox 360,尤其接在 Android 上)的
+ * D-pad 底層是 hat switch,driver 會把它**同時**回報成 buttons 12–15 **和**
+ * 一組軸值。那樣按一下 DPAD ↓,按鈕路徑(走訪標題 / 選選項)跟軸路徑(捲動)
+ * 會一起跑 —— 畫面先跳一下、接著又自己滑一段,讀起來就是「這顆鍵在我的手把上
+ * 怪怪的」。而且軸的上限是 1400px/s,遠大於按鈕那條的 120px/次,所以蓋過去的
+ * 是軸,使用者根本看不出按鈕那半有生效。
+ *
+ * 選擇讓按鈕獨佔那幾幀,而不是把 deadzone 調高:調高 deadzone 會讓所有手把的
+ * 小幅推動一起失效 —— 拿每個人的手感去換一支手把的相容性。這裡的代價則只有
+ * 「按著 D-pad 的同時推搖桿捲動」這個沒人會做的組合。
+ *
+ * @param axes    原始軸陣列(只讀 [0]=x、[1]=y)
+ * @param pressed D-pad 四顆鍵的按下狀態,依 DPAD_BUTTONS 順序
+ */
+export function axisScrollFrame(
+	axes: readonly number[],
+	pressed: readonly boolean[],
+	dtMs: number,
+): { x: number; y: number } {
+	if (pressed.some(Boolean)) return { x: 0, y: 0 };
+	return {
+		x: axisScrollDelta(axes[0] ?? 0, dtMs),
+		y: axisScrollDelta(axes[1] ?? 0, dtMs),
+	};
 }
 
 // ---------------------------------------------------------------- rumble
@@ -286,8 +317,11 @@ function tick(ts: number) {
 	}
 
 	if (axisSubs.size > 0) {
-		const x = axisScrollDelta(gp.axes[0] ?? 0, dt);
-		const y = axisScrollDelta(gp.axes[1] ?? 0, dt);
+		const { x, y } = axisScrollFrame(
+			gp.axes,
+			DPAD_BUTTONS.map((i) => !!gp.buttons[i]?.pressed),
+			dt,
+		);
 		if (x !== 0 || y !== 0) for (const fn of axisSubs) fn({ x, y });
 	}
 }
