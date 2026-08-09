@@ -426,6 +426,35 @@ html.eink {
 }
 
 /* ── 顏色全滅 ── */
+/* 這一條「靠 class 名選取」的前提,有一個它自己看不見的例外:**原生控制項繪製**。
+   Tailwind preflight 給每個 <button> 設了 `-webkit-appearance: button`(為了修
+   iOS Safari 的一個渲染問題),而那會讓瀏覽器改用平台的原生按鈕外觀來畫底 ——
+   Android(BOOX 是 Android)的 Material 按鈕底是灰的。
+   三件事讓它極難抓:
+   1. **原生繪製不出現在 getComputedStyle 裡**。`background-color` 讀到的永遠是
+      preflight 給的 `rgba(0,0,0,0)`,所以整套顏色掃描全綠。這比 ::placeholder
+      更隱蔽 —— 它連偽元素都不是,沒有任何 API 讀得到。
+   2. **macOS/桌機 Chromium 不畫**,只有 Android 畫。本機怎麼測都是白的。
+   3. **它會被不透明背景蓋掉**,而 preflight 的 `transparent` 不算(等於沒背景)。
+      於是上面那條中和層把「class 含 bg-*」的按鈕塗成不透明 #fff,**意外**替它們
+      擋掉了原生繪製 —— 只有 class 裡一個 bg- 都沒有的按鈕會露出灰底。
+   回報 #? 的四筆對照正是這樣一刀切開的,而且 class 幾乎一樣:
+     「民國 xx 年」<a>  無 bg- → 正常(<a> 的 appearance 本來就是 none)
+     「上一題/下一題」<button> 無 bg- → 灰底   ← class 與上一行**一字不差**
+     「複製為 Markdown」<button> 有 hover:bg-ink-100 → 正常(被中和層塗白)
+     「收藏」<button> 無 bg- → 灰底
+   根治是明確關掉原生繪製,不要依賴「剛好有沒有背景」。放在通則**之前**,
+   specificity (0,2,1) 低於中和層 (0,3,0) 與撈回層,所以 bg-accent 的實心黑底、
+   .eink-invert 內的透明按鈕全都不受影響。
+   只碰按鈕類 —— checkbox/radio/range/select 的原生外觀是要留的(它們靠
+   `:root.eink` 的 accent-color 上色)。 */
+.eink.eink button,
+.eink.eink [type="button"],
+.eink.eink [type="reset"],
+.eink.eink [type="submit"] {
+	-webkit-appearance: none;
+	appearance: none;
+}
 .eink.eink [class*="bg-"] {
 	background-color: #fff;
 	background-image: none;

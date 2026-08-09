@@ -368,3 +368,75 @@ for (const routePath of FOCUS_ROUTES) {
     }
   });
 }
+
+// 原生控制項繪製:整套顏色掃描結構性看不見的一塊灰。
+//
+// Tailwind preflight 給每個 <button> 設 `-webkit-appearance: button`,那會讓
+// 瀏覽器改用平台的原生按鈕外觀畫底 —— Android(BOOX)的 Material 按鈕底是灰的。
+// 它有三層偽裝:原生繪製**不出現在 getComputedStyle 裡**(background-color 永遠
+// 讀到 preflight 的 transparent);macOS/桌機 Chromium 根本不畫;而且只要作者給了
+// 不透明背景就會被蓋掉 —— 中和層把「class 含 bg-*」的按鈕塗成 #fff,**意外**替
+// 那些擋掉了,於是只有 class 裡一個 bg- 都沒有的按鈕露出灰底。
+//
+// 回報裡那四筆對照就是被這條線一刀切開的,而且 class 幾乎一樣:
+//   「民國 xx 年」<a> 正常 vs「上一題/下一題」<button> 灰底(class 一字不差)
+//   「複製為 Markdown」(有 hover:bg-ink-100)正常 vs「收藏」(無 bg-)灰底
+//
+// 所以這裡驗的不是顏色 —— 顏色驗不到。驗的是 `appearance` 這個**讀得到**的
+// 代理指標:只要它不是 none,原生繪製這條路就還開著。
+const APPEARANCE_ROUTES = ['/q/113-050', '/', '/year/113', '/notes/n1'];
+
+for (const routePath of APPEARANCE_ROUTES) {
+  test(`e-ink 1-bit:按鈕不走原生控制項繪製 ${routePath}`, async (t) => {
+    if (blinkSkipReason) {
+      if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${blinkSkipReason}`);
+      return t.skip(blinkSkipReason);
+    }
+
+    const ctx = await blink.newContext({ viewport: { width: 420, height: 900 } });
+    await ctx.addInitScript((k) => localStorage.setItem(k, 'eink'), THEME_KEY);
+    const page = await ctx.newPage();
+    await ctx.route('**/*', (r) =>
+      r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+    );
+
+    try {
+      await page.goto(server.origin + routePath, {
+        waitUntil: 'domcontentloaded',
+        timeout: 30_000,
+      });
+      await page.waitForTimeout(3_000);
+
+      const { total, bad } = await page.evaluate(() => {
+        const out = [];
+        let n = 0;
+        const sel = 'button, [type="button"], [type="reset"], [type="submit"]';
+        for (const el of document.querySelectorAll(sel)) {
+          if (!el.getClientRects().length) continue;
+          n++;
+          const cs = getComputedStyle(el);
+          const appearance = cs.appearance || cs.webkitAppearance;
+          if (appearance !== 'none') {
+            const label = (el.innerText || el.getAttribute('aria-label') || el.tagName)
+              .trim()
+              .slice(0, 24);
+            out.push(
+              `appearance: ${appearance}  ← 「${label}」class="${(el.getAttribute('class') || '').slice(0, 60)}"`,
+            );
+          }
+        }
+        return { total: n, bad: out };
+      });
+
+      // 正面斷言:真的量到按鈕。少了它,選擇器一腐爛就變成空掃的綠燈。
+      assert.ok(total > 0, `${routePath} 一顆看得見的按鈕都沒找到 —— 這次掃描什麼都沒驗到`);
+      assert.deepEqual(
+        [...new Set(bad)],
+        [],
+        `${routePath} 有 ${bad.length}/${total} 顆按鈕仍走原生控制項繪製(Android 上會畫出灰底,而且 getComputedStyle 的 background-color 讀不到它)`,
+      );
+    } finally {
+      await ctx.close();
+    }
+  });
+}

@@ -682,6 +682,40 @@ App bar 的 `backdrop-blur` 一起 `display:none`,整條導覽列消失。
 - 正面斷言要數的是**看得見的**外框:全站 30 處 `focus:outline-none` 的外框是 2px
   透明,計進去的話「有量到東西」必然成立,測試就退化成空掃的綠燈。
 
+**第四個是原生控制項繪製,而它是這一類裡最隱蔽的 —— 沒有任何 API 讀得到。**
+Tailwind preflight 給每個 `<button>` 設 `-webkit-appearance: button`(為了修 iOS
+Safari),那會讓瀏覽器改用**平台的原生按鈕外觀**畫底,而 Android(BOOX)的 Material
+按鈕底是灰的。三層偽裝疊在一起,前後查了兩輪才定位到:
+
+- **原生繪製不出現在 `getComputedStyle` 裡** —— `background-color` 永遠讀到
+  preflight 給的 `rgba(0,0,0,0)`,所以整套顏色掃描全綠。`::placeholder` 至少還是
+  個偽元素讀得到,這個連偽元素都不是。
+- **macOS/桌機 Chromium 根本不畫**。本機怎麼測、連讀像素都是白的。
+- **只要作者給了不透明背景就會被蓋掉**,而 preflight 的 `transparent` 不算(等於
+  沒背景)。於是中和層把「class 含 `bg-*`」的按鈕塗成 `#fff`,**意外**替那些擋掉了
+  原生繪製 —— 只有 class 裡一個 `bg-` 都沒有的按鈕露出灰底。
+
+**定位它靠的是使用者給的四筆對照,不是任何工具**,而那四筆的 class 幾乎一樣:
+
+| 元素 | tag | class 含 `bg-` | 現象 |
+|---|---|---|---|
+| 民國 xx 年 | `a` | ✗ | 正常(`<a>` 的 appearance 本來就是 none) |
+| 上一題/下一題 | `button` | ✗ | **灰底**(class 與上一行一字不差) |
+| 複製為 Markdown | `button` | ✓ `hover:bg-ink-100` | 正常(被中和層塗成不透明白) |
+| 收藏 | `button` | ✗ | **灰底** |
+
+能同時解釋這四筆的假設只有一個。**下次再收到「某些元件在 e-ink 有灰底、另一些
+沒有」,先問的不是「哪個元件壞了」,而是「有灰跟沒灰的那兩組,差在哪一個屬性」**
+—— 掃描全綠時,對照組就是唯一的儀器。
+
+修法是 `.eink` 下把按鈕類的 `appearance` 關成 `none`,不要依賴「剛好有沒有背景」。
+放在中和層通則**之前**,specificity (0,2,1) 低於通則 (0,3,0) 與撈回層,所以
+`bg-accent` 的實心黑底、`.eink-invert` 內的透明按鈕都不受影響。只碰按鈕類 ——
+checkbox/radio/range/select 的原生外觀是要留的(靠 `:root.eink` 的 `accent-color`
+上色)。測試驗的不是顏色(驗不到),是 `appearance` 這個**讀得到的代理指標**。
+順帶一提:這個 bug 在 light/dark 的 Android 上同樣存在,只是灰底在 LCD 上看起來
+像正常的按鈕外觀,沒人會回報。
+
 **必須改渲染、CSS 構不到的只有三處**:`Avatar`(react-animals 是 inline style
 的彩色 SVG → 改渲染首字 + 四種框線)、`ActivityHeatmap`(顏色 bake 進 SVG,五階
 明度改成 `<pattern>` 網底密度;空白格靠 `:not([fill])` 認 —— 有活動的格子才會被
