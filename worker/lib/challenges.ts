@@ -1,6 +1,6 @@
 import type { D1Database } from '@cloudflare/workers-types';
-import { uuid, excerpt, optionsToRecord } from './db';
-import { decide, type ChallengeStatus } from './challenges-state';
+import { uuid, excerpt, optionsToRecord } from './db.ts';
+import { decide, type ChallengeStatus } from './challenges-state.ts';
 
 // Re-export so consumers can keep importing from this module.
 export {
@@ -11,8 +11,8 @@ export {
   REJECT_NET,
   CONTESTED_GATE_MS,
   ARCHIVE_GATE_MS,
-} from './challenges-state';
-export type { ChallengeStatus, DecisionInput, Decision } from './challenges-state';
+} from './challenges-state.ts';
+export type { ChallengeStatus, DecisionInput, Decision } from './challenges-state.ts';
 
 const VALID_LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
 type Letter = (typeof VALID_LETTERS)[number];
@@ -233,6 +233,11 @@ export type CastVoteResult =
       status: ChallengeStatus;
       resolution?: 'promote' | 'reject' | 'archive';
       question_id: string;
+      // The post-transition row, present whenever the challenge is still
+      // active. `getActiveChallenges` used to re-`SELECT` it just to read a
+      // fresh `contested_at`; handing it back saves that round trip. Absent on
+      // the terminal branches — the caller drops those rows anyway.
+      challenge?: Challenge;
     }
   | { ok: false; status: 400 | 403 | 404 | 409; error: string };
 
@@ -358,18 +363,29 @@ export async function editChallengeRationale(
 // and lazily on GETs of an active challenge.
 // ──────────────────────────────────────────────────────────────
 
+// The row + votes this call would otherwise read for itself. `getActiveChallenges`
+// already has both from its list query, so it hands them over rather than paying
+// for two more sequential round trips per challenge.
+//
+// ⚠️ Only pass this when the caller knows nothing has written to the challenge
+// since it read them. Inside a loop, a sibling's `promote()` archives the rest
+// (see `supersedeSiblings`) — from that point on the caller's rows are stale and
+// it must stop preloading.
+export type RecomputeInput = { challenge: Challenge; counts: ChallengeCounts };
+
 export async function recomputeAndMaybeResolve(
   db: D1Database,
   challengeId: string,
-  now: number = Date.now()
+  now: number = Date.now(),
+  preloaded?: RecomputeInput
 ): Promise<CastVoteResult> {
-  const ch = await loadChallenge(db, challengeId);
+  const ch = preloaded?.challenge ?? (await loadChallenge(db, challengeId));
   if (!ch) return { ok: false, status: 404, error: 'challenge not found' };
   if (ch.status !== 'open' && ch.status !== 'contested') {
-    return { ok: true, status: ch.status, question_id: ch.question_id };
+    return { ok: true, status: ch.status, question_id: ch.question_id, challenge: ch };
   }
 
-  const counts = await loadCounts(db, challengeId);
+  const counts = preloaded?.counts ?? (await loadCounts(db, challengeId));
   const decision = decide({
     status: ch.status,
     agrees: counts.agrees,
@@ -380,7 +396,7 @@ export async function recomputeAndMaybeResolve(
   });
 
   if (decision.next === 'no-change') {
-    return { ok: true, status: ch.status, question_id: ch.question_id };
+    return { ok: true, status: ch.status, question_id: ch.question_id, challenge: ch };
   }
 
   if (decision.next === 'open->contested') {
@@ -394,7 +410,17 @@ export async function recomputeAndMaybeResolve(
       )
       .bind(now, challengeId)
       .run();
-    return { ok: true, status: 'contested', question_id: ch.question_id };
+    // Hand back the post-transition row instead of re-reading it. The guarded
+    // UPDATE writes exactly these two fields, so the only way this differs from
+    // a re-read is a concurrent request that won the race — and then the two
+    // `contested_at` values are milliseconds apart, which only shifts the
+    // archive gate by the same amount.
+    return {
+      ok: true,
+      status: 'contested',
+      question_id: ch.question_id,
+      challenge: { ...ch, status: 'contested', contested_at: now },
+    };
   }
 
   if (decision.next === 'promote') {
@@ -651,6 +677,19 @@ export type ChallengeWithCounts = Challenge & {
   proposer_name: string | null;
 };
 
+// Everything the response needs, in one query. Vote counts, the caller's own
+// vote and the proposer's display name used to be three more sequential reads
+// per challenge; they're correlated subqueries / a join now, exactly like
+// `listRecentChallenges` already did. `last_vote_at` rides along because
+// `decide()` needs it — without it we'd be back to a `loadCounts` per row.
+type ActiveRow = Challenge & {
+  proposer_name: string | null;
+  my_vote: 'agree' | 'disagree' | null;
+  agrees: number | null;
+  disagrees: number | null;
+  last_vote_at: number | null;
+};
+
 export async function getActiveChallenges(
   db: D1Database,
   questionId: string,
@@ -659,44 +698,61 @@ export async function getActiveChallenges(
 ): Promise<ChallengeWithCounts[]> {
   const { results } = await db
     .prepare(
-      `SELECT * FROM answer_challenges
-         WHERE question_id = ? AND status IN ('open','contested')
-         ORDER BY created_at ASC`
+      `SELECT c.*,
+              u.display_name AS proposer_name,
+              (SELECT v.vote FROM challenge_votes v
+                 WHERE v.challenge_id = c.id AND v.voter_email = ?)      AS my_vote,
+              (SELECT COUNT(*) FROM challenge_votes v
+                 WHERE v.challenge_id = c.id AND v.vote = 'agree')       AS agrees,
+              (SELECT COUNT(*) FROM challenge_votes v
+                 WHERE v.challenge_id = c.id AND v.vote = 'disagree')    AS disagrees,
+              (SELECT MAX(v.updated_at) FROM challenge_votes v
+                 WHERE v.challenge_id = c.id)                            AS last_vote_at
+         FROM answer_challenges c
+         LEFT JOIN users u ON u.email = c.proposer_email
+        WHERE c.question_id = ? AND c.status IN ('open','contested')
+        ORDER BY c.created_at ASC`
     )
-    .bind(questionId)
-    .all<Challenge>();
+    .bind(meEmail, questionId)
+    .all<ActiveRow>();
 
   const out: ChallengeWithCounts[] = [];
-  for (const ch of results) {
-    // Lazy-evaluate time-based transitions on read. Note a promote here
-    // supersedes the remaining siblings; their recompute below then sees a
-    // terminal status and they drop out of the list naturally.
-    const decision = await recomputeAndMaybeResolve(db, ch.id, now);
+
+  // A `promote()` archives every other active challenge on the question
+  // (`supersedeSiblings`), so from that point the rows we read above are stale
+  // and the remaining recomputes have to go back to the DB. Until then they
+  // don't: nothing else in this loop writes to `answer_challenges`.
+  let siblingRowsStale = false;
+
+  for (const row of results) {
+    // Split the joined columns back off, so what we hand to recompute (and
+    // spread into the response) is a plain `Challenge` — `last_vote_at` is a
+    // query detail and has no business showing up in the API payload.
+    const { proposer_name, my_vote, agrees, disagrees, last_vote_at, ...challenge } = row;
+    const counts: ChallengeCounts = {
+      agrees: agrees ?? 0,
+      disagrees: disagrees ?? 0,
+      last_vote_at: last_vote_at ?? null,
+    };
+
+    // Lazy-evaluate time-based transitions on read.
+    const decision = await recomputeAndMaybeResolve(
+      db,
+      challenge.id,
+      now,
+      siblingRowsStale ? undefined : { challenge, counts }
+    );
     if (!decision.ok || (decision.status !== 'open' && decision.status !== 'contested')) {
+      if (decision.ok && decision.resolution === 'promote') siblingRowsStale = true;
       continue;
     }
 
-    const counts = await loadCounts(db, ch.id);
-    const myVoteRow = await db
-      .prepare(
-        'SELECT vote FROM challenge_votes WHERE challenge_id = ? AND voter_email = ?'
-      )
-      .bind(ch.id, meEmail)
-      .first<{ vote: 'agree' | 'disagree' }>();
-    const proposer = await db
-      .prepare('SELECT display_name FROM users WHERE email = ?')
-      .bind(ch.proposer_email)
-      .first<{ display_name: string | null }>();
-
-    // Re-read the post-transition row so contested_at is current.
-    const fresh = (await loadChallenge(db, ch.id)) ?? ch;
-
     out.push({
-      ...fresh,
+      ...(decision.challenge ?? challenge),
       agrees: counts.agrees,
       disagrees: counts.disagrees,
-      my_vote: myVoteRow?.vote ?? null,
-      proposer_name: proposer?.display_name ?? null,
+      my_vote: my_vote ?? null,
+      proposer_name: proposer_name ?? null,
     });
   }
   return out;
