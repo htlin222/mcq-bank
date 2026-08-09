@@ -38,15 +38,35 @@ export function OnlineUsers() {
 
   return (
     <div
-      // lg 而不是 sm:這塊的寬度隨線上人數變動(1–4 顆頭像 + 「+N」),是整條
-      // header 唯一寬度不固定的東西 —— 擺在窄的那幾階,溢出與否就取決於當下有
-      // 幾個人在線,而那是無法用斷點事先算準的(#94)。
-      className="relative hidden lg:flex items-center"
+      // #94 當初把整塊推到 lg,理由是「寬度隨線上人數變動,是整條 header 唯一
+      // 寬度不固定的東西」。但真正讓斷點算不準的不是「會變」,而是**最大寬度
+      // 不可預測** —— 頭像列從 1 顆到 5 顆,差了 100px 以上,而那取決於當下有
+      // 幾個人在線。
+      //
+      // 所以改成兩種形態,各自的**上界**都是固定的:md–lg 只出一顆計數徽章
+      // (綠點 + 人數,tabular-nums 讓數字等寬,寬度只隨位數變),lg 起才展開
+      // 頭像列。斷點於是按各自的上界就算得準,而 md–lg 那段也拿回了視覺重量
+      // ——「有人在線」這件事本來就不該只在寬螢幕看得見。
+      className="relative hidden md:flex items-center"
       onMouseLeave={() => setOpen(false)}
     >
+      {/* md–lg:固定寬度的計數徽章 */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center -space-x-1.5 px-1 py-1 rounded hover:bg-ink-100 dark:hover:bg-ink-800 transition"
+        className="lg:hidden flex items-center gap-1 px-2 py-1 rounded hover:bg-ink-100 dark:hover:bg-ink-800 transition"
+        title={`${users.length} 人在線`}
+        aria-label={`${users.length} 人在線`}
+      >
+        <span className="w-2 h-2 rounded-full bg-emerald-500 eink:bg-black" />
+        <span className="text-[11px] tabular-nums text-ink-500 dark:text-ink-400">
+          {users.length}
+        </span>
+      </button>
+
+      {/* lg 起:完整頭像列 */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="hidden lg:flex items-center -space-x-1.5 px-1 py-1 rounded hover:bg-ink-100 dark:hover:bg-ink-800 transition"
         title={`${users.length} 人在線`}
       >
         {visible.map((u) => (
