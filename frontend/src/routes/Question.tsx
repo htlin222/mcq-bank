@@ -23,6 +23,8 @@ import {
 	Videotape,
 	Sparkles,
 	RefreshCcw,
+	Expand,
+	Shrink,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
 import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
@@ -422,6 +424,12 @@ export function Question() {
 	// server-cached list handed to the renderer as a decoration layer.
 	const [expCloze, setExpCloze] = useState(false);
 	const [noteCloze, setNoteCloze] = useState(false);
+	// 個人筆記卡片放大成整個視窗(#115)。刻意**不**用 Fullscreen API:
+	// iOS Safari 對非 <video> 的元素沒有 requestFullscreen,而這個站大半的閱讀
+	// 都在手機上 —— 一顆在 iPhone 上按了沒反應的按鈕比沒有更糟(同
+	// ViewportModeFab 的理由)。改成給同一個 <article> 換 class,DOM 不動,
+	// 所以 NoteContent / TipTap 不會重掛。
+	const [noteFullscreen, setNoteFullscreen] = useState(false);
 	const [autoClozeTerms, setAutoClozeTerms] = useState<string[] | null>(null);
 	const [autoClozeLoading, setAutoClozeLoading] = useState(false);
 	const [autoClozeMsg, setAutoClozeMsg] = useState<string | null>(null);
@@ -602,7 +610,21 @@ export function Question() {
 	// after prev/next would spoil the answer before the user attempts it.
 	useEffect(() => {
 		setMainTab("question");
+		// 換題也要退出筆記全螢幕:那張卡是 fixed inset-0,留著的話下一題會直接
+		// 開在一張蓋住整頁的筆記上,連題目都看不到。
+		setNoteFullscreen(false);
 	}, [data?.id]);
+
+	// Esc 退出。全螢幕遮住了「上一題/下一題」與導覽列,所以一定要有一條不必
+	// 先找到那顆按鈕的退路。
+	useEffect(() => {
+		if (!noteFullscreen) return;
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setNoteFullscreen(false);
+		};
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [noteFullscreen]);
 
 	// Seed/refresh the comment-count badge from the question payload. Kept in
 	// sync via onCountChange when CommentThread is mounted.
@@ -1900,16 +1922,36 @@ export function Question() {
 									)}
 								</div>
 							) : noteJson ? (
-								<article className="relative bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-7 shadow-paper">
+								<article
+									className={
+										"bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 p-5 sm:p-7 shadow-paper " +
+										(noteFullscreen
+											? // `relative` 要一起拿掉,不能只是多加一個 `fixed`:兩者
+												// specificity 相同,勝負由 Tailwind 產出的順序決定(實測
+												// `.relative` 排在後面而贏),class 字串的先後不算數。
+												// 卡片自己捲:它是 fixed 的,頁面那條捲軸捲的是後面那些
+												// 看不見的東西,靠它捲不到筆記的結尾。
+												"fixed inset-0 z-50 overflow-y-auto rounded-none " +
+												// 滿版的行寬讀起來很糟(見 CLAUDE.md 的閱讀寬度)。
+												// 用 [&>*] 把每個直接子元素收在同一條欄寬裡,而不是
+												// 再包一層 div —— 包了的話工具列、內文、頁尾、關聯
+												// 建議四塊要一起搬,JSX 動的範圍大得多。
+												"[&>*]:mx-auto [&>*]:w-full [&>*]:max-w-4xl"
+											: "relative rounded-lg")
+									}
+								>
 									<div
 										className={
-											(tabsMode
+											(tabsMode || noteFullscreen
 												? "mb-3"
 												: "substick -mx-5 sm:-mx-7 px-5 sm:px-7 pt-1 pb-2 bg-white dark:bg-ink-800 border-b border-ink-100 dark:border-ink-700") +
 											" flex flex-wrap items-center justify-end gap-1.5"
 										}
 										style={
-											tabsMode
+										// substick 的 sticky 偏移量是右欄那條分頁 strip 的高度。全螢幕時那條 strip
+										// 不在畫面上,照用會把工具列往下推、第一個標題被壓在它底下 —— 所以全螢幕
+										// 跟分頁版一樣走不黏的版本。
+											tabsMode || noteFullscreen
 												? undefined
 												: ({ "--strip-h": `${stripH}px` } as CSSProperties)
 										}
@@ -1926,6 +1968,18 @@ export function Question() {
 												onDelete={removeNote}
 											/>
 										</div>
+										{/* 全螢幕。放在自動挖空之前 —— 這一排右半邊是「怎麼讀這則筆記」
+											    (全螢幕 / 自動挖空 / 防劇透),再過去才是會改動內容的編輯與刪除。 */}
+										<button
+											type="button"
+											onClick={() => setNoteFullscreen((v) => !v)}
+											title="全螢幕:把這張筆記卡放大到整個視窗,長筆記不必在窄欄裡捲。按 Esc 或再按一次離開"
+											aria-pressed={noteFullscreen}
+											className={TOOL_BTN(noteFullscreen)}
+										>
+											{noteFullscreen ? <Shrink size={14} /> : <Expand size={14} />}{" "}
+											{noteFullscreen ? "離開全螢幕" : "全螢幕"}
+										</button>
 										<button
 											type="button"
 											onClick={() => toggleAutoCloze(data.id, "note")}
