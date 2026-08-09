@@ -26,6 +26,17 @@
 // ---------------------------------------------------------------------------
 
 /**
+ * Runtime cache name for allowlisted read-only API GETs.
+ *
+ * Exported (rather than inlined in sw.ts) because the *page* also writes to
+ * this cache — after an answer is submitted we push the known-good payload in,
+ * so a later NetworkFirst timeout falls back to something correct instead of
+ * a pre-answer copy. Two string literals in two files would drift silently:
+ * the page would happily write into a cache the SW never reads.
+ */
+export const API_CACHE_NAME = 'api-json-v1';
+
+/**
  * True when a response is (or might be) Cloudflare Access asking for a login
  * rather than our own API answering. Errs on the side of true.
  */

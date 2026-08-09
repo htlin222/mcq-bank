@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bookmark, BookmarkPlus, Check, X, FolderPlus, RotateCcw, Copy, ShieldCheck, Loader2 } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
+import { enqueue as enqueueAttempt, remove as removeAttempt } from '../lib/attemptOutbox';
+import { flushAttempts } from '../lib/attemptFlusher';
 import type { QuestionFull } from '../hooks/useQuestion';
 import { useBookmarkSet } from '../hooks/useBookmarkSet';
 import { useGamepad } from '../hooks/useGamepad';
@@ -126,25 +128,36 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
     if (!answerIdemKey.current || answerIdemKey.current.qid !== question.id) {
       answerIdemKey.current = { qid: question.id, key: crypto.randomUUID() };
     }
+    const idem = answerIdemKey.current.key;
+    const payload = {
+      question_id: question.id,
+      chosen,
+      confidence,
+      elapsed_ms: read(timer.current, Date.now()).elapsedMs,
+    };
+
+    // **送出前先入列。** 這一步是同步的、不會失敗,所以從這裡開始這筆作答就
+    // 一定補得回來 —— 就算接下來 POST 掛掉、使用者按了下一題、或整個分頁被關掉。
+    // 2026-08-09 連續四題(113-097～100)沒進 D1 就是因為沒有這一步:失敗只設了
+    // 一個元件 state,而換題會把那個元件連同提示一起換掉。
+    enqueueAttempt({ idem, ...payload, queued_at: Date.now() });
+
     try {
       const r = await api.post<{ correct: boolean; correct_answer: string }>(
         '/api/review/answer',
-        {
-          question_id: question.id,
-          chosen,
-          confidence,
-          elapsed_ms: read(timer.current, Date.now()).elapsedMs,
-        },
-        answerIdemKey.current.key,
+        payload,
+        idem,
       );
+      removeAttempt(idem);
       answerIdemKey.current = null;
       setStatsReady(true);
       onAnswered?.(chosen, r.correct);
     } catch {
-      // 樂觀 UI 沒有失敗提示就是在騙人:畫面說「答對了」,而伺服器上根本沒有
-      // 這筆紀錄。答案本身仍然是對的(那是本地資料),所以不收回揭曉 —— 只說
-      // 清楚「這次沒被記錄到」。
+      // 留在佇列裡,交給 app 層的補送(見 lib/attemptFlusher.ts):重新連線、
+      // 切回前景、下次作答時都會再試一次。這裡仍然顯示提示 —— 使用者還停在
+      // 這一頁的話，該知道它還沒送出去;但**紀錄不再依賴他有沒有看到**。
       setSaveFailed(true);
+      void flushAttempts();
     } finally {
       setSubmitting(false);
     }
