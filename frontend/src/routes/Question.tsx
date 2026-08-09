@@ -72,45 +72,53 @@ const SPLIT_MAX = 72;
 // — brisk enough to cross a long 詳解, slow enough to read on the way.
 const GAMEPAD_SCROLL_STEP = 120;
 
-// 兩份說明:同一顆十字鍵在作答前選選項、揭曉後捲頁面,寫成一份會騙人。
+// 四份說明:同一顆十字鍵在作答前選選項、揭曉後捲頁面、看筆記時跳標題,寫成
+// 一份會騙人。
+//
+// 每一行都寫出**失效條件**(「選了選項才有」「只有一則時無作用」)。按下去沒反應
+// 的鍵最傷:使用者分不出是自己按錯、手把沒連上、還是這一頁本來就沒這個功能,而
+// 前兩者會讓人開始懷疑整套手把操作。
 const GAMEPAD_HINTS_SHARED: GamepadHint[] = [
 	{ btn: "FACE ▲", label: "複製題目為 Markdown" },
-	{ btn: "FACE ▶", label: "收藏" },
-	{ btn: "L1 / R1", label: "上一題 / 下一題" },
-	{ btn: "L2 / R2", label: "上一個 / 下一個分頁" },
-	{ btn: "START", label: "回年度列表" },
-	{ btn: "左搖桿", label: "捲動" },
+	{ btn: "FACE ▶", label: "收藏 / 取消收藏" },
+	{ btn: "L1 / R1", label: "上一題 / 下一題(不連發,一下一題)" },
+	{ btn: "L2 / R2", label: "上一個 / 下一個分頁(詳解 / 筆記 / 討論…)" },
+	{ btn: "START", label: "回這一年的題目列表" },
+	{ btn: "SELECT", label: "開關這份說明" },
+	{ btn: "左搖桿", label: "捲動(推愈滿捲愈快)" },
 ];
 const GAMEPAD_HINTS_ANSWERING: GamepadHint[] = [
-	{ btn: "DPAD ↑ ↓", label: "選擇選項" },
-	{ btn: "DPAD ← →", label: "作答信心(選了選項後)" },
+	{ btn: "DPAD ↑ ↓", label: "選擇選項(可長按連選)" },
+	{ btn: "DPAD ← →", label: "作答信心 猜 / 普通 / 有把握(選了選項才有)" },
 	{ btn: "FACE ▼", label: "送出答案" },
 	{ btn: "FACE ◀", label: "略過 / 直接看答案" },
 	...GAMEPAD_HINTS_SHARED,
 ];
+// 揭曉後十字鍵改捲動 —— 捲的是「目前這一欄」,不一定是詳解:討論串、相似題目、
+// 影片分頁底下捲的是那一頁的內容。寫死「捲動詳解」在那三個分頁上是假的。
 const GAMEPAD_HINTS_REVEALED: GamepadHint[] = [
-	{ btn: "DPAD ↑ ↓", label: "捲動詳解" },
+	{ btn: "DPAD ↑ ↓", label: "捲動目前這一欄(可長按)" },
 	...GAMEPAD_HINTS_SHARED,
 ];
 // 讀詳解時四顆面鍵改對應詳解工具列。這裡不 spread SHARED —— FACE ▲ / ▶ 的
 // 意思被換掉了,照抄那份會寫出兩行互相矛盾的說明。
 const GAMEPAD_HINTS_EXPLANATION: GamepadHint[] = [
-	{ btn: "DPAD ↑ ↓", label: "捲動詳解" },
-	{ btn: "FACE ▼", label: "顯示詳解" },
-	{ btn: "FACE ▲", label: "自動挖空" },
-	{ btn: "FACE ◀", label: "防劇透" },
-	{ btn: "FACE ▶", label: "編輯詳解" },
-	{ btn: "L1 / R1", label: "上一題 / 下一題" },
-	{ btn: "L2 / R2", label: "上一個 / 下一個分頁" },
-	{ btn: "START", label: "回年度列表" },
-	{ btn: "左搖桿", label: "捲動" },
+	{ btn: "DPAD ↑ ↓", label: "捲動詳解(可長按)" },
+	{ btn: "FACE ▼", label: "顯示詳解(詳解還糊著時)" },
+	{ btn: "FACE ▲", label: "自動挖空(顯示詳解後才有)" },
+	{ btn: "FACE ◀", label: "防劇透:遮住 / 掀開(顯示詳解後才有)" },
+	{ btn: "FACE ▶", label: "編輯詳解(離線或別人正在編輯時無效)" },
+	{ btn: "L1 / R1", label: "上一題 / 下一題(不連發,一下一題)" },
+	{ btn: "L2 / R2", label: "上一個 / 下一個分頁(詳解 / 筆記 / 討論…)" },
+	{ btn: "START", label: "回這一年的題目列表" },
+	{ btn: "SELECT", label: "開關這份說明" },
+	{ btn: "左搖桿", label: "捲動(推愈滿捲愈快)" },
 ];
-// 看個人筆記時十字鍵改成走訪筆記本身。三份說明而不是一份:同一顆十字鍵在
-// 作答前選選項、揭曉後捲頁面、看筆記時跳標題,寫成一份會騙人。
+// 看個人筆記時十字鍵改成走訪筆記本身。
 const GAMEPAD_HINTS_NOTE: GamepadHint[] = [
-	{ btn: "DPAD ↑ ↓", label: "在筆記標題之間移動" },
-	{ btn: "FACE ▼", label: "展開 / 收合這一段" },
-	{ btn: "DPAD ← →", label: "切換筆記(有多則時)" },
+	{ btn: "DPAD ↑ ↓", label: "在筆記標題之間移動(這則沒有標題時改捲動)" },
+	{ btn: "FACE ▼", label: "展開 / 收合游標所在那一段" },
+	{ btn: "DPAD ← →", label: "切換這一題的筆記(只有一則時無作用)" },
 	...GAMEPAD_HINTS_SHARED,
 ];
 const SPLIT_DEFAULT = 42; // ≈ the previous fixed 5fr / 7fr ratio
@@ -1157,9 +1165,14 @@ export function Question() {
 	//
 	// 一定要 cardRevealed:還沒作答時 FACE ▼ 是送出、FACE ◀ 是略過看答案,那兩顆
 	// 歸 QuestionCard。搶在答題前接管,等於按下送出的同時把詳解也掀開了。
+	// 這裡問的是 `mainTab === "explanation"`,不是 `"note"`。分頁版底下 `tab` 是
+	// 跟著 `mainTab` 走的(見上面那條同步 effect),所以拿 note 去比對必然是
+	// `tab === "explanation" && mainTab === "note"` —— 兩者互斥,整條永遠是 false。
+	// 症狀是無聲的:分頁版(手機一律、桌機選了分頁版型)讀詳解時那四顆面鍵完全
+	// 不接管,說明面板也就永遠顯示不到 GAMEPAD_HINTS_EXPLANATION 那一份。
 	const expKeysActive =
 		tab === "explanation" &&
-		(!tabsMode || mainTab === "note") &&
+		(!tabsMode || mainTab === "explanation") &&
 		cardRevealed &&
 		!editing &&
 		!noteEditing;

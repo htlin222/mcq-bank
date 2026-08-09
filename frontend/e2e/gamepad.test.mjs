@@ -34,6 +34,7 @@ const BTN = {
   R1: 5,
   L2: 6,
   R2: 7,
+  SELECT: 8,
   START: 9,
   DPAD_UP: 12,
   DPAD_DOWN: 13,
@@ -175,6 +176,35 @@ test('手把接上時 FAB 出現,並報出型號', async (t) => {
     !panel.includes('不是標準配置'),
     'mapping 是 standard,不該顯示配置警告',
   );
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('SELECT 開關說明面板', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+
+  // 面板是條件渲染的,所以「震動開關在不在」就是「面板開著沒」。用它而不是
+  // 面板容器的 class:後者換個樣式就會腐爛成空掃的綠燈。
+  const rumbleToggle = page.getByText('送出答案時震動');
+  assert.equal(await rumbleToggle.count(), 0, '前置條件:面板一開始是關的');
+
+  await tap(page, BTN.SELECT);
+  await page.waitForTimeout(300);
+  assert.equal(
+    await rumbleToggle.count(),
+    1,
+    'SELECT 該打開說明面板 —— 這是不放下手把唯一看得到說明的路',
+  );
+  const panel = await page.evaluate(() => document.body.innerText);
+  assert.ok(
+    panel.includes('開關這份說明'),
+    `面板要把 SELECT 這顆列進去,否則沒人知道它存在;實際:${panel.slice(0, 400)}`,
+  );
+
+  await tap(page, BTN.SELECT);
+  await page.waitForTimeout(300);
+  assert.equal(await rumbleToggle.count(), 0, '再按一次 SELECT 該收起來');
 
   assert.deepEqual(errors, [], '不該有未捕捉例外');
 });
@@ -457,6 +487,42 @@ test('詳解分頁:FACE ▶ 開啟編輯器,而不是收藏', async (t) => {
   assert.ok(
     (await page.getByRole('button', { name: '儲存' }).count()) > 0,
     'FACE ▶ 該開啟詳解編輯器(工具列出現「儲存」)',
+  );
+
+  assert.deepEqual(errors, [], '不該有未捕捉例外');
+});
+
+test('分頁版型:詳解的面鍵一樣要接管(不是只有雙欄版才有)', async (t) => {
+  if (guard(t)) return;
+  const { page, errors } = await open(t, '/q/113-050');
+
+  // 上面兩支跑的都是預設的雙欄版型,而雙欄那條分支是 `!tabsMode` 短路過去的
+  // —— 分頁版型整條判斷式從沒被走到過。手機一律走分頁版,所以「桌機綠、手機
+  // 死」可以活很久。`t` 切換版型(lg 才有,1280 夠寬)。
+  await page.keyboard.press('t');
+  await page.waitForTimeout(400);
+  assert.ok(
+    (await page.getByRole('button', { name: '詳解', exact: true }).count()) > 0,
+    '前置條件:已經切到分頁版型(頂端出現「詳解」分頁)',
+  );
+
+  await tap(page, BTN.FACE_LEFT); // 揭曉答案
+  await page.waitForTimeout(600);
+  await page.getByRole('button', { name: '詳解', exact: true }).click();
+  await page.waitForTimeout(400);
+
+  await tap(page, BTN.FACE_DOWN);
+  await page.waitForTimeout(600);
+  assert.ok(
+    (await page.getByRole('button', { name: /防劇透/ }).count()) > 0,
+    'FACE ▼ 該把糊掉的詳解掀開(工具列出現)—— 分頁版型下這一顆曾經完全沒反應',
+  );
+
+  await tap(page, BTN.FACE_RIGHT);
+  await page.waitForTimeout(1_200);
+  assert.ok(
+    (await page.getByRole('button', { name: '儲存' }).count()) > 0,
+    'FACE ▶ 該開啟詳解編輯器,而不是落回 QuestionCard 的收藏',
   );
 
   assert.deepEqual(errors, [], '不該有未捕捉例外');

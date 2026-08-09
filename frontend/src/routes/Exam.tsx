@@ -24,16 +24,20 @@ import {
 // between the two modes shouldn't have to relearn the shoulder buttons. The
 // bindings with no review-mode counterpart go to the buttons that have no job
 // here: 沒有信心度,所以十字左右改成在標記題之間跳。
+// 暫停中除了 FACE ◀ 以外整組還是收得到,但選項會被擋下來(見下面的 `paused`)
+// —— 那是刻意的,不是漏掉的,所以說明要寫出來:按了沒反應而說明沒提,使用者會
+// 以為手把斷線。
 const EXAM_HINTS: GamepadHint[] = [
-  { btn: 'DPAD ↑ ↓', label: '選擇選項' },
-  { btn: 'DPAD ← →', label: '上一個 / 下一個標記題' },
-  { btn: 'FACE ▼', label: '確認並前進下一題' },
-  { btn: 'FACE ◀', label: '暫停 / 繼續' },
-  { btn: 'FACE ▲', label: '跳到第一題未作答' },
-  { btn: 'FACE ▶', label: '標記 / 取消標記' },
-  { btn: 'L1 / R1', label: '上一題 / 下一題' },
-  { btn: 'L2 / R2', label: '−10 題 / +10 題' },
-  { btn: 'START', label: '交卷(仍會問未答題數)' },
+  { btn: 'DPAD ↑ ↓', label: '選擇選項,移動即選取(暫停中不能作答)' },
+  { btn: 'DPAD ← →', label: '上一個 / 下一個標記題(沒有標記題時無作用)' },
+  { btn: 'FACE ▼', label: '確認並前進下一題(最後一題停在原地)' },
+  { btn: 'FACE ◀', label: '暫停 / 繼續計時' },
+  { btn: 'FACE ▲', label: '跳到第一題未作答(全部答完時無作用)' },
+  { btn: 'FACE ▶', label: '標記 / 取消標記這一題' },
+  { btn: 'L1 / R1', label: '上一題 / 下一題(不連發,一下一題)' },
+  { btn: 'L2 / R2', label: '−10 題 / +10 題(到頭就停在頭尾)' },
+  { btn: 'START', label: '交卷(有未答題會先問一次)' },
+  { btn: 'SELECT', label: '開關這份說明' },
 ];
 
 type YearMeta = { year: number; count: number };

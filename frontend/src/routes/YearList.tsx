@@ -54,13 +54,16 @@ function matchesAnswer(q: QListItem, f: AnswerFilter): boolean {
 
 const GROUP_FILTER_KEYS = ['all', ...GROUPS.map((g) => g.label)];
 
+// 只有十字鍵會長按連發(見 lib/gamepad.ts 的 REPEATABLE),所以「可長按」這句
+// 不能順手加到 L1/R1 上 —— 押著肩鍵等它自己跑,是等不到的。
 const YEAR_HINTS: GamepadHint[] = [
-  { btn: 'DPAD ↑ ↓', label: '移動游標(可長按)' },
-  { btn: 'DPAD ← →', label: '切換作答狀態篩選' },
-  { btn: 'FACE ▼', label: '進入這一題' },
-  { btn: 'L1 / R1', label: '−10 筆 / +10 筆' },
-  { btn: 'L2 / R2', label: '切換科別篩選' },
+  { btn: 'DPAD ↑ ↓', label: '移動游標(可長按連續移動,到底繞回另一端)' },
+  { btn: 'DPAD ← →', label: '作答狀態篩選:全部 / 已作答 / 未作答 / 答對 / 答錯' },
+  { btn: 'FACE ▼', label: '進入游標所在那一題' },
+  { btn: 'L1 / R1', label: '游標 −10 筆 / +10 筆(不連發,一下一次)' },
+  { btn: 'L2 / R2', label: '切換科別篩選(含「全部」)' },
   { btn: 'START', label: '回複習模式首頁' },
+  { btn: 'SELECT', label: '開關這份說明' },
 ];
 
 // 在一組固定選項裡循環,給篩選列用。
