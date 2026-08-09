@@ -442,3 +442,91 @@ for (const routePath of OPAQUE_BTN_ROUTES) {
     }
   });
 }
+
+// 上面那條「每顆按鈕都有不透明底」有一個代價,而它只在 e-ink 出現:焦點環被蓋掉。
+//
+// 焦點環(ring 是 box-shadow,中和層補的是 outline)畫在**元素自己**那一步,而
+// in-flow 的後續兄弟在 tree order 之後才畫背景。展開的手風琴,子標題按鈕正是父
+// 標題按鈕的後續兄弟 —— light/dark 下它的背景是透明的所以什麼都沒發生,e-ink 下
+// 它帶著一塊實心白,父標題的焦點環下緣就被整條抹掉,只剩 pl-6 縮排露出的一小段。
+//
+// 這條**只能量像素**:getComputedStyle 讀到的 box-shadow / outline 完全正常,被
+// 蓋掉的是繪製結果。所以截圖之後畫回 canvas 數黑點(不必為了解 PNG 加依賴)。
+// 斷言是「底邊看得見的黑點數接近元素寬度」,而 topEdge 是對照組 —— 上緣沒有東西
+// 蓋得到它,兩邊一起量,選擇器腐爛或截圖對不準時會連對照組一起垮,不會靜靜變綠。
+test('e-ink 1-bit:焦點環不被後續兄弟的白底蓋掉(展開的手風琴)', async (t) => {
+  if (blinkSkipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${blinkSkipReason}`);
+    return t.skip(blinkSkipReason);
+  }
+
+  const ctx = await blink.newContext({ viewport: { width: 900, height: 900 } });
+  await ctx.addInitScript((k) => localStorage.setItem(k, 'eink'), THEME_KEY);
+  const page = await ctx.newPage();
+  await ctx.route('**/*', (r) =>
+    r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+  );
+
+  try {
+    await page.goto(server.origin + '/notes/n1', {
+      waitUntil: 'domcontentloaded',
+      timeout: 30_000,
+    });
+    await page.waitForTimeout(3_000);
+
+    // fixture 的第一個標題底下**緊接著**就是子標題(中間不隔段落)—— 這是重現的
+    // 前提,隔了一段文字,子標題就離焦點環太遠、蓋不到。
+    const headings = page.locator('[data-note-heading]');
+    assert.ok(
+      (await headings.count()) >= 2,
+      '/notes/n1 的筆記沒有巢狀標題 —— 這次量的是一顆沒有後續兄弟的按鈕,蓋不到就不算驗過',
+    );
+    // 手風琴的焦點環用 :focus(不是 :focus-visible),所以程式呼叫 focus() 就夠。
+    const btn = headings.first();
+    await btn.evaluate((el) => el.focus());
+    const box = await btn.boundingBox();
+    const shot = await page.screenshot({
+      clip: { x: box.x - 6, y: box.y - 6, width: box.width + 12, height: box.height + 12 },
+    });
+
+    const edges = await page.evaluate(async (dataUrl) => {
+      const img = new Image();
+      img.src = dataUrl;
+      await img.decode();
+      const c = document.createElement('canvas');
+      c.width = img.width;
+      c.height = img.height;
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      const d = g.getImageData(0, 0, c.width, c.height).data;
+      const rowDark = (y) => {
+        let n = 0;
+        for (let x = 0; x < c.width; x++) {
+          const i = (y * c.width + x) * 4;
+          if (d[i] < 128 && d[i + 1] < 128 && d[i + 2] < 128) n++;
+        }
+        return n;
+      };
+      // clip 上下各留 6px,環本身 2px —— 取邊界那幾列裡最長的一列。
+      const best = (ys) => Math.max(...ys.map(rowDark));
+      return {
+        width: c.width - 12,
+        top: best([4, 5, 6, 7]),
+        bottom: best([c.height - 8, c.height - 7, c.height - 6, c.height - 5]),
+      };
+    }, 'data:image/png;base64,' + shot.toString('base64'));
+
+    assert.ok(
+      edges.top >= edges.width * 0.9,
+      `焦點環的上緣只量到 ${edges.top}/${edges.width} px —— 對照組就不成立,` +
+        `這次量的位置或選擇器不對,底下那條斷言沒有意義`,
+    );
+    assert.ok(
+      edges.bottom >= edges.width * 0.9,
+      `焦點環的下緣只剩 ${edges.bottom}/${edges.width} px 看得見(上緣 ${edges.top})—— ` +
+        `被後續兄弟的不透明白底蓋掉了,聚焦元素要變成 positioned 才會晚於它們繪製`,
+    );
+  } finally {
+    await ctx.close();
+  }
+});

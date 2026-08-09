@@ -6,6 +6,11 @@
     "content": [
       {
         "type": "heading",
+        "attrs": { "level": 1 },
+        "content": [{ "type": "text", "text": "高頻考點:AML 誘導治療" }]
+      },
+      {
+        "type": "heading",
         "attrs": { "level": 2 },
         "content": [{ "type": "text", "text": "誘導治療骨幹" }]
       },
@@ -24,6 +29,20 @@
           { "type": "text", "text": "FLT3-ITD 陽性者加上 midostaurin,見 " },
           { "type": "questionRef", "attrs": { "id": "113-050" } },
           { "type": "text", "text": " 那一題的討論。" }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 3 },
+        "content": [{ "type": "text", "text": "劑量調整" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "腎功能不全者依 CrCl 調整;這一段刻意是**巢狀**標題 —— e-ink 的焦點環繪製順序靠它守門。"
+          }
         ]
       }
     ]

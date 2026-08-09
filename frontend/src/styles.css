@@ -501,6 +501,23 @@ html.eink {
 	outline: 2px solid #000;
 	outline-offset: 2px;
 }
+/* 焦點環(不論是 ring 的 box-shadow 還是上面這條 outline)畫在**元素自己**那一步,
+   而 in-flow 的後續兄弟在 tree order 之後才畫自己的背景 —— 展開的手風琴,子標題
+   按鈕正是父標題按鈕的後續兄弟。light/dark 下那些背景是透明的,所以蓋不住任何
+   東西;e-ink 不同:上面那條「每顆按鈕都給不透明白底」讓每個子標題都帶著一塊
+   實心白,於是父標題的焦點環下緣被整條抹掉,只剩 `pl-6` 縮排露出來的那一小段
+   (量法:chromium 截圖數黑像素,678px 寬的按鈕底邊只剩 28px 可見)。
+   換成 outline 解不掉 —— Blink 沒有把 outline 提到 stacking context 的最後畫。
+   唯一有效的是把聚焦元素本身變成 positioned,讓它整個晚於 static 兄弟繪製。
+   已定位的元素要排除:改寫它們的 position 會把版面弄壞,而 `[class*=]` 是為了
+   一起認出 `md:absolute` 這類前綴變體。 */
+.eink
+	:is(:focus, :focus-visible):not(
+		:where([class*="absolute"], [class*="fixed"], [class*="sticky"])
+	) {
+	position: relative;
+	z-index: 1;
+}
 .eink.eink [class*="fill-"]:not(:where([class~="fill-none"])) {
 	fill: #000;
 }
