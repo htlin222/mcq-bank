@@ -38,7 +38,6 @@ import { FeedbackButton } from "./components/FeedbackButton";
 import { OnlineUsers } from "./components/OnlineUsers";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { PomodoroFab } from "./components/PomodoroFab";
-import { ViewportModeFab } from "./components/ViewportModeFab";
 import { UpdatePrompt } from "./components/UpdatePrompt";
 import { ChatProvider } from "./chat/ChatProvider";
 import { ChatToaster } from "./chat/ChatToaster";
@@ -297,9 +296,10 @@ export default function App() {
 			{/* 番茄鐘 — 站內每一頁都在。右下角是它的位置,BackToTopFab 讓在左下。 */}
 			<PomodoroFab />
 
-			{/* 強制手機版面 — 疊在左下 BackToTopFab 上方。只在 (pointer: coarse) 的
-			    裝置出現,桌機瀏覽器根本不理 viewport meta(見 lib/viewportMode.ts)。 */}
-			<ViewportModeFab />
+			{/* 「強制手機版面」原本是這裡的第三顆 FAB,#135 把它搬進 /profile 的
+			    「顯示」卡。它是設定一次就不會再碰的東西,不值得佔著每一頁的左下角
+			    (還會壓住內容)—— 那個位置留給每天都在按的番茄鐘與回到頂端。
+			    機制本身沒動,見 lib/viewportMode.ts 與 profile/DisplayCard.tsx。 */}
 
 			{/* "有新版本" strip — only visible when a new SW is waiting. */}
 			<UpdatePrompt />

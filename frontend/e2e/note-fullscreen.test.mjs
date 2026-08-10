@@ -178,7 +178,9 @@ test('全螢幕:工具列黏在捲動區頂端,而且上方沒有縫', async (t)
   const bar = `
     (() => {
       const a = document.querySelector('article');
-      const tb = [...a.children].find((c) => /自動挖空/.test(c.textContent || ''));
+      // 用「更多」認這一列:自動挖空/防劇透/編輯 已經收進那顆選單(#137),
+      // 它們的文字不再出現在工具列上。
+      const tb = [...a.children].find((c) => /更多/.test(c.textContent || ''));
       const r = tb.getBoundingClientRect();
       return {
         scrollTop: Math.round(a.scrollTop),
@@ -253,12 +255,19 @@ test('個人筆記:唯讀工具列沒有刪除,按下編輯才有', async (t) =>
     await page.waitForTimeout(600);
     await openNoteTab(page, 1280);
 
-    // 空掃防線:先確認真的在筆記面板上(有「編輯」可按),否則「找不到刪除」
-    // 只是因為整個面板沒渲染。
-    const edit = page.locator('button', { hasText: '編輯' }).first();
-    assert.equal(await edit.count(), 1, '找不到「編輯」—— 沒有停在筆記面板上');
+    // 空掃防線:先確認真的在筆記面板上,否則「找不到刪除」只是因為整個面板
+    // 沒渲染。「編輯」在 #137 之後收進「更多」選單裡,所以先開它。
+    const more = page.locator('[aria-label="更多筆記工具"]');
+    assert.equal(await more.count(), 1, '找不到「更多」—— 沒有停在筆記面板上');
 
     assert.equal(await page.evaluate(countDelete), 0, '唯讀狀態不該有刪除按鈕');
+
+    await more.click();
+    await page.waitForTimeout(250);
+    const edit = page.locator('[role="menuitem"]', { hasText: '編輯' }).first();
+    assert.equal(await edit.count(), 1, '「更多」裡找不到編輯');
+    // 開著選單時不該憑空冒出刪除 —— 少了這條,下面的斷言可能是選單自己帶來的。
+    assert.equal(await page.evaluate(countDelete), 0, '選單裡不該有刪除');
 
     await edit.click();
     await page.waitForTimeout(400);

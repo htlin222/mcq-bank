@@ -185,3 +185,33 @@ test('收合只在 <md 生效', () => {
   const media = block.slice(0, block.indexOf(':root.chrome-hidden'));
   assert.match(media, /@media \(max-width: 767px\)/);
 });
+
+// ── 全螢幕筆記卡自己的頂端安全區(#137)────────────────────────────
+//
+// `/q/:id` 的個人筆記卡可以放大成 `fixed inset-0 z-50` —— 它蓋在 header 之上,
+// 也就是**脫離了 header 的 `.safe-top`**。頂端安全區得自己帶,否則加到主畫面的
+// iPhone 上,那條 sticky 工具列會被動態島壓住。
+//
+// ⚠️ 又是一條在一般瀏覽器裡看不出來的規則:inset 是 0 時,帶不帶 env() 算出來
+// 都是 20px。所以 Playwright 也驗不到,只能靜態掃。
+
+test('全螢幕筆記卡的工具列自己帶頂端安全區', () => {
+  const QUESTION = fs.readFileSync(path.join(HERE, '..', 'routes', 'Question.tsx'), 'utf8');
+  // 全螢幕分支的 class 字串裡必須出現 env(safe-area-inset-top)。
+  const fs_ = QUESTION.match(/noteFullscreen\s*\n?\s*\?\s*"sticky top-0[^"]*"/);
+  assert.ok(fs_, '找不到全螢幕工具列的 class —— 選擇器腐爛了,這條測試沒在驗東西');
+  assert.match(
+    fs_[0],
+    /env\(safe-area-inset-top\)/,
+    `全螢幕工具列要自己帶安全區(它蓋在 header 之上):${fs_[0]}`,
+  );
+});
+
+test('左下角那顆強制手機版面 FAB 已經搬走(#135)', () => {
+  // 設定搬進 /profile 的「顯示」卡。留在 App.tsx 的話會變成兩個入口,
+  // 而它們讀的是同一個 localStorage —— 兩邊狀態不同步時完全無聲。
+  assert.ok(
+    !/ViewportModeFab/.test(APP_TSX.replace(/\{\/\*[\s\S]*?\*\/\}/g, '')),
+    'App.tsx 不該再渲染 ViewportModeFab(註解裡提到沒關係)',
+  );
+});

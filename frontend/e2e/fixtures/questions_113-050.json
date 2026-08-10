@@ -1,1 +1,54 @@
-{"id": "113-050", "year": 113, "number": 50, "stem": "先生的血型檢測為 O 型，妻子血型檢測為 A 型，但兒子血型檢測為 AB 型, 經檢查先生的唾液可以驗到 anti-A, 請問最有可能原因是:", "options_json": "[{\"key\":\"A\",\"text\":\"先生為孟買血型\"},{\"key\":\"B\",\"text\":\"先生為亞孟買血型\"},{\"key\":\"C\",\"text\":\"先生為 AB 亞型\"},{\"key\":\"D\",\"text\":\"以上皆非\"}]", "answer": "B", "difficulty": null, "source": "years/113/batches", "created_at": 1779544939731, "group": "內科", "options": {"A": "先生為孟買血型", "B": "先生為亞孟買血型", "C": "先生為 AB 亞型", "D": "以上皆非"}, "tags": [], "explanation": {"question_id": "113-050", "content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"正解：(B) 先生為亞孟買血型\",\"marks\":[{\"type\":\"bold\"}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"本題考點為亞孟買血型（Para-Bombay phenotype）。原始筆記僅列參考圖表，詳細鑑別機轉請見隨附圖示。\"}]},{\"type\":\"image\",\"attrs\":{\"src\":\"/img/years/113/bf8304e7d536.webp\",\"alt\":\"\"}},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"參考：國考復習班ppt\"}]}]}", "version": 2, "editing_by": null, "editing_until": null, "updated_by": "import@hema-2026", "updated_at": 1779606928065, "stale_since": null}, "my_progress": null, "my_note": {"slot": 0, "content_json": "{\"type\": \"doc\", \"content\": [{\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"溶血機轉\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"血管內與血管外溶血的分野。\"}]}, {\"type\": \"heading\", \"attrs\": {\"level\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"血管內\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"補體介導,haptoglobin 下降。\"}]}, {\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"實驗室判讀\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"LDH、間接膽紅素、網狀紅血球。\"}]}]}", "created_at": 1780000000000, "updated_at": 1780000000000}, "back_refs": [], "active_challenges": [], "comment_count": 0, "can_edit_answer": true, "my_notes": [{"slot": 0, "content_json": "{\"type\": \"doc\", \"content\": [{\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"溶血機轉\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"血管內與血管外溶血的分野。\"}]}, {\"type\": \"heading\", \"attrs\": {\"level\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"血管內\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"補體介導,haptoglobin 下降。\"}]}, {\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"實驗室判讀\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"LDH、間接膽紅素、網狀紅血球。\"}]}]}", "created_at": 1780000000000, "updated_at": 1780000000000}, {"slot": 1, "content_json": "{\"type\": \"doc\", \"content\": [{\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"第二則筆記的標題\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"這是另一則筆記,用來驗左右切換。\"}]}]}", "created_at": 1780000000000, "updated_at": 1780000000000}]}
+{
+ "id": "113-050",
+ "year": 113,
+ "number": 50,
+ "stem": "先生的血型檢測為 O 型，妻子血型檢測為 A 型，但兒子血型檢測為 AB 型, 經檢查先生的唾液可以驗到 anti-A, 請問最有可能原因是:",
+ "options_json": "[{\"key\":\"A\",\"text\":\"先生為孟買血型\"},{\"key\":\"B\",\"text\":\"先生為亞孟買血型\"},{\"key\":\"C\",\"text\":\"先生為 AB 亞型\"},{\"key\":\"D\",\"text\":\"以上皆非\"}]",
+ "answer": "B",
+ "difficulty": null,
+ "source": "years/113/batches",
+ "created_at": 1779544939731,
+ "group": "內科",
+ "options": {
+  "A": "先生為孟買血型",
+  "B": "先生為亞孟買血型",
+  "C": "先生為 AB 亞型",
+  "D": "以上皆非"
+ },
+ "tags": [],
+ "explanation": {
+  "question_id": "113-050",
+  "content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"正解：(B) 先生為亞孟買血型\",\"marks\":[{\"type\":\"bold\"}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"本題考點為亞孟買血型（Para-Bombay phenotype）。原始筆記僅列參考圖表，詳細鑑別機轉請見隨附圖示。\"}]},{\"type\":\"image\",\"attrs\":{\"src\":\"/img/years/113/bf8304e7d536.webp\",\"alt\":\"\"}},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"參考：國考復習班ppt\"}]}]}",
+  "version": 2,
+  "editing_by": null,
+  "editing_until": null,
+  "updated_by": "import@hema-2026",
+  "updated_at": 1779606928065,
+  "stale_since": null
+ },
+ "my_progress": null,
+ "my_note": {
+  "slot": 0,
+  "content_json": "{\"type\": \"doc\", \"content\": [{\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"溶血機轉\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"血管內與血管外溶血的分野。\"}]}, {\"type\": \"heading\", \"attrs\": {\"level\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"血管內\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"補體介導,haptoglobin 下降。\"}]}, {\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"實驗室判讀\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"LDH、間接膽紅素、網狀紅血球。\"}]}]}",
+  "created_at": 1780000000000,
+  "updated_at": 1780000000000
+ },
+ "back_refs": [],
+ "active_challenges": [],
+ "comment_count": 0,
+ "can_edit_answer": true,
+ "my_notes": [
+  {
+   "slot": 0,
+   "content_json": "{\"type\": \"doc\", \"content\": [{\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"溶血機轉\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"血管內與血管外溶血的分野。\"}]}, {\"type\": \"heading\", \"attrs\": {\"level\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"血管內\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"補體介導,haptoglobin 下降。\"}]}, {\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"實驗室判讀\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"LDH、間接膽紅素、網狀紅血球。\"}]}]}",
+   "created_at": 1780000000000,
+   "updated_at": 1780000000000
+  },
+  {
+   "slot": 1,
+   "content_json": "{\"type\": \"doc\", \"content\": [{\"type\": \"heading\", \"attrs\": {\"level\": 1}, \"content\": [{\"type\": \"text\", \"text\": \"自體免疫溶血性貧血:溫抗體型與冷凝集素症的鑑別重點、DAT 分型與第一線治療差異\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"這是另一則筆記,用來驗左右切換。\"}]}]}",
+   "created_at": 1780000000000,
+   "updated_at": 1780000000000
+  }
+ ]
+}

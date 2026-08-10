@@ -30,6 +30,7 @@ import { api, ApiError } from "../lib/api";
 import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
 import { noteTitle, noteTitleFromJson } from "../lib/noteTitle";
 import { NoteSwitcher, type NoteMeta } from "../components/NoteSwitcher";
+import { NoteToolsItem, NoteToolsMenu } from "../components/NoteToolsMenu";
 import { buildOpenEvidenceUrl } from "../lib/openevidence";
 import { useQuestion } from "../hooks/useQuestion";
 import { useLock } from "../hooks/useLock";
@@ -1971,8 +1972,12 @@ export function Question() {
 											// 不能沿用 substick:它的 sticky 偏移量是右欄那條分頁 strip 的高度,
 											// 而全螢幕時那條 strip 不在畫面上,照用會把工具列往下推、第一個標題
 											// 被壓在它底下(#115 的截圖抓到過)。
+											// 全螢幕是 `fixed inset-0 z-50`,蓋在 header 之上 —— 也就是說它
+											// 脫離了 header 的 `.safe-top`,頂端安全區得自己帶(#137)。
+											// 少了它,加到主畫面的 iPhone 上這條工具列會被動態島壓住。
+											// ⚠️ 一般瀏覽器裡看不出差別:inset 是 0,兩者完全一樣。
 											(noteFullscreen
-												? "sticky top-0 z-10 pt-5 sm:pt-7 pb-2 mb-3 bg-white dark:bg-ink-800 border-b border-ink-100 dark:border-ink-700"
+												? "sticky top-0 z-10 pt-[calc(1.25rem+env(safe-area-inset-top))] sm:pt-[calc(1.75rem+env(safe-area-inset-top))] pb-2 mb-3 bg-white dark:bg-ink-800 border-b border-ink-100 dark:border-ink-700"
 												: tabsMode
 													? "mb-3"
 													: "substick -mx-5 sm:-mx-7 px-5 sm:px-7 pt-1 pb-2 bg-white dark:bg-ink-800 border-b border-ink-100 dark:border-ink-700") +
@@ -2009,41 +2014,42 @@ export function Question() {
 											{noteFullscreen ? <Shrink size={14} /> : <Expand size={14} />}{" "}
 											{noteFullscreen ? "離開全螢幕" : "全螢幕"}
 										</button>
-										<button
-											type="button"
-											onClick={() => toggleAutoCloze(data.id, "note")}
-											disabled={noteAutoLoading}
-											title="自動挖空:AI 從你的筆記挑出關鍵詞當空格,只在防劇透開著時遮住(點各別揭曉)。再按一次移除這層,不影響你的螢光標記"
-											aria-pressed={!!noteAutoTerms?.length}
-											className={TOOL_BTN(!!noteAutoTerms?.length)}
-										>
-											<Sparkles size={14} />{" "}
-											{noteAutoLoading
-												? "挖空中…"
-												: noteAutoTerms?.length
-													? `自動挖空 ${noteAutoTerms.length}`
-													: "自動挖空"}
-										</button>
-										<button
-											type="button"
-											onClick={() => setNoteCloze((v) => !v)}
-											title="防劇透:遮住你的螢光標記(以及自動挖空挑的關鍵詞)來自我測驗,點各別揭曉/收回"
-											aria-pressed={noteCloze}
-											className={TOOL_BTN(noteCloze)}
-										>
-											<Videotape size={14} /> {noteCloze ? "取消" : "防劇透"}
-										</button>
 										{noteAutoMsg && (
 											<span className="self-center text-xs text-ink-400 dark:text-ink-500">
 												{noteAutoMsg}
 											</span>
 										)}
-										<button
-											onClick={startNoteEdit}
-											className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-accent hover:bg-accent/10"
-										>
-											<Pencil size={14} /> 編輯
-										</button>
+										{/* 自動挖空 / 防劇透 / 編輯 收進「更多」(#137)。四顆帶文字的按鈕
+										    在 390px 上必定折成兩行,而第二行 justify-end 會把「編輯」單獨
+										    吊在右下角。全螢幕留在外面 —— 見 NoteToolsMenu 的說明。 */}
+										<NoteToolsMenu>
+											<NoteToolsItem
+												icon={<Sparkles size={14} />}
+												label={
+													noteAutoLoading
+														? "挖空中…"
+														: noteAutoTerms?.length
+															? `自動挖空 ${noteAutoTerms.length}`
+															: "自動挖空"
+												}
+												onClick={() => toggleAutoCloze(data.id, "note")}
+												disabled={noteAutoLoading}
+												active={!!noteAutoTerms?.length}
+												title="自動挖空:AI 從你的筆記挑出關鍵詞當空格,只在防劇透開著時遮住(點各別揭曉)。再按一次移除這層,不影響你的螢光標記"
+											/>
+											<NoteToolsItem
+												icon={<Videotape size={14} />}
+												label={noteCloze ? "取消防劇透" : "防劇透"}
+												onClick={() => setNoteCloze((v) => !v)}
+												active={noteCloze}
+												title="防劇透:遮住你的螢光標記(以及自動挖空挑的關鍵詞)來自我測驗,點各別揭曉/收回"
+											/>
+											<NoteToolsItem
+												icon={<Pencil size={14} />}
+												label="編輯"
+												onClick={startNoteEdit}
+											/>
+										</NoteToolsMenu>
 									</div>
 									{/* 手把導覽以這個容器為範圍找標題按鈕(見 noteHeadings)。 */}
 									<div ref={notePaneRef}>

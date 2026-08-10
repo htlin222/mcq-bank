@@ -5,7 +5,15 @@
 // 而且使用者得多學一個「命名」動作。第一行本來就常常是 h1/h2,拿來當名字幾乎
 // 不用做事。
 
-const MAX_LEN = 40;
+/** 一般寬度的上限。窄螢幕用 NARROW_LEN —— 見下面 noteTitle 的說明。 */
+export const NOTE_TITLE_MAX = 40;
+
+/**
+ * 窄螢幕的上限。40 個中文字在 390px 的下拉裡塞不下,CSS `truncate` 雖然不會
+ * 讓它溢出,但整列會被一行字吃掉、日期那一行也被擠到看不出層次(#137)。
+ * 砍一半之後,標題與日期各自看得出來。
+ */
+export const NOTE_TITLE_NARROW = 20;
 
 type AnyNode = { type?: string; text?: string; content?: unknown[] };
 
@@ -29,18 +37,26 @@ function firstText(node: unknown): string {
  * 由 TipTap 文件推出筆記名。空筆記回 fallback,而不是空字串 —— 下拉裡出現
  * 一個沒有標籤的項目就等於點不到。
  */
-export function noteTitle(doc: unknown, fallback = "未命名筆記"): string {
+export function noteTitle(
+	doc: unknown,
+	fallback = "未命名筆記",
+	maxLen: number = NOTE_TITLE_MAX,
+): string {
 	const raw = firstText(doc).replace(/\s+/g, " ").trim();
 	if (!raw) return fallback;
-	return raw.length > MAX_LEN ? `${raw.slice(0, MAX_LEN)}…` : raw;
+	return raw.length > maxLen ? `${raw.slice(0, maxLen)}…` : raw;
 }
 
 /** content_json 字串版本。壞掉的 JSON 一樣回 fallback,不丟例外。 */
-export function noteTitleFromJson(json: string | undefined, fallback?: string): string {
-	if (!json) return noteTitle(null, fallback);
+export function noteTitleFromJson(
+	json: string | undefined,
+	fallback?: string,
+	maxLen?: number,
+): string {
+	if (!json) return noteTitle(null, fallback, maxLen);
 	try {
-		return noteTitle(JSON.parse(json), fallback);
+		return noteTitle(JSON.parse(json), fallback, maxLen);
 	} catch {
-		return noteTitle(null, fallback);
+		return noteTitle(null, fallback, maxLen);
 	}
 }

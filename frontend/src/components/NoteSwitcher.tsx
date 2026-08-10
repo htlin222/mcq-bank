@@ -8,7 +8,8 @@ import {
 	StickyNote,
 	Trash2,
 } from "lucide-react";
-import { noteTitleFromJson } from "../lib/noteTitle";
+import { NOTE_TITLE_NARROW, noteTitleFromJson } from "../lib/noteTitle";
+import { useNarrow } from "../hooks/useNarrow";
 
 // 個人筆記的切換器 —— 一題可以有多則(見 migration 0036)。
 //
@@ -67,6 +68,12 @@ export function NoteSwitcher({
 }) {
 	const [open, setOpen] = useState(false);
 	const rootRef = useRef<HTMLDivElement>(null);
+	// 窄螢幕把預覽字數砍一半(#137)。CSS `truncate` 不會讓它溢出,但 40 個中文字
+	// 會把整列吃光,底下那行日期就看不出層次 —— 這是「產生字串時」的決定,構不到
+	// 的東西才來這裡拿布林值(見 useNarrow)。
+	const narrow = useNarrow();
+	const titleOf = (n: NoteMeta) =>
+		noteTitleFromJson(n.content_json, undefined, narrow ? NOTE_TITLE_NARROW : undefined);
 
 	useEffect(() => {
 		if (!open) return;
@@ -159,7 +166,7 @@ export function NoteSwitcher({
 									/>
 									<span className="min-w-0">
 										<span className="block truncate text-sm text-ink-800 dark:text-ink-100">
-											{noteTitleFromJson(n.content_json)}
+											{titleOf(n)}
 										</span>
 										<span className="block text-xs text-ink-400 dark:text-ink-500">
 											{new Date(n.updated_at).toLocaleDateString("zh-TW")}
