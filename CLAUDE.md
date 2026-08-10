@@ -1072,6 +1072,55 @@ adding a fixture: hit the real endpoint under `wrangler dev` and save the respon
 to `frontend/e2e/fixtures/<path-with-slashes-as-underscores>.json`. Endpoints with
 no fixture get `{}` and are listed at the end of the run.
 
+## 部署管線: 判準是 denylist,而「跳過」不准是綠的
+
+`.github/workflows/deploy.yml` 一支涵蓋兩邊:push 到 `main` → `classify` 決定要
+部署什麼 → `pages` / `worker` 兩個 job 各自跑。判準抽在
+`scripts/lib/classify-deploy.sh`(有測試),**不是內嵌在 YAML 裡** —— 內嵌的
+shell 只能靠「推上去看看會不會動」來驗,而部署邏輯最不該用那種方式驗。
+
+前身是 `deploy-pages.yml` + `deploy-worker.yml` 兩支,各自帶一份 guard,而**判準
+寫反了**:它問的是「有沒有非 frontend 的檔案」(allowlist),該問的是「有沒有
+**真的需要人**的檔案」。於是 `CLAUDE.md`、`package.json`、`scripts/` 底下任何一個
+檔案都會讓整次部署跳過。拿最近 30 個 commit 對兩套判準各跑一次:
+
+| | 舊 | 新 |
+|---|---|---|
+| 前端部署 | 10 | 21 |
+| Worker 部署 | 1 | 3 |
+| 真的需要人 | — | 0 |
+
+**而最傷的不是「跳過」,是跳過之後那個綠勾。** job 顯示 ✅、步驟全是 `skipped`,
+你看到勾勾會以為上線了 —— 跟 `users_online.json` 空 fixture、
+`pnpm build >/dev/null 2>&1` 吃掉建置失敗是同一種假綠。所以現在需要人工時
+`classify` **直接讓 job 紅**。這條路在那 30 個 commit 裡一次都沒走到,紅燈不會
+變成噪音。
+
+- **需要人工的只有三種檔案**:`migrations/**`(要 `d1 migrations apply --remote`)、
+  `wrangler.example.toml`、`config.example.toml`(新 binding / 新設定值要先更新
+  `WRANGLER_TOML` / `CONFIG_TOML` secret,否則 Worker 會找不到 class 而部署失敗
+  —— 2048 的 `PLAY` binding 踩過)。
+- **`.github/workflows/**` 刻意不在清單裡。** 改了 pipeline 之後跑的本來就是新版
+  的 pipeline,擋下這一次不會讓任何事更安全。
+- **`.claude/skills/**` 算 worker 變更** —— 它們被 `pnpm gen:bundles` 快照進
+  `worker/generated/*.ts`。CI 現在跑兩份 bundle(舊版只跑 mcq,所以 bank-ingest
+  的 skill 改了之後 `/api/me/bank-skill` 下載到的一直是舊版)。
+- **`on.push` 不帶 `paths` 過濾。** 過濾掉的 push 連 job 都不會建立,也就沒有任何
+  地方能說「這次沒有部署,因為 X」。讓 classify 永遠跑並留下 summary。
+- **`cancel-in-progress: false`。** 砍掉跑到一半的部署,留下的是「Worker 新、前端
+  舊」這種看起來像快取問題的半套狀態。
+- **Pages 明寫 `--branch=main`。** wrangler 從當前 git 分支推導環境,推導錯的話
+  東西會靜靜上到 Preview(見上面 worktree 那條坑)。這裡不靠推導。
+
+**兩個 job 都有部署後驗證,因為「部署指令成功」跟「使用者拿得到新版」是兩件事。**
+
+- Pages:抓線上首頁,斷言它引用的 bundle 檔名等於剛建出來的那一個。這同時證明了
+  上的是 Production —— Preview 部署不會改變自訂網域服務的內容。**要重試**:實測
+  部署完當下第一次讀還是舊的,一次定生死會變成不穩定的紅燈。
+- Worker:打 `/api/me`(Access-bypassed 的 auth probe),斷言 **401 + JSON**。回
+  HTML 表示答話的是 Access 的登入頁、route 沒掛上 —— 就是 PWA 那節講的「302 看
+  起來像 200」同一個陷阱。
+
 ## Cost Awareness
 
 This is designed to fit in **free tier indefinitely** for 20 users. If a feature would push past free tier, call it out explicitly. Don't silently add paid services. Note: SQLite-backed Durable Objects (`new_sqlite_classes`) ARE available on the free plan (the chat lobby uses one) — only KV-backed DO storage requires Workers Paid.
