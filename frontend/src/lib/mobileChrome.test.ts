@@ -82,3 +82,58 @@ test('body 不再自帶背景 class —— 否則深色模式下它會蓋回淺�
     `body 不該帶 bg-* class(背景在 :root):${body[1]}`,
   );
 });
+
+// ── header 高度只能有一個真相來源 ──────────────────────────────────────
+//
+// header 帶著頂端安全區(`.safe-top`),所以它的高度是 `3.5rem + inset`,不是
+// `3.5rem`。#126 加上 `.safe-top` 時漏了這件事:`.substick`、兩處 `sticky
+// top-14`、Chat / LectureReader 的高度計算、Profile 的 `scroll-mt-20` 全都還
+// 寫死 3.5rem/56px。**在一般瀏覽器裡 inset 是 0,完全看不出來** —— 只有加到
+// 主畫面、有瀏海的裝置才會看到那些內層 sticky 往上鑽進 header 底下。
+//
+// 也就是說這一類漂移沒有任何執行期的訊號,只能靠靜態掃描擋。
+test('沒有人再寫死 header 高度 —— 一律吃 var(--header-h)', () => {
+  const roots = [path.join(HERE, '..')];
+  const bad: string[] = [];
+
+  const strip = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+  const walk = (dir: string) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!/\.(tsx?|css)$/.test(e.name)) continue;
+      if (e.name.endsWith('.test.ts') || e.name.endsWith('.test.tsx')) continue;
+      const src = strip(fs.readFileSync(full, 'utf8'));
+      // `top-14` 是 Tailwind 的 3.5rem;`3.5rem` 直接出現在 calc 裡也一樣。
+      // `--header-h` 的定義本身除外(它就是那個真相來源)。
+      for (const m of src.matchAll(/\btop-14\b|3\.5rem/g)) {
+        const line = src.slice(0, m.index).split('\n').length;
+        const text = src.split('\n')[line - 1]?.trim() ?? '';
+        // 兩個變數自己的定義處除外 —— 它們就是真相來源。`--bottom-nav-h` 的
+        // 那個 3.5rem 是導覽項目的高度(h-14),跟 header 無關。
+        if (text.includes('--header-h:') || text.includes('--bottom-nav-h:')) continue;
+        bad.push(`${path.relative(roots[0], full)}:${line}  ${text.slice(0, 90)}`);
+      }
+    }
+  };
+  walk(roots[0]);
+
+  assert.deepEqual(bad, [], `這些地方應該改吃 var(--header-h):\n${bad.join('\n')}`);
+});
+
+test('--header-h 與 --bottom-nav-h 都含安全區 —— 它們是同一組保證的兩端', () => {
+  assert.match(STYLES, /--header-h:\s*calc\(3\.5rem \+ env\(safe-area-inset-top\)\)/);
+  assert.match(STYLES, /--bottom-nav-h:\s*calc\(3\.5rem \+ max\(1rem, env\(safe-area-inset-bottom\)\)\)/);
+});
+
+test('header 是 fixed,而且 <main> 上下都留了空間', () => {
+  // fixed 才不會跟著 iOS 橡皮筋走(#132);脫離文件流之後上下留白都得自己補,
+  // 少一邊內容就被那一條蓋住。
+  assert.match(APP_TSX, /<header className="safe-top fixed top-0 /);
+  assert.match(APP_TSX, /<main className="[^"]*pt-\[var\(--header-h\)\][^"]*pb-\[var\(--bottom-nav-h\)\]/);
+});

@@ -9,9 +9,18 @@ import { pickActiveSection, type SectionTop } from "../../lib/tocSpy";
 
 export type TocItem = { id: string; label: string };
 
-// 站台 header 是 sticky 且高 h-14(56px)。錨點捲動要多留一點,標題才不會
-// 貼在 header 底下 —— 對應各卡片上的 scroll-mt-20。
-const HEADER_OFFSET = 80;
+// 錨點捲動要多留一點,標題才不會貼在 header 底下 —— 對應各卡片上的
+// `scroll-mt-[calc(var(--header-h)+1.5rem)]`,兩邊要用同一個值。
+//
+// 讀 `--header-h` 而不是寫死 80:header 帶著頂端安全區(`.safe-top`),有瀏海
+// 的裝置上它比 3.5rem 高一個 inset,寫死的話錨點會停在被蓋住的位置。
+const EXTRA_GAP = 24; // 1.5rem,跟 scroll-mt 的加數對齊
+
+function headerOffset() {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--header-h');
+  const px = Number.parseFloat(raw);
+  return (Number.isFinite(px) ? px : 56) + EXTRA_GAP;
+}
 
 export function ProfileToc({ items }: { items: TocItem[] }) {
 	const active = useActiveSection(items);
@@ -58,7 +67,7 @@ export function ProfileToc({ items }: { items: TocItem[] }) {
 function scrollToSection(id: string) {
 	const el = document.getElementById(id);
 	if (!el) return;
-	const top = el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+	const top = el.getBoundingClientRect().top + window.scrollY - headerOffset();
 	window.scrollTo({ top, behavior: "smooth" });
 }
 
@@ -81,7 +90,7 @@ function useActiveSection(items: TocItem[]): string {
 			}
 			const picked = pickActiveSection({
 				sections,
-				line: HEADER_OFFSET + 8,
+				line: headerOffset() + 8,
 				atBottom:
 					window.innerHeight + window.scrollY >=
 					document.documentElement.scrollHeight - 2,
