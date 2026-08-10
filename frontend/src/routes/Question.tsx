@@ -1361,7 +1361,7 @@ export function Question() {
 				className={
 					// top 吃 --header-h 而不是寫死 top-14:header 帶著頂端安全區,
 					// 有瀏海的裝置上 h-14 不等於 header 的高度(見 styles.css)。
-					"sticky top-[var(--header-h)] z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-3 pb-2 bg-ink-50 dark:bg-ink-900 " +
+					"chrome-follow sticky top-[var(--chrome-top)] z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-3 pb-2 bg-ink-50 dark:bg-ink-900 " +
 					(tabsMode
 						? "md:-mx-4 md:px-4 md:pb-0 md:mb-6 md:bg-ink-50/95 md:dark:bg-ink-900/95 md:backdrop-blur"
 						: "md:static md:mx-0 md:px-0 md:pt-0 md:pb-0 md:bg-transparent md:dark:bg-transparent")
@@ -1622,7 +1622,7 @@ export function Question() {
 						<div
 							ref={innerStripRef}
 							className={
-								"sticky top-[calc(var(--header-h)+var(--nav-h,0px))] z-10 flex items-center justify-between gap-3 bg-ink-50 dark:bg-ink-900 md:bg-ink-50/95 md:dark:bg-ink-900/95 md:backdrop-blur pt-1 pb-3 " +
+								"chrome-follow sticky top-[calc(var(--chrome-top)+var(--nav-h,0px))] z-10 flex items-center justify-between gap-3 bg-ink-50 dark:bg-ink-900 md:bg-ink-50/95 md:dark:bg-ink-900/95 md:backdrop-blur pt-1 pb-3 " +
 								(tabsMode ? "md:static" : "md:top-0")
 							}
 						>
