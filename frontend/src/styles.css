@@ -21,9 +21,17 @@
      darkMode: 'class',所以跟著 <html class="dark"> 走。 */
 	:root {
 		color-scheme: light;
+		/* iOS Safari 橡皮筋回彈時露出的那一塊,畫的是 **canvas** 的背景,而
+		   canvas 取的是 `<html>` 的 background-color;掛在 body 或任何內層
+		   `<div>` 上的背景一律看不到(#131)。
+		   原本背景是 index.html 上 `<body class="bg-ink-50">` 那個靜態 class,
+		   沒有深色版本 —— 深色模式下往上拉就露出一片淺米色。
+		   值跟 App.tsx 最外層那個 `bg-ink-50 dark:bg-ink-900` 對齊。 */
+		background-color: #f7f5f2; /* ink-50 */
 	}
 	:root.dark {
 		color-scheme: dark;
+		background-color: #0c0a06; /* ink-900 */
 	}
 	/* 電子紙模式:原生控制項也要 1-bit。`accent-color` 是最容易漏的彩色破口 ——
      沒宣告的話 checkbox/radio/range 會拿到系統色(iOS 是藍的),而那是瀏覽器

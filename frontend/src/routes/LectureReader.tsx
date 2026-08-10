@@ -493,9 +493,13 @@ export default function LectureReader() {
 			ref={readerRef}
 			className={
 				"relative flex flex-col bg-white dark:bg-ink-900 " +
+				// dvh 而不是 vh(#132):iOS Safari 的 `100vh` 是「網址列收起來時」
+				// 的高度,所以網址列還在的時候這個容器就比視窗高一截,底部被切掉。
+				// `dvh` 跟著 visual viewport 走。fullscreen 那條同理:`h-screen`
+				// 在 Tailwind 是 `100vh`,改成 `h-dvh`。
 				(fullscreen
-					? "h-screen"
-					: "h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)]")
+					? "h-dvh"
+					: "h-[calc(100dvh-3.5rem)] md:h-[calc(100dvh-4rem)]")
 			}
 		>
 			{/* Title bar — hidden in fullscreen (the toolbar carries the exit btn) */}
