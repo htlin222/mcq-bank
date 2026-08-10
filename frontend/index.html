@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- 瀏覽器的頂/底工具列跟著頁面配色走(#126)。單一顏色的話,深色模式下
-         那條 bar 會是亮橘紅、跟頁面接不起來。值對應 header 的底色:亮色是
-         ink-50 之上的白、深色是 ink-800。 -->
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a160f" media="(prefers-color-scheme: dark)" />
-    <!-- 不帶 media 的那一條留給不支援 media 屬性的舊瀏覽器。 -->
+    <!-- ⚠️ 只能有**一條** theme-color,而且不要帶 media。
+         `applyTheme()`(lib/theme.ts)會在切換主題時改寫它,靠的是
+         `querySelector('meta[name="theme-color"]')` —— 那只會拿到第一條。
+         #126 當初加了 light/dark 兩條 media 版本,結果 applyTheme 從此把值
+         寫進「只在系統為淺色時生效」的那一條,手動切主題再也染不到狀態列。
+         而且 media 版本對這個 app 本來就是錯的:主題是 class-based 的,使用者
+         可以在系統深色時選淺色,那時 media 版會讓狀態列跟頁面相反。 -->
     <meta name="theme-color" content="#ffffff" />
     <!-- PWA — manifest is generated at build time from config.toml [brand];
          see the VitePWA block in vite.config.ts. -->
@@ -46,7 +47,10 @@
     <meta name="twitter:description" content="%CONFIG_DESCRIPTION%" />
     <meta name="twitter:image" content="%CONFIG_OG_IMAGE%" />
   </head>
-  <body class="bg-ink-50 text-ink-800 font-sans antialiased">
+  <!-- 背景色**不在這裡**,在 styles.css 的 :root —— iOS Safari 橡皮筋回彈時
+       露出的是 canvas 的背景,而 canvas 取的是 <html> 的(#131)。掛在 body 上
+       的靜態 `bg-ink-50` 沒有深色版本,深色模式下回彈就露出一片淺米色。 -->
+  <body class="text-ink-800 font-sans antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

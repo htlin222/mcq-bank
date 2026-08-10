@@ -50,10 +50,35 @@ test('底部安全區沒有被順手改掉', () => {
   assert.match(STYLES, /--bottom-nav-h:\s*calc\(3\.5rem \+ max\(1rem, env\(safe-area-inset-bottom\)\)\)/);
 });
 
-test('theme-color 分亮/暗兩種,而且留一條沒有 media 的後備', () => {
-  // 只有一條 accent 色的話,深色模式下那條瀏覽器 bar 會是亮橘紅、跟頁面接不起來。
-  assert.match(INDEX_HTML, /name="theme-color"[^>]*media="\(prefers-color-scheme: light\)"/);
-  assert.match(INDEX_HTML, /name="theme-color"[^>]*media="\(prefers-color-scheme: dark\)"/);
-  const bare = INDEX_HTML.match(/<meta name="theme-color" content="[^"]*"\s*\/>/g) ?? [];
-  assert.equal(bare.length, 1, '應該剛好有一條不帶 media 的 theme-color 當後備');
+test('theme-color 只能有一條,而且不帶 media', () => {
+  // ⚠️ 這條測試原本斷言的是相反的事(要有 light/dark 兩條 media 版本),而那是
+  // 錯的 —— #126 那樣改之後,`applyTheme()` 的
+  // `querySelector('meta[name="theme-color"]')` 拿到的是第一條(帶
+  // `prefers-color-scheme: light`),於是手動切主題再也染不到狀態列,而且完全
+  // 無聲。media 版本對這個 app 本來就不對:主題是 class-based 的,使用者可以在
+  // 系統深色時選淺色,那時 media 版會讓狀態列跟頁面相反。
+  const tags = INDEX_HTML.match(/<meta name="theme-color"[^>]*>/g) ?? [];
+  assert.equal(tags.length, 1, `theme-color 應該剛好一條,實際:${tags.join(' ')}`);
+  assert.ok(!/media=/.test(tags[0]), `theme-color 不該帶 media:${tags[0]}`);
+});
+
+test('applyTheme 會改寫 theme-color —— 上面那條的另一半', () => {
+  const theme = fs.readFileSync(path.join(HERE, 'theme.ts'), 'utf8');
+  assert.match(theme, /meta\[name="theme-color"\]/);
+});
+
+test('canvas 背景掛在 :root,不是 body —— 橡皮筋回彈露的是它', () => {
+  // iOS Safari 往上拉超過頂端時露出的是 canvas 背景,而 canvas 取的是 <html>
+  // 的 background-color(#131)。掛在 body 或內層 div 上的背景一律看不到。
+  assert.match(STYLES, /:root\s*\{[^}]*background-color:\s*#f7f5f2/);
+  assert.match(STYLES, /:root\.dark\s*\{[^}]*background-color:\s*#0c0a06/);
+});
+
+test('body 不再自帶背景 class —— 否則深色模式下它會蓋回淺米色', () => {
+  const body = INDEX_HTML.match(/<body class="([^"]*)"/);
+  assert.ok(body, '找不到 body 的 class');
+  assert.ok(
+    !/\bbg-/.test(body[1]),
+    `body 不該帶 bg-* class(背景在 :root):${body[1]}`,
+  );
 });
