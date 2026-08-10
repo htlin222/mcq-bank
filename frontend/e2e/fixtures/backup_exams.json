@@ -1,0 +1,14 @@
+{
+  "rows": [
+    {
+      "id": "s1",
+      "year": 113,
+      "started_at": 1753900000000,
+      "finished_at": 1753910000000,
+      "score": 72,
+      "duration_sec": 9000,
+      "mode": "full"
+    }
+  ],
+  "next": null
+}

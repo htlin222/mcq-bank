@@ -1,0 +1,18 @@
+{
+  "email": "dev@example.com",
+  "generated_at": 1754000000000,
+  "schema_version": 1,
+  "counts": {
+    "questions": 2,
+    "attempts": 2,
+    "confidence": 1,
+    "notes": 1,
+    "highlights": 2,
+    "progress": 1,
+    "bookmarks": 1,
+    "exams": 1,
+    "lecture_annotations": 1,
+    "lecture_notes": 1,
+    "free_notes": 1
+  }
+}

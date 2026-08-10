@@ -138,6 +138,16 @@ test('其他筆記(自由筆記)是可變的私人狀態,永遠不快取', () =>
   assert.equal(isCacheableApiPath('/api/free-notes/n1/links'), false);
 });
 
+test('備份端點永遠不快取 —— 備份到的必須是「現在」', () => {
+  // 這幾支的回應會被寫進使用者下載的 zip。被 SW 快取住的話,備份檔裡是上一次
+  // 的狀態,而檔名與 manifest 的 generated_at 都會宣稱是現在 —— 一份說謊的
+  // 備份比沒有備份更糟。分頁游標也會因此永遠停在同一頁。
+  assert.equal(isCacheableApiPath('/api/backup/manifest'), false);
+  assert.equal(isCacheableApiPath('/api/backup/questions?after=113-050'), false);
+  assert.equal(isCacheableApiPath('/api/backup/notes'), false);
+  assert.equal(isCacheableApiPath('/api/backup/free-notes'), false);
+});
+
 test('scheduling and answer state are never cacheable', () => {
   assert.equal(isCacheableApiPath('/api/review/due'), false);
   assert.equal(isCacheableApiPath('/api/drill/next'), false);

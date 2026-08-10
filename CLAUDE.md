@@ -1072,6 +1072,38 @@ adding a fixture: hit the real endpoint under `wrangler dev` and save the respon
 to `frontend/e2e/fixtures/<path-with-slashes-as-underscores>.json`. Endpoints with
 no fixture get `{}` and are listed at the end of the run.
 
+### 備份我的紀錄: zip 在瀏覽器裡組,不在 Worker 裡
+
+個人頁的「備份我的紀錄」(`/api/backup/*`,`frontend/src/lib/backupLayout.ts`)
+把這個帳號的全部紀錄倒成一個 zip:一題一個 JSON(題目、共筆詳解 + 我的作答、
+信心、筆記、畫記、收藏)、一場模擬考一個 JSON、一份講義一個 JSON、其他筆記
+一則一個,外加一份 `CLAUDE.md` 讓 Claude 打開整個資料夾就看得懂。
+
+- **打包在 client。** 實測單一使用者的 `personal_notes` 就有 3976 則 / 35.8 MB
+  (再加 1100 題與 1.85 MB 的共筆詳解)。free plan 一次請求 10ms CPU、128 MB
+  記憶體,`zipSync` 一次吃下 38 MB 不可能;改成串流 STORE 也一樣,CPU 與資料量
+  成正比。Worker 只出分頁 JSON —— 那是這個站每天都在做的事。
+- **每一支查詢都釘死 `user_email`。** 個人筆記在畫面上寫「僅你可見」,備份不能
+  是那句話的例外。題目與共筆詳解是公開的,照原樣附上(少了題幹,作答紀錄沒有
+  東西可分析)。
+- **分頁一律 keyset(`... > ?`),不用 OFFSET。** 下載途中資料被改動時 OFFSET
+  會漏列或給重複列,而使用者不會發現。client 端另外擋「游標沒有前進」——
+  那代表 `ORDER BY` 跟游標欄位對不上,不擋的話是無窮迴圈。
+- **`/api/backup/*` 不進 `sw-guards.ts` 的 `CACHEABLE_API`**(有測試鎖著)。
+  被快取住的話備份檔裡是上一次的狀態,而檔名與 `manifest.generated_at` 都宣稱
+  是現在 —— 一份說謊的備份比沒有備份更糟。
+- **收藏不在 `review_progress` 裡。** 上面「作答歷史」那節寫的
+  「`review_progress` … 也帶 `bookmarked` / `bookmark_folder_id`」**已經過時**:
+  正式機的那張表沒有這兩個欄位,收藏早就搬到 `bookmark_folders` /
+  `bookmark_items`。照著文件寫會拿到 `no such column: bookmarked` —— 這是寫這個
+  功能時真的踩到的。
+- **圖片不打包**,`/img/<key>` 保持原樣。血液抹片那類圖會讓體積再翻一倍,而
+  文字分析不受影響。
+- 驗證分兩層:`backupLayout.test.ts` 是純函式(併檔正確性),
+  `frontend/e2e/backup.test.mjs` 走真的瀏覽器 —— 按下按鈕、抓完 12 支端點、
+  壓成 zip、觸發下載,再把下載到的檔案解開檢查。後者涵蓋的是單元測試碰不到
+  的那一半(fflate 的 worker thread、`URL.createObjectURL`、`<a download>`)。
+
 ## Cost Awareness
 
 This is designed to fit in **free tier indefinitely** for 20 users. If a feature would push past free tier, call it out explicitly. Don't silently add paid services. Note: SQLite-backed Durable Objects (`new_sqlite_classes`) ARE available on the free plan (the chat lobby uses one) — only KV-backed DO storage requires Workers Paid.
