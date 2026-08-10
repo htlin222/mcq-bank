@@ -136,7 +136,10 @@ questionsRoutes.get("/:id", async (c) => {
 		// 一題可以有多則(migration 0036)。my_note 仍然是最前面那則,舊的
 		// 呼叫端(離線快取、AI 面板取現況)不必同步改。
 		c.env.DB.prepare(
-			"SELECT slot, content_json, created_at, updated_at FROM personal_notes WHERE user_email = ? AND question_id = ? ORDER BY slot",
+			// `sort_order, slot`:自訂排序(#140);既有列都是 0,所以沒重排過的人看到的
+			// 順序跟以前一樣(slot 遞增 = 建立順序)。**第二個排序鍵不能省** —— 同分時
+			// 順序由 SQLite 自由決定,使用者會看到筆記每次重整都換位置。
+			"SELECT slot, content_json, created_at, updated_at FROM personal_notes WHERE user_email = ? AND question_id = ? ORDER BY sort_order, slot",
 		)
 			.bind(email, id)
 			.all<{ slot: number; content_json: string; created_at: number; updated_at: number }>(),

@@ -289,6 +289,44 @@ pattern as the mcq bundle) so `/api/me/bank-skill` can zip it with a freshly
 baked per-admin `.env`. Editing the skill means re-running `pnpm gen:bundles`
 — wired into `dev` and `predeploy`.
 
+### 個人筆記的拖曳排序: 為什麼多開一個欄位,以及門檻是鄰居的中線
+
+`personal_notes.sort_order`(migration 0041)+ `PUT /api/questions/:id/notes/order`。
+
+**兩個看起來可以重用的欄位都不能用:**
+
+- `slot` 是 PK 的一部分,而 `highlights.store_key`(`anno:note:<qid>:<slot>`)、
+  `note_cloze`、`note_terms`、`note_link_suggestions` 全都以它定位。拿它重排等於
+  把畫記與挖空快取搬到別則筆記身上。
+- `created_at` 改寫就是讓欄名說謊 —— 而且「依建立順序排」正是 0036 加那個欄位的
+  理由,重排一次之後那個語意就沒了。同「自由筆記的 id 不塞進 `question_id`」那條。
+
+**讀取端一定要排兩個鍵(`ORDER BY sort_order, slot`)。** 既有列都是 0,漏了第二個
+鍵的話同分列的順序由 SQLite 自由決定,使用者會看到筆記每次重整都換位置 —— 而且
+在只有一兩則筆記的帳號上完全看不出來。
+
+**重排請求必須是現有 slot 的排列,少一個多一個都整批拒絕**(`resolveNoteOrder`)。
+放行部分正確的請求會寫出一份「有些排過、有些沒有」的順序,而那在畫面上只是
+「排錯了」,使用者不會知道是請求壞掉。寫入走 `DB.batch` —— 分開送的話中途失敗會
+留下一半新一半舊。
+
+**落點的門檻是鄰居的中線,不是自己的。** 這條是 e2e 抓到的:握把在自己那一列的
+正中央,把自己的中線也算進去時,往下移 3px 就越過了 —— 手指還沒離開原本那一列,
+順序就跳一次。排除自己之後要真的蓋過下一項的一半才換位。純函式在
+`frontend/src/lib/reorder.ts`,邊界(夾到頭尾、剛好壓在線上歸哪一邊)都在那支的
+測試裡 —— 在瀏覽器裡模擬指標事件會隨時序飄。
+
+- **用 pointer events,不用 HTML5 drag-and-drop** —— 後者在觸控裝置上根本不觸發,
+  而這個下拉最擠的時候正是手機。握把要 `touch-action: none`,否則手指往下滑會被
+  判定成捲動清單,拖曳收不到 move。`setPointerCapture` 也是必要的:少了它,指標
+  移出那一列就收不到事件,拖到一半會卡住。
+- **拖曳中的順序存在 `NoteSwitcher` 自己的 state**,放開才打請求。呼叫端只收到
+  最後的結果 —— 中途每一次換位都送一趟的話,一次拖曳會打十幾個請求。
+- **放回原位不送請求**(`sameOrder`)。
+- e2e 驗的是「拖曳中畫面有沒有跟著走」+「送出去的 slots 對不對」,**不驗放開後的
+  清單** —— `reorderNotes` 結尾會 reload,而 fixture 是靜態的,拖完一定會彈回原
+  順序。驗那個等於驗 fixture。
+
 ### 其他筆記: 不掛題目的私人筆記,以及那張表為什麼要重建
 
 `/lectures?tab=note` 是講義/教科書旁的第三個分頁,每張卡片是一則

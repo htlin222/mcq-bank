@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
 	Check,
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
+	GripVertical,
 	Plus,
 	StickyNote,
 	Trash2,
 } from "lucide-react";
+import { dropIndex, moveItem, sameOrder } from "../lib/reorder";
 import { NOTE_TITLE_NARROW, noteTitleFromJson } from "../lib/noteTitle";
 import { useNarrow } from "../hooks/useNarrow";
 
@@ -58,6 +60,7 @@ export function NoteSwitcher({
 	onSelect,
 	onCreate,
 	onDelete,
+	onReorder,
 }: {
 	notes: NoteMeta[];
 	activeSlot: number;
@@ -65,6 +68,8 @@ export function NoteSwitcher({
 	onSelect: (slot: number) => void;
 	onCreate: () => void;
 	onDelete: (slot: number) => void;
+	/** 拖曳放開時給出新的 slot 順序。沒給就不顯示握把。 */
+	onReorder?: (slots: number[]) => void;
 }) {
 	const [open, setOpen] = useState(false);
 	const rootRef = useRef<HTMLDivElement>(null);
@@ -72,6 +77,10 @@ export function NoteSwitcher({
 	// 會把整列吃光,底下那行日期就看不出層次 —— 這是「產生字串時」的決定,構不到
 	// 的東西才來這裡拿布林值(見 useNarrow)。
 	const narrow = useNarrow();
+	const listRef = useRef<HTMLUListElement>(null);
+	// 拖曳中的樂觀順序。`null` = 沒在拖。
+	// 存在這裡而不是交給呼叫端:放開之前不該打任何請求,而畫面必須即時跟著手指走。
+	const [dragging, setDragging] = useState<{ slot: number; order: number[] } | null>(null);
 	const titleOf = (n: NoteMeta) =>
 		noteTitleFromJson(n.content_json, undefined, narrow ? NOTE_TITLE_NARROW : undefined);
 
@@ -92,6 +101,53 @@ export function NoteSwitcher({
 			document.removeEventListener("keydown", onKey);
 		};
 	}, [open]);
+
+	// 畫面上的順序:拖曳中用樂觀順序,否則就是伺服器給的順序。
+	const shown = dragging
+		? dragging.order
+				.map((slot) => notes.find((n) => n.slot === slot))
+				.filter((n): n is NoteMeta => !!n)
+		: notes;
+
+	/**
+	 * 握把上的指標事件。用 pointer 而不是 HTML5 drag-and-drop:後者在觸控裝置上
+	 * 根本不會觸發,而這個下拉最擠的時候正是手機(#137)。
+	 *
+	 * `setPointerCapture` 讓後續事件都送到握把上 —— 少了它,指標移出那一列之後
+	 * 就收不到 move,拖到一半會卡住。
+	 */
+	function startDrag(e: ReactPointerEvent, slot: number) {
+		if (!onReorder || notes.length < 2) return;
+		e.preventDefault();
+		e.stopPropagation();
+		const handle = e.currentTarget as HTMLElement;
+		handle.setPointerCapture(e.pointerId);
+		const order = notes.map((n) => n.slot);
+		setDragging({ slot, order });
+	}
+
+	function moveDrag(e: ReactPointerEvent) {
+		if (!dragging) return;
+		const list = listRef.current;
+		if (!list) return;
+		// 每次都重新量:拖曳中列的順序在變,快取住的中線會指向舊位置。
+		const mids = [...list.querySelectorAll("li")].map((li) => {
+			const r = li.getBoundingClientRect();
+			return r.top + r.height / 2;
+		});
+		const from = dragging.order.indexOf(dragging.slot);
+		const to = dropIndex(mids, e.clientY, from);
+		if (to === from) return;
+		setDragging({ slot: dragging.slot, order: moveItem(dragging.order, from, to) });
+	}
+
+	function endDrag() {
+		if (!dragging) return;
+		const next = dragging.order;
+		setDragging(null);
+		// 放回原位不送請求 —— 那只是一次沒改變任何東西的往返。
+		if (!sameOrder(next, notes.map((n) => n.slot))) onReorder?.(next);
+	}
 
 	const active = notes.find((n) => n.slot === activeSlot) ?? notes[0];
 	const at = active ? notes.findIndex((n) => n.slot === active.slot) : -1;
@@ -145,9 +201,35 @@ export function NoteSwitcher({
 					role="menu"
 					className="absolute left-0 top-full z-30 mt-1 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl"
 				>
-					<ul className="max-h-72 overflow-y-auto py-1">
-						{notes.map((n) => (
-							<li key={n.slot} className="group flex items-stretch">
+					<ul ref={listRef} className="max-h-72 overflow-y-auto py-1">
+							{shown.map((n) => (
+								<li
+									key={n.slot}
+									className={
+										"group flex items-stretch " +
+										(dragging?.slot === n.slot
+											? "bg-ink-100 dark:bg-ink-700 opacity-90"
+											: "")
+									}
+								>
+									{/* 握把。只有兩則以上才出現 —— 一則的時候它只是個拖不動的裝飾。
+									    `touch-action: none` 是必要的:少了它,手指在握把上往下滑會被
+									    瀏覽器判定成捲動清單,拖曳收不到 move 事件。 */}
+									{onReorder && notes.length > 1 && (
+										<span
+											role="button"
+											tabIndex={-1}
+											aria-label={`拖曳排序:${titleOf(n)}`}
+											title="拖曳調整順序"
+											onPointerDown={(e) => startDrag(e, n.slot)}
+											onPointerMove={moveDrag}
+											onPointerUp={endDrag}
+											onPointerCancel={endDrag}
+											className="flex shrink-0 cursor-grab touch-none items-center pl-2 text-ink-300 hover:text-ink-500 active:cursor-grabbing dark:text-ink-600 dark:hover:text-ink-400"
+										>
+											<GripVertical size={14} />
+										</span>
+									)}
 								<button
 									type="button"
 									role="menuitem"

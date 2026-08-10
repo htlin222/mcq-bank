@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../types';
 import { loadVocab, computeNoteSuggestions, loadSuggestions } from '../lib/note-links';
-import { MAX_NOTES_PER_QUESTION, parseSlot } from '../lib/notes';
+import { MAX_NOTES_PER_QUESTION, parseSlot, resolveNoteOrder } from '../lib/notes';
 
 export const notesRoutes = new Hono<AppContext>();
 
@@ -110,6 +110,41 @@ notesRoutes.delete('/:id/note', async (c) => {
   return c.json({ ok: true, slot, remaining: left?.n ?? 0 });
 });
 
+// 自訂排序(#140)。body: { slots: number[] },由前到後。
+//
+// **整批寫,而且必須是現有 slot 的排列** —— 少一個、多一個、重複、夾帶別題的
+// 號碼,一律拒絕(見 resolveNoteOrder)。放行部分正確的請求會寫出一份「有些排過、
+// 有些沒有」的順序,而那在畫面上只是「排錯了」,使用者不會知道是請求壞掉。
+//
+// 不動 slot:它是 PK 的一部分,而 highlights 的 store_key、挖空快取、關聯建議
+// 全都以它定位(見 migration 0041 的說明)。
+notesRoutes.put('/:id/notes/order', async (c) => {
+  const id = c.req.param('id');
+  const email = c.var.email;
+  const body = await c.req.json<{ slots?: unknown }>().catch(() => ({}) as { slots?: unknown });
+
+  const rows = await c.env.DB
+    .prepare('SELECT slot FROM personal_notes WHERE user_email = ? AND question_id = ?')
+    .bind(email, id)
+    .all<{ slot: number }>();
+  const existing = (rows.results ?? []).map((r) => r.slot);
+  if (!existing.length) return c.json({ error: 'no notes', id }, 404);
+
+  const picked = resolveNoteOrder(existing, body.slots);
+  if (!picked.ok) return c.json({ error: picked.error, slots: existing }, picked.status);
+
+  // 一次 batch —— 分開送的話,中途失敗會留下一半新一半舊的順序。
+  await c.env.DB.batch(
+    picked.slots.map((slot, i) =>
+      c.env.DB
+        .prepare('UPDATE personal_notes SET sort_order = ? WHERE user_email = ? AND question_id = ? AND slot = ?')
+        .bind(i, email, id, slot),
+    ),
+  );
+
+  return c.json({ ok: true, slots: picked.slots });
+});
+
 // 關聯連結 建議 for this user's note on :id. Cached in note_link_suggestions;
 // if the note is dirty (edited since last compute) we recompute on the spot —
 // single note, deterministic SQL, zero Workers AI neurons — so suggestions feel
@@ -121,7 +156,7 @@ notesRoutes.get('/:id/note/links', async (c) => {
   // 建議是「這一題的全部筆記」合起來算的,不是逐則 —— 逐則會讓同一題的
   // 幾則筆記互相推薦對方,而它們本來就在同一頁上。
   const { results: noteRows } = await c.env.DB
-    .prepare('SELECT content_json, needs_relink FROM personal_notes WHERE user_email = ? AND question_id = ? ORDER BY slot')
+    .prepare('SELECT content_json, needs_relink FROM personal_notes WHERE user_email = ? AND question_id = ? ORDER BY sort_order, slot')
     .bind(email, id)
     .all<{ content_json: string; needs_relink: number }>();
   if (!noteRows?.length) return c.json({ links: [] });
