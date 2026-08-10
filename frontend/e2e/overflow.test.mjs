@@ -122,3 +122,63 @@ for (const width of WIDTHS) {
     }
   });
 }
+
+// ── 窄螢幕只留血滴,不顯示品牌字(#125) ──────────────────────────────────
+//
+// 這條跟上面的水平捲動是同一個問題的兩端:品牌是 header 上唯一可以讓步的東西,
+// 窄螢幕直接把字收掉,留下的血滴是固定 20px。
+//
+// 兩個空掃防線:先斷言寬螢幕**看得到**字(否則「窄螢幕看不到」可能是選擇器
+// 壞了),再斷言窄螢幕仍然找得到那個連結、而且無障礙名稱還在(收掉字不等於
+// 讓螢幕閱讀器讀不到品牌)。
+test('品牌:<sm 只留血滴,≥sm 才出現字', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const probe = `
+    (() => {
+      const link = document.querySelector('header a[href="/"]');
+      if (!link) return { found: false };
+      const svg = link.querySelector('svg');
+      const span = link.querySelector('span');
+      return {
+        found: true,
+        label: link.getAttribute('aria-label'),
+        svgVisible: !!(svg && svg.getClientRects().length),
+        textVisible: !!(span && span.getClientRects().length),
+        text: span ? span.textContent.trim() : null,
+      };
+    })()
+  `;
+
+  for (const [width, wantText] of [
+    [390, false],
+    [639, false],
+    [640, true],
+    [1280, true],
+  ]) {
+    const ctx = await browser.newContext({ viewport: { width, height: 900 } });
+    await ctx.addInitScript((k) => localStorage.setItem(k, 'light'), THEME_KEY);
+    const page = await ctx.newPage();
+    await ctx.route('**/*', (r) =>
+      r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+    );
+    try {
+      await page.goto(server.origin + '/', {
+        waitUntil: 'domcontentloaded',
+        timeout: 30_000,
+      });
+      await page.waitForTimeout(400);
+      const r = await page.evaluate(probe);
+      assert.ok(r.found, `${width}px 找不到 header 裡指向 / 的品牌連結`);
+      assert.ok(r.svgVisible, `${width}px 血滴不見了`);
+      assert.equal(r.textVisible, wantText, `${width}px 品牌字的顯示與預期不符`);
+      // 字收起來時無障礙名稱要留著。
+      assert.ok(r.label && r.label.length > 0, `${width}px 品牌連結沒有 aria-label`);
+    } finally {
+      await ctx.close();
+    }
+  }
+});
