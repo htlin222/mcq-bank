@@ -999,6 +999,48 @@ The UI aesthetic is **scholarly/editorial**, not generic SaaS. Specifically:
 
 When extending the UI, preserve this voice. It's a serious study tool — looks should match.
 
+### 捲動時收起頂端/底部列: `--header-h` 從此有兩個角色
+
+`.chrome-hidden` 掛在 `<html>` 上,判定在 `lib/autoHideChrome.ts`(純函式,
+**不 import 任何東西**,所以在 `node --test` 底下載得起來),接線在
+`hooks/useAutoHideChrome.ts`,位移全部在 `styles.css`。用 class 而不是 React
+state:要動的東西散在三個檔案,而捲動事件是連續的 —— 放進 state 等於每一幀
+重新 render 整棵樹(含 TipTap)。
+
+**最容易弄錯的是 `--header-h` 現在有兩個角色,而收合時它們的答案相反:**
+
+| 角色 | 例子 | 收起時 |
+| --- | --- | --- |
+| 替 fixed header **佔位** | `<main>` 的 `pt` | **不動**(`--header-h`) |
+| **停靠**在 header 底下 | `.substick`、離線橫幅、`Question.tsx` 兩條分頁列 | 跟著走(`--chrome-top`) |
+
+`<main>` 的 `pt` 一起變的話,收合的那 0.22 秒整份內容會跟著位移 —— 比省下來的
+113px 糟得多,而且每次捲動都發生。有一條靜態測試釘著它不准吃 `--chrome-top`。
+
+- **`black-translucent` 讓這件事多一個零件。** header 收起來之後,狀態列那一塊
+  是頁面的,內容會直接從動態島底下穿過去。所以留了 `.status-scrim` —— 一個
+  `height: env(safe-area-inset-top)` 的 fixed 底色,header 在時被蓋住,收起時遞補。
+  **又是一條在一般瀏覽器裡看不出來的規則**(inset 是 0,它高度也是 0),驗證只能
+  靠注入 inset 後看畫面,或靜態掃「兩半都在」。
+- **底端橡皮筋的 `lastY` 要夾回 `maxY`,不能記成過捲後的值。** 這是單元測試抓到的:
+  擋住過捲的那幾格、卻放行「回到範圍內」的那一格,等於沒擋 —— iOS 捲到底再拉一下,
+  彈回來那段是負 delta,兩條列就會在使用者只是撞到底時冒出來。頂端不必另外處理,
+  `revealAbove`(64px)已經涵蓋。
+- **掛載時要以當下的 `scrollY` 起算。** 從捲到一半的位置進頁面(換路由、返回上一頁),
+  以 0 起算的第一次量測 delta 會是整個 `scrollY` —— 一載入就自己收起來。
+- **換方向時累積要歸零。** 沿用舊累積的話,往下捲 400px 之後得往回捲 400px 才有反應,
+  手感是「怎麼拉都拉不回來」。
+- **opt-out 的判準是「這一頁有沒有東西消失了會出事」,不是「這一頁長不長」**
+  (`chromeAutoHideAllowed`):`/exam*` 有計時與交卷;`/chat`、`/lectures/:slug`、
+  `/play` 的版面是 `100dvh - var(--header-h)` 的自有捲動容器。**離開 opt-out 路由時
+  要主動清 class**,否則新頁面會頂著一條收起來的 header 而且捲到頂也回不來。
+- **只在 `<md`**,CSS 與掛鉤各擋一次(CSS 那層保證「就算 class 掛上去也不會有事」)。
+
+驗證分兩層:`lib/autoHideChrome.test.ts` 是純函式(方向/閾值/橡皮筋/起算點),
+`e2e/auto-hide-chrome.test.mjs` 驗接線(class 有沒有掛上、CSS 有沒有真的位移、
+內層 sticky 有沒有跟著走、`<main>` 留白有沒有保持不動)。**每一條 e2e 都先斷言
+「東西找得到」再斷言行為** —— 停用功能後確認過 6 條裡有 4 條會紅。
+
 ### 導覽階梯:項目要**晚**一個斷點才出現,以及那顆強制手機版面的 FAB
 
 頂端導覽用「尾端項目摺進 `更多` 下拉」的作法,但舊版每一階都比塞得下的寬度**早**

@@ -8,6 +8,8 @@ import {
 	useLocation,
 	Navigate,
 } from "react-router-dom";
+import { useAutoHideChrome } from "./hooks/useAutoHideChrome.ts";
+import { chromeAutoHideAllowed } from "./lib/autoHideChrome.ts";
 import type { LucideIcon } from "lucide-react";
 import {
 	Home as HomeIcon,
@@ -75,6 +77,11 @@ const FreeNote = lazy(() => import("./routes/FreeNote"));
 export default function App() {
 	const { me, loading } = useMe();
 	const navigate = useNavigate();
+	const { pathname } = useLocation();
+
+	// 捲動時收起頂端/底部列(#136)。opt-out 的判準在 lib/autoHideChrome.ts ——
+	// 掛鉤本身還會再擋 md 以上與 prefers-reduced-motion。
+	useAutoHideChrome(chromeAutoHideAllowed(pathname));
 
 	// Intercept clicks on @-question-ref links inside TipTap content so they
 	// route via react-router instead of triggering a full page reload.
@@ -128,6 +135,12 @@ export default function App() {
 		<AnnotationRegistryProvider>
 		<div className="min-h-screen bg-ink-50 dark:bg-ink-900 text-ink-800 dark:text-ink-200 flex flex-col">
 			<LastPathTracker />
+			{/* header 收起來時,狀態列後方唯一還在的底色(見 styles.css)。
+			    非 standalone 時 env(safe-area-inset-top) 是 0,它高度就是 0。 */}
+			<div
+				className="status-scrim bg-white dark:bg-ink-800"
+				aria-hidden="true"
+			/>
 			<ChatToaster />
 			<OfflineBanner />
 			{/* Top bar */}
@@ -138,7 +151,7 @@ export default function App() {
 			    此時它跟一般元素沒有兩樣 —— iOS 橡皮筋回彈把整份文件往下平移,它
 			    就跟著走。底部導覽一直是 fixed 所以一直不會飄,差別只在這裡。
 			    脫離文件流之後空間由 <main> 的 pt-[var(--header-h)] 留(見 styles.css)。 */}
-			<header className="safe-top fixed top-0 left-0 right-0 z-30 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
+			<header className="app-chrome app-chrome-top safe-top fixed top-0 left-0 right-0 z-30 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
 					{/* 品牌是這一列唯一可以讓步的東西,所以由它吸收壓縮(`min-w-0` +
 					    `truncate`),其餘兩塊 `shrink-0`。這條是結構性保證:不管品牌
@@ -295,7 +308,7 @@ export default function App() {
 			    塞不下(見 header 的說明),由它接手導覽。斷點要跟 styles.css 的
 			    `--bottom-nav-h` 一起改,否則 <main> 的下方留白會跟這條列對不上 ——
 			    差的那一塊剛好會蓋住頁尾。 */}
-			<nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-ink-800 border-t border-ink-200 dark:border-ink-700 grid grid-cols-5 z-20 safe-bottom">
+			<nav className="app-chrome app-chrome-bottom md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-ink-800 border-t border-ink-200 dark:border-ink-700 grid grid-cols-5 z-20 safe-bottom">
 				<BottomItem to="/" Icon={HomeIcon} label="首頁" end />
 				<BottomItem to="/review" Icon={BookOpen} label="複習" />
 				<BottomItem to="/exam" Icon={PenLine} label="全真" />
@@ -317,7 +330,7 @@ function OfflineBanner() {
 	return (
 		<div
 			role="status"
-			className="sticky top-[var(--header-h)] z-20 border-l-4 border-accent bg-ink-100 dark:bg-ink-800 px-4 py-1.5 text-xs text-ink-700 dark:text-ink-200"
+			className="chrome-follow sticky top-[var(--chrome-top)] z-20 border-l-4 border-accent bg-ink-100 dark:bg-ink-800 px-4 py-1.5 text-xs text-ink-700 dark:text-ink-200"
 		>
 			離線中 · 可閱讀已看過的內容,編輯功能暫停
 		</div>

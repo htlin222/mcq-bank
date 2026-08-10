@@ -40,7 +40,8 @@ test('.safe-top 存在,而且真的用了 safe-area-inset-top', () => {
 });
 
 test('header 掛著 .safe-top —— 這是 black-translucent 的另一半', () => {
-  assert.match(APP_TSX, /<header className="safe-top /);
+  // class 前面還有收合用的 app-chrome*(#136),所以不從字串開頭比對。
+  assert.match(APP_TSX, /<header className="[^"]*\bsafe-top\b/);
 });
 
 test('底部安全區沒有被順手改掉', () => {
@@ -134,6 +135,53 @@ test('--header-h 與 --bottom-nav-h 都含安全區 —— 它們是同一組保
 test('header 是 fixed,而且 <main> 上下都留了空間', () => {
   // fixed 才不會跟著 iOS 橡皮筋走(#132);脫離文件流之後上下留白都得自己補,
   // 少一邊內容就被那一條蓋住。
-  assert.match(APP_TSX, /<header className="safe-top fixed top-0 /);
+  assert.match(APP_TSX, /<header className="[^"]*\bfixed top-0 /);
   assert.match(APP_TSX, /<main className="[^"]*pt-\[var\(--header-h\)\][^"]*pb-\[var\(--bottom-nav-h\)\]/);
+});
+
+// ── 捲動時自動收起(#136)────────────────────────────────────────────
+//
+// 同樣是「兩半都在才有效」的東西,而且同樣在一般瀏覽器裡看不出破綻。
+
+test('<main> 的留白吃 --header-h,不是 --chrome-top', () => {
+  // 這條是承重的。跟著 --chrome-top 走的話,收合的那 0.22 秒整份內容會位移 ——
+  // 比那 113px 的空間糟得多,而且是每一次捲動都發生。
+  const main = APP_TSX.match(/<main className="([^"]*)"/);
+  assert.ok(main, '找不到 <main>');
+  assert.ok(
+    main[1].includes('pt-[var(--header-h)]'),
+    `<main> 的 pt 必須是 --header-h:${main[1]}`,
+  );
+  assert.ok(
+    !main[1].includes('--chrome-top'),
+    `<main> 不該吃 --chrome-top:${main[1]}`,
+  );
+});
+
+test('header / 底部導覽都掛著收合用的 class', () => {
+  assert.match(APP_TSX, /<header className="[^"]*\bapp-chrome-top\b/);
+  assert.match(APP_TSX, /<nav className="[^"]*\bapp-chrome-bottom\b/);
+});
+
+test('狀態列底色存在,而且高度是頂端安全區', () => {
+  // header 收起來時它是唯一還在的東西。少了它,內容會直接從動態島底下穿過去 ——
+  // 而這在非 standalone 的瀏覽器裡完全看不出來(inset 是 0,它高度也是 0)。
+  assert.match(APP_TSX, /className="status-scrim/);
+  assert.match(
+    STYLES,
+    /\.status-scrim\s*\{[^}]*height:\s*env\(safe-area-inset-top\)/,
+  );
+});
+
+test('--chrome-top 預設等於 --header-h —— 沒收起來時兩者不能有差', () => {
+  assert.match(STYLES, /--chrome-top:\s*var\(--header-h\)/);
+  // 收起時停在安全區下緣,不是 0:停 0 的話內容會跑到時鐘後面。
+  assert.match(STYLES, /chrome-hidden[\s\S]{0,120}--chrome-top:\s*env\(safe-area-inset-top\)/);
+});
+
+test('收合只在 <md 生效', () => {
+  // md 以上右欄是自己的捲動容器,window 捲動跟使用者在捲的不是同一個東西。
+  const block = STYLES.slice(STYLES.indexOf('--chrome-top: var(--header-h)'));
+  const media = block.slice(0, block.indexOf(':root.chrome-hidden'));
+  assert.match(media, /@media \(max-width: 767px\)/);
 });
