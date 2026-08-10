@@ -12,7 +12,7 @@ import { api } from '../lib/api';
 import { invalidateTgStatus, tgStatus, type TgStatus } from '../lib/telegramApi';
 import { signOut, reloadFresh } from '../lib/signOut';
 
-// 側欄導覽的項目。id 對應各卡片外層的 id + scroll-mt-20;順序就是頁面順序,
+// 側欄導覽的項目。id 對應各卡片外層的 id + scroll-mt-[calc(var(--header-h)+1.5rem)];順序就是頁面順序,
 // 兩邊要一起改。AiKeyCard 的 id 在它自己的檔案裡。
 const SECTIONS: TocItem[] = [
   { id: 'profile-basic', label: '基本資料' },
@@ -75,7 +75,7 @@ export function Profile() {
         <ProfileToc items={SECTIONS} />
 
         <div className="min-w-0 flex-1">
-          <div id="profile-basic" className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper">
+          <div id="profile-basic" className="scroll-mt-[calc(var(--header-h)+1.5rem)] bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper">
             <div className="flex items-center gap-5 mb-8">
               <Avatar
                 email={me.email}
@@ -164,7 +164,7 @@ function AccountCard({ email }: { email: string }) {
   const [busy, setBusy] = useState<null | 'cache' | 'signout'>(null);
 
   return (
-    <div id="profile-account" className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
+    <div id="profile-account" className="scroll-mt-[calc(var(--header-h)+1.5rem)] bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
       <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">帳號</h2>
       <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-5">
         目前登入身分 <span className="font-mono text-[0.9em]">{email}</span>。
@@ -258,7 +258,7 @@ function TelegramCard() {
   }
 
   return (
-    <div id="profile-telegram" className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
+    <div id="profile-telegram" className="scroll-mt-[calc(var(--header-h)+1.5rem)] bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
       <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">Telegram 推播</h2>
       <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-5">
         綁定 Telegram 後,機器人會在你設定的時段每天推一題(優先複習到期題),
@@ -380,7 +380,7 @@ function McqKeyCard({ me }: { me: Me }) {
   }
 
   return (
-    <div id="profile-mcq" className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
+    <div id="profile-mcq" className="scroll-mt-[calc(var(--header-h)+1.5rem)] bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6">
       <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">MCQ 小測驗金鑰</h2>
       <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-1">
         下載你的專屬 <code className="font-mono text-[0.85em]">.skill</code>,上傳到 Claude 或 ChatGPT 後即可用

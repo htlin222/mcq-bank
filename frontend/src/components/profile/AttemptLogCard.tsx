@@ -110,7 +110,7 @@ export function AttemptLogCard() {
   return (
     <div
       id="profile-attempts"
-      className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6"
+      className="scroll-mt-[calc(var(--header-h)+1.5rem)] bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6"
     >
       <h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">答題狀態分析</h2>
       <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-5">

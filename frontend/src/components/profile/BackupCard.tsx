@@ -83,7 +83,7 @@ export function BackupCard() {
 	return (
 		<section
 			id="profile-backup"
-			className="scroll-mt-20 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6"
+			className="scroll-mt-[calc(var(--header-h)+1.5rem)] bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper mt-6"
 		>
 			<h2 className="font-serif text-2xl text-ink-900 dark:text-ink-100 mb-2">
 				備份我的紀錄

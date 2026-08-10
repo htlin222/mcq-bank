@@ -337,10 +337,11 @@
    measured tab-strip height and `--nav-h` the 年度/上下題 列 above it (both set
    inline from Question.tsx). Below md the page scrolls under the h-14 app
    header plus those two sticky rows, so the offset stacks all three; at md the
-   right column is its own scroll container and the strip pins at its top. */
+   right column is its own scroll container and the strip pins at its top.
+   `--header-h` 不能換回 3.5rem —— header 帶著頂端安全區,見上面那條註解。 */
 .substick {
 	position: sticky;
-	top: calc(3.5rem + var(--nav-h, 0px) + var(--strip-h, 0px));
+	top: calc(var(--header-h) + var(--nav-h, 0px) + var(--strip-h, 0px));
 	z-index: 9;
 }
 @media (min-width: 768px) {
@@ -372,6 +373,24 @@
    延伸上去蓋住狀態列後方,margin 會露出頁面背景。 */
 .safe-top {
 	padding-top: env(safe-area-inset-top);
+}
+
+/* Height reserved for the fixed app header (h-14 + 頂端安全區).
+   header 是 `fixed` 而不是 `sticky`(#132 的追問):sticky 的定義是「在自己的
+   正常位置與 top 之間切換」,而捲到頂端時它就**在**正常位置 —— 此時它跟一般
+   元素沒有兩樣,iOS 橡皮筋回彈把整份文件往下平移,它就跟著走。底部導覽一直
+   都是 fixed,所以一直都不會飄,兩者的差別就在這裡。
+
+   代價是 header 脫離文件流,空間要自己留 —— `<main>` 的 `pt` 與這個變數,
+   跟底部那組 `pb` / `--bottom-nav-h` 完全對稱。
+
+   ⚠️ **凡是要「貼在 header 底下」的東西都必須吃這個變數,不要寫死 3.5rem。**
+   #126 給 header 加了 `.safe-top` 之後它就比 3.5rem 高一個 inset,而當時
+   `.substick`、`sticky top-14` 那幾處沒有跟著改 —— 在一般瀏覽器裡 inset 是 0
+   完全看不出來,但加到主畫面、有瀏海的 iPhone 上,那些內層 sticky 會各自往上
+   鑽進 header 底下一個 inset 的高度。 */
+:root {
+	--header-h: calc(3.5rem + env(safe-area-inset-top));
 }
 
 /* Height reserved for the fixed mobile bottom nav (item h-14 + .safe-bottom).

@@ -134,7 +134,11 @@ export default function App() {
 			{/* safe-top:狀態列在 black-translucent 底下是透明的,header 得自己把
 			    瀏海那一塊的底色補上(見 styles.css)。非 standalone 時 inset 是 0,
 			    這個 class 什麼都不做。 */}
-			<header className="safe-top sticky top-0 z-30 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
+			{/* fixed 而不是 sticky(#132):sticky 捲到頂端時就**在**自己的正常位置,
+			    此時它跟一般元素沒有兩樣 —— iOS 橡皮筋回彈把整份文件往下平移,它
+			    就跟著走。底部導覽一直是 fixed 所以一直不會飄,差別只在這裡。
+			    脫離文件流之後空間由 <main> 的 pt-[var(--header-h)] 留(見 styles.css)。 */}
+			<header className="safe-top fixed top-0 left-0 right-0 z-30 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
 					{/* 品牌是這一列唯一可以讓步的東西,所以由它吸收壓縮(`min-w-0` +
 					    `truncate`),其餘兩塊 `shrink-0`。這條是結構性保證:不管品牌
@@ -214,7 +218,9 @@ export default function App() {
 			</header>
 
 			{/* Main */}
-			<main className="flex-1 pb-[var(--bottom-nav-h)]">
+			{/* 上下兩條都是 fixed,所以上下留白都得自己補 —— 這兩個變數是同一組
+			    保證的兩端,改一邊沒改另一邊,內容就會被那一條蓋住。 */}
+			<main className="flex-1 pt-[var(--header-h)] pb-[var(--bottom-nav-h)]">
 				<Routes>
 					<Route path="/" element={<Home />} />
 					<Route path="/review" element={<ReviewIndex />} />
@@ -311,7 +317,7 @@ function OfflineBanner() {
 	return (
 		<div
 			role="status"
-			className="sticky top-14 z-20 border-l-4 border-accent bg-ink-100 dark:bg-ink-800 px-4 py-1.5 text-xs text-ink-700 dark:text-ink-200"
+			className="sticky top-[var(--header-h)] z-20 border-l-4 border-accent bg-ink-100 dark:bg-ink-800 px-4 py-1.5 text-xs text-ink-700 dark:text-ink-200"
 		>
 			離線中 · 可閱讀已看過的內容,編輯功能暫停
 		</div>

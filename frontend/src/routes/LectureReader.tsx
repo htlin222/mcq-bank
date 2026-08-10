@@ -499,7 +499,7 @@ export default function LectureReader() {
 				// 在 Tailwind 是 `100vh`,改成 `h-dvh`。
 				(fullscreen
 					? "h-dvh"
-					: "h-[calc(100dvh-3.5rem)] md:h-[calc(100dvh-4rem)]")
+					: "h-[calc(100dvh-var(--header-h))] md:h-[calc(100dvh-var(--header-h)-0.5rem)]")
 			}
 		>
 			{/* Title bar — hidden in fullscreen (the toolbar carries the exit btn) */}
