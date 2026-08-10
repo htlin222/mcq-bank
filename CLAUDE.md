@@ -999,6 +999,23 @@ The UI aesthetic is **scholarly/editorial**, not generic SaaS. Specifically:
 
 When extending the UI, preserve this voice. It's a serious study tool — looks should match.
 
+**「貼在 header 底下」的東西吃 `--chrome-top`,包含不在 `<main>` 版面裡的那些。**
+`/exam/:sid` 的計時列是 `sticky top-0` —— 那條規則本身沒有錯,同一份程式碼裡另外
+兩處(講義閱讀器工具列、全螢幕筆記卡)都是對的:**它們在自己的捲動容器裡,而容器
+頂端本來就在 header 底下**。錯的只有「跟著 window 捲」的那一種,而 header 是
+`fixed top-0 z-30` 且不透明,於是它黏住的位置正好在 header 底下(#139)。量出來:
+桌機捲動後整條看不見,手機只露出下緣 20px —— 考試中往下捲就看不到剩餘時間與交卷,
+捲回頂端又出現,像隨機故障。
+
+**靜態掃描抓不到這個形狀**(`sticky top-0` 三處都一樣,差別在祖先是不是捲動容器),
+所以守門在 `frontend/e2e/exam-timer-bar.test.mjs`,判準是「計時列中央那一點,
+`elementFromPoint` 回來的東西在不在 app header 裡」。
+
+⚠️ 那支測試不能只靠 fixture:`running_since` 是絕對時間戳,**靜態 fixture 給什麼
+都會過期** —— 給過去的時間,client 算出已超過 100 分鐘上限,一進頁面就自動交卷;
+給 `null`(暫停)則整份題目不渲染,頁面只剩「已暫停作答」、捲不動 128px。所以
+fixture 只提供形狀,「現在」由測試在請求當下用 `ctx.route` 注入。
+
 ### 捲動時收起頂端/底部列: `--header-h` 從此有兩個角色
 
 `.chrome-hidden` 掛在 `<html>` 上,判定在 `lib/autoHideChrome.ts`(純函式,

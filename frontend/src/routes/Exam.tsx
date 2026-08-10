@@ -561,8 +561,16 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="min-h-screen bg-ink-50 dark:bg-ink-900 pb-32">
-      {/* Sticky header */}
-      <header className="sticky top-0 z-10 bg-white dark:bg-ink-800 border-b border-ink-200 dark:border-ink-700 px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+      {/* 計時列。**停靠點是 `--chrome-top`,不是 0**(#139)——
+          這一頁在 `<main>` 裡跟著 window 捲,而 app header 是 `fixed top-0` 且
+          不透明,所以 `sticky top-0` 會讓它停在 header **底下**(z-10 vs z-30)。
+          量出來:桌機捲動後整條看不見,手機只露出下緣 20px —— 也就是考試中往下捲
+          就看不到剩餘時間與交卷按鈕,而捲回頂端又會出現,像是隨機故障。
+
+          吃 `--chrome-top` 而不是 `--header-h`:那是「貼在 header 底下」這一類的
+          統一契約(見 styles.css)。`/exam*` 目前不自動收合,兩者等值;哪天改了
+          opt-out 清單,這裡會自己跟上。 */}
+      <header className="chrome-follow sticky top-[var(--chrome-top)] z-10 bg-white dark:bg-ink-800 border-b border-ink-200 dark:border-ink-700 px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div className="text-sm flex items-center gap-3 flex-wrap">
           {isCustom && (
             <>
