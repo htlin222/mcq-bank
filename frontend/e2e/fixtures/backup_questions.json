@@ -1,0 +1,31 @@
+{
+  "rows": [
+    {
+      "id": "113-050",
+      "year": 113,
+      "number": 50,
+      "group": "內科",
+      "stem": "孟買血型的血清學表現?",
+      "options_json": "[{\"key\":\"A\",\"text\":\"anti-H 陽性\"}]",
+      "answer": "A",
+      "explanation_json": "{\"type\":\"doc\",\"content\":[]}",
+      "explanation_version": 2,
+      "explanation_updated_by": "someone@example.com",
+      "explanation_updated_at": 1754000000000
+    },
+    {
+      "id": "114-001",
+      "year": 114,
+      "number": 1,
+      "group": "共同",
+      "stem": "AML 分類",
+      "options_json": "[{\"key\":\"A\",\"text\":\"x\"}]",
+      "answer": "B",
+      "explanation_json": null,
+      "explanation_version": null,
+      "explanation_updated_by": null,
+      "explanation_updated_at": null
+    }
+  ],
+  "next": null
+}

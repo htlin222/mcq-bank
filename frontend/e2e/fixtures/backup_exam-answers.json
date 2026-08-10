@@ -1,0 +1,12 @@
+{
+  "rows": [
+    {
+      "session_id": "s1",
+      "question_id": "114-001",
+      "chosen": "C",
+      "is_correct": 0,
+      "answered_at": 1753905000000
+    }
+  ],
+  "next": null
+}

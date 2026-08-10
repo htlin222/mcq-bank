@@ -11,6 +11,7 @@ import { questionsRoutes } from './routes/questions';
 import { explanationsRoutes } from './routes/explanations';
 import { notesRoutes } from './routes/notes';
 import { freeNotesRoutes } from './routes/free-notes';
+import { backupRoutes } from './routes/backup';
 import { commentsRoutes } from './routes/comments';
 import { uploadRoutes } from './routes/upload';
 import { imagesRoutes } from './routes/images';
@@ -130,6 +131,8 @@ app.route('/api/folders', foldersRoutes);
 app.route('/api/bookmarks', bookmarksRoutes);
 app.route('/api/feedback', feedbackRoutes);
 app.route('/api/free-notes', freeNotesRoutes); // 其他筆記(不掛題目的私人筆記)
+// 「備份我的紀錄」的分頁資料來源。zip 在瀏覽器裡組(見 routes/backup.ts)。
+app.route('/api/backup', backupRoutes);
 app.route('/api/lectures', lectureRoutes);
 app.route('/api/textbook', textbookRoutes);
 app.route('/api/chat', chatRoutes);

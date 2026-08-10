@@ -6,6 +6,7 @@ import { useMe, type Me } from '../hooks/useMe';
 import { Avatar } from '../components/Avatar';
 import { AiKeyCard } from '../components/profile/AiKeyCard';
 import { AttemptLogCard } from '../components/profile/AttemptLogCard';
+import { BackupCard } from '../components/profile/BackupCard';
 import { ProfileToc, type TocItem } from '../components/profile/ProfileToc';
 import { api } from '../lib/api';
 import { invalidateTgStatus, tgStatus, type TgStatus } from '../lib/telegramApi';
@@ -16,6 +17,7 @@ import { signOut, reloadFresh } from '../lib/signOut';
 const SECTIONS: TocItem[] = [
   { id: 'profile-basic', label: '基本資料' },
   { id: 'profile-attempts', label: '答題狀態分析' },
+  { id: 'profile-backup', label: '備份我的紀錄' },
   { id: 'profile-telegram', label: 'Telegram 推播' },
   { id: 'profile-ai', label: 'AI 助手' },
   { id: 'profile-mcq', label: 'MCQ 金鑰' },
@@ -145,6 +147,7 @@ export function Profile() {
           </div>
 
           <AttemptLogCard />
+          <BackupCard />
           <TelegramCard />
           <AiKeyCard />
           <McqKeyCard me={me} />
