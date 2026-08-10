@@ -1895,8 +1895,22 @@ export function Question() {
 						{tab === "note" &&
 							(noteEditing ? (
 								<div className="bg-white dark:bg-ink-800 border-2 border-accent/40 rounded-lg p-4 sm:p-5 shadow-paper">
-									<div className="mb-3 text-xs text-ink-500 dark:text-ink-400">
-										✎ 個人筆記 · 僅你可見
+									<div className="mb-3 flex items-center gap-3 text-xs text-ink-500 dark:text-ink-400">
+										<span>✎ 個人筆記 · 僅你可見</span>
+										{/* 刪除只在編輯模式出現(#121)—— 唯讀時它跟「編輯」並排,而兩者的
+										    後果完全不對等,靠顏色講不夠;要刪得先按編輯。刻意**不**放進
+										    RichEditor 的 toolbarActions:那裡緊鄰「儲存」,把刪除擺過去等於
+										    用一個更糟的相鄰關係換掉舊的。確認對話框在 removeNote 裡,和切換器
+										    下拉的刪除是同一個。 */}
+										<button
+											type="button"
+											onClick={() => removeNote(activeSlot)}
+											disabled={notesBusy || noteSaving}
+											title="刪除這則筆記"
+											className="ml-auto inline-flex items-center gap-1 rounded px-2 py-1 text-ink-400 dark:text-ink-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40 dark:hover:bg-rose-900/20 dark:hover:text-rose-400"
+										>
+											<Trash2 size={13} /> 刪除這則
+										</button>
 									</div>
 									<RichEditor
 										content={noteDraft}
@@ -1924,33 +1938,46 @@ export function Question() {
 							) : noteJson ? (
 								<article
 									className={
-										"bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 p-5 sm:p-7 shadow-paper " +
+										"bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 shadow-paper " +
 										(noteFullscreen
 											? // `relative` 要一起拿掉,不能只是多加一個 `fixed`:兩者
 												// specificity 相同,勝負由 Tailwind 產出的順序決定(實測
 												// `.relative` 排在後面而贏),class 字串的先後不算數。
 												// 卡片自己捲:它是 fixed 的,頁面那條捲軸捲的是後面那些
 												// 看不見的東西,靠它捲不到筆記的結尾。
-												"fixed inset-0 z-50 overflow-y-auto rounded-none " +
+												// 上緣**不留 padding**:那一圈由 sticky 的工具列自己帶。留著的話
+												// 工具列黏住的位置會比捲動區頂端低一圈,內文就從那道縫透出來。
+												"fixed inset-0 z-50 overflow-y-auto rounded-none px-5 sm:px-7 pb-5 sm:pb-7 " +
 												// 滿版的行寬讀起來很糟(見 CLAUDE.md 的閱讀寬度)。
 												// 用 [&>*] 把每個直接子元素收在同一條欄寬裡,而不是
 												// 再包一層 div —— 包了的話工具列、內文、頁尾、關聯
 												// 建議四塊要一起搬,JSX 動的範圍大得多。
 												"[&>*]:mx-auto [&>*]:w-full [&>*]:max-w-4xl"
-											: "relative rounded-lg")
+											: "relative rounded-lg p-5 sm:p-7")
 									}
 								>
 									<div
 										className={
-											(tabsMode || noteFullscreen
-												? "mb-3"
-												: "substick -mx-5 sm:-mx-7 px-5 sm:px-7 pt-1 pb-2 bg-white dark:bg-ink-800 border-b border-ink-100 dark:border-ink-700") +
+											// 全螢幕時卡片自己是捲動容器,所以工具列黏在它的 top-0(#122)。
+											// 卡片在那個狀態下不留上緣 padding(見上面),改由這裡的 pt 帶 ——
+											// 兩者加起來,工具列的 border box 剛好貼齊捲動區頂端,結構上就
+											// 沒有縫可以讓內文透出來。用負 margin 去蓋那圈 padding 也做得到,
+											// 但實測會留下 29px 的殘縫,而且 `-mx` 會跟卡片的 `[&>*]:mx-auto`
+											// 搶同一個屬性(同 specificity,勝負只由 Tailwind 產出順序決定
+											// —— #115 那個 relative/fixed 的翻版)。
+											//
+											// 不能沿用 substick:它的 sticky 偏移量是右欄那條分頁 strip 的高度,
+											// 而全螢幕時那條 strip 不在畫面上,照用會把工具列往下推、第一個標題
+											// 被壓在它底下(#115 的截圖抓到過)。
+											(noteFullscreen
+												? "sticky top-0 z-10 pt-5 sm:pt-7 pb-2 mb-3 bg-white dark:bg-ink-800 border-b border-ink-100 dark:border-ink-700"
+												: tabsMode
+													? "mb-3"
+													: "substick -mx-5 sm:-mx-7 px-5 sm:px-7 pt-1 pb-2 bg-white dark:bg-ink-800 border-b border-ink-100 dark:border-ink-700") +
 											" flex flex-wrap items-center justify-end gap-1.5"
 										}
 										style={
-										// substick 的 sticky 偏移量是右欄那條分頁 strip 的高度。全螢幕時那條 strip
-										// 不在畫面上,照用會把工具列往下推、第一個標題被壓在它底下 —— 所以全螢幕
-										// 跟分頁版一樣走不黏的版本。
+											// --strip-h 只有 substick 那條路用得到(見上面的 className)。
 											tabsMode || noteFullscreen
 												? undefined
 												: ({ "--strip-h": `${stripH}px` } as CSSProperties)
@@ -2014,18 +2041,6 @@ export function Question() {
 											className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-accent hover:bg-accent/10"
 										>
 											<Pencil size={14} /> 編輯
-										</button>
-										{/* 刪除目前這則。平常是灰的、hover 才轉紅 —— 它和「編輯」並排,
-										    而兩者的後果完全不對等,顏色要先講清楚這件事。確認對話框在
-										    removeNote 裡,和切換器下拉的刪除是同一個。 */}
-										<button
-											type="button"
-											onClick={() => removeNote(activeSlot)}
-											disabled={notesBusy}
-											title="刪除這則筆記"
-											className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-ink-400 dark:text-ink-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40 dark:hover:bg-rose-900/20 dark:hover:text-rose-400"
-										>
-											<Trash2 size={14} /> 刪除
 										</button>
 									</div>
 									{/* 手把導覽以這個容器為範圍找標題按鈕(見 noteHeadings)。 */}

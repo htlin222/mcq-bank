@@ -157,3 +157,117 @@ for (const vp of VIEWPORTS) {
     }
   });
 }
+
+// ── 全螢幕時工具列黏在頂端(#122) ──────────────────────────────────────
+//
+// 這條要壓矮視窗才驗得到:預設高度下那則 fixture 筆記根本沒有東西可捲
+// (scrollHeight === clientHeight),斷言「捲動後位置不變」會恆真 —— 跟
+// gamepad.test.mjs 的 squash() 是同一個前提。
+test('全螢幕:工具列黏在捲動區頂端,而且上方沒有縫', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 300 } });
+  const page = await ctx.newPage();
+  await ctx.route('**/*', (r) =>
+    r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+  );
+
+  const bar = `
+    (() => {
+      const a = document.querySelector('article');
+      const tb = [...a.children].find((c) => /自動挖空/.test(c.textContent || ''));
+      const r = tb.getBoundingClientRect();
+      return {
+        scrollTop: Math.round(a.scrollTop),
+        scrollable: a.scrollHeight - a.clientHeight,
+        top: Math.round(r.top),
+        position: getComputedStyle(tb).position,
+      };
+    })()
+  `;
+
+  try {
+    await page.goto(server.origin + '/q/113-050', {
+      waitUntil: 'domcontentloaded',
+      timeout: 30_000,
+    });
+    await page.waitForTimeout(600);
+    await openNoteTab(page, 1280);
+    await page.locator('button', { hasText: '全螢幕' }).first().click();
+    await page.waitForTimeout(250);
+    // 展開所有段落,製造可捲的內容。
+    for (const h of await page.locator('[data-note-heading]').all()) {
+      await h.click().catch(() => {});
+    }
+    await page.waitForTimeout(300);
+
+    const top = await page.evaluate(bar);
+    // 對照組:沒有東西可捲的話,下面那條斷言恆真。
+    assert.ok(top.scrollable > 0, `卡片沒有可捲的內容(scrollable=${top.scrollable}),量不到黏不黏`);
+    assert.equal(top.position, 'sticky');
+    // 卡片上緣不留 padding,所以工具列的 border box 貼齊捲動區頂端 ——
+    // 只差卡片自己那 1px 邊框。留了 padding 的話這裡會是 20–29px,而那道縫
+    // 正是內文會透出來的地方。
+    assert.ok(top.top <= 2, `工具列上方有 ${top.top}px 的縫,內文會從那裡透出來`);
+
+    await page.evaluate(() => {
+      document.querySelector('article').scrollTop = 9999;
+    });
+    await page.waitForTimeout(250);
+
+    const bottom = await page.evaluate(bar);
+    assert.ok(bottom.scrollTop > 0, '沒有真的捲動');
+    assert.equal(bottom.top, top.top, '捲動後工具列跟著跑掉了 —— 沒有黏住');
+  } finally {
+    await ctx.close();
+  }
+});
+
+// ── 刪除只在編輯模式出現(#121) ────────────────────────────────────────
+test('個人筆記:唯讀工具列沒有刪除,按下編輯才有', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await ctx.route('**/*', (r) =>
+    r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+  );
+
+  const countDelete = `
+    [...document.querySelectorAll('button')].filter(
+      (b) => /刪除/.test(b.textContent || '') && b.getClientRects().length,
+    ).length
+  `;
+
+  try {
+    await page.goto(server.origin + '/q/113-050', {
+      waitUntil: 'domcontentloaded',
+      timeout: 30_000,
+    });
+    await page.waitForTimeout(600);
+    await openNoteTab(page, 1280);
+
+    // 空掃防線:先確認真的在筆記面板上(有「編輯」可按),否則「找不到刪除」
+    // 只是因為整個面板沒渲染。
+    const edit = page.locator('button', { hasText: '編輯' }).first();
+    assert.equal(await edit.count(), 1, '找不到「編輯」—— 沒有停在筆記面板上');
+
+    assert.equal(await page.evaluate(countDelete), 0, '唯讀狀態不該有刪除按鈕');
+
+    await edit.click();
+    await page.waitForTimeout(400);
+
+    assert.ok(
+      (await page.evaluate(countDelete)) >= 1,
+      '進入編輯模式後找不到刪除按鈕',
+    );
+  } finally {
+    await ctx.close();
+  }
+});
