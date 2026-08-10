@@ -1,0 +1,17 @@
+{
+  "rows": [
+    {
+      "store_key": "anno:113-050",
+      "content_hash": "abc",
+      "doc_json": "{\"marks\":[]}",
+      "updated_at": 1754000000000
+    },
+    {
+      "store_key": "anno:free:n1",
+      "content_hash": "def",
+      "doc_json": "{\"marks\":[]}",
+      "updated_at": 1754000000000
+    }
+  ],
+  "next": null
+}

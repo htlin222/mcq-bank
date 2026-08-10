@@ -1,0 +1,12 @@
+{
+  "rows": [
+    {
+      "question_id": "113-050",
+      "slot": 0,
+      "content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"孟買血型缺 H 抗原\"}]}]}",
+      "created_at": 1753000000000,
+      "updated_at": 1754000000000
+    }
+  ],
+  "next": null
+}
