@@ -7,6 +7,8 @@ import { Avatar } from '../components/Avatar';
 import { AiKeyCard } from '../components/profile/AiKeyCard';
 import { AttemptLogCard } from '../components/profile/AttemptLogCard';
 import { BackupCard } from '../components/profile/BackupCard';
+import { DisplayCard } from '../components/profile/DisplayCard';
+import { viewportModeSupported } from '../lib/viewportMode';
 import { ProfileToc, type TocItem } from '../components/profile/ProfileToc';
 import { api } from '../lib/api';
 import { invalidateTgStatus, tgStatus, type TgStatus } from '../lib/telegramApi';
@@ -16,6 +18,10 @@ import { signOut, reloadFresh } from '../lib/signOut';
 // 兩邊要一起改。AiKeyCard 的 id 在它自己的檔案裡。
 const SECTIONS: TocItem[] = [
   { id: 'profile-basic', label: '基本資料' },
+  // 「顯示」只在 (pointer: coarse) 的裝置有卡片(見 DisplayCard)。桌機要把它
+  // 從目錄濾掉 —— ProfileToc 對不存在的錨點是「點了沒反應」而不是壞掉,那比
+  // 沒有這一項更糟。
+  { id: 'profile-display', label: '顯示' },
   { id: 'profile-attempts', label: '答題狀態分析' },
   { id: 'profile-backup', label: '備份我的紀錄' },
   { id: 'profile-telegram', label: 'Telegram 推播' },
@@ -26,6 +32,12 @@ const SECTIONS: TocItem[] = [
 
 export function Profile() {
   const { me, loading, update } = useMe();
+  // 一次算完:`(pointer: coarse)` 在一次工作階段裡不會變。
+  const [sections] = useState<TocItem[]>(() =>
+    viewportModeSupported()
+      ? SECTIONS
+      : SECTIONS.filter((s) => s.id !== 'profile-display'),
+  );
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [saving, setSaving] = useState(false);
@@ -72,7 +84,7 @@ export function Profile() {
       <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-8">個人資料</h1>
 
       <div className="lg:flex lg:items-start lg:gap-10">
-        <ProfileToc items={SECTIONS} />
+        <ProfileToc items={sections} />
 
         <div className="min-w-0 flex-1">
           <div id="profile-basic" className="scroll-mt-[calc(var(--header-h)+1.5rem)] bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 sm:p-8 shadow-paper">
@@ -146,6 +158,10 @@ export function Profile() {
             </div>
           </div>
 
+          {/* 只在 (pointer: coarse) 的裝置出現 —— 桌機瀏覽器整個忽略 viewport
+              meta,一個按了沒反應的開關比沒有更糟(#135)。目錄那一項由上面的
+              `sections` 用同一個判準濾掉,兩邊要一起改。 */}
+          <DisplayCard />
           <AttemptLogCard />
           <BackupCard />
           <TelegramCard />

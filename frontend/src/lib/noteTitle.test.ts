@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { noteTitle, noteTitleFromJson } from './noteTitle.ts';
+import { NOTE_TITLE_MAX, NOTE_TITLE_NARROW, noteTitle, noteTitleFromJson } from './noteTitle.ts';
 
 const doc = (...content: unknown[]) => ({ type: 'doc', content });
 const para = (text: string) => ({ type: 'paragraph', content: [{ type: 'text', text }] });
@@ -56,4 +56,34 @@ test('壞掉的 JSON 不丟例外', () => {
   assert.equal(noteTitleFromJson('{{{'), '未命名筆記');
   assert.equal(noteTitleFromJson(undefined), '未命名筆記');
   assert.equal(noteTitleFromJson(JSON.stringify(doc(para('好的 JSON')))), '好的 JSON');
+});
+
+// ── 窄螢幕的上限(#137)────────────────────────────────────────
+//
+// 回報是「選擇筆記的下拉在 mobile 會 overflow」。CSS `truncate` 其實不會讓它
+// 真的溢出容器,但 40 個中文字會把整列吃光,底下那行日期就分不出層次 ——
+// 砍一半之後兩者各自看得出來。
+
+test('maxLen 可以覆寫,超過就截斷加省略號', () => {
+  const long = '一二三四五六七八九十';
+  assert.equal(noteTitle(doc(para(long)), undefined, 5), '一二三四五…');
+});
+
+test('剛好等於上限時不加省略號 —— 邊界是「大於」才截', () => {
+  assert.equal(noteTitle(doc(para('一二三四五')), undefined, 5), '一二三四五');
+});
+
+test('NOTE_TITLE_NARROW 剛好是 NOTE_TITLE_MAX 的一半', () => {
+  // 回報要的就是「少一半」。兩個常數各自改動時這條會紅。
+  assert.equal(NOTE_TITLE_NARROW * 2, NOTE_TITLE_MAX);
+});
+
+test('noteTitleFromJson 也吃得到 maxLen —— 元件用的是這一支', () => {
+  const json = JSON.stringify(doc(para('一二三四五六七八九十')));
+  assert.equal(noteTitleFromJson(json, undefined, 4), '一二三四…');
+});
+
+test('沒給 maxLen 時維持原本的 40', () => {
+  const long = 'あ'.repeat(50);
+  assert.equal(noteTitleFromJson(JSON.stringify(doc(para(long)))).length, 41); // 40 + 省略號
 });
