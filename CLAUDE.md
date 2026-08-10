@@ -359,6 +359,19 @@ baked per-admin `.env`. Editing the skill means re-running `pnpm gen:bundles`
 部署前,要把這兩段手動補進主 checkout 的 `wrangler.toml`,否則 Worker 會因為
 找不到 `Play2048` class 而部署失敗。
 
+⚠️ **而且要補**兩個**地方 —— 主 checkout 之外還有 CI 的 `WRANGLER_TOML`
+secret。** 2026-08-10 真的漏了後者:主 checkout 補齊了 v2/v3、本機 `wrangler
+deploy` 一路正常,但 CI 那份仍停在只有 `tag = "v1"`,於是自動部署掛在
+
+```
+Cannot apply new-sqlite-class migration to class 'ChatRoom'
+that is already depended on by existing Durable Objects [code: 10074]
+```
+
+—— 錯誤訊息指著 `ChatRoom`(v1),而真正的問題是 v2/v3 不在那份 toml 裡,
+所以 wrangler 從頭重放。**這個症狀在本機重現不出來**,因為本機那份是對的。
+同步方式:`gh secret set WRANGLER_TOML < wrangler.toml`。`CONFIG_TOML` 同理。
+
 ### 作答歷史: `attempts` is the source of truth
 
 `attempts` (migration `0023`) is an append-only event log — one row per
