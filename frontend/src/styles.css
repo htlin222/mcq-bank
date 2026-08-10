@@ -351,6 +351,21 @@
 	padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
+/* === 頂端安全區(瀏海 / 動態島)===
+   `apple-mobile-web-app-status-bar-style: black-translucent`(index.html)讓
+   加到主畫面之後的頁面一路延伸到狀態列底下。少了這一條,sticky header 的上半
+   就被瀏海切掉。
+
+   ⚠️ **在一般瀏覽器裡看不出差別** —— 沒有進入 standalone 時 inset 是 0,兩者
+   完全一樣。所以這條跟 index.html 那個 meta 是同一件事的兩半,只改一邊的話
+   壞掉的只有「已經加到主畫面」的人,而他們最不容易回報。
+
+   用 padding 而不是 margin:header 是 sticky 且有底色,padding 讓那塊底色一起
+   延伸上去蓋住狀態列後方,margin 會露出頁面背景。 */
+.safe-top {
+	padding-top: env(safe-area-inset-top);
+}
+
 /* Height reserved for the fixed mobile bottom nav (item h-14 + .safe-bottom).
    0 at md+ where the nav is hidden. <main> pads by this so content never
    hides behind the nav; Chat subtracts it from its full-height layout.

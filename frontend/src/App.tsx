@@ -16,6 +16,7 @@ import {
 	Bookmark,
 	Search as SearchIcon,
 	ChevronDown,
+	Droplet,
 } from "lucide-react";
 import { config } from "./config";
 import {
@@ -130,7 +131,10 @@ export default function App() {
 			<ChatToaster />
 			<OfflineBanner />
 			{/* Top bar */}
-			<header className="sticky top-0 z-30 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
+			{/* safe-top:狀態列在 black-translucent 底下是透明的,header 得自己把
+			    瀏海那一塊的底色補上(見 styles.css)。非 standalone 時 inset 是 0,
+			    這個 class 什麼都不做。 */}
+			<header className="safe-top sticky top-0 z-30 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
 					{/* 品牌是這一列唯一可以讓步的東西,所以由它吸收壓縮(`min-w-0` +
 					    `truncate`),其餘兩塊 `shrink-0`。這條是結構性保證:不管品牌
@@ -138,9 +142,22 @@ export default function App() {
 					    (#94)。斷點階梯是為了讓它「幾乎永遠用不到」,不是替代品。 */}
 					<Link
 						to="/"
-						className="font-serif text-xl text-ink-900 dark:text-ink-100 hover:text-accent transition whitespace-nowrap min-w-0 truncate"
+						aria-label={config.brand.short_name}
+						className="flex items-center gap-2 font-serif text-xl text-ink-900 dark:text-ink-100 hover:text-accent transition whitespace-nowrap min-w-0"
 					>
-						{config.brand.short_name}
+						{/* 血滴 = favicon.svg 那顆(lucide droplet,填 accent)。
+						    窄螢幕只留它,品牌字收起來(#125)—— 390px 的 header 上,
+						    七個字換來的空間比它們提供的資訊多。 */}
+						<Droplet
+							size={20}
+							className="shrink-0 text-accent"
+							fill="currentColor"
+							aria-hidden="true"
+						/>
+						{/* `truncate` 留著:文字仍是這一列唯一可以讓步的東西,見上面。 */}
+						<span className="hidden sm:inline truncate">
+							{config.brand.short_name}
+						</span>
 					</Link>
 
 					{/* Desktop nav — tail items fold into a 更多 dropdown as the

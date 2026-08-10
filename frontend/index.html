@@ -4,13 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#a8442a" />
+    <!-- 瀏覽器的頂/底工具列跟著頁面配色走(#126)。單一顏色的話,深色模式下
+         那條 bar 會是亮橘紅、跟頁面接不起來。值對應 header 的底色:亮色是
+         ink-50 之上的白、深色是 ink-800。 -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a160f" media="(prefers-color-scheme: dark)" />
+    <!-- 不帶 media 的那一條留給不支援 media 屬性的舊瀏覽器。 -->
+    <meta name="theme-color" content="#ffffff" />
     <!-- PWA — manifest is generated at build time from config.toml [brand];
          see the VitePWA block in vite.config.ts. -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- black-translucent:狀態列透明,頁面內容一路延伸到瀏海/動態島底下(#126)。
+         **它必須跟 styles.css 那條 `env(safe-area-inset-top)` 一起看** —— 少了
+         那一半,加到主畫面之後 header 會被瀏海切掉一截,而在一般瀏覽器裡完全
+         正常(inset 是 0),所以很難自己發現。viewport-fit=cover 上面已經有了,
+         沒有它 env() 一律回 0。 -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
