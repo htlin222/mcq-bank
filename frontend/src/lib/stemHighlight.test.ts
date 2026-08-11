@@ -63,6 +63,21 @@ test("`is not` 算 —— 它幾乎只出現在問句骨架上(59 題,全數命�
   assert.deepEqual(hits("which following prognostic marker is not classified …"), ["is not"]);
 });
 
+test("`no evidence` 算,`without evidence` 不算", () => {
+  // 兩者在題庫裡各一題,而差別不在字面像不像否定,在於它出現在哪裡:
+  //   112-049  Which kind of agent has no evidence of clinical benefit?   ← 問句骨架
+  //   112-031  ADAMTS13 activity 68%, without evidence for an inhibitor    ← 病歷敘述
+  // 標到後者會讓人以為那句是題目的陷阱所在。
+  assert.deepEqual(
+    hits("Which kind of agent has no evidence of clinical benefit?"),
+    ["no evidence"],
+  );
+  assert.deepEqual(
+    hits("ADAMTS13 activity 68%, without evidence for an antibody inhibitor."),
+    [],
+  );
+});
+
 test("單獨的 not 仍然不算", () => {
   // 「not associated」沒有前面的 is 就不標。這條守著詞表不要一路長大 ——
   // 一長就滿頁通紅,真正的否定問句反而消失在雜訊裡。
