@@ -23,6 +23,30 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(HERE, '..', 'dist');
 const REQUIRE = process.env.E2E_REQUIRE === '1';
 
+/**
+ * fixture 裡第 n 則筆記的第一行文字(= 筆記本體的第一個標題)。
+ *
+ * 從 fixture 推出來而不是寫死:這幾個字串是**別的測試的素材**(第二則的標題被
+ * 拉長成 40 字,好驗窄螢幕的預覽截斷 #137),寫死的話那邊一動,這邊就會紅在一個
+ * 跟手把完全無關的地方 —— 實際發生過。
+ */
+function fixtureNoteTitle(slot) {
+  const q = JSON.parse(
+    fs.readFileSync(path.join(HERE, 'fixtures', 'questions_113-050.json'), 'utf8'),
+  );
+  const note = q.my_notes.find((n) => n.slot === slot);
+  const walk = (node) => {
+    if (!node || typeof node !== 'object') return '';
+    if (typeof node.text === 'string' && node.text.trim()) return node.text.trim();
+    for (const c of node.content ?? []) {
+      const t = walk(c);
+      if (t) return t;
+    }
+    return '';
+  };
+  return walk(JSON.parse(note.content_json));
+}
+
 // W3C 標準配置的索引。跟 lib/gamepad.ts 的 BUTTON_ACTIONS 是同一張表 —— 這裡
 // 刻意重寫一次而不是 import:測試若跟著實作一起錯,就驗不到任何東西。
 const BTN = {
@@ -617,19 +641,17 @@ test('筆記分頁:DPAD ← → 切換多則筆記', async (t) => {
 
   const titles = () =>
     page.locator('[data-note-heading]').first().textContent();
-  assert.equal((await titles()).trim(), '溶血機轉', '起點是第一則');
+  const [first, second] = [fixtureNoteTitle(0), fixtureNoteTitle(1)];
+  assert.ok(first && second && first !== second, 'fixture 要有兩則標題不同的筆記');
+  assert.equal((await titles()).trim(), first, '起點是第一則');
 
   await tap(page, BTN.DPAD_RIGHT);
   await page.waitForTimeout(400);
-  assert.equal(
-    (await titles()).trim(),
-    '第二則筆記的標題',
-    'DPAD → 該換到第二則',
-  );
+  assert.equal((await titles()).trim(), second, 'DPAD → 該換到第二則');
 
   await tap(page, BTN.DPAD_RIGHT);
   await page.waitForTimeout(400);
-  assert.equal((await titles()).trim(), '溶血機轉', '只有兩則,再按一次繞回第一則');
+  assert.equal((await titles()).trim(), first, '只有兩則,再按一次繞回第一則');
 
   assert.deepEqual(errors, [], '不該有未捕捉例外');
 });

@@ -11,9 +11,13 @@ export const NOTE_TITLE_MAX = 40;
 /**
  * 窄螢幕的上限。40 個中文字在 390px 的下拉裡塞不下,CSS `truncate` 雖然不會
  * 讓它溢出,但整列會被一行字吃掉、日期那一行也被擠到看不出層次(#137)。
- * 砍一半之後,標題與日期各自看得出來。
+ *
+ * 先設 20,實機看過之後改成 10 —— 20 字在 390px 上仍然佔滿整列,而下拉的作用是
+ * 「認出是哪一則」,不是把標題讀完。10 個中文字足以分辨,而且右邊留得下空間給
+ * 日期與刪除鈕。**這個值刻意不是 `NOTE_TITLE_MAX` 的固定比例**:兩者回答的是
+ * 不同的問題(一個是「標題最長多少」,一個是「一眼認得出來要幾個字」)。
  */
-export const NOTE_TITLE_NARROW = 20;
+export const NOTE_TITLE_NARROW = 10;
 
 type AnyNode = { type?: string; text?: string; content?: unknown[] };
 

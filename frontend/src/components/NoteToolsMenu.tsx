@@ -2,19 +2,71 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CircleEllipsis } from "lucide-react";
 
 /**
- * 個人筆記卡右上角的「更多」(#137)。
+ * 個人筆記卡右上角的工具(#137)。
  *
- * 為什麼要有它:那一排本來是 全螢幕 / 自動挖空 / 防劇透 / 編輯 四顆帶文字的按鈕,
- * 390px 上必定折成兩行 —— 而第二行是 `justify-end` 的,所以「編輯」會單獨吊在
- * 右下角,看起來像壞掉。收成一顆之後那一排永遠是一行。
+ * **兩種形態,同一份定義。** 寬螢幕直接把每一項畫成按鈕(原本的樣子);窄螢幕收進
+ * 一顆「更多」。呼叫端只給一個 `NoteTool[]`,兩邊不會漂移 —— 各寫一次的話,遲早
+ * 有一顆按鈕只加在其中一邊,而那在另一種寬度下是看不見的。
  *
- * 全螢幕**不進來**:它是「怎麼讀這則筆記」裡唯一每天都會按的,而且進了選單就
- * 需要先關選單才看得到放大後的樣子。
+ * 為什麼窄螢幕要收:那一排原本是 全螢幕 / 自動挖空 / 防劇透 / 編輯 四顆帶文字的
+ * 按鈕,390px 上必定折成兩行,而那一列是 `justify-end` 的 —— 折行之後「編輯」單獨
+ * 吊在右下角,看起來像壞掉。
+ *
+ * 全螢幕**不在這組裡**:它是「怎麼讀這則筆記」裡唯一每天都會按的,而且進了選單
+ * 就得先關掉選單才看得到放大後的樣子。
+ */
+export type NoteTool = {
+	key: string;
+	icon: ReactNode;
+	label: string;
+	onClick: () => void;
+	disabled?: boolean;
+	/** 目前是開著的狀態(自動挖空有結果、防劇透開著)。 */
+	active?: boolean;
+	/** 用 accent 色畫(「編輯」是這一排唯一會改動內容的動作)。 */
+	accent?: boolean;
+	title?: string;
+};
+
+/** 寬螢幕:直接畫成一排按鈕。class 由呼叫端給,跟同一列的其他按鈕共用一個來源。 */
+export function NoteToolButtons({
+	tools,
+	className,
+}: {
+	tools: NoteTool[];
+	/** `(active) => class`,通常是 Question.tsx 的 TOOL_BTN。 */
+	className: (active: boolean) => string;
+}) {
+	return (
+		<>
+			{tools.map((t) => (
+				<button
+					key={t.key}
+					type="button"
+					onClick={t.onClick}
+					disabled={t.disabled}
+					title={t.title}
+					aria-pressed={t.active}
+					className={
+						t.accent && !t.active
+							? "inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-accent hover:bg-accent/10 disabled:opacity-50"
+							: className(!!t.active)
+					}
+				>
+					{t.icon} {t.label}
+				</button>
+			))}
+		</>
+	);
+}
+
+/**
+ * 窄螢幕:收成一顆「更多」。
  *
  * 這裡不做鍵盤 roving focus —— 選單只有三項,原生的 Tab 就夠用;做了反而要處理
  * 「按鈕停用時跳過」之類的邊界。
  */
-export function NoteToolsMenu({ children }: { children: ReactNode }) {
+export function NoteToolsMenu({ tools }: { tools: NoteTool[] }) {
 	const [open, setOpen] = useState(false);
 	const rootRef = useRef<HTMLDivElement>(null);
 
@@ -61,49 +113,28 @@ export function NoteToolsMenu({ children }: { children: ReactNode }) {
 					onClick={() => setOpen(false)}
 					className="absolute right-0 top-full z-30 mt-1 w-56 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 py-1 shadow-xl"
 				>
-					{children}
+					{tools.map((t) => (
+						<button
+							key={t.key}
+							type="button"
+							role="menuitem"
+							onClick={t.onClick}
+							disabled={t.disabled}
+							title={t.title}
+							aria-pressed={t.active}
+							className={
+								"flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition disabled:opacity-50 " +
+								(t.active
+									? "text-accent bg-accent/10"
+									: "text-ink-700 hover:bg-ink-50 dark:text-ink-200 dark:hover:bg-ink-700/60")
+							}
+						>
+							<span className="shrink-0">{t.icon}</span>
+							<span className="min-w-0 truncate">{t.label}</span>
+						</button>
+					))}
 				</div>
 			)}
 		</div>
-	);
-}
-
-/**
- * 選單裡的一列。外觀統一在這裡,呼叫端只給圖示與文字 —— 三顆按鈕的 class
- * 各寫一次的話,遲早有一顆的 padding 會跟另外兩顆不一樣。
- */
-export function NoteToolsItem({
-	icon,
-	label,
-	onClick,
-	disabled,
-	active,
-	title,
-}: {
-	icon: ReactNode;
-	label: string;
-	onClick: () => void;
-	disabled?: boolean;
-	active?: boolean;
-	title?: string;
-}) {
-	return (
-		<button
-			type="button"
-			role="menuitem"
-			onClick={onClick}
-			disabled={disabled}
-			title={title}
-			aria-pressed={active}
-			className={
-				"flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition disabled:opacity-50 " +
-				(active
-					? "text-accent bg-accent/10"
-					: "text-ink-700 hover:bg-ink-50 dark:text-ink-200 dark:hover:bg-ink-700/60")
-			}
-		>
-			<span className="shrink-0">{icon}</span>
-			<span className="min-w-0 truncate">{label}</span>
-		</button>
 	);
 }

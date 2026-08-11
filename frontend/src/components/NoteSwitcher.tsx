@@ -73,7 +73,7 @@ export function NoteSwitcher({
 }) {
 	const [open, setOpen] = useState(false);
 	const rootRef = useRef<HTMLDivElement>(null);
-	// 窄螢幕把預覽字數砍一半(#137)。CSS `truncate` 不會讓它溢出,但 40 個中文字
+	// 窄螢幕把預覽字數縮到 10 字(#137)。CSS `truncate` 不會讓它溢出,但 40 個中文字
 	// 會把整列吃光,底下那行日期就看不出層次 —— 這是「產生字串時」的決定,構不到
 	// 的東西才來這裡拿布林值(見 useNarrow)。
 	const narrow = useNarrow();

@@ -289,6 +289,39 @@ pattern as the mcq bundle) so `/api/me/bank-skill` can zip it with a freshly
 baked per-admin `.env`. Editing the skill means re-running `pnpm gen:bundles`
 — wired into `dev` and `predeploy`.
 
+### 筆記工具列與分頁列: 兩種形態,一份定義
+
+`/q/:id` 有兩處「窄螢幕才收起來」,判準都是 `hooks/useNarrow.ts`(<sm):
+
+- **筆記工具**(自動挖空 / 防劇透 / 編輯)—— 窄螢幕收進 `<CircleEllipsis /> 更多`,
+  寬螢幕直接畫成按鈕。`components/NoteToolsMenu.tsx` 匯出兩個渲染器,吃**同一份**
+  `NoteTool[]` —— 各寫一次的話,新加的按鈕遲早只出現在其中一種寬度下,而那在另一種
+  寬度看不見。**全螢幕不在這組裡**:它是唯一每天都會按的,而且進了選單就得先關掉
+  選單才看得到放大後的樣子。
+- **分頁列**(題目/詳解/個人筆記/討論串/相似題目/影片)—— 尾端摺進
+  `<EllipsisVertical />`,同 header 的階梯。六個在 390px 上必定折行,而那條 strip
+  是 sticky 的:折行等於每次換題都少一行可讀高度。
+
+⚠️ **目前這一頁一定要留在列上,即使它屬於被摺起來的那幾個。** 少了這條,從選單挑
+「影片」之後,六個分頁沒有一個是亮的 —— 看不出自己在哪。
+
+**下拉的預覽字數是 10 字(`NOTE_TITLE_NARROW`),不是 `NOTE_TITLE_MAX` 的比例。**
+兩者回答不同問題:一個是「標題最長多少」,一個是「一眼認得出是哪一則要幾個字」。
+綁成比例的話,調其中一個會莫名其妙牽動另一個。
+
+三個下拉(筆記切換器、筆記工具、分頁溢出)的關閉邏輯共用 `hooks/useDismiss.ts` ——
+抽出來不是為了行數,是**行為要一致**:少一邊的 Esc、或某一個用 `click` 而不是
+`mousedown`,使用者只會覺得「有些選單關得掉、有些關不掉」,而那很難回報得清楚。
+
+驗證在 `frontend/e2e/tab-overflow.test.mjs`,**繞著斷點兩側取樣**(390 / 640)——
+只測 390 的話,把條件寫成「永遠收起來」也會全綠。量折行用**倍率**不用固定餘裕:
+實測單行 48.4px 而按鈕 42px,寫死「+6」差一點就假紅(而手動量測時的四捨五入讓它
+看起來剛好通過)。
+
+⚠️ **e2e fixture 的筆記標題是好幾支測試共用的素材。** `questions_113-050.json` 的
+第二則標題被拉長成 40 字是為了驗預覽截斷,而 `gamepad.test.mjs` 原本寫死那個字串
+—— 一動就紅在一個跟手把完全無關的地方。現在它從 fixture 推出期望值。
+
 ### 個人筆記的拖曳排序: 為什麼多開一個欄位,以及門檻是鄰居的中線
 
 `personal_notes.sort_order`(migration 0041)+ `PUT /api/questions/:id/notes/order`。
