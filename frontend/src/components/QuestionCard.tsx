@@ -13,6 +13,7 @@ import { groupBadgeClass } from '../lib/groups';
 import { startTimer, hide, show, read, type TimerState } from '../lib/questionTimer';
 import { choicePct, type StatsPayload } from '../lib/choiceStats';
 import { normalizeStemBreaks } from '../lib/stemBreaks';
+import { StemText } from "./StemText";
 
 type Props = {
   question: QuestionFull;
@@ -425,7 +426,8 @@ export function QuestionCard({ question, onAnswered, onBookmarkToggled, onProgre
           項目前的真分行。做在這裡而不是改資料 —— 判斷終究是啟發式的,猜錯只是
           這一題看起來怪,重新部署就回到原狀(#91)。 */}
       <p className="font-serif text-lg sm:text-xl leading-relaxed text-ink-900 dark:text-ink-100 whitespace-pre-wrap">
-        {normalizeStemBreaks(question.stem)}
+        {/* 否定詞標紅加粗(#149)—— 不要整題讀完才發現問的是「何者錯誤」。 */}
+        <StemText text={normalizeStemBreaks(question.stem)} />
       </p>
 
       <ul className="mt-6 space-y-2.5">
