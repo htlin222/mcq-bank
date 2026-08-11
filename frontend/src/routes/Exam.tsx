@@ -7,6 +7,7 @@ import { loadSectionPath, clearSectionPath, type LastPath } from '../lib/lastPat
 import { ResumeChip } from '../components/ResumeChip';
 import { flaggedIds, reconcileFlags, setFlag, toServerFlags } from '../lib/examFlagStore';
 import { TutorReveal } from '../components/TutorReveal';
+import { StemText } from '../components/StemText';
 import { GamepadFab, type GamepadHint } from '../components/GamepadFab';
 import { useGamepad } from '../hooks/useGamepad';
 import { rumble } from '../lib/gamepad';
@@ -697,7 +698,9 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
               </button>
             </div>
             <p className="font-serif text-lg sm:text-xl leading-relaxed text-ink-900 dark:text-ink-100 whitespace-pre-wrap">
-              {q.stem}
+              {/* 否定詞標紅加粗(#149)。模擬考尤其需要 —— 一題一分鐘,
+                  最容易發生的誤答就是把「何者錯誤」讀成「何者正確」。 */}
+              <StemText text={q.stem} />
             </p>
             <ul className="mt-6 space-y-2.5">
               {(['A', 'B', 'C', 'D', 'E'] as const)

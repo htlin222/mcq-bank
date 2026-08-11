@@ -289,6 +289,31 @@ pattern as the mcq bundle) so `/api/me/bank-skill` can zip it with a freshly
 baked per-admin `.env`. Editing the skill means re-running `pnpm gen:bundles`
 — wired into `dev` and `predeploy`.
 
+### 題幹的否定詞: 詞表的價值來自稀有
+
+`lib/stemHighlight.ts` 把題幹裡的 `incorrect` / `wrong` / `except` / `false` /
+`not true` / `錯誤` / `不正確` / `為非` / `何者非` 標紅加粗(#149),用在複習模式與
+模擬考的題幹。回報的原話是「比較好看」,但真正的價值是**不要整題讀完才發現問的是
+「何者錯誤」** —— 這個題庫最常見的誤答就是這種。
+
+詞表是逐個在題庫裡數過才定的(1100 題:wrong 245 · 錯誤 69 · incorrect 42 ·
+except 38 · 為非 31 · 不正確 29 · false 5),並抽樣看過 `wrong` 的上下文確認沒有
+誤命中。
+
+- **刻意不收單獨的「非」與 `not`。** 非何杰金氏淋巴瘤、非典型…幾乎每頁都有,
+  而「is not associated」是選項的日常用語 —— 收進來會滿頁通紅,真正的否定問句
+  反而消失在雜訊裡。**這一層的價值來自稀有,詞表一長就沒有作用了**,所以測試
+  除了「有標到」也守著「不該標的沒被標到」。
+- **拉丁字卡字界,中日韓不卡**(沒有字界)。`wrongly`、`exception` 不算。
+- **回傳片段而不是 HTML 字串。** 題幹是匯入的資料,而這一層只是排版,沒有理由
+  讓它有機會注入標記 —— 同「HTML in DB」那條。
+- **`g` 旗標的 `lastIndex` 要重設。** 共用同一個 RegExp 實例時,第二次呼叫會從上次
+  結束的位置開始找,於是同一段文字第二次就標不到 —— 有一條測試專門連呼叫三次。
+- **e-ink 底下顏色會被中和成黑色**,所以語意不能只靠紅色:粗體本來就活得下來,
+  再補 `eink:underline`。同該節的「顏色沒了之後,語意要換一個維度重講」。
+- e2e 的題幹由 `ctx.route` 注入,**不改 fixture** —— fixture 的題幹與筆記是好幾支
+  測試共用的素材(gamepad 那條實際踩過)。
+
 ### 筆記工具列與分頁列: 兩種形態,一份定義
 
 `/q/:id` 有兩處「窄螢幕才收起來」,判準都是 `hooks/useNarrow.ts`(<sm):
