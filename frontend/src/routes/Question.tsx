@@ -30,7 +30,16 @@ import { api, ApiError } from "../lib/api";
 import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
 import { noteTitle, noteTitleFromJson } from "../lib/noteTitle";
 import { NoteSwitcher, type NoteMeta } from "../components/NoteSwitcher";
-import { NoteToolsItem, NoteToolsMenu } from "../components/NoteToolsMenu";
+import {
+	NoteToolButtons,
+	NoteToolsMenu,
+	type NoteTool,
+} from "../components/NoteToolsMenu";
+import { useNarrow } from "../hooks/useNarrow";
+import {
+	TabOverflowItem,
+	TabOverflowMenu,
+} from "../components/TabOverflowMenu";
 import { buildOpenEvidenceUrl } from "../lib/openevidence";
 import { useQuestion } from "../hooks/useQuestion";
 import { useLock } from "../hooks/useLock";
@@ -1040,6 +1049,43 @@ export function Question() {
 		}
 	}
 
+	// 這一排的三顆工具。定義一次,由寬度決定畫成按鈕還是收進「更多」。
+	// <sm 時:筆記工具收進「更多」、分頁列尾端摺進 <EllipsisVertical />。
+	const tabsNarrow = useNarrow();
+	const noteToolsNarrow = tabsNarrow;
+	const noteTools: NoteTool[] = [
+		{
+			key: "cloze",
+			icon: <Sparkles size={14} />,
+			label: noteAutoLoading
+				? "挖空中…"
+				: noteAutoTerms?.length
+					? `自動挖空 ${noteAutoTerms.length}`
+					: "自動挖空",
+			onClick: () => data && toggleAutoCloze(data.id, "note"),
+			disabled: noteAutoLoading,
+			active: !!noteAutoTerms?.length,
+			title:
+				"自動挖空:AI 從你的筆記挑出關鍵詞當空格,只在防劇透開著時遮住(點各別揭曉)。再按一次移除這層,不影響你的螢光標記",
+		},
+		{
+			key: "spoiler",
+			icon: <Videotape size={14} />,
+			label: noteCloze ? "取消防劇透" : "防劇透",
+			onClick: () => setNoteCloze((v) => !v),
+			active: noteCloze,
+			title:
+				"防劇透:遮住你的螢光標記(以及自動挖空挑的關鍵詞)來自我測驗,點各別揭曉/收回",
+		},
+		{
+			key: "edit",
+			icon: <Pencil size={14} />,
+			label: "編輯",
+			onClick: startNoteEdit,
+			accent: true,
+		},
+	];
+
 	// 拖曳重排(#140)。伺服器整批寫 sort_order —— 不動 slot,因為畫記
 	// (anno:note:<qid>:<slot>)與挖空快取都以它定位(見 migration 0041)。
 	//
@@ -1485,68 +1531,79 @@ export function Question() {
 			    - tabs: one full-width pane at a time behind a 題目/詳解區 tab
 			      strip, with normal page scrolling and a comfortable reading width.
 			    Below md both modes collapse to the same single stacked column. */}
-				{tabsMode && (
-					<div
-						className={
-							"flex-wrap border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto pt-1 pb-0 " +
-							// 窄螢幕一律 tabs,所以這條要顯示;≥md 才由 tabsMode 決定。
-							(narrow ? "flex" : "hidden md:flex")
-						}
-					>
-						<TabButton
-							active={mainTab === "question"}
-							onClick={() => pickTab("question")}
-						>
-							題目
-						</TabButton>
-						<TabButton
-							active={mainTab === "explanation"}
-							onClick={() => pickTab("explanation")}
-						>
-							詳解
-						</TabButton>
-						<TabButton
-							active={mainTab === "note"}
-							onClick={() => pickTab("note")}
-						>
-							個人筆記
-							{data.my_note && (
-								<span className="ml-1.5 text-[10px] text-ink-400 dark:text-ink-500">
-									●
-								</span>
-							)}
-						</TabButton>
-						<TabButton
-							active={mainTab === "discussion"}
-							onClick={() => pickTab("discussion")}
-						>
-							討論串
+				{tabsMode && (() => {
+					// 分頁列:窄螢幕把尾端摺進 <EllipsisVertical />(同 header 的階梯,
+					// 見 CLAUDE.md)。六個分頁在 390px 上必定折行,而這條 strip 是
+					// sticky 的 —— 折行等於每次換題都少一行可讀高度。
+					//
+					// 頭三個(題目/詳解/個人筆記)是每天來回切的,永遠留在列上;
+					// 尾端三個(討論串/相似題目/影片)才摺。**目前這一頁一定要在列上**,
+					// 即使它屬於尾端 —— 否則從選單挑了「影片」之後,列上沒有一個是亮的。
+					const items = [
+						{ key: "question" as const, label: "題目" },
+						{ key: "explanation" as const, label: "詳解" },
+						{
+							key: "note" as const,
+							label: "個人筆記",
+							badge: data.my_note ? (
+								<span className="ml-1.5 text-[10px] text-ink-400 dark:text-ink-500">●</span>
+							) : null,
+						},
+						{ key: "discussion" as const, label: "討論串", count: commentCount },
+						{ key: "similar" as const, label: "相似題目", count: similar.length },
+						...(hasVideos
+							? [{ key: "video" as const, label: "影片", count: videoCount }]
+							: []),
+					];
+					const HEAD = 3;
+					const inline = tabsNarrow
+						? items.filter((t, i) => i < HEAD || t.key === mainTab)
+						: items;
+					const folded = tabsNarrow
+						? items.filter((t, i) => i >= HEAD && t.key !== mainTab)
+						: [];
+					const countOf = (t: (typeof items)[number]) =>
+						t.count === undefined ? null : (
 							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
-								({commentCount})
+								({t.count})
 							</span>
-						</TabButton>
-						<TabButton
-							active={mainTab === "similar"}
-							onClick={() => pickTab("similar")}
+						);
+
+					return (
+						<div
+							className={
+								"border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto pt-1 pb-0 items-center " +
+								// 窄螢幕一律 tabs,所以這條要顯示;≥md 才由 tabsMode 決定。
+								(narrow ? "flex" : "hidden md:flex") +
+								// 摺疊生效時不准折行 —— 會折的話摺疊就沒有意義了。
+								(tabsNarrow ? "" : " flex-wrap")
+							}
 						>
-							相似題目
-							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
-								({similar.length})
-							</span>
-						</TabButton>
-						{hasVideos && (
-							<TabButton
-								active={mainTab === "video"}
-								onClick={() => pickTab("video")}
-							>
-								影片
-								<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
-									({videoCount})
-								</span>
-							</TabButton>
-						)}
-					</div>
-				)}
+							{inline.map((t) => (
+								<TabButton
+									key={t.key}
+									active={mainTab === t.key}
+									onClick={() => pickTab(t.key)}
+								>
+									{t.label}
+									{"badge" in t ? t.badge : null}
+									{countOf(t)}
+								</TabButton>
+							))}
+							<div className="ml-auto">
+								<TabOverflowMenu count={folded.length}>
+									{folded.map((t) => (
+										<TabOverflowItem key={t.key} onClick={() => pickTab(t.key)}>
+											{t.label}
+											{"badge" in t ? t.badge : null}
+											{countOf(t)}
+										</TabOverflowItem>
+									))}
+								</TabOverflowMenu>
+							</div>
+						</div>
+					);
+				})()}
 			</div>
 			<div
 				ref={splitRowRef}
@@ -2035,37 +2092,17 @@ export function Question() {
 												{noteAutoMsg}
 											</span>
 										)}
-										{/* 自動挖空 / 防劇透 / 編輯 收進「更多」(#137)。四顆帶文字的按鈕
-										    在 390px 上必定折成兩行,而第二行 justify-end 會把「編輯」單獨
-										    吊在右下角。全螢幕留在外面 —— 見 NoteToolsMenu 的說明。 */}
-										<NoteToolsMenu>
-											<NoteToolsItem
-												icon={<Sparkles size={14} />}
-												label={
-													noteAutoLoading
-														? "挖空中…"
-														: noteAutoTerms?.length
-															? `自動挖空 ${noteAutoTerms.length}`
-															: "自動挖空"
-												}
-												onClick={() => toggleAutoCloze(data.id, "note")}
-												disabled={noteAutoLoading}
-												active={!!noteAutoTerms?.length}
-												title="自動挖空:AI 從你的筆記挑出關鍵詞當空格,只在防劇透開著時遮住(點各別揭曉)。再按一次移除這層,不影響你的螢光標記"
-											/>
-											<NoteToolsItem
-												icon={<Videotape size={14} />}
-												label={noteCloze ? "取消防劇透" : "防劇透"}
-												onClick={() => setNoteCloze((v) => !v)}
-												active={noteCloze}
-												title="防劇透:遮住你的螢光標記(以及自動挖空挑的關鍵詞)來自我測驗,點各別揭曉/收回"
-											/>
-											<NoteToolsItem
-												icon={<Pencil size={14} />}
-												label="編輯"
-												onClick={startNoteEdit}
-											/>
-										</NoteToolsMenu>
+										{/* 自動挖空 / 防劇透 / 編輯 —— **只有窄螢幕收進「更多」**(#137)。
+										    寬螢幕塞得下就直接畫出來:多一次點擊換來的空白沒有意義,而
+										    「編輯」被藏起來最有感。390px 上四顆帶文字的按鈕必定折成兩行,
+										    而那一列是 justify-end 的,折行之後「編輯」單獨吊在右下角。
+										    兩種形態吃同一份 noteTools —— 各寫一次的話,新加的按鈕遲早只會
+										    出現在其中一種寬度下。全螢幕不在這組裡,見 NoteToolsMenu。 */}
+										{noteToolsNarrow ? (
+											<NoteToolsMenu tools={noteTools} />
+										) : (
+											<NoteToolButtons tools={noteTools} className={TOOL_BTN} />
+										)}
 									</div>
 									{/* 手把導覽以這個容器為範圍找標題按鈕(見 noteHeadings)。 */}
 									<div ref={notePaneRef}>

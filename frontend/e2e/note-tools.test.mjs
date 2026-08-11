@@ -134,7 +134,7 @@ test('「更多」裡剛好是自動挖空 / 防劇透 / 編輯,而且不溢出�
   await ctx.close();
 });
 
-test('窄螢幕的筆記預覽字數砍半,寬螢幕維持原樣', async (t) => {
+test('窄螢幕的筆記預覽最多 10 字,寬螢幕維持原樣', async (t) => {
   if (guard(t)) return;
   // fixture 的第二則筆記標題剛好 40 個字 —— 兩種上限都會截斷,長度差得出來。
   const read = async (width, isMobile) => {
@@ -170,7 +170,7 @@ test('窄螢幕的筆記預覽字數砍半,寬螢幕維持原樣', async (t) => 
   const longNarrow = narrow[1];
   const longWide = wide[1];
   assert.ok(longWide.length > longNarrow.length, `寬螢幕應該比較長:${longWide} vs ${longNarrow}`);
-  assert.ok(longNarrow.length <= 21, `窄螢幕的預覽應該砍到一半(20 字 + 省略號):${longNarrow}`);
+  assert.ok(longNarrow.length <= 11, `窄螢幕的預覽最多 10 字 + 省略號:${longNarrow}`);
 });
 
 test('強制手機版面搬進 /profile,左下角不再有那顆 FAB', async (t) => {
