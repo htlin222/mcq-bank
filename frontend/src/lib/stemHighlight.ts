@@ -33,6 +33,13 @@ const LATIN = [
 	"is not true",
 	"not true",
 	"is not",
+	// 題庫裡剛好一題(112-049「Which kind of agent has no evidence of clinical
+	// benefit…?」),是真的否定問句。**它的近親 `without evidence` 不能加** ——
+	// 112-031 的「ADAMTS13 activity 68%, without evidence for an antibody
+	// inhibitor」是臨床描述,標起來會讓人以為那句是題目的陷阱所在。
+	// 這一組是判斷「該不該收一個詞」的樣板:看它出現在**問句骨架**上還是
+	// 出現在**病歷敘述**裡,而不是看它像不像否定。
+	"no evidence",
 ];
 const CJK = ["錯誤", "不正確", "為非", "何者非"];
 
