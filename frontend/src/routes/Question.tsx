@@ -1040,6 +1040,21 @@ export function Question() {
 		}
 	}
 
+	// 拖曳重排(#140)。伺服器整批寫 sort_order —— 不動 slot,因為畫記
+	// (anno:note:<qid>:<slot>)與挖空快取都以它定位(見 migration 0041)。
+	//
+	// 失敗就 reload 把畫面拉回伺服器的真相:切換器在放開的當下已經樂觀重排過,
+	// 留著會讓使用者以為存好了。
+	async function reorderNotes(slots: number[]) {
+		if (!data) return;
+		try {
+			await api.put(`/api/questions/${data.id}/notes/order`, { slots });
+		} catch (e) {
+			setNoteError(String(e));
+		}
+		await reload();
+	}
+
 	// Cycle the tab strip one step. Which strip that is depends on the layout:
 	// tabs mode drives the top 題目/詳解/… strip, columns mode drives the right
 	// column's own. Shared by the h/l keys and L2/R2 on the gamepad.
@@ -2000,6 +2015,7 @@ export function Question() {
 												onSelect={setNoteSlot}
 												onCreate={addNote}
 												onDelete={removeNote}
+												onReorder={reorderNotes}
 											/>
 										</div>
 										{/* 全螢幕。放在自動挖空之前 —— 這一排右半邊是「怎麼讀這則筆記」
