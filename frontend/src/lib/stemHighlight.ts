@@ -11,24 +11,48 @@
  *
  * 抽樣看過 `wrong` 的上下文,全是「Which statement is wrong about …」,沒有誤命中。
  *
- * **刻意不收的**:單獨的「非」(非何杰金氏淋巴瘤、非典型…,幾乎每頁都有)、
- * 單獨的 `not`(「is not associated」是選項的日常用語,標起來滿頁都是紅的,
- * 反而讓真正的否定問句消失在雜訊裡)。這一層的價值來自**稀有**——
- * 詞表一長就沒有作用了。
+ * `is not` 是後來補的(59 題,抽樣全是 is NOT likely / necessary / indicated /
+ * correct 這種問句骨架)。它跟單獨的 `not` 不同 —— 後者「is not associated」是
+ * 選項的日常用語。
+ *
+ * **刻意不收的**:單獨的「非」(非何杰金氏淋巴瘤、非典型…,幾乎每頁都有)與單獨的
+ * `not`。這一層的價值來自**稀有** —— 詞表一長就沒有作用了,所以測試除了「有標到」
+ * 也守著「不該標的沒被標到」。
  */
 
 /** 拉丁字要卡字界(`wrongly`、`exception` 不算);中日韓沒有字界,直接比子字串。 */
-const LATIN = ["incorrect", "wrong", "except", "false", "not true"];
+const LATIN = [
+	"incorrect",
+	"wrong",
+	"except",
+	"false",
+	// `is not` 在題幹裡 59 題,抽樣看下來全是真的否定問句(is NOT likely /
+	// necessary / indicated / correct / considered / classified)。它跟一開始被
+	// 排除的**單獨** `not` 不同 —— 「is not」幾乎只出現在問句的骨架上,而
+	// 「not associated」那種是選項的日常用語(而這一層只掛在題幹上)。
+	"is not true",
+	"not true",
+	"is not",
+];
 const CJK = ["錯誤", "不正確", "為非", "何者非"];
 
 /** 一段題幹切成「要不要標起來」的片段。順序即原文,串起來等於原字串。 */
 export type StemPart = { text: string; hit: boolean };
 
+// **長的排前面。** 正則的 `|` 是「在目前位置取第一個match得上的分支」,不是取最長 ——
+// 不排的話「is not true」會在 `is not` 那一支就停下來,標成「is not」+ 沒標的
+// 「true」。排序放在這裡而不是要求詞表手動維護順序:那種順序沒有人看得出來為什麼,
+// 加一個詞就可能靜靜地破壞另一個。
+const byLengthDesc = (a: string, b: string) => b.length - a.length;
+
 const PATTERN = new RegExp(
 	[
-		// \b 對拉丁字有效;`not true` 中間的空白照樣比對得到。
-		`\\b(?:${LATIN.map((w) => w.replace(/ /g, "\\s+")).join("|")})\\b`,
-		CJK.join("|"),
+		// \b 對拉丁字有效;詞裡的空白允許多個(官方題幹排版有時會多一格)。
+		`\\b(?:${[...LATIN]
+			.sort(byLengthDesc)
+			.map((w) => w.replace(/ /g, "\\s+"))
+			.join("|")})\\b`,
+		[...CJK].sort(byLengthDesc).join("|"),
 	].join("|"),
 	"giu",
 );

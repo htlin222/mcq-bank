@@ -22,7 +22,9 @@ test("wrong / except / false / not true", () => {
   assert.deepEqual(hits("Which statement is wrong about MPNs?"), ["wrong"]);
   assert.deepEqual(hits("All of the following are true EXCEPT:"), ["EXCEPT"]);
   assert.deepEqual(hits("Which of the following is false?"), ["false"]);
-  assert.deepEqual(hits("Which one is not true?"), ["not true"]);
+  // 前面有 is 的時候整段標(見下面 `is not true` 那條);沒有 is 才只標 not true。
+  assert.deepEqual(hits("Which one is not true?"), ["is not true"]);
+  assert.deepEqual(hits("Statements that are not true:"), ["not true"]);
 });
 
 test("中文的否定問句", () => {
@@ -36,8 +38,9 @@ test("大小寫都要抓 —— 官方題幹常把 EXCEPT 全大寫", () => {
   assert.deepEqual(hits("... is Wrong?"), ["Wrong"]);
 });
 
-test("`not true` 中間多個空白也算", () => {
-  assert.deepEqual(hits("which is not  true?"), ["not  true"]);
+test("詞裡的空白允許多個 —— 官方題幹排版有時會多一格", () => {
+  assert.deepEqual(hits("which is not  true?"), ["is not  true"]);
+  assert.deepEqual(hits("statements are  not true"), ["not true"]);
 });
 
 // ── 不該標的 ────────────────────────────────────────────────
@@ -55,8 +58,23 @@ test("單獨的「非」不算 —— 非何杰金氏淋巴瘤幾乎每頁都有
   assert.deepEqual(hits("非典型慢性骨髓性白血病"), []);
 });
 
-test("單獨的 not 不算 —— 那是選項的日常用語", () => {
-  assert.deepEqual(hits("JAK2 is not associated with this finding."), []);
+test("`is not` 算 —— 它幾乎只出現在問句骨架上(59 題,全數命中)", () => {
+  assert.deepEqual(hits("Which of the following diagnosis is NOT likely?"), ["is NOT"]);
+  assert.deepEqual(hits("which following prognostic marker is not classified …"), ["is not"]);
+});
+
+test("單獨的 not 仍然不算", () => {
+  // 「not associated」沒有前面的 is 就不標。這條守著詞表不要一路長大 ——
+  // 一長就滿頁通紅,真正的否定問句反而消失在雜訊裡。
+  assert.deepEqual(hits("JAK2 mutation, not V617F, was found."), []);
+  assert.deepEqual(hits("These findings are not specific."), []);
+});
+
+test("`is not true` 要整段標,不能只標到 `is not`", () => {
+  // 正則的 | 是「取第一個match得上的分支」不是取最長,所以詞表要按長度排序。
+  // 不排的話這裡會得到 ["is not"],而 true 留在外面 —— 看起來像標錯位置。
+  assert.deepEqual(hits("Which statement is not true?"), ["is not true"]);
+  assert.deepEqual(hits("Which one is NOT TRUE about MPNs?"), ["is NOT TRUE"]);
 });
 
 test("「正確」不會因為含在「不正確」裡就被標到", () => {
