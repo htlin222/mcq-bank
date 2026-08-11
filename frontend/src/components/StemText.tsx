@@ -10,8 +10,12 @@ import { splitNegations } from "../lib/stemHighlight";
  * 沒有理由讓它有機會注入標記。切分邏輯(含詞表與為什麼是那幾個字)在
  * `lib/stemHighlight.ts`。
  *
+ * 顏色用**主色**(`accent` = #a8442a,那塊磚紅),不是另外一個 rose —— 站上每一處
+ * 強調都是它,多一個紅只會讓畫面多一種說法。深色模式走 `accent-light`(#cb6845),
+ * 因為 #a8442a 在 ink-900 上對比不足。
+ *
  * **e-ink 底下顏色會被中和成黑色**(見 CLAUDE.md 的 1-bit 那節),所以語意不能
- * 只靠紅色:粗體本來就活得下來,再補一條底線 —— 同一節說的「顏色沒了之後,語意
+ * 只靠顏色:粗體本來就活得下來,再補一條底線 —— 同一節說的「顏色沒了之後,語意
  * 要換一個維度重講」。
  */
 export function StemText({ text }: { text: string }) {
@@ -27,7 +31,7 @@ export function StemText({ text }: { text: string }) {
 						// 片段沒有天然的 id,而這個陣列只由 text 決定、不會重排。
 						// eslint-disable-next-line react/no-array-index-key
 						key={i}
-						className="font-bold text-rose-700 dark:text-rose-400 eink:underline"
+						className="font-bold text-accent dark:text-accent-light eink:underline"
 					>
 						{p.text}
 					</strong>

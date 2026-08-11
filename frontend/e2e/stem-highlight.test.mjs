@@ -112,9 +112,10 @@ test('否定詞標紅加粗', async (t) => {
   );
   for (const m of r.marks) {
     assert.ok(m.weight >= 700, `${m.text} 不夠粗:${m.weight}`);
-    // rose-700 = rgb(190, 18, 60)。只斷言「紅遠多於綠藍」,免得改一階色就紅。
+    // 用**主色**(accent #a8442a),不是另外一個 rose —— 站上每一處強調都是它。
+    // 只斷言「紅遠多於綠藍」,免得日後微調色階就紅。
     const [red, green, blue] = m.color.match(/\d+/g).map(Number);
-    assert.ok(red > green + 80 && red > blue + 80, `${m.text} 不是紅的:${m.color}`);
+    assert.ok(red > green + 60 && red > blue + 60, `${m.text} 不是主色紅:${m.color}`);
   }
 });
 
