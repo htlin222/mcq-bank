@@ -328,10 +328,7 @@ CSS = """
 }
 
 .expl {
-  margin-top: 1em;
-  padding-top: 1em;
   color: var(--ctp-text);
-  border-top: 1px solid var(--ctp-surface0);
   font-size: 12px;
   line-height: 1.3;
 }
@@ -469,16 +466,17 @@ img {
   margin: 18px auto 0;
 }
 
-/* 個人筆記摺疊器。預設全部收起:單則筆記可達 70 KB,攤開會把正解推到看不見。 */
-.pnote {
-  margin-top: 1em;
+/* 卡背兩個平行摺疊區(共筆詳解 / 個人筆記),預設都收起。正解留在外面。
+   單則筆記可達 70 KB、詳解也不短,任一個預設攤開都會把另一個推到看不見。 */
+.fold {
+  margin-top: 0.9em;
   padding-top: 0.35em;
   border-top: 1px solid var(--ctp-surface0);
   font-size: 12px;
   line-height: 1.3;
 }
 
-.pnote summary,
+.fold summary,
 .nsec summary {
   position: relative;
   /* 手機(尤其 AnkiDroid)的翻牌手勢會跟 summary 搶點擊,給夠大的可點區域。 */
@@ -488,12 +486,12 @@ img {
   -webkit-tap-highlight-color: transparent;
 }
 
-.pnote summary::-webkit-details-marker,
+.fold summary::-webkit-details-marker,
 .nsec summary::-webkit-details-marker {
   display: none;
 }
 
-.pnote summary::before,
+.fold summary::before,
 .nsec summary::before {
   content: "▶";
   position: absolute;
@@ -503,18 +501,26 @@ img {
   font-size: 0.8em;
 }
 
-.pnote[open] > summary::before,
+.fold[open] > summary::before,
 .nsec[open] > summary::before {
   content: "▼";
 }
 
-.pnote > summary {
-  color: var(--ctp-peach);
+.fold > summary {
   font-size: 1.05em;
   font-weight: 750;
 }
 
-.pnote-body {
+/* 兩區用不同顏色,收起來時一眼分得出哪個是誰的話。 */
+.fold-expl > summary {
+  color: var(--ctp-mauve);
+}
+
+.fold-note > summary {
+  color: var(--ctp-peach);
+}
+
+.fold-body {
   padding-left: 0.2em;
 }
 
@@ -548,25 +554,25 @@ img {
   padding: 0 0 0.6em 1.5em;
 }
 
-.pnote-body > :first-child,
+.fold-body > :first-child,
 .nsec-body > :first-child {
   margin-top: 0;
 }
 
-.pnote-body p,
+.fold-body p,
 .nsec-body p {
   margin: 0.55em 0;
 }
 
-.pnote-body ul,
-.pnote-body ol,
+.fold-body ul,
+.fold-body ol,
 .nsec-body ul,
 .nsec-body ol {
   margin: 0.5em 0 0.7em;
   padding-left: 1.35em;
 }
 
-.pnote mark {
+.fold mark {
   padding: 0 0.15em;
   color: var(--ctp-text);
   background: var(--ctp-surface0);
@@ -822,6 +828,20 @@ def sections_to_html(nodes: list, media: dict[str, Path], depth: int = 0) -> str
     return "".join(parts)
 
 
+def details_block(
+    title: str, nodes: list, media: dict[str, Path], cls: str, body_cls: str = ""
+) -> str:
+    """One collapsed top-level section on the back of a card."""
+    body = sections_to_html(nodes, media)
+    if not body:
+        return ""
+    body_class = f"fold-body {body_cls}".strip()
+    return (
+        f'<details class="fold {cls}"><summary>{html.escape(title)}</summary>'
+        f'<div class="{body_class}">{body}</div></details>'
+    )
+
+
 def note_to_html(doc, media: dict[str, Path]) -> str:
     """Render one personal note as a collapsed <details> accordion.
 
@@ -845,13 +865,7 @@ def note_to_html(doc, media: dict[str, Path]) -> str:
             title = head
             content = content[1:]
 
-    body = sections_to_html(content, media)
-    if not body:
-        return ""
-    return (
-        f'<details class="pnote"><summary>{html.escape(title)}</summary>'
-        f'<div class="pnote-body">{body}</div></details>'
-    )
+    return details_block(title, content, media, "fold-note")
 
 
 def export_notes(db: str, year: int, remote: bool, email: str) -> dict[str, str]:
@@ -908,10 +922,13 @@ def build_year(
         ans_text = next((o["text"] for o in opts if o["key"] == ans), "")
         back = f'<div class="answer">正解:{html.escape(ans)}. {html.escape(ans_text)}</div>'
         if r["expl"]:
-            expl_html = tiptap_to_html(json.loads(r["expl"]), media).strip()
+            expl_doc = json.loads(r["expl"])
+            expl_html = details_block(
+                "共筆詳解", expl_doc.get("content", []), media, "fold-expl", "expl"
+            )
             if expl_html:
                 n_expl += 1
-                back += f'<div class="expl">{expl_html}</div>'
+                back += expl_html
 
         note_json = (notes or {}).get(r["id"])
         if note_json:
