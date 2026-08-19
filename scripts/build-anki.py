@@ -21,10 +21,19 @@ Why apkg can't universally land on everyone's Basic: Anki identifies note
 types by a private 64-bit id minted at profile-creation time, not by name.
 No distributable file can carry an id that matches every recipient's Basic.
 
+Personal notes (--notes EMAIL):
+  Appends that account's FIRST note per question (by sort_order, then slot) to
+  the back, wrapped in a collapsed <details> accordion — one for the note, one
+  per subsection heading inside it. Anki renders cards in a real browser engine
+  on every platform, so <details> works; collapsing matters because these notes
+  run 10-70 KB each and would otherwise bury the answer.
+  A deck built this way carries private notes — don't share it.
+
 Usage:
   uv run --with genanki scripts/build-anki.py                 # dedicated 血專 type
   uv run --with genanki scripts/build-anki.py --merge-basic   # merge into local Basic
   uv run --with genanki scripts/build-anki.py --local --years 113 114
+  uv run --with genanki scripts/build-anki.py --notes me@example.com
 """
 
 import argparse
@@ -460,6 +469,110 @@ img {
   margin: 18px auto 0;
 }
 
+/* 個人筆記摺疊器。預設全部收起:單則筆記可達 70 KB,攤開會把正解推到看不見。 */
+.pnote {
+  margin-top: 1em;
+  padding-top: 0.35em;
+  border-top: 1px solid var(--ctp-surface0);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.pnote summary,
+.nsec summary {
+  position: relative;
+  /* 手機(尤其 AnkiDroid)的翻牌手勢會跟 summary 搶點擊,給夠大的可點區域。 */
+  padding: 0.62em 0.2em 0.62em 1.5em;
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pnote summary::-webkit-details-marker,
+.nsec summary::-webkit-details-marker {
+  display: none;
+}
+
+.pnote summary::before,
+.nsec summary::before {
+  content: "▶";
+  position: absolute;
+  top: 0.62em;
+  left: 0.15em;
+  color: var(--ctp-surface1);
+  font-size: 0.8em;
+}
+
+.pnote[open] > summary::before,
+.nsec[open] > summary::before {
+  content: "▼";
+}
+
+.pnote > summary {
+  color: var(--ctp-peach);
+  font-size: 1.05em;
+  font-weight: 750;
+}
+
+.pnote-body {
+  padding-left: 0.2em;
+}
+
+.nsec {
+  margin: 0.2em 0;
+  border-left: 1px solid var(--ctp-surface0);
+}
+
+.nsec > summary {
+  color: var(--ctp-subtext1);
+  font-weight: 700;
+}
+
+/* 每深一層縮排一次、顏色再淡一階,才看得出自己在第幾層。 */
+.nsec-d0 > summary {
+  color: var(--ctp-blue);
+}
+
+.nsec-d1 > summary {
+  color: var(--ctp-teal);
+  font-size: 0.95em;
+}
+
+.nsec-d2 > summary {
+  color: var(--ctp-subtext0);
+  font-size: 0.9em;
+  font-weight: 650;
+}
+
+.nsec-body {
+  padding: 0 0 0.6em 1.5em;
+}
+
+.pnote-body > :first-child,
+.nsec-body > :first-child {
+  margin-top: 0;
+}
+
+.pnote-body p,
+.nsec-body p {
+  margin: 0.55em 0;
+}
+
+.pnote-body ul,
+.pnote-body ol,
+.nsec-body ul,
+.nsec-body ol {
+  margin: 0.5em 0 0.7em;
+  padding-left: 1.35em;
+}
+
+.pnote mark {
+  padding: 0 0.15em;
+  color: var(--ctp-text);
+  background: var(--ctp-surface0);
+  border-radius: 3px;
+}
+
 .replay-button svg {
   width: 24px;
   height: 24px;
@@ -602,6 +715,10 @@ def tiptap_to_html(node, media: dict[str, Path]) -> str:
                 text = f"<b>{text}</b>"
             elif mt == "italic":
                 text = f"<i>{text}</i>"
+            elif mt == "code":
+                text = f"<code>{text}</code>"
+            elif mt == "highlight":
+                text = f"<mark>{text}</mark>"
             elif mt == "link":
                 href = html.escape(mark.get("attrs", {}).get("href", ""), quote=True)
                 text = f'<a href="{href}">{text}</a>'
@@ -621,6 +738,23 @@ def tiptap_to_html(node, media: dict[str, Path]) -> str:
         return f"<blockquote>{children}</blockquote>"
     if t == "hardBreak":
         return "<br>"
+    if t == "horizontalRule":
+        return "<hr>"
+    if t == "table":
+        return f"<table>{children}</table>"
+    if t == "tableRow":
+        return f"<tr>{children}</tr>"
+    if t in ("tableHeader", "tableCell"):
+        # Falling through to `children` would flatten every row into one run of
+        # text — silently, and only in notes (exactly 1 explanation has a table).
+        tag = "th" if t == "tableHeader" else "td"
+        attrs = node.get("attrs") or {}
+        span = "".join(
+            f' {a}="{int(attrs[a])}"'
+            for a in ("colspan", "rowspan")
+            if isinstance(attrs.get(a), int) and attrs[a] > 1
+        )
+        return f"<{tag}{span}>{children}</{tag}>"
     if t == "image":
         src = node.get("attrs", {}).get("src", "")
         if src.startswith(("http://", "https://")):
@@ -635,16 +769,128 @@ def tiptap_to_html(node, media: dict[str, Path]) -> str:
     return children
 
 
+def node_text(node) -> str:
+    if node.get("type") == "text":
+        return node.get("text", "")
+    return "".join(node_text(c) for c in node.get("content", []))
+
+
+def heading_level(node) -> int | None:
+    if node.get("type") != "heading":
+        return None
+    return int(node.get("attrs", {}).get("level", 3))
+
+
+def sections_to_html(nodes: list, media: dict[str, Path], depth: int = 0) -> str:
+    """Turn a flat node list into nested <details>, one nesting level per
+    heading level actually used. Most notes are H2 大節 + H3 小節, so the card
+    ends up three layers deep: 筆記 → 大節 → 小節.
+
+    Splits on the SHALLOWEST heading level present rather than on a fixed
+    level — notes vary (some start at H1, one starts at H3), and keying off
+    absolute levels would flatten those into a single layer.
+    """
+    levels = [lv for lv in (heading_level(n) for n in nodes) if lv is not None]
+    if not levels:
+        return "".join(tiptap_to_html(n, media) for n in nodes).strip()
+
+    top = min(levels)
+    groups: list[tuple[dict | None, list]] = [(None, [])]
+    for n in nodes:
+        if heading_level(n) == top:
+            groups.append((n, []))
+        else:
+            groups[-1][1].append(n)
+
+    parts = []
+    for head, body_nodes in groups:
+        # Content before the first top-level heading are siblings of the
+        # sections that follow, not children — some notes put their body at H3
+        # and only 參考文獻 at H2, and depth+1 here drew the body one level
+        # deeper than the reference list that comes after it.
+        inner = sections_to_html(body_nodes, media, depth + (head is not None))
+        if head is None:
+            if inner:
+                parts.append(inner)
+            continue
+        label = html.escape(node_text(head).strip())
+        parts.append(
+            f'<details class="nsec nsec-d{min(depth, 2)}">'
+            f"<summary>{label}</summary>"
+            f'<div class="nsec-body">{inner}</div></details>'
+        )
+    return "".join(parts)
+
+
+def note_to_html(doc, media: dict[str, Path]) -> str:
+    """Render one personal note as a collapsed <details> accordion.
+
+    Outer summary = the note's own leading heading (in practice
+    「高頻考點:…」). Inside, every heading at the shallowest level found gets
+    its own nested <details>, so a 70 KB note opens one section at a time
+    instead of unrolling the whole thing under the answer.
+    """
+    content = list(doc.get("content", []))
+    title = "個人筆記"
+    if content and content[0].get("type") == "heading":
+        title = node_text(content[0]).strip() or title
+        content = content[1:]
+    elif content and content[0].get("type") == "paragraph":
+        # 39/100 of 114's notes open with a bare paragraph that IS the title
+        # (「素材綜整：…」). Only treat it as one when it's short and real
+        # headings follow — otherwise a note's opening sentence would vanish
+        # from the body into the summary.
+        head = node_text(content[0]).strip()
+        if 0 < len(head) <= 80 and any(heading_level(n) for n in content[1:]):
+            title = head
+            content = content[1:]
+
+    body = sections_to_html(content, media)
+    if not body:
+        return ""
+    return (
+        f'<details class="pnote"><summary>{html.escape(title)}</summary>'
+        f'<div class="pnote-body">{body}</div></details>'
+    )
+
+
+def export_notes(db: str, year: int, remote: bool, email: str) -> dict[str, str]:
+    """First personal note per question for one year: {question_id: content_json}."""
+    scope = "--remote" if remote else "--local"
+    esc = email.replace("'", "''")
+    sql = (
+        "WITH firsts AS ("
+        "SELECT p.question_id qid, p.content_json cj, "
+        "ROW_NUMBER() OVER (PARTITION BY p.question_id "
+        "ORDER BY p.sort_order, p.slot) rn "
+        "FROM personal_notes p JOIN questions q ON q.id=p.question_id "
+        f"WHERE p.user_email='{esc}' AND q.year={year}) "
+        "SELECT qid, cj FROM firsts WHERE rn=1"
+    )
+    proc = subprocess.run(
+        ["pnpm", "exec", "wrangler", "d1", "execute", db, scope, "--json", "--command", sql],
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        sys.exit(f"wrangler note export failed for {year}:\n{proc.stderr}")
+    rows = d1_rows(proc.stdout, f"build-anki 讀 {year} 年個人筆記")
+    return {r["qid"]: r["cj"] for r in rows}
+
+
 def build_year(
     rows: list[dict],
     year: int,
     stage_root: Path,
     model: genanki.Model,
     field_names: list[str],
-) -> tuple[Path, int, int]:
+    notes: dict[str, str] | None = None,
+) -> tuple[Path, int, int, int]:
     deck = genanki.Deck(DECK_ID_BASE + year, f"血專::{year}年")
     media: dict[str, Path] = {}
     n_expl = 0
+    n_note = 0
     for r in rows:
         stem = html.escape(r["stem"]).strip()
         opts = json.loads(r["options_json"])
@@ -667,6 +913,13 @@ def build_year(
                 n_expl += 1
                 back += f'<div class="expl">{expl_html}</div>'
 
+        note_json = (notes or {}).get(r["id"])
+        if note_json:
+            note_html = note_to_html(json.loads(note_json), media)
+            if note_html:
+                n_note += 1
+                back += note_html
+
         deck.add_note(
             genanki.Note(
                 model=model,
@@ -687,7 +940,7 @@ def build_year(
         staged_files.append(str(dst))
     pkg.media_files = staged_files
     pkg.write_to_file(str(out))
-    return out, len(rows), n_expl
+    return out, len(rows), n_expl, n_note
 
 
 def main():
@@ -706,6 +959,11 @@ def main():
     ap.add_argument(
         "--profile",
         help="Anki profile name (default: auto-detect the one with a 'Basic' type)",
+    )
+    ap.add_argument(
+        "--notes",
+        metavar="EMAIL",
+        help="附上該帳號每題排序第一則個人筆記(摺疊)。牌組會含私人內容,不要分享",
     )
     args = ap.parse_args()
 
@@ -729,6 +987,10 @@ def main():
         model, field_names = make_model(None)
         print("note type: 血專(專屬型別,可分享、不產生 Basic+)")
 
+    if args.notes:
+        print(f"個人筆記: 每題排序第一則, 帳號 {args.notes}")
+        print("  ⚠ 產出的牌組含私人筆記,請勿分享。")
+
     OUT_DIR.mkdir(exist_ok=True)
     db = db_name()
     remote = not args.local
@@ -736,9 +998,14 @@ def main():
         stage_root = Path(tmp)
         for y in args.years:
             rows = export_year(db, y, remote)
-            out, n, n_expl = build_year(rows, y, stage_root, model, field_names)
+            notes = export_notes(db, y, remote, args.notes) if args.notes else None
+            out, n, n_expl, n_note = build_year(
+                rows, y, stage_root, model, field_names, notes
+            )
+            extra = f", {n_note} 有筆記" if args.notes else ""
             print(
-                f"{out.name}: {n} 張卡, {n_expl} 有詳解, {out.stat().st_size / 1e6:.1f} MB"
+                f"{out.name}: {n} 張卡, {n_expl} 有詳解{extra}, "
+                f"{out.stat().st_size / 1e6:.1f} MB"
             )
     if missing_images:
         print(f"\n找不到本地檔的圖片 {len(missing_images)} 張:", file=sys.stderr)
