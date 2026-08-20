@@ -47,6 +47,9 @@ const PREFER_BELOW = 280;
 // 工具列的來源:一段新選取,或是點擊了既有的黃色標記。
 type Anchor = {
 	text: string;
+	/** 保留段落結構的版本,只有「原樣帶走」的動作該用(存到 Telegram)。
+	 * 來源是畫記時沒有原始選取可回溯,退回 `text`。 */
+	rawText: string;
 	rect: DOMRect;
 	/**
 	 * 重新量測錨點在視窗中的位置。捲動時工具列靠它跟著選取一起走 ——
@@ -87,6 +90,7 @@ export function SelectionToolbar() {
 		if (mark) {
 			return {
 				text: mark.text,
+				rawText: mark.text,
 				rect: mark.rect,
 				measure: () =>
 					mark.el.isConnected ? mark.el.getBoundingClientRect() : null,
@@ -141,6 +145,7 @@ function anchorFromSelection(
 
 	return {
 		text: sel.text,
+		rawText: sel.rawText,
 		rect: sel.rect,
 		// Range 在文件裡的節點被換掉時會退化成寬高 0(例如詳解重新 render),
 		// usable() 會把那種結果當成「量不到」,工具列就收起來。
@@ -261,7 +266,7 @@ function Toolbar({
 		if (!questionId || tg === "sending" || tg === "done") return;
 		setTg("sending");
 		try {
-			await sendSelectionToTelegram(anchor.text, questionId);
+			await sendSelectionToTelegram(anchor.rawText, questionId);
 			setTg("done");
 			doneTimer.current = window.setTimeout(onDismiss, 1200);
 		} catch {

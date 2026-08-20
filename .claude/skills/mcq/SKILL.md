@@ -1,7 +1,7 @@
 ---
 name: mcq
 version: 0.8.0
-description: 血液腫瘤考古題(單題測驗/看答案/關鍵字搜尋/個人筆記,一題可有多則筆記、可讀可寫,可從 HTML 或 OpenEvidence 公開對話匯入圖文)。前綴決定動作,由 mcq_cmd.py 確定性 dispatch。當使用者輸入 /mcq 開頭的指令時使用,例如 /mcq 114-001、/mcq 114-001 answer、/mcq search: CML、/mcq note 114-001: 內容、/mcq note 114-001 #2: 內容。
+description: '血液腫瘤考古題(單題測驗/看答案/關鍵字搜尋/個人筆記,一題可有多則筆記、可讀可寫,可從 HTML 或 OpenEvidence 公開對話匯入圖文)。前綴決定動作,由 mcq_cmd.py 確定性 dispatch。當使用者輸入 /mcq 開頭的指令時使用,例如 /mcq 114-001、/mcq 114-001 answer、/mcq search: CML、/mcq note 114-001: 內容、/mcq note 114-001 #2: 內容。'
 ---
 
 # mcq — 考古題測驗 / 搜尋 / 筆記

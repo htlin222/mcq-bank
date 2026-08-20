@@ -183,3 +183,16 @@ test('localParts 以偏移平移計算本地時與日期', () => {
   // UTC 本身
   assert.deepEqual(localParts(Date.UTC(2024, 0, 1, 5, 0, 0), 0), { hour: 5, dateStr: '2024-01-01' });
 });
+
+test('formatSelectionNote 原樣保留換行(#165)', () => {
+  // 分行遺失的成因在前端(選取文字被 \s+ 壓平),但這一段是最後一道關卡:
+  // escapeHtml 或截斷邏輯哪天順手 normalize 空白,症狀會一模一樣地回來,
+  // 而且只有真的送一則到 Telegram 才看得見。
+  const out = formatSelectionNote({
+    text: '第一行\n第二行\n\n第四行',
+    questionId: '111-069',
+    origin: 'https://example.com',
+  });
+  const quoted = /<blockquote>([\s\S]*)<\/blockquote>/.exec(out)?.[1];
+  assert.equal(quoted, '第一行\n第二行\n\n第四行');
+});
