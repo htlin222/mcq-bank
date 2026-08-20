@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import { flatSelection, richSelection } from "./selectionText";
 
 export type TextSelection = {
+	/** 比對用:空白全部壓平。錨定、AI、長度上限都看這個。 */
 	text: string;
+	/** 呈現用:保留段落結構。給「原樣帶走」的去處(存到 Telegram)。 */
+	rawText: string;
 	// Anchoring rect of the selection range, in client (viewport) coords.
 	rect: DOMRect;
 	// 同一段選取的 Range 拷貝。`rect` 只是快照,捲動後就過期;工具列靠這個
@@ -74,7 +78,8 @@ export function useTextSelection(): {
 				setSelection(null);
 				return;
 			}
-			const text = sel.toString().replace(/\s+/g, " ").trim();
+			const raw = sel.toString();
+			const text = flatSelection(raw);
 			if (text.length < MIN_LEN || text.length > MAX_LEN) {
 				setSelection(null);
 				return;
@@ -98,6 +103,7 @@ export function useTextSelection(): {
 			}
 			setSelection({
 				text,
+				rawText: richSelection(raw),
 				rect,
 				range: range.cloneRange(),
 				node: range.commonAncestorContainer,
