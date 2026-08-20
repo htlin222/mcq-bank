@@ -181,6 +181,10 @@ CSS = """
   color: var(--ctp-text);
   background: var(--ctp-base);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "Noto Sans CJK TC", sans-serif;
+  /* 全卡唯一的字級。層級一律靠粗細與顏色表達,不靠大小 —— 舊版題幹 24px
+     配選項 12px,選項只有題幹的一半,讀起來像註腳。改這一行就能整體縮放。
+     例外只有四處,都不是內文:.qid(標籤)、▶ 標記(字符)、code(等寬在同
+     px 下看起來較大)、table(欄位要塞進手機寬度)。 */
   font-size: 18px;
   line-height: 1.3;
   text-align: left;
@@ -226,7 +230,6 @@ CSS = """
 
 .field-front {
   color: var(--ctp-text);
-  font-size: 24px;
   font-weight: 650;
   line-height: 1.3;
 }
@@ -235,14 +238,12 @@ CSS = """
   margin-bottom: 20px;
   padding-bottom: 18px;
   color: var(--ctp-subtext1);
-  font-size: 18px;
   font-weight: 550;
   border-bottom: 1px solid var(--ctp-surface0);
 }
 
 .field-back {
   color: var(--ctp-text);
-  font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
 }
@@ -258,7 +259,6 @@ CSS = """
 .stem {
   margin: 0 0 1.05em;
   color: var(--ctp-text);
-  font-size: 24px;
   font-weight: 650;
   line-height: 1.3;
   white-space: pre-wrap;
@@ -268,7 +268,6 @@ CSS = """
   margin: 0;
   padding: 0;
   color: var(--ctp-text);
-  font-size: 12px;
   font-weight: 450;
   line-height: 1.3;
   list-style: none;
@@ -300,13 +299,11 @@ CSS = """
 .field-front--review .stem {
   margin-bottom: 0.8em;
   color: var(--ctp-subtext1);
-  font-size: 18px;
   font-weight: 600;
 }
 
 .field-front--review .options {
   color: var(--ctp-subtext1);
-  font-size: 12px;
   line-height: 1.3;
 }
 
@@ -322,14 +319,12 @@ CSS = """
 .answer {
   margin: 0 0 1.05em;
   color: var(--ctp-green);
-  font-size: 18px;
   font-weight: 700;
   line-height: 1.3;
 }
 
 .expl {
   color: var(--ctp-text);
-  font-size: 12px;
   line-height: 1.3;
 }
 
@@ -341,7 +336,6 @@ CSS = """
 .expl h6 {
   margin: 1.25em 0 0.45em;
   color: var(--ctp-mauve);
-  font-size: 1.05em;
   font-weight: 750;
   line-height: 1.3;
 }
@@ -472,7 +466,6 @@ img {
   margin-top: 0.9em;
   padding-top: 0.35em;
   border-top: 1px solid var(--ctp-surface0);
-  font-size: 12px;
   line-height: 1.3;
 }
 
@@ -507,7 +500,6 @@ img {
 }
 
 .fold > summary {
-  font-size: 1.05em;
   font-weight: 750;
 }
 
@@ -541,12 +533,10 @@ img {
 
 .nsec-d1 > summary {
   color: var(--ctp-teal);
-  font-size: 0.95em;
 }
 
 .nsec-d2 > summary {
   color: var(--ctp-subtext0);
-  font-size: 0.9em;
   font-weight: 650;
 }
 
