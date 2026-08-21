@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { selectionActions, hasMeaningfulContent } from './selectionActions.ts';
+import { selectionActions, hasMeaningfulContent, CARD_MAX_LEN } from './selectionActions.ts';
 
 const TG = { onQuestionPage: false, telegramLinked: false };
 const IN = { inAnnotatable: true, cloze: false, ...TG };
@@ -63,7 +63,13 @@ test('存到 Telegram 要同時已綁定且在題目頁', () => {
 
 test('空白選取所有動作全滅', () => {
   const a = selectionActions({ text: '   ', ...IN, telegramLinked: true, onQuestionPage: true });
-  assert.deepEqual(a, { highlight: false, lookup: false, ai: false, telegram: false });
+  assert.deepEqual(a, {
+    highlight: false,
+    lookup: false,
+    ai: false,
+    telegram: false,
+    copyImage: false,
+  });
 });
 
 test('純標點/純數字不算實詞,查不了參考資料', () => {
@@ -72,4 +78,42 @@ test('純標點/純數字不算實詞,查不了參考資料', () => {
   assert.equal(hasMeaningfulContent('a'), false); // 單一拉丁字母不夠
   assert.equal(hasMeaningfulContent('AML'), true);
   assert.equal(hasMeaningfulContent('血'), true);
+});
+
+test("複製成圖卡:門檻同查參考資料,但另有上限", () => {
+	const base = {
+		inAnnotatable: false,
+		cloze: false,
+		onQuestionPage: true,
+		telegramLinked: false,
+	};
+	assert.equal(selectionActions({ ...base, text: "貧" }).copyImage, false, "太短仍該關");
+	assert.equal(selectionActions({ ...base, text: "溶血性貧血" }).copyImage, true);
+	assert.equal(
+		selectionActions({ ...base, text: "字".repeat(CARD_MAX_LEN) }).copyImage,
+		true,
+		"剛好在上限上應該還能按",
+	);
+	assert.equal(
+		selectionActions({ ...base, text: "字".repeat(CARD_MAX_LEN + 1) }).copyImage,
+		false,
+		"超過上限要關掉 —— 我們不截斷,見 CARD_MAX_LEN 的說明",
+	);
+	assert.equal(
+		selectionActions({ ...base, text: "、。，；：" }).copyImage,
+		false,
+		"純標點沒有實詞",
+	);
+});
+
+test("複製成圖卡不限題目頁 —— 講義與筆記一樣值得分享", () => {
+	const a = selectionActions({
+		text: "冷凝集素效價",
+		inAnnotatable: false,
+		cloze: false,
+		onQuestionPage: false,
+		telegramLinked: true,
+	});
+	assert.equal(a.copyImage, true);
+	assert.equal(a.telegram, false, "Telegram 仍然只在題目頁");
 });
