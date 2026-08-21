@@ -13,6 +13,7 @@ import {
 	Check,
 	Highlighter,
 	Loader2,
+	Image as ImageIcon,
 	Send,
 	Sparkles,
 	X as XIcon,
@@ -20,6 +21,19 @@ import {
 import { useTextSelection, type TextSelection } from "../lib/useTextSelection";
 import { blockContext, selectionActions } from "../lib/selectionActions";
 import { sendSelectionToTelegram, useTgLinked } from "../lib/telegramApi";
+import { config } from "../config";
+import { cardSourceLabel, formatStamp } from "../lib/cardLayout";
+import { cardContent } from "../lib/selectionBlocks";
+import { renderCard } from "../lib/renderCard";
+import {
+	cardFilename,
+	deliverCard,
+	deliveryDoneLabel,
+	deliveryLabel,
+	pickDelivery,
+	readEnv,
+	type Delivery,
+} from "../lib/shareCard";
 import {
 	useAnnotationRegistry,
 	type AnnotationTarget,
@@ -47,6 +61,12 @@ const PREFER_BELOW = 280;
 // 工具列的來源:一段新選取,或是點擊了既有的黃色標記。
 type Anchor = {
 	text: string;
+	/**
+	 * 選取的 Range 快照。圖卡靠它還原標題層級與清單結構 ——
+	 * `text` 是 `toString()` 壓平過的,那些資訊已經不在裡面了(見 selectionBlocks)。
+	 * 從既有螢光標記叫出工具列時沒有原始選取可回溯,那條路徑是 null。
+	 */
+	range: Range | null;
 	rect: DOMRect;
 	/**
 	 * 重新量測錨點在視窗中的位置。捲動時工具列靠它跟著選取一起走 ——
@@ -87,6 +107,7 @@ export function SelectionToolbar() {
 		if (mark) {
 			return {
 				text: mark.text,
+				range: null,
 				rect: mark.rect,
 				measure: () =>
 					mark.el.isConnected ? mark.el.getBoundingClientRect() : null,
@@ -141,6 +162,7 @@ function anchorFromSelection(
 
 	return {
 		text: sel.text,
+		range: sel.range,
 		rect: sel.rect,
 		// Range 在文件裡的節點被換掉時會退化成寬高 0(例如詳解重新 render),
 		// usable() 會把那種結果當成「量不到」,工具列就收起來。
@@ -148,6 +170,14 @@ function anchorFromSelection(
 		contextNode: sel.node,
 		highlight,
 	};
+}
+
+/** 非題目頁時的出處:頁面標題去掉站名那一段。 */
+function docTitle(): string {
+	return document.title
+		.split(/[|｜]/)
+		.map((s) => s.trim())
+		.filter((s) => s && s !== config.brand.short_name)[0] ?? "";
 }
 
 type Mode = "idle" | "reference" | "ai";
@@ -192,6 +222,13 @@ function Toolbar({
 	const [tg, setTg] = useState<"idle" | "sending" | "done" | "error">("idle");
 	const doneTimer = useRef<number | undefined>(undefined);
 	useEffect(() => () => window.clearTimeout(doneTimer.current), []);
+
+	const [card, setCard] = useState<"idle" | "working" | "done" | "error">("idle");
+	// 交付方式在掛載時決定一次 —— 按鈕文案要跟著它走,說「複製」卻跳出下載
+	// 很像壞掉。
+	const delivery = useMemo<Delivery>(() => pickDelivery(readEnv()), []);
+	const cardTimer = useRef<number | undefined>(undefined);
+	useEffect(() => () => window.clearTimeout(cardTimer.current), []);
 
 	// 收合時的實際寬度。按鈕數會變(四顆全亮時比兩顆寬一倍),所以量出來再拿去
 	// 夾 left —— 沿用寫死的估計值時,靠視窗右緣的選取會把卡片推出畫面外。
@@ -267,6 +304,48 @@ function Toolbar({
 		} catch {
 			setTg("error");
 		}
+	}
+
+	/**
+	 * 把選取畫成 PNG 交出去。
+	 *
+	 * **`renderCard()` 的 Promise 不能先 await。** Safari 要求剪貼簿寫入發生在
+	 * 使用者手勢的同一個 task 裡,先拿到 blob 再寫會丟 NotAllowedError;Chrome
+	 * 兩種寫法都過,所以本機開發時發現不了。交給 deliverCard 把 Promise 原樣
+	 * 塞進 ClipboardItem。
+	 */
+	function doCopyImage() {
+		if (card === "working" || card === "done") return;
+		setCard("working");
+		const stamp = formatStamp(new Date());
+		const source = cardSourceLabel(location.pathname, docTitle());
+		const png = anchor.range
+			? renderCard({
+					...cardContent(anchor.range),
+					source,
+					site: config.brand.short_name,
+				})
+			: // 螢光標記叫出來的工具列沒有原始選取,只剩壓平過的文字 ——
+				// 退回單段純文字卡,而不是整顆按鈕消失。
+				renderCard({
+					blocks: [{ kind: "para", text: anchor.text }],
+					crumbs: [],
+					source,
+					site: config.brand.short_name,
+				});
+		deliverCard(png, cardFilename(source, stamp), delivery)
+			.then(() => {
+				setCard("done");
+				cardTimer.current = window.setTimeout(onDismiss, 1200);
+			})
+			.catch((e) => {
+				// 使用者自己在系統分享面板按取消 —— 不是失敗,別亮紅字。
+				if (e instanceof DOMException && e.name === "AbortError") {
+					setCard("idle");
+					return;
+				}
+				setCard("error");
+			});
 	}
 
 	// 定位:固定座標,預設在選取下方;下方塞不下且上方更寬敞才翻上去。
@@ -367,6 +446,29 @@ function Toolbar({
 										: "存到 Telegram"
 							}
 							hover="hover:bg-cyan-50 dark:hover:bg-cyan-400/15"
+						/>
+					)}
+					{actions.copyImage && (
+						<ToolButton
+							active={false}
+							onClick={doCopyImage}
+							icon={
+								card === "working" ? (
+									<Loader2 size={13} className="animate-spin" />
+								) : card === "done" ? (
+									<Check size={13} />
+								) : (
+									<ImageIcon size={13} />
+								)
+							}
+							label={
+								card === "done"
+									? deliveryDoneLabel(delivery)
+									: card === "error"
+										? "產生失敗"
+										: deliveryLabel(delivery)
+							}
+							hover="hover:bg-emerald-50 dark:hover:bg-emerald-400/15"
 						/>
 					)}
 				</div>

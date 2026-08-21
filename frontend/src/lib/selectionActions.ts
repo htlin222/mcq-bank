@@ -7,6 +7,16 @@
 /** 「查參考資料」的下限。低於這個長度,FTS 查詢只會回空手。 */
 export const LOOKUP_MIN_LEN = 3;
 
+/**
+ * 「複製成圖卡」的上限。
+ *
+ * 不是隨手挑的數字:實測 480 字時字級已降到階梯下限,卡片高度約為寬度的 0.7 倍;
+ * 再長下去只能繼續把卡片拉高,而超過一個螢幕的圖在聊天室裡沒有人會讀完。
+ * **刻意不做截斷 + `…`** —— 這是題庫,截掉的醫學敘述可能意思相反
+ * (「ADAMTS13 活性低於 10%」截成「ADAMTS13 活性低於 1」),寧可按鈕不出現。
+ */
+export const CARD_MAX_LEN = 480;
+
 // 一段選取要有實詞才值得查:≥2 個拉丁字母(AML、CD20)或 ≥1 個漢字。
 // 純標點、純數字、純空白查了也是空的。
 export function hasMeaningfulContent(text: string): boolean {
@@ -32,6 +42,7 @@ export type Actions = {
 	lookup: boolean;
 	ai: boolean;
 	telegram: boolean;
+	copyImage: boolean;
 };
 
 /**
@@ -43,7 +54,13 @@ export type Actions = {
 export function selectionActions(ctx: ActionContext): Actions {
 	const text = ctx.text.trim();
 	if (!text)
-		return { highlight: false, lookup: false, ai: false, telegram: false };
+		return {
+			highlight: false,
+			lookup: false,
+			ai: false,
+			telegram: false,
+			copyImage: false,
+		};
 	return {
 		highlight: ctx.inAnnotatable && !ctx.cloze,
 		lookup: text.length >= LOOKUP_MIN_LEN && hasMeaningfulContent(text),
@@ -54,6 +71,12 @@ export function selectionActions(ctx: ActionContext): Actions {
 		// (個人 → Telegram 推播),在浮動工具列上引導不了,留著只會是一顆
 		// 按下去必定失敗的按鈕。訊息要帶題目出處,所以也只在題目頁出現。
 		telegram: ctx.telegramLinked && ctx.onQuestionPage,
+		// 圖卡的門檻與查參考資料一致(太短的選取畫出來只是一張大字報),
+		// 但另外設上限:超過就算縮到字級下限也讀不動,見 CARD_MAX_LEN。
+		copyImage:
+			text.length >= LOOKUP_MIN_LEN &&
+			text.length <= CARD_MAX_LEN &&
+			hasMeaningfulContent(text),
 	};
 }
 
