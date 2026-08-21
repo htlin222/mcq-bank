@@ -16,6 +16,8 @@ import type { Block } from "./cardLayout";
 
 const BLOCK_SEL = "h1,h2,h3,h4,h5,h6,p,li,blockquote";
 const HEADING_SEL = "h1,h2,h3,h4,h5,h6";
+/** 筆記手風琴的標題按鈕(NoteContent)。 */
+const NOTE_HEADING_SEL = "[data-note-heading]";
 
 /** 把 range 的邊界夾到 node 上,回傳落在選取內的那一段文字。 */
 function clipNode(range: Range, node: Node): string {
@@ -114,6 +116,32 @@ export function extractBlocks(range: Range): Block[] {
 }
 
 /**
+ * 筆記(個人筆記 / 其他筆記)的標題路徑。
+ *
+ * `NoteContent` 把**每一個**標題渲染成 `<button data-note-heading>` 而不是
+ * `h1..h6` —— 手風琴需要它可點、可聚焦(手把導覽也靠這個屬性走訪)。所以
+ * 「掃 h1..h6」那條路在筆記裡永遠是空手,這正是回報的症狀:在筆記裡複製成
+ * 圖卡時麵包屑整條不見。
+ *
+ * 好消息是筆記的階層**真的巢狀在 DOM 裡**(區段的子節點渲染在區段內),比
+ * 扁平的標題序列更可靠 —— 不必猜哪個標題是祖先,往上走就是了。
+ *
+ * 區段的形狀是「外層 div > 第一個子元素是標題按鈕」,所以認 `firstElementChild`
+ * 而不是認 class(那會跟著樣式一起腐爛)。
+ */
+function accordionPath(range: Range): string[] {
+	const out: string[] = [];
+	for (let el = scopeRoot(range); el; el = el.parentElement) {
+		const head = el.firstElementChild;
+		if (head?.matches(NOTE_HEADING_SEL)) {
+			const text = (head.textContent ?? "").replace(/\s+/g, " ").trim();
+			if (text) out.unshift(text);
+		}
+	}
+	return out;
+}
+
+/**
  * 標題路徑(麵包屑):最上層 › … › 最近的一層。
  *
  * `h1..h6` 在 HTML 裡是**扁平序列**,沒有巢狀結構可問,所以得自己還原:從
@@ -124,9 +152,17 @@ export function extractBlocks(range: Range): Block[] {
  * 「目前所在」= 選取範圍內的第一個標題,沒有的話才是選取之前最後一個。
  */
 export function headingPath(range: Range): string[] {
+	// 筆記優先:那裡沒有 h1..h6,而巢狀結構本身就是階層。
+	const sections = accordionPath(range);
+	if (sections.length) return sections;
+
 	const root = scopeRoot(range);
 	if (!root) return [];
-	const scope = root.closest(".tiptap") ?? root.ownerDocument.body;
+	const scope = root.closest(".tiptap");
+	// 找不到內容容器時**不要**退回整份文件。頁面上到處都有標題(題幹、分頁、
+	// 卡片標題),掃 body 會給出一條看起來合理、其實跟選取無關的路徑 ——
+	// 那比沒有麵包屑更糟,因為它是錯的而且沒有人會懷疑。
+	if (!scope) return [];
 	const heads = Array.from(scope.querySelectorAll(HEADING_SEL));
 	const level = (h: Element) => Number(h.tagName[1]);
 	const text = (h: Element) => (h.textContent ?? "").replace(/\s+/g, " ").trim();
