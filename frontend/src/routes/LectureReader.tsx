@@ -8,6 +8,7 @@
 // overlay) to the clipboard.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
+import { nextPageSearch, readPageParam } from "../lib/lecturePageParam";
 import { ChevronLeft } from "lucide-react";
 import {
 	EmbedPDFViewer,
@@ -46,15 +47,14 @@ export default function LectureReader() {
 	// at mount so navigating to a different page later doesn't re-jump. Kept in
 	// a ref alongside an "applied" flag so we trigger scrollToPage exactly once,
 	// on the first onPageChange (which is the viewer's signal that it's ready).
-	const [searchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const initialPageRef = useRef<number | null>(
-		(() => {
-			const raw = searchParams.get("page");
-			const n = raw ? parseInt(raw, 10) : NaN;
-			return Number.isFinite(n) && n >= 1 ? n - 1 : null; // 0-indexed
-		})(),
+		readPageParam(searchParams.get("page")),
 	);
 	const initialJumpDoneRef = useRef(false);
+	// 網址開始跟著頁碼走的時機。在 viewer 就緒之前不能寫 —— 那時 currentPage
+	// 還是 0,會先把 ?page=30 抹成沒有參數,再被跳頁改回來,網址閃一下。
+	const [urlSyncArmed, setUrlSyncArmed] = useState(false);
 
 	const viewerRef = useRef<EmbedPDFViewerHandle>(null);
 	const pageNodeRef = useRef<HTMLElement | null>(null);
@@ -214,8 +214,36 @@ export default function LectureReader() {
 		const target = initialPageRef.current;
 		if (target !== null && target > 0) {
 			viewerRef.current?.scrollToPage(target);
+			// 不等 onPageChange 回報 —— 它不一定會為程式觸發的捲動而發,那樣
+			// currentPage 會停在 0,底下的同步就把網址上的頁碼抹掉。
+			setCurrentPage(target);
 		}
+		setUrlSyncArmed(true);
 	}, []);
+
+	/**
+	 * 讓網址跟著目前頁碼走。
+	 *
+	 * 舊版只在掛載時讀一次 `?page=`,之後再也不寫 —— 帶著 `?page=30` 進來、
+	 * 捲到第 45 頁,網址仍然說 30。複製那條連結給人,對方會落在錯的地方,而且
+	 * 網址看起來完全正常。
+	 *
+	 * **一律 replace,不能 push。** 每翻一頁塞一筆歷史紀錄的話,想離開這份講義
+	 * 得按幾十次上一頁。
+	 *
+	 * debounce 是必要的:連續捲動時頁碼一直變,而 Safari 對 `replaceState` 有
+	 * 每 30 秒 100 次的上限,超過會丟 SecurityError。500ms 讓最壞情況落在
+	 * 60 次/30 秒。
+	 */
+	useEffect(() => {
+		if (!urlSyncArmed) return;
+		const next = nextPageSearch(searchParams, currentPage);
+		if (!next) return; // 沒變就不寫 —— 少了這道閘,寫入會再觸發這支 effect
+		const t = window.setTimeout(() => {
+			setSearchParams(next, { replace: true });
+		}, 500);
+		return () => window.clearTimeout(t);
+	}, [urlSyncArmed, currentPage, searchParams, setSearchParams]);
 
 	const onSelectionChange = useCallback((sel: ViewerSelection | null) => {
 		selectionRef.current = sel;

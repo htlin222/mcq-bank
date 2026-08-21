@@ -26,6 +26,9 @@ frontend/tsconfig.tsbuildinfo
 # Raw exam materials — kept locally for the import script, never committed
 years/
 *.pdf
+# 例外:講義閱讀器的 e2e 需要一份**真的** PDF 才會就緒(pdfium wasm 要能解析),
+# 所以那份 1.9 KB 的合成檔要進版控。上面的 *.pdf 擋的是講義/教科書本體。
+!frontend/e2e/fixtures/*.pdf
 
 # Lecture-class source PDFs (複習班講義). ~78MB of decks that live in R2;
 # scripts/import-lectures.ts reads them from here (often a symlink to the
