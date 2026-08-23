@@ -15,14 +15,17 @@ import {
 	type EmbedPDFViewerHandle,
 	type ViewerSelection,
 	type AnnotationTransferItem,
+	type RailTab,
 } from "../components/lecture/EmbedPDFViewer";
 import { ReaderToolbar } from "../components/lecture/ReaderToolbar";
 import { TextbookChapterNav } from "../components/lecture/TextbookChapterNav";
 import { SelectionPopup } from "../components/lecture/SelectionPopup";
 import { LecturePanel } from "../components/lecture/LecturePanel";
+import { BookmarkRailPane } from "../components/lecture/BookmarkRailPane";
 import { LectureSearchBox } from "../components/lecture/LectureSearchBox";
 import { useLectureNotes } from "../hooks/useLectureNotes";
 import { useLectureAnnotations } from "../hooks/useLectureAnnotations";
+import { useLectureBookmarks } from "../hooks/useLectureBookmarks";
 import { getLecture, type LectureDoc } from "../lib/lectureApi";
 import { blobToClipboard } from "../lib/snapshot";
 import { PDFPageSkeleton } from "../components/Skeleton";
@@ -71,6 +74,8 @@ export default function LectureReader() {
 	const [panActive, setPanActive] = useState(false);
 	const [panelOpen, setPanelOpen] = useState(true);
 	const [thumbsOpen, setThumbsOpen] = useState(true);
+	// 左側 rail 上的分頁(縮圖 / 書籤)。兩者共用同一條 rail 與同一顆開關。
+	const [railTab, setRailTab] = useState<RailTab>("thumbs");
 
 	// Fullscreen reading. In fullscreen the title bar is gone and the toolbar
 	// auto-hides — a thin hover strip at the top slides it back down (toolbarPeek).
@@ -118,6 +123,25 @@ export default function LectureReader() {
 
 	const notes = useLectureNotes(slug);
 	const annos = useLectureAnnotations(slug);
+	const bookmarks = useLectureBookmarks(slug);
+
+	// ⚠️ 書籤的頁碼是 1-based(對齊 lecture_notes,卡片預覽 join 它),而 viewer
+	// 的 currentPage 是 0-based。轉換只在這一行 —— 兩種慣例在這個 repo 裡已經
+	// 並存(lecture_annotations 是 0-based),多一處轉換就多一個會 off-by-one
+	// 的地方。
+	const currentPdfPage = currentPage + 1;
+	const bookmarked = bookmarks.has(currentPdfPage);
+
+	const toggleBookmark = useCallback(() => {
+		bookmarks
+			.toggle(currentPdfPage)
+			.then((on) =>
+				setToast({ kind: "ok", msg: on ? "已加入書籤" : "已移除書籤" }),
+			)
+			.catch((e) =>
+				setToast({ kind: "err", msg: e?.message || "書籤操作失敗" }),
+			);
+	}, [bookmarks, currentPdfPage]);
 
 	// Textbook chapters (kind='textbook', migration 0033) reuse this reader but
 	// are 唯讀參考書: no highlight tool, no notebook panel, no persisting selection
@@ -359,6 +383,13 @@ export default function LectureReader() {
 				case "h":
 					togglePan();
 					break;
+				case "b":
+					// 教科書唯讀,沒有這個動作 —— 讓它落到 default 而不是靜靜地
+					// 吃掉按鍵,否則使用者按了 b 什麼都沒發生,分不出是壞了還是
+					// 這一頁本來就沒有。
+					if (isTextbook) return;
+					toggleBookmark();
+					break;
 				case "=":
 				case "+":
 					zoomIn();
@@ -389,7 +420,7 @@ export default function LectureReader() {
 		}
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
-	}, [togglePan, zoomIn, zoomOut, prev, next, toggleFullscreen]);
+	}, [togglePan, zoomIn, zoomOut, prev, next, toggleFullscreen, toggleBookmark, isTextbook]);
 
 	// Render the current page (with annotations baked in) to a PNG via pdfium and
 	// put it on the clipboard (download fallback).
@@ -508,6 +539,8 @@ export default function LectureReader() {
 			onZoomFit={zoomFit}
 			onTogglePan={togglePan}
 			onToggleHighlight={toggleHighlight}
+			bookmarked={bookmarked}
+			onToggleBookmark={toggleBookmark}
 			onSnapshot={snapshot}
 			fullscreen={fullscreen}
 			onToggleFullscreen={toggleFullscreen}
@@ -603,6 +636,25 @@ export default function LectureReader() {
 							onReady={onViewerReady}
 							pageContainerRef={onPageContainer}
 							showThumbnails={thumbsOpen}
+							railTab={railTab}
+							onRailTab={setRailTab}
+							hideBookmarkTab={isTextbook}
+							bookmarkPane={
+								<BookmarkRailPane
+									bookmarks={bookmarks.bookmarks}
+									loading={bookmarks.loading}
+									currentPage={currentPdfPage}
+									onJump={(p) => goToPage(p - 1)}
+									onRemove={(p) => {
+										bookmarks.remove(p).catch((e) =>
+											setToast({
+												kind: "err",
+												msg: e?.message || "移除書籤失敗",
+											}),
+										);
+									}}
+								/>
+							}
 						/>
 					) : (
 						/* Slide-shaped skeleton until the lecture metadata returns.

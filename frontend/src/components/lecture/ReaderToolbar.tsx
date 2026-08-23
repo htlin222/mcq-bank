@@ -10,6 +10,7 @@ import {
 	RulerDimensionLine,
 	Hand,
 	Highlighter,
+	Bookmark,
 	Camera,
 	Expand,
 	Minimize,
@@ -35,6 +36,9 @@ export interface ReaderToolbarProps {
 	onZoomFit(): void;
 	onTogglePan(): void;
 	onToggleHighlight(): void;
+	/** 現在這一頁已經加了書籤 —— 那顆鈕是 toggle,不是「再加一次」。 */
+	bookmarked: boolean;
+	onToggleBookmark(): void;
 	onSnapshot(): void;
 	/** Whole-reader fullscreen (header + toolbar auto-hide). */
 	fullscreen: boolean;
@@ -91,7 +95,11 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 
 			{/* Hand / pan tool — drag to scroll. Navigation only, so it stays
 			    available even for 唯讀 textbooks. */}
-			<TBtn label="手掌工具 (H)" onClick={props.onTogglePan} active={props.panActive}>
+			<TBtn
+				label="手掌工具 (H)"
+				onClick={props.onTogglePan}
+				active={props.panActive}
+			>
 				<Hand size={17} />
 			</TBtn>
 
@@ -103,6 +111,23 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
 					active={props.highlightActive}
 				>
 					<Highlighter size={17} />
+				</TBtn>
+			)}
+
+			{/* 書籤 — 對「這一頁」的動作,所以跟截圖放在一起,不跟左邊那顆
+			    rail 開關混在一起(那顆管的是版面)。唯讀教科書不給加。
+			    label 隨狀態換:按下去沒反應的鍵最傷,而一顆永遠寫著「加入書籤」
+			    的鈕在已加過的頁面上,按下去看起來就是沒反應。 */}
+			{!props.readOnly && (
+				<TBtn
+					label={props.bookmarked ? "移除書籤 (B)" : "加入書籤 (B)"}
+					onClick={props.onToggleBookmark}
+					active={props.bookmarked}
+				>
+					<Bookmark
+						size={17}
+						fill={props.bookmarked ? "currentColor" : "none"}
+					/>
 				</TBtn>
 			)}
 
@@ -185,7 +210,10 @@ function PageIndicator({
 					aria-label="跳到頁面"
 					className="w-10 rounded border border-accent bg-white px-1 py-0.5 text-center text-ink-900 outline-none dark:bg-ink-900 dark:text-ink-100"
 				/>
-				<span className="text-ink-400 dark:text-ink-500"> / {pageCount || "—"}</span>
+				<span className="text-ink-400 dark:text-ink-500">
+					{" "}
+					/ {pageCount || "—"}
+				</span>
 			</span>
 		);
 	}

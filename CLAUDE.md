@@ -11,6 +11,7 @@ for the user's "ok / done / next" after each numbered block.** If a step
 fails, stop and debug; don't paper over with retries.
 
 ### 0 — Sanity check (read silently, no need to print)
+
 - `git rev-parse --show-toplevel` → confirms repo root
 - `which wrangler pnpm node python3` → all required
 - `node -v` ≥ 20, `python3 --version` ≥ 3.11 (for stdlib `tomllib`)
@@ -19,7 +20,9 @@ fails, stop and debug; don't paper over with retries.
   overwrite (`./scripts/setup.sh --force` overwrites all three).
 
 ### 1 — Interactive config
+
 Run `./scripts/setup.sh`. It prompts for:
+
 - **Slug** — drives D1 db, R2 bucket, Worker, Pages project names. Must
   be lowercase + hyphens. Stable: changing later means renaming CF resources.
 - **Public host** — e.g. `qa.example.com`. Must already exist as a zone
@@ -34,6 +37,7 @@ After this step, `config.toml`, `wrangler.toml`, `.env` all exist (with
 `<REPLACE_ME_DB_ID>` placeholder that `deploy.sh` will fill in).
 
 ### 2 — Install deps + local verification
+
 ```bash
 pnpm install
 cd frontend && pnpm install && cd ..
@@ -41,6 +45,7 @@ pnpm db:migrate:local
 pnpm dev                                    # terminal A: wrangler dev
 (cd frontend && pnpm dev)                   # terminal B: vite
 ```
+
 Open `http://localhost:5173`. The Vite proxy injects `X-Dev-Email` and
 the Worker treats `CF_ACCESS_TEAM_DOMAIN === 'localhost'` as bypass. You
 should see the landing page, be able to log in as the dev_email, and
@@ -48,7 +53,9 @@ land in the home dashboard. If anything is broken here, **don't proceed
 to deploy** — fix locally first.
 
 ### 3 — Cloudflare prerequisites (manual, in the dashboard)
+
 Before deploying, the user needs:
+
 - A **Cloudflare account** (free tier).
 - An **API token** with scopes listed in `.env.example` (Workers Scripts
   Edit, D1 Edit, R2 Edit, Access Apps+Policies Edit, Pages Edit, Access
@@ -61,19 +68,23 @@ The user puts the token + account ID into `.env` (setup.sh did this if
 they answered the prompts).
 
 ### 4 — Roster
+
 The deployment whitelists users via a Google Sheet CSV export
 (`ROSTER_CSV_URL` in `.env`). For initial deploy, the user can leave it
 blank — `admin_emails` from `config.toml` will be the sole allowlist.
 For a real cohort:
+
 - Make a sheet with an email column (currently expected at column
   index 3 — see `scripts/sync-access.ts:194`; adjust there for a
   different sheet shape).
 - File → Share → Publish to web → CSV → copy the link into `.env`.
 
 ### 5 — First deploy
+
 ```bash
 ./scripts/deploy.sh
 ```
+
 Creates the D1 database (and patches `database_id` into `wrangler.toml`),
 applies migrations, creates the R2 bucket, syncs the Access roster,
 deploys the Worker, builds + deploys the Pages frontend. Idempotent.
@@ -83,9 +94,11 @@ the API token, a zone the account doesn't own, or a name collision.
 Don't suggest skipping steps.
 
 ### 6 — Cloudflare Access setup
+
 ```bash
 node --experimental-strip-types scripts/sync-access.ts
 ```
+
 Creates the CF Access Application at `PAGES_DOMAIN`, sets the policy
 include[] from merged `ADMIN_EMAILS` + roster, pushes
 `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD` as Worker secrets, and seeds
@@ -96,17 +109,22 @@ for the landing page, OG image, favicon, SPA assets, and the auth probe
 — so the public can reach the landing without an Access prompt.
 
 ### 7 — Import questions
+
 The user provides a CSV (see `scripts/sample-questions.csv` for format).
+
 ```bash
 node --experimental-strip-types scripts/import-questions.ts ./questions.csv
 ```
+
 Pre-flight validates year range / group constraints / unique IDs before
 any insert — a single failure aborts the whole batch.
 
 ### 8 — Smoke test
+
 Have the user open `https://<their host>/`, click "登入" / "Sign in",
 receive an email OTP from CF Access, and confirm they land in the
 in-app home dashboard with the admin badge. Also verify:
+
 - Creating an explanation on a question (lock + save flow)
 - Posting a comment with an @mention (notification badge)
 - Uploading an image (R2 + `/img/<key>` proxy)
@@ -115,6 +133,7 @@ in-app home dashboard with the admin badge. Also verify:
 If any of those fail, that's the bug to chase before declaring done.
 
 ### Common gotchas (mention if the user hits them)
+
 - `wrangler d1 create` fails with "already exists" — fine, deploy.sh
   handles this; it greps `wrangler d1 list` for the ID.
 - Pages domain not resolving — Pages takes a few minutes after first
@@ -124,7 +143,7 @@ If any of those fail, that's the bug to chase before declaring done.
 - `pnpm db:migrate:local` errors about missing `database_id` — fine for
   local (uses `.wrangler/state/`); only `--remote` needs it.
 - **Running `deploy.sh` from a git worktree silently ships the frontend
-  to a Pages *Preview*, not production.** `wrangler pages deploy` derives
+  to a Pages _Preview_, not production.** `wrangler pages deploy` derives
   the environment from the current git branch name, and a worktree is
   never on `main`. The Worker deploys normally (it isn't branch-aware),
   so the result is a live "new Worker + old frontend" split that looks
@@ -210,6 +229,7 @@ If you're tempted to add app-level signup or password reset — **don't**. That'
 `explanations.content_json` and `comments.content_json` store **TipTap ProseMirror JSON**, not HTML.
 
 Why:
+
 - Zero XSS risk when rendered through TipTap in read-only mode
 - Future-proof for Yjs CRDT migration (Yjs uses the same doc model)
 - Structured queries possible (count words, extract mentions, etc.)
@@ -399,6 +419,48 @@ except 38 · 為非 31 · 不正確 29 · false 5),並抽樣看過 `wrong` 的�
   清單** —— `reorderNotes` 結尾會 reload,而 fixture 是靜態的,拖完一定會彈回原
   順序。驗那個等於驗 fixture。
 
+### 講義書籤: 兩種頁碼慣例並存,所以轉換只准發生在一個地方
+
+閱讀器左側 rail 的第二個分頁、工具列那顆 toggle,以及 `/lectures?tab=bookmark`
+的卡片格線(migration `0042`)。一列 = 「某人在某份講義的某一頁插了旗子」,私有,
+同 `lecture_notes` / `lecture_annotations` 的 per-user 模型。
+
+**頁碼存 1-based。** 這個 repo 裡兩種慣例已經並存 —— `lecture_notes.page` 是
+1-based(`LecturePanel` 的 `pdfPage = currentPage + 1`),`lecture_annotations.page`
+卻是 0-based(清單顯示寫的是 `p.{a.page + 1}`)。書籤卡片的預覽要 join
+`lecture_notes`,所以跟 join 對象一致,0/1 的轉換就只發生在 `LectureReader` 的
+`currentPdfPage` 那一行。**多一處轉換就多一個會 off-by-one 的地方**,而 off-by-one
+在這裡的症狀是「書籤跳到隔壁頁」—— 看起來像 PDF 捲動不準,不像資料錯。e2e 因此
+斷言的是**具體頁碼**(`{method:'POST', page:1}`),不是「有送出請求」。
+
+- **`UNIQUE(user_email, slug, page)` 是承重的。** 工具列那顆是 toggle,「同一頁
+  只有一筆」正是它的前提;少了唯一鍵,連點兩下會寫出兩列一模一樣的資料,而畫面上
+  只是「書籤清單多了一行重複的」,看不出是寫入壞掉。有了它,`INSERT OR IGNORE`
+  就讓「先查再寫」那個 race 整個消失。
+- **`/bookmarks` 必須註冊在 `/:slug` 之前**(Hono 依註冊順序比對)。放反的症狀是
+  前端拿到「找不到這份講義」的 404 —— 完全不會指向路由順序。
+- **筆記預覽在 SQL 裡就從 TipTap JSON 走出來**,沿用 migration 0016 的同一個慣用法
+  (`json_tree` → `key='text' AND type='text'`),不把整份 `content_json` 送到前端
+  再走一次:一頁筆記可以有幾十 KB,而卡片只用得到兩行。**那一頁沒有筆記時回的是
+  `NULL` 不是 `''`**(外層純量子查詢沒有列可回),所以 shape 那一層要收掉。
+- **排序做到全序**(`lib/bookmarkSort.ts`)。`created_at` 是毫秒,在 rail 上一路往下
+  標會撞;`sort_order` 更是整份講義共用同一個值。同分交給 `sort` 自由決定的話,
+  使用者看到的是「每次重整卡片就換位置」,而且在只有兩三個書籤的帳號上完全看不
+  出來 —— 同「個人筆記拖曳排序」那節的 `ORDER BY sort_order, slot`。
+- **rail 上非當前分頁一律 unmount。** `ThumbnailsPane` 是虛擬化的(位置由它自己
+  量出來),用 `hidden` 藏起來會讓它在高度 0 的容器裡重算 —— 切回來看到的是一堆
+  疊在一起的縮圖。
+- **兩個分頁共用同一條 rail 與同一顆開關**,不是各開一條:兩條 rail 同時展開會把
+  PDF 可視寬度吃掉一半,而在這個閱讀器裡寬度就是可讀性本身。
+- **`/api/lectures/*/bookmarks` 不進 `sw-guards.ts` 的 `CACHEABLE_API`。** 現有的
+  `/^\/api\/lectures(\?|$)/` 只認完全相同的路徑,所以它們「剛好」不在允許清單裡
+  —— 那是巧合不是決定,有測試釘著。被快取住的症狀是「加了書籤、重整,不見了」。
+- 教科書(`kind='textbook'`)不給加:rail 的分頁列整條隱藏(只剩一個項目的分頁列
+  不是分頁列,是一行贅字),`b` 鍵落回 `default` 而不是靜靜吃掉按鍵,伺服器也擋。
+
+⚠️ **加分頁會弄紅 `lectures-tabs.test.mjs`** —— 那支釘死「四顆分頁都在」當空掃
+防線。那是它該有的行為,改數字時要連標題那條(`new Set(titles).size`)一起改。
+
 ### 其他筆記: 不掛題目的私人筆記,以及那張表為什麼要重建
 
 `/lectures?tab=note` 是講義/教科書旁的第三個分頁,每張卡片是一則
@@ -490,8 +552,8 @@ answer, with `source` (`review`/`exam`/`drill`/`anki`), optional
 `clampElapsedMs` in `worker/lib/attempts.ts`).
 
 - **`review_progress` is a derived cache.** `times_seen / times_correct /
-  last_*` are all recomputable from `attempts`. It's still dual-written
-  (and always will be) because it *also* carries `bookmarked` /
+last_*` are all recomputable from `attempts`. It's still dual-written
+  (and always will be) because it _also_ carries `bookmarked` /
   `bookmark_folder_id`, which are NOT derived. On drift, recompute from
   `attempts` and overwrite `review_progress` — never the other way.
 - **`exam_answers` stays the mock exam's current answer state** (mutable,
@@ -536,7 +598,7 @@ HAVING rp.times_seen <> attempts_n LIMIT 20;
 CSV 帶 BOM(否則 Excel 會用系統字碼頁開成亂碼),欄位走 `csvCell()` 以中和
 `=` 開頭的公式注入。純函式與測試在 `worker/lib/attempt-log.ts`。
 
-### PWA: offline *reading* only, and the Access trap
+### PWA: offline _reading_ only, and the Access trap
 
 `frontend/src/sw.ts` (built by `vite-plugin-pwa` in **`injectManifest`** mode)
 precaches the app shell and runtime-caches an **allowlist** of read-only GET
@@ -663,11 +725,11 @@ API 模組自己的變更函式裡**(`freeNoteApi.ts` 的 `dropListCache()`)而�
 `Question.tsx` 擁有需要頁面脈絡的那些(換題、換分頁、捲動)。在這之上再疊三種
 **情境**,由 `Question.tsx` 判斷後接管:
 
-| 情境 | 條件 | 十字鍵 | 面鍵 |
-|---|---|---|---|
-| 作答中 | `!cardRevealed` | 選選項 / 調信心 | 送出 · 略過 · 複製 · 收藏 |
-| 讀詳解 | `expKeysActive` | 捲動 | 顯示詳解 · 自動挖空 · 防劇透 · 編輯 |
-| 讀筆記 | `noteTabVisible` | 走訪標題 / 切換筆記 | 展開收合 |
+| 情境   | 條件             | 十字鍵              | 面鍵                                |
+| ------ | ---------------- | ------------------- | ----------------------------------- |
+| 作答中 | `!cardRevealed`  | 選選項 / 調信心     | 送出 · 略過 · 複製 · 收藏           |
+| 讀詳解 | `expKeysActive`  | 捲動                | 顯示詳解 · 自動挖空 · 防劇透 · 編輯 |
+| 讀筆記 | `noteTabVisible` | 走訪標題 / 切換筆記 | 展開收合                            |
 
 `SELECT`(開關說明)與 `START`、`L1/R1`、`L2/R2`、左搖桿三種情境共用,不換意思。
 
@@ -811,12 +873,12 @@ hover 態不必特別處理:`hover:bg-accent` 是 (0,2,0),打不過中和層的 
 **Specificity 契約是承重的,不是風格。** Tailwind 的 `@layer` 不是原生 cascade
 layer,輸出後就是普通 CSS,**specificity 先於順序**:
 
-| 層 | Specificity |
-|---|---|
-| 一般 utility / `hover:` | (0,1,0) / (0,2,0) |
-| 中和層 `.eink.eink [class*="bg-"]` | (0,3,0) |
-| `.eink-invert` 的後代規則 | (0,4,0) |
-| `eink:` variant(`tailwind.config.js` 的 `.eink×4 &`) | (0,5,0) |
+| 層                                                   | Specificity       |
+| ---------------------------------------------------- | ----------------- |
+| 一般 utility / `hover:`                              | (0,1,0) / (0,2,0) |
+| 中和層 `.eink.eink [class*="bg-"]`                   | (0,3,0)           |
+| `.eink-invert` 的後代規則                            | (0,4,0)           |
+| `eink:` variant(`tailwind.config.js` 的 `.eink×4 &`) | (0,5,0)           |
 
 所有 `:not()` 一律包 `:where()` 讓排除項不加權,整層才停在 (0,3,0)。少了那層
 `:where()`,帶兩個 `:not` 的規則會爬到 (0,5,0) 跟 variant 平手,逐元件精修就會
@@ -870,6 +932,7 @@ App bar 的 `backdrop-blur` 一起 `display:none`,整條導覽列消失。
 標題、輸入框)維持原樣,否則焦點會有兩層指示。
 
 這個破口有兩層防禦盲區,加測試時要一起繞過:
+
 - **靜態掃描永遠抓不到** —— 平常 `outline-style` 是 `none`,只有 `:focus-visible`
   成立的那一瞬間才變 `auto`。得真的用 **Tab** 把焦點移上去(`.focus()` 不一定被
   判定成 focus-visible)。
@@ -894,12 +957,12 @@ Safari),那會讓瀏覽器改用**平台的原生按鈕外觀**畫底,而 Androi
 
 **定位它靠的是使用者給的四筆對照,不是任何工具**,而那四筆的 class 幾乎一樣:
 
-| 元素 | tag | class 含 `bg-` | 現象 |
-|---|---|---|---|
-| 民國 xx 年 | `a` | ✗ | 正常(`<a>` 的 appearance 本來就是 none) |
-| 上一題/下一題 | `button` | ✗ | **灰底**(class 與上一行一字不差) |
-| 複製為 Markdown | `button` | ✓ `hover:bg-ink-100` | 正常(被中和層塗成不透明白) |
-| 收藏 | `button` | ✗ | **灰底** |
+| 元素            | tag      | class 含 `bg-`       | 現象                                    |
+| --------------- | -------- | -------------------- | --------------------------------------- |
+| 民國 xx 年      | `a`      | ✗                    | 正常(`<a>` 的 appearance 本來就是 none) |
+| 上一題/下一題   | `button` | ✗                    | **灰底**(class 與上一行一字不差)        |
+| 複製為 Markdown | `button` | ✓ `hover:bg-ink-100` | 正常(被中和層塗成不透明白)              |
+| 收藏            | `button` | ✗                    | **灰底**                                |
 
 能同時解釋這四筆的假設只有一個。**下次再收到「某些元件在 e-ink 有灰底、另一些
 沒有」,先問的不是「哪個元件壞了」,而是「有灰跟沒灰的那兩組,差在哪一個屬性」**
@@ -1082,6 +1145,7 @@ wrangler d1 migrations apply qa-db --remote   # then prod
 `c.env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [...] })`
 
 Free tier is 10K neurons/day. Heavy use:
+
 - Cache aggressively (KV namespace exists for this)
 - Move to async pattern (queue → process)
 - Or upgrade to Workers Paid ($5/mo)
@@ -1136,10 +1200,10 @@ state:要動的東西散在三個檔案,而捲動事件是連續的 —— 放�
 
 **最容易弄錯的是 `--header-h` 現在有兩個角色,而收合時它們的答案相反:**
 
-| 角色 | 例子 | 收起時 |
-| --- | --- | --- |
-| 替 fixed header **佔位** | `<main>` 的 `pt` | **不動**(`--header-h`) |
-| **停靠**在 header 底下 | `.substick`、離線橫幅、`Question.tsx` 兩條分頁列 | 跟著走(`--chrome-top`) |
+| 角色                     | 例子                                             | 收起時                 |
+| ------------------------ | ------------------------------------------------ | ---------------------- |
+| 替 fixed header **佔位** | `<main>` 的 `pt`                                 | **不動**(`--header-h`) |
+| **停靠**在 header 底下   | `.substick`、離線橫幅、`Question.tsx` 兩條分頁列 | 跟著走(`--chrome-top`) |
 
 `<main>` 的 `pt` 一起變的話,收合的那 0.22 秒整份內容會跟著位移 —— 比省下來的
 113px 糟得多,而且每次捲動都發生。有一條靜態測試釘著它不准吃 `--chrome-top`。
@@ -1291,6 +1355,7 @@ no fixture get `{}` and are listed at the end of the run.
   `frontend/e2e/backup.test.mjs` 走真的瀏覽器 —— 按下按鈕、抓完 12 支端點、
   壓成 zip、觸發下載,再把下載到的檔案解開檢查。後者涵蓋的是單元測試碰不到
   的那一半(fflate 的 worker thread、`URL.createObjectURL`、`<a download>`)。
+
 ## 部署管線: 判準是 denylist,而「跳過」不准是綠的
 
 `.github/workflows/deploy.yml` 一支涵蓋兩邊:push 到 `main` → `classify` 決定要
@@ -1303,11 +1368,11 @@ shell 只能靠「推上去看看會不會動」來驗,而部署邏輯最不該�
 **真的需要人**的檔案」。於是 `CLAUDE.md`、`package.json`、`scripts/` 底下任何一個
 檔案都會讓整次部署跳過。拿最近 30 個 commit 對兩套判準各跑一次:
 
-| | 舊 | 新 |
-|---|---|---|
-| 前端部署 | 10 | 21 |
-| Worker 部署 | 1 | 3 |
-| 真的需要人 | — | 0 |
+|             | 舊  | 新  |
+| ----------- | --- | --- |
+| 前端部署    | 10  | 21  |
+| Worker 部署 | 1   | 3   |
+| 真的需要人  | —   | 0   |
 
 **而最傷的不是「跳過」,是跳過之後那個綠勾。** job 顯示 ✅、步驟全是 `skipped`,
 你看到勾勾會以為上線了 —— 跟 `users_online.json` 空 fixture、
@@ -1319,11 +1384,10 @@ shell 只能靠「推上去看看會不會動」來驗,而部署邏輯最不該�
   `wrangler.example.toml`、`config.example.toml`(新 binding / 新設定值要先更新
   `WRANGLER_TOML` / `CONFIG_TOML` secret,否則 Worker 會找不到 class 而部署失敗
   —— 2048 的 `PLAY` binding 踩過)。
-- **`.github/workflows/**` 刻意不在清單裡。** 改了 pipeline 之後跑的本來就是新版
+- **`.github/workflows/**` 刻意不在清單裡。\*\* 改了 pipeline 之後跑的本來就是新版
   的 pipeline,擋下這一次不會讓任何事更安全。
-- **`.claude/skills/**` 算 worker 變更** —— 它們被 `pnpm gen:bundles` 快照進
-  `worker/generated/*.ts`。CI 現在跑兩份 bundle(舊版只跑 mcq,所以 bank-ingest
-  的 skill 改了之後 `/api/me/bank-skill` 下載到的一直是舊版)。
+- **`.claude/skills/**`算 worker 變更** —— 它們被`pnpm gen:bundles`快照進`worker/generated/\*.ts`。CI 現在跑兩份 bundle(舊版只跑 mcq,所以 bank-ingest
+的 skill 改了之後 `/api/me/bank-skill` 下載到的一直是舊版)。
 - **`on.push` 不帶 `paths` 過濾。** 過濾掉的 push 連 job 都不會建立,也就沒有任何
   地方能說「這次沒有部署,因為 X」。讓 classify 永遠跑並留下 summary。
 - **`cancel-in-progress: false`。** 砍掉跑到一半的部署,留下的是「Worker 新、前端

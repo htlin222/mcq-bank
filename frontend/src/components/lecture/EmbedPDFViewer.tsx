@@ -10,6 +10,7 @@
 // export/import round-trips for personal-annotation persistence.
 import {
 	forwardRef,
+	type ReactNode,
 	useCallback,
 	useEffect,
 	useImperativeHandle,
@@ -24,20 +25,33 @@ import {
 	DocumentManagerPluginPackage,
 	useActiveDocument,
 } from "@embedpdf/plugin-document-manager/react";
-import { ViewportPluginPackage, Viewport } from "@embedpdf/plugin-viewport/react";
-import { ScrollPluginPackage, Scroller, useScrollCapability } from "@embedpdf/plugin-scroll/react";
+import {
+	ViewportPluginPackage,
+	Viewport,
+} from "@embedpdf/plugin-viewport/react";
+import {
+	ScrollPluginPackage,
+	Scroller,
+	useScrollCapability,
+} from "@embedpdf/plugin-scroll/react";
 import {
 	RenderPluginPackage,
 	RenderLayer,
 	useRenderCapability,
 } from "@embedpdf/plugin-render/react";
-import { TilingPluginPackage, TilingLayer } from "@embedpdf/plugin-tiling/react";
+import {
+	TilingPluginPackage,
+	TilingLayer,
+} from "@embedpdf/plugin-tiling/react";
 import {
 	ThumbnailPluginPackage,
 	ThumbnailsPane,
 	ThumbImg,
 } from "@embedpdf/plugin-thumbnail/react";
-import { ZoomPluginPackage, useZoomCapability } from "@embedpdf/plugin-zoom/react";
+import {
+	ZoomPluginPackage,
+	useZoomCapability,
+} from "@embedpdf/plugin-zoom/react";
 import {
 	InteractionManagerPluginPackage,
 	PagePointerProvider,
@@ -60,9 +74,13 @@ import { PDFPageSkeleton } from "../Skeleton";
 // nor esbuild can resolve `@embedpdf/models` from here). We therefore derive
 // the few model types we need from the capability hook return types, and use
 // the HIGHLIGHT subtype's numeric enum value directly.
-type AnnotationCap = NonNullable<ReturnType<typeof useAnnotationCapability>["provides"]>;
+type AnnotationCap = NonNullable<
+	ReturnType<typeof useAnnotationCapability>["provides"]
+>;
 /** Portable annotation item produced/consumed by export/importAnnotations. */
-export type AnnotationTransferItem = Parameters<AnnotationCap["importAnnotations"]>[0][number];
+export type AnnotationTransferItem = Parameters<
+	AnnotationCap["importAnnotations"]
+>[0][number];
 /** A single PDF annotation object. */
 export type PdfAnnotationObject = AnnotationTransferItem["annotation"];
 /** Rect in PDF page coordinates (origin top-left, user units). */
@@ -110,9 +128,23 @@ export interface EmbedPDFViewerProps {
 	 * with `null` on unmount.
 	 */
 	pageContainerRef?: (el: HTMLElement | null) => void;
-	/** Show the left thumbnail navigation rail. */
+	/** Show the left navigation rail (縮圖 / 書籤 兩個分頁共用這一條). */
 	showThumbnails?: boolean;
+	/**
+	 * rail 上目前哪一個分頁。分頁列畫在這裡(純 UI,不碰資料),但書籤那一頁的
+	 * 內容由呼叫端注入 —— 書籤資料在 reader 手上,而縮圖非在 EmbedPDF 的
+	 * provider 樹裡不可(ThumbnailsPane 吃 plugin context),兩者只好在這裡會合。
+	 */
+	railTab?: RailTab;
+	onRailTab?: (tab: RailTab) => void;
+	/** 書籤分頁的內容(由 LectureReader 提供)。 */
+	bookmarkPane?: ReactNode;
+	/** 隱藏書籤分頁(唯讀教科書不給加書籤)。 */
+	hideBookmarkTab?: boolean;
 }
+
+/** rail 上的兩個分頁。 */
+export type RailTab = "thumbs" | "bookmarks";
 
 export interface EmbedPDFViewerHandle {
 	/** Current 0-based page index. */
@@ -191,37 +223,38 @@ function buildPlugins(pdfUrl: string) {
 
 // ── Component ─────────────────────────────────────────────────────────────
 
-export const EmbedPDFViewer = forwardRef<EmbedPDFViewerHandle, EmbedPDFViewerProps>(
-	function EmbedPDFViewer(props, ref) {
-		const { engine, isLoading, error } = usePdfiumEngine();
-		const plugins = useMemo(() => buildPlugins(props.pdfUrl), [props.pdfUrl]);
+export const EmbedPDFViewer = forwardRef<
+	EmbedPDFViewerHandle,
+	EmbedPDFViewerProps
+>(function EmbedPDFViewer(props, ref) {
+	const { engine, isLoading, error } = usePdfiumEngine();
+	const plugins = useMemo(() => buildPlugins(props.pdfUrl), [props.pdfUrl]);
 
-		if (error) {
-			return (
-				<div className="flex h-full w-full items-center justify-center p-8 text-center">
-					<div>
-						<p className="font-serif text-lg text-ink-700 dark:text-ink-200">
-							無法載入 PDF 引擎
-						</p>
-						<p className="mt-1 text-sm text-ink-400 dark:text-ink-500">
-							{error.message}
-						</p>
-					</div>
-				</div>
-			);
-		}
-
-		if (isLoading || !engine) {
-			return <ViewerSkeleton />;
-		}
-
+	if (error) {
 		return (
-			<EmbedPDF engine={engine} plugins={plugins}>
-				<ViewerInner forwardedRef={ref} {...props} />
-			</EmbedPDF>
+			<div className="flex h-full w-full items-center justify-center p-8 text-center">
+				<div>
+					<p className="font-serif text-lg text-ink-700 dark:text-ink-200">
+						無法載入 PDF 引擎
+					</p>
+					<p className="mt-1 text-sm text-ink-400 dark:text-ink-500">
+						{error.message}
+					</p>
+				</div>
+			</div>
 		);
-	},
-);
+	}
+
+	if (isLoading || !engine) {
+		return <ViewerSkeleton />;
+	}
+
+	return (
+		<EmbedPDF engine={engine} plugins={plugins}>
+			<ViewerInner forwardedRef={ref} {...props} />
+		</EmbedPDF>
+	);
+});
 
 function ViewerSkeleton() {
 	// Slide-shaped placeholder while the WASM pdfium engine boots and the
@@ -238,6 +271,10 @@ function ViewerInner({
 	onReady,
 	pageContainerRef,
 	showThumbnails,
+	railTab = "thumbs",
+	onRailTab,
+	bookmarkPane,
+	hideBookmarkTab,
 }: EmbedPDFViewerProps & {
 	forwardedRef: React.ForwardedRef<EmbedPDFViewerHandle>;
 }) {
@@ -408,40 +445,41 @@ function ViewerInner({
 	}, [scroll, docId, onReady]);
 
 	// Build a highlight annotation object from the current selection geometry.
-	const createHighlightFromSelection = useCallback(async (): Promise<PdfAnnotationObject | null> => {
-		if (!annotation || !selection || !docId) return null;
-		const formatted = selection.getFormattedSelectionForPage(
-			selectionRef.current?.page ?? 0,
-			docId,
-		);
-		// Fall back to the first available formatted selection if the cached page
-		// is stale.
-		const all = selection.getFormattedSelection(docId);
-		const target = formatted ?? (all.length > 0 ? all[0] : null);
-		if (!target) return null;
+	const createHighlightFromSelection =
+		useCallback(async (): Promise<PdfAnnotationObject | null> => {
+			if (!annotation || !selection || !docId) return null;
+			const formatted = selection.getFormattedSelectionForPage(
+				selectionRef.current?.page ?? 0,
+				docId,
+			);
+			// Fall back to the first available formatted selection if the cached page
+			// is stale.
+			const all = selection.getFormattedSelection(docId);
+			const target = formatted ?? (all.length > 0 ? all[0] : null);
+			if (!target) return null;
 
-		const scope = annotation.forDocument(docId);
-		const id =
-			typeof crypto !== "undefined" && "randomUUID" in crypto
-				? crypto.randomUUID()
-				: `hl-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-		const anno = {
-			type: HIGHLIGHT_SUBTYPE,
-			id,
-			pageIndex: target.pageIndex,
-			rect: target.rect,
-			segmentRects: target.segmentRects,
-			opacity: 1,
-			strokeColor: "#FBBF24", // amber-400 — matches the editorial accent.
-			color: "#FBBF24",
-		} as PdfAnnotationObject;
+			const scope = annotation.forDocument(docId);
+			const id =
+				typeof crypto !== "undefined" && "randomUUID" in crypto
+					? crypto.randomUUID()
+					: `hl-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+			const anno = {
+				type: HIGHLIGHT_SUBTYPE,
+				id,
+				pageIndex: target.pageIndex,
+				rect: target.rect,
+				segmentRects: target.segmentRects,
+				opacity: 1,
+				strokeColor: "#FBBF24", // amber-400 — matches the editorial accent.
+				color: "#FBBF24",
+			} as PdfAnnotationObject;
 
-		scope.createAnnotation(target.pageIndex, anno);
-		// Clear the live selection now that it has become a highlight.
-		selection.clear(docId);
-		selectionRef.current = null;
-		return anno;
-	}, [annotation, selection, docId]);
+			scope.createAnnotation(target.pageIndex, anno);
+			// Clear the live selection now that it has become a highlight.
+			selection.clear(docId);
+			selectionRef.current = null;
+			return anno;
+		}, [annotation, selection, docId]);
 
 	useImperativeHandle(
 		forwardedRef,
@@ -489,9 +527,10 @@ function ViewerInner({
 			exportAnnotations() {
 				if (!annotation || !docId) return Promise.resolve([]);
 				return new Promise<AnnotationTransferItem[]>((resolve) => {
-					annotation
-						.exportAnnotations(undefined, docId)
-						.wait((items) => resolve(items), () => resolve([]));
+					annotation.exportAnnotations(undefined, docId).wait(
+						(items) => resolve(items),
+						() => resolve([]),
+					);
 				});
 			},
 			importAnnotations(items: AnnotationTransferItem[]) {
@@ -510,17 +549,28 @@ function ViewerInner({
 						? Math.max(0, scroll.forDocument(docId).getCurrentPage() - 1)
 						: 0);
 				return new Promise<Blob | null>((resolve) => {
-					render.forDocument(docId).renderPage({
-						pageIndex,
-						options: { scaleFactor: 2, withAnnotations: true },
-					}).wait(
-						(blob) => resolve(blob),
-						() => resolve(null),
-					);
+					render
+						.forDocument(docId)
+						.renderPage({
+							pageIndex,
+							options: { scaleFactor: 2, withAnnotations: true },
+						})
+						.wait(
+							(blob) => resolve(blob),
+							() => resolve(null),
+						);
 				});
 			},
 		}),
-		[scroll, zoom, annotation, render, docId, createHighlightFromSelection, getScrollEl],
+		[
+			scroll,
+			zoom,
+			annotation,
+			render,
+			docId,
+			createHighlightFromSelection,
+			getScrollEl,
+		],
 	);
 
 	if (!activeDocumentId) {
@@ -530,92 +580,109 @@ function ViewerInner({
 	return (
 		<div ref={wrapperRef} className="flex h-full w-full">
 			{showThumbnails && (
-				<ThumbnailRail
-					documentId={activeDocumentId}
-					activePage={activePage}
-					onJump={(p) =>
-						scroll
-							?.forDocument(activeDocumentId)
-							.scrollToPage({ pageNumber: p + 1, behavior: "instant" })
-					}
-				/>
+				<LeftRail
+					tab={railTab}
+					onTab={onRailTab}
+					hideBookmarkTab={hideBookmarkTab}
+					bookmarkPane={bookmarkPane}
+				>
+					<ThumbnailRail
+						documentId={activeDocumentId}
+						activePage={activePage}
+						onJump={(p) =>
+							scroll
+								?.forDocument(activeDocumentId)
+								.scrollToPage({ pageNumber: p + 1, behavior: "instant" })
+						}
+					/>
+				</LeftRail>
 			)}
 			<div className="relative h-full min-w-0 flex-1">
-			<Viewport
-				documentId={activeDocumentId}
-				className="pdf-scroll-viewport h-full w-full overflow-auto bg-ink-100 dark:bg-ink-900"
-			>
-			<Scroller
-				documentId={activeDocumentId}
-				renderPage={({ pageIndex, width, height }) => (
-					<div
-						key={pageIndex}
-						// The pdfium-rendered page is an <img>, which is natively
-						// draggable — a mouse-drag would start HTML5 image drag-and-drop
-						// (a ghost of the whole slide) and preempt EmbedPDF text
-						// selection. Cancel dragstart so drag = select text, not drag image.
-						onDragStart={(e) => e.preventDefault()}
-						ref={(el) => {
-							// Surface the visible page's wrapper (canvas + annotation
-							// overlay) so the snapshot tool can rasterise both. We only
-							// track the current page to avoid churn.
-							if (
-								pageContainerRef &&
-								scroll &&
-								pageIndex === scroll.forDocument(activeDocumentId).getCurrentPage() - 1
-							) {
-								pageContainerRef(el);
-							}
-						}}
-						style={{ width, height, position: "relative" }}
-					>
-						{/* PagePointerProvider is REQUIRED for text selection +
+				<Viewport
+					documentId={activeDocumentId}
+					className="pdf-scroll-viewport h-full w-full overflow-auto bg-ink-100 dark:bg-ink-900"
+				>
+					<Scroller
+						documentId={activeDocumentId}
+						renderPage={({ pageIndex, width, height }) => (
+							<div
+								key={pageIndex}
+								// The pdfium-rendered page is an <img>, which is natively
+								// draggable — a mouse-drag would start HTML5 image drag-and-drop
+								// (a ghost of the whole slide) and preempt EmbedPDF text
+								// selection. Cancel dragstart so drag = select text, not drag image.
+								onDragStart={(e) => e.preventDefault()}
+								ref={(el) => {
+									// Surface the visible page's wrapper (canvas + annotation
+									// overlay) so the snapshot tool can rasterise both. We only
+									// track the current page to avoid churn.
+									if (
+										pageContainerRef &&
+										scroll &&
+										pageIndex ===
+											scroll.forDocument(activeDocumentId).getCurrentPage() - 1
+									) {
+										pageContainerRef(el);
+									}
+								}}
+								style={{ width, height, position: "relative" }}
+							>
+								{/* PagePointerProvider is REQUIRED for text selection +
 						    annotation pointer interactions to work — it wires the
 						    InteractionManager's pointer handlers to this page and maps
 						    client points into PDF page coords. Without it the
 						    SelectionLayer/AnnotationLayer render but never receive input.
 						    Layers omit scale/rotation → they read the document's current
 						    state (zoom level, page rotation) automatically. */}
-						<PagePointerProvider
-							documentId={activeDocumentId}
-							pageIndex={pageIndex}
-							style={{
-								position: "absolute",
-								inset: 0,
-								width,
-								height,
-							}}
-						>
-							<RenderLayer documentId={activeDocumentId} pageIndex={pageIndex} />
-							<TilingLayer documentId={activeDocumentId} pageIndex={pageIndex} />
-							<SelectionLayer
-							documentId={activeDocumentId}
-							pageIndex={pageIndex}
-							// Default is an opaque rgba(33,150,243); soften it so selected
-							// text stays readable underneath.
-							textStyle={{ background: "rgba(33,150,243,0.28)" }}
-						/>
-							<AnnotationLayer documentId={activeDocumentId} pageIndex={pageIndex} />
-						</PagePointerProvider>
-					</div>
-				)}
-			/>
-			</Viewport>
-			{/* Hand/pan overlay — only present while the tool is active. Owns its
+								<PagePointerProvider
+									documentId={activeDocumentId}
+									pageIndex={pageIndex}
+									style={{
+										position: "absolute",
+										inset: 0,
+										width,
+										height,
+									}}
+								>
+									<RenderLayer
+										documentId={activeDocumentId}
+										pageIndex={pageIndex}
+									/>
+									<TilingLayer
+										documentId={activeDocumentId}
+										pageIndex={pageIndex}
+									/>
+									<SelectionLayer
+										documentId={activeDocumentId}
+										pageIndex={pageIndex}
+										// Default is an opaque rgba(33,150,243); soften it so selected
+										// text stays readable underneath.
+										textStyle={{ background: "rgba(33,150,243,0.28)" }}
+									/>
+									<AnnotationLayer
+										documentId={activeDocumentId}
+										pageIndex={pageIndex}
+									/>
+								</PagePointerProvider>
+							</div>
+						)}
+					/>
+				</Viewport>
+				{/* Hand/pan overlay — only present while the tool is active. Owns its
 			    own pointer stream (no race with EmbedPDF's page handlers) and
 			    forwards wheel so scrolling keeps working. */}
-			{panMode && (
-				<div
-					className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing"
-					style={{ touchAction: "none" }}
-					onPointerDown={onPanDown}
-					onPointerMove={onPanMove}
-					onPointerUp={onPanUp}
-					onPointerCancel={onPanUp}
-					onWheel={onPanWheel}
-					aria-hidden="true"
-				/>
-			)}
+				{panMode && (
+					<div
+						className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing"
+						style={{ touchAction: "none" }}
+						onPointerDown={onPanDown}
+						onPointerMove={onPanMove}
+						onPointerUp={onPanUp}
+						onPointerCancel={onPanUp}
+						onWheel={onPanWheel}
+						aria-hidden="true"
+					/>
+				)}
 			</div>
 		</div>
 	);
@@ -634,7 +701,7 @@ function ThumbnailRail({
 	onJump(page: number): void;
 }) {
 	return (
-		<aside className="hidden h-full w-40 shrink-0 overflow-hidden border-r border-ink-200 bg-white md:block dark:border-ink-700 dark:bg-ink-900">
+		<div className="min-h-0 flex-1 overflow-hidden">
 			<ThumbnailsPane
 				documentId={documentId}
 				style={{ height: "100%", overflowY: "auto", position: "relative" }}
@@ -690,7 +757,88 @@ function ThumbnailRail({
 					</div>
 				)}
 			</ThumbnailsPane>
+		</div>
+	);
+}
+
+// 左側 rail:一條 w-40 的欄,頂端一列「縮圖 / 書籤」分頁,底下是該分頁的內容。
+//
+// 兩個分頁刻意共用同一條 rail 與同一顆開關(工具列的 PanelLeft),而不是各開
+// 一條:兩條 rail 同時展開會把 PDF 可視寬度吃掉一半,而在這個閱讀器裡,寬度
+// 就是可讀性本身。
+//
+// 非當前分頁一律 unmount。ThumbnailsPane 是虛擬化的(位置由它自己量出來),
+// 用 `hidden` 藏起來會讓它在高度 0 的容器裡重算 —— 切回來看到的是一堆疊在
+// 一起的縮圖。重新掛載反而是乾淨的。
+function LeftRail({
+	tab,
+	onTab,
+	hideBookmarkTab,
+	bookmarkPane,
+	children,
+}: {
+	tab: RailTab;
+	onTab?: (t: RailTab) => void;
+	hideBookmarkTab?: boolean;
+	bookmarkPane?: ReactNode;
+	children: ReactNode;
+}) {
+	// 教科書沒有書籤分頁,分頁列只剩一個項目 —— 那不是分頁列,是一行贅字。
+	const showTabs = !hideBookmarkTab;
+	const active: RailTab = hideBookmarkTab ? "thumbs" : tab;
+	return (
+		<aside className="hidden h-full w-40 shrink-0 flex-col overflow-hidden border-r border-ink-200 bg-white md:flex dark:border-ink-700 dark:bg-ink-900">
+			{showTabs && (
+				<div
+					className="flex shrink-0 border-b border-ink-200 dark:border-ink-700"
+					role="tablist"
+					aria-label="側邊欄"
+				>
+					<RailTabButton
+						active={active === "thumbs"}
+						onClick={() => onTab?.("thumbs")}
+						label="縮圖"
+					/>
+					<RailTabButton
+						active={active === "bookmarks"}
+						onClick={() => onTab?.("bookmarks")}
+						label="書籤"
+					/>
+				</div>
+			)}
+			{active === "bookmarks" ? (
+				<div className="min-h-0 flex-1 overflow-y-auto">{bookmarkPane}</div>
+			) : (
+				children
+			)}
 		</aside>
+	);
+}
+
+function RailTabButton({
+	active,
+	onClick,
+	label,
+}: {
+	active: boolean;
+	onClick(): void;
+	label: string;
+}) {
+	return (
+		<button
+			type="button"
+			role="tab"
+			aria-selected={active}
+			onClick={onClick}
+			className={
+				"flex-1 border-b-2 px-2 py-1.5 text-xs transition " +
+				(active
+					? "border-accent text-accent"
+					: "border-transparent text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-ink-100")
+			}
+		>
+			{label}
+		</button>
 	);
 }
 
