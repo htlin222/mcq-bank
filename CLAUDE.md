@@ -976,6 +976,49 @@ dithering,結果比原圖更難讀;真 e-ink 硬體本來就會做抖動處理�
 規則當成群組、遞迴進空清單然後跳過,一條都收不到。當時是靠「至少要找到 20 條
 eink 規則」那個正面斷言擋下來的,否則就是一支永遠全綠的空測試。
 
+### 歷屆考題面板: 表建好了不代表回填了,而回填貴到沒人跑
+
+`/lectures/:slug` reader 右欄第三個 tab,顯示「這張投影片教到的歷屆 MCQ」
+(`worker/routes/lectures.ts` 的 `GET /:slug/questions?page=N`,純讀
+`lecture_page_questions` join `questions`,runtime 零 AI 呼叫)。設計:
+`docs/plans/2026-07-23-slide-mcq-links-design.md`。
+
+**2026-08-23 回報「這一頁都沒有歷屆考題」,查下去發現不是這一頁的問題 ——
+`lecture_page_questions` 在 production 整張表是空的,7 個講義、709 頁一筆都沒有。**
+migration、worker route、前端面板全部照設計做好了,唯獨最後一步「離線 pipeline
+算完寫回 D1」從沒真的執行過。原始設計的 `scripts/build-slide-mcq-links.ts`
+逐候選呼叫 Workers AI LLM 判定「這題是否測驗這頁教的內容」——709 頁 × 每頁數十個
+候選,全跑完是上萬次 Workers AI 呼叫,遠超 free tier 10K neurons/day。這張表因此
+卡在「建好了但沒人跑得起回填」,跟 `study-enhancements` 分支 M2/M6 等 Vectorize
+回填卡住是同一種「表存在 ≠ 有資料」的坑 —— 加新的「離線算好、存 join 表」類功能時,
+上線前要跑一次 `SELECT COUNT(*)` 確認回填真的做完,不能只憑 migration 有跑過。
+
+**這次改用 27 個 subagent 平行回填,不再依賴 Workers AI:**
+
+- 不用 SQLite FTS 做關鍵字比對候選。`questions_fts` / `lecture_pages_fts` 用的
+  `unicode61` tokenizer 不會切中文詞 —— 連續的 CJK 字元被當成**一個** token,
+  同一個醫學名詞出現在兩個不同句子裡,字面上幾乎不會是同一個 token,比對形同虛設
+  (同「題幹否定詞」那節 tokenizer 對中文不友善的老問題)。
+- 每個 subagent 拿到:全部歷屆考題(~1100 題)的精簡摘要(id / year / group /
+  tags / stem 前 70 字)+ 一個講義裡一段(~25 頁)頁面全文,直接用血液腫瘤學知識
+  判斷「這頁投影片的內容主要就是在教摘要裡哪些題目」,不透過任何字面比對規則。
+  question_id 要求逐字照抄摘要裡的 id;回填腳本驗證過所有 848 筆沒有一筆是編造的。
+  每頁上限 6 題、信心分數 < 0.5 不列(跟原設計 `TOP_N_PER_PAGE`/門檻精神一致)。
+- **某個 chunk 回傳 0 筆不代表 subagent 偷懶,可能是題庫真的沒收那個主題。**
+  交叉查過:lecture-7(兒科血液腫瘤)講述 neuroblastoma 的那幾頁比對出 0 筆,
+  直接對 `questions.stem LIKE '%neuroblastoma%'` 查證,題庫裡真的一題都沒有。
+  之後如果有人回報「這頁明明該有題卻是空的」,先查題庫裡是否真的存在對應題目,
+  不要預設是比對邏輯壞掉。
+- `method` 欄位沿用既有的 `'llm'` 值(schema 註解本來就是「代表語意/LLM 判定來源」,
+  沒有為 subagent 另開第四種值)。
+- 寫入沿用原設計的 delete-then-insert per slug,冪等 —— 之後只加一個新講義,
+  可以只針對那個 slug 重跑,不用整批重來。跑之前先 `--local` 驗證(尤其是驗證
+  回報案例那一頁真的有結果),再 `--remote` 推上去,同原始腳本的慣例。
+- 這是**一次性手動回填**,沒有寫成常態 pipeline / cron。原本的
+  `scripts/build-slide-mcq-links.ts` 還在 repo 裡,但它的 Workers AI 逐候選判定
+  模式在這個題庫規模下不現實 —— 之後新增講義要回填,照這節描述的做法(subagent +
+  完整題目摘要)重做一輪,而不是直接跑那支腳本。
+
 ### Images: R2 via Worker proxy (not public bucket)
 
 Uploads: `POST /api/upload` (multipart) → Worker validates size/MIME → R2 put with UUID key → returns `/img/<key>` URL.
