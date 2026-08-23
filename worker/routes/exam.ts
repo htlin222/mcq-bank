@@ -726,7 +726,7 @@ examRoutes.get("/:sid", async (c) => {
 	const { results: answers } = await c.env.DB.prepare(
 		`SELECT ea.question_id, ea.chosen, ea.is_correct, ea.answered_at,
               ea.flagged, ea.flagged_at,
-              q.year, q.number, q.stem,
+              q.year, q.number, q.stem, q.options_json,
               COALESCE(ea.correct_answer_at_finish, q.answer) AS correct_answer,
               t.elapsed_ms
        FROM exam_answers ea
@@ -740,9 +740,19 @@ examRoutes.get("/:sid", async (c) => {
        ORDER BY COALESCE(ea.seq, q.number) ASC, q.year ASC, q.number ASC`,
 	)
 		.bind(sid, sid)
-		.all();
+		.all<{ options_json: string }>();
 
-	return c.json({ session, answers });
+	// 選項文字跟著成績一起回,不另外開一支端點:它就在同一列 questions 上,
+	// 多一個欄位的成本是零,而逐題懶載入是每展開一題一趟請求 —— 檢討時展開的
+	// 是**大部分**題目,那等於把 /stats 那條「100 題就是 100 個 request」的理由
+	// 原封不動搬過來一次。/state 本來就是這樣把整份考卷送出去的。
+	return c.json({
+		session,
+		answers: (answers ?? []).map(({ options_json, ...a }: any) => ({
+			...a,
+			options: optionsToRecord(options_json),
+		})),
+	});
 });
 
 // Pacing report for one finished session — first-half vs second-half

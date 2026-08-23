@@ -1,0 +1,8 @@
+{
+  "n": 3,
+  "first_half_avg_ms": 48000,
+  "second_half_avg_ms": 31000,
+  "delta_pct": -35,
+  "median_ms": 39500,
+  "slowest": [{ "question_id": "113-001", "number": 1, "ms": 48000 }]
+}
