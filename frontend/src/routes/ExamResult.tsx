@@ -28,6 +28,8 @@ type Result = {
     stem: string;
     /** null for sessions predating the attempts log (migration 0023). */
     elapsed_ms: number | null;
+    /** 選項全文,字母 → 內容。展開卡片時就地顯示,不再另外打一支端點。 */
+    options?: Record<string, string>;
     /** 標記待回頭檢查(migration 0028)。舊列 DEFAULT 0。 */
     flagged: 0 | 1;
     flagged_at: number | null;
@@ -249,8 +251,9 @@ export function ExamResult() {
                   </div>
                 </div>
               </Link>
-              <ChoiceDistribution
+              <AnswerDetail
                 questionId={a.question_id}
+                options={a.options ?? {}}
                 chosen={a.chosen}
                 correctAnswer={a.correct_answer}
               />
@@ -263,15 +266,26 @@ export function ExamResult() {
 }
 
 /**
- * 逐題檢討的選項分布。100 題全部預抓等於 100 個 request,所以只在
- * 使用者展開該題時才打 `/stats`(每題最多一次)。
+ * 逐題檢討的展開區:**選項全文 + 選項分布**。
+ *
+ * 選項文字跟著 `/api/exam/:sid` 一起回來(就在同一列 questions 上),所以展開是
+ * 即時的、不打任何請求;分布仍然懶載入 —— 100 題全部預抓等於 100 個 request,
+ * 所以只在展開該題時才打 `/stats`(每題最多一次)。
+ *
+ * 兩者合成同一列而不是各畫一區:分開的話同一個字母會在畫面上出現兩次,讀者得
+ * 自己把「B 寫的是什麼」跟「B 有幾成人選」對起來 —— 那正是檢討時最不想做的事。
+ *
+ * 列的來源是**題目的選項**,不是 stats 回來的 letters:人數不足 / 未作答 /
+ * 載入失敗時都沒有分布,但選項仍然要看得到,那才是展開的主要目的。
  */
-function ChoiceDistribution({
+function AnswerDetail({
   questionId,
+  options,
   chosen,
   correctAnswer,
 }: {
   questionId: string;
+  options: Record<string, string>;
   chosen: string | null;
   correctAnswer: string;
 }) {
@@ -289,63 +303,107 @@ function ChoiceDistribution({
     return () => { cancelled = true; };
   }, [open, stats, questionId]);
 
-  // server 只在 choices_state === 'ok' 時給 letters;其餘狀態沒有分布可畫。
-  const letters = stats?.choices_state === 'ok' ? Object.keys(stats.choice_pct ?? {}) : [];
+  const fromQuestion = Object.keys(options);
+  // 舊 session 或 options_json 壞掉時退回 stats 的 letters —— 至少畫得出分布,
+  // 不會整個展開區空白。
+  const letters =
+    fromQuestion.length > 0
+      ? fromQuestion
+      : stats?.choices_state === 'ok'
+      ? Object.keys(stats.choice_pct ?? {})
+      : [];
 
   return (
     <div className="px-3 pb-1">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls={`opts-${questionId}`}
         className="text-xs text-ink-400 dark:text-ink-500 hover:text-accent py-1"
       >
-        {open ? '收合選項分布' : '看選項分布'}
+        {open ? '收合選項' : '展開選項'}
       </button>
       {open && (
-        <div className="pb-2 text-xs text-ink-500 dark:text-ink-400">
-          {failed && <p>分布載入失敗</p>}
-          {!failed && !stats && <p>載入中…</p>}
-          {stats?.choices_state === 'not_answered' && (
-            <p>本題你未作答,作答後才會顯示分布</p>
-          )}
-          {stats?.choices_state === 'below_threshold' && (
-            <p>作答人數不足,暫不顯示選項分布</p>
-          )}
-          {letters.map((L) => {
-            const pct = choicePct(stats, L) ?? 0;
-            const isCorrect = L === correctAnswer;
-            return (
-              <div key={L} className="flex items-center gap-2 py-0.5">
-                <span className="w-4 font-mono text-ink-700 dark:text-ink-300">{L}</span>
-                {/* 軌道與填充都是淡色,1-bit 下會一起變白、整條消失。軌道補
-                    黑框(0% 時才看得到「有這一條」),填充轉實心黑;正解那條用
-                    粗框標示,因為兩條填充都是黑、分不出誰是正解。 */}
-                <span
-                  className={
-                    'relative h-3 flex-1 rounded bg-ink-100 dark:bg-ink-700/50 overflow-hidden eink:border-black ' +
-                    (isCorrect ? 'eink:border-2' : 'eink:border')
-                  }
+        <div id={`opts-${questionId}`} className="pb-2 space-y-1">
+          <ul className="space-y-1">
+            {letters.map((L) => {
+              const pct = choicePct(stats, L);
+              const isCorrect = L === correctAnswer;
+              const picked = L === chosen;
+              // 顏色沒了之後語意要換一個維度重講(同 QuestionCard 的選項列):
+              //   正解      → 整列反白
+              //   選錯的    → 粗框 + 選項文字刪除線
+              //   其他      → 細框
+              const cls = isCorrect
+                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 eink-invert'
+                : picked
+                ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 eink:border-2'
+                : 'border-ink-200 dark:border-ink-700';
+              return (
+                <li
+                  key={L}
+                  className={`relative flex items-start gap-2 overflow-hidden rounded border px-2 py-1.5 text-xs ${cls}`}
                 >
+                  {pct !== null && (
+                    <span
+                      aria-hidden
+                      className={
+                        'absolute inset-y-0 left-0 pointer-events-none ' +
+                        (isCorrect
+                          ? 'bg-accent/15'
+                          : 'bg-ink-200/60 dark:bg-ink-600/40') +
+                        // 淡色填充在 1-bit 下會被洗白 → 整條消失。改成貼底的細
+                        // 黑槓:資訊還在,又不會跟「正解=整列反白」搶同一個維度。
+                        // 正解列不加 —— 黑槓畫在黑底上看不見。
+                        (isCorrect
+                          ? ''
+                          : ' eink:inset-y-auto eink:bottom-0 eink:h-px eink:bg-black')
+                      }
+                      style={{ width: `${pct}%` }}
+                    />
+                  )}
+                  <span className="relative font-mono font-semibold text-ink-700 dark:text-ink-300 shrink-0">
+                    {L}
+                  </span>
+                  {/* min-w-0 + break-words 兩個一起才有用:選項裡的
+                      DEK::NUP214 這種整串不可斷,少了前者會把右側標籤擠出去。 */}
                   <span
-                    aria-hidden
                     className={
-                      'absolute inset-y-0 left-0 eink:bg-black ' +
-                      (isCorrect ? 'bg-accent/15' : 'bg-ink-200/60 dark:bg-ink-600/40')
+                      'relative min-w-0 flex-1 break-words leading-relaxed text-ink-800 dark:text-ink-200' +
+                      (picked && !isCorrect ? ' eink:line-through' : '')
                     }
-                    style={{ width: `${pct}%` }}
-                  />
-                </span>
-                <span className="w-12 text-right tabular-nums">{pct}%</span>
-                <span className="w-8 shrink-0">
-                  {isCorrect && '✓'}
-                  {L === chosen && '你'}
-                </span>
-              </div>
-            );
-          })}
-          {stats?.choices_state === 'ok' && (
-            <p className="mt-1">{stats.choice_responders} 人作答</p>
-          )}
+                  >
+                    {options[L] ?? ''}
+                  </span>
+                  <span className="relative shrink-0 self-center inline-flex items-center gap-1.5 text-ink-500 dark:text-ink-400">
+                    {pct !== null && (
+                      <span className="tabular-nums">{pct}%</span>
+                    )}
+                    {isCorrect && <span className="whitespace-nowrap">✓ 正解</span>}
+                    {picked && !isCorrect && (
+                      <span className="whitespace-nowrap">你選的</span>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {/* 分布的狀態訊息放在選項**之後**:選項是展開的主要目的,把
+              「作答人數不足」擺在最上面會讓人以為整區沒有東西可看。 */}
+          <div className="text-xs text-ink-500 dark:text-ink-400">
+            {failed && <p>選項分布載入失敗</p>}
+            {!failed && !stats && <p>分布載入中…</p>}
+            {stats?.choices_state === 'not_answered' && (
+              <p>本題你未作答,作答後才會顯示分布</p>
+            )}
+            {stats?.choices_state === 'below_threshold' && (
+              <p>作答人數不足,暫不顯示選項分布</p>
+            )}
+            {stats?.choices_state === 'ok' && (
+              <p>{stats.choice_responders} 人作答</p>
+            )}
+          </div>
         </div>
       )}
     </div>

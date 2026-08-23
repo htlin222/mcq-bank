@@ -1,0 +1,75 @@
+{
+  "session": {
+    "id": "e2e-1",
+    "user_email": "reader@example.com",
+    "year": 113,
+    "started_at": 1754000000000,
+    "finished_at": 1754000720000,
+    "score": 1,
+    "duration_sec": 720,
+    "kind": "year",
+    "filter_json": null
+  },
+  "answers": [
+    {
+      "question_id": "113-001",
+      "chosen": "B",
+      "is_correct": 0,
+      "answered_at": 1754000100000,
+      "flagged": 0,
+      "flagged_at": null,
+      "year": 113,
+      "number": 1,
+      "stem": "第 1 題:一名 62 歲男性因反覆發燒與體重減輕就診,骨髓抹片顯示芽細胞比例上升。下列敘述何者最為適當?",
+      "correct_answer": "A",
+      "elapsed_ms": 48000,
+      "options": {
+        "A": "立即進行骨髓移植評估",
+        "B": "先給予廣效抗生素觀察兩週",
+        "C": "安排 DEK::NUP214 融合基因檢測",
+        "D": "以類固醇單獨治療",
+        "E": "門診追蹤即可"
+      }
+    },
+    {
+      "question_id": "113-002",
+      "chosen": null,
+      "is_correct": 0,
+      "answered_at": null,
+      "flagged": 1,
+      "flagged_at": 1754000200000,
+      "year": 113,
+      "number": 2,
+      "stem": "第 2 題:關於缺鐵性貧血的實驗室診斷,下列何者最具特異性?",
+      "correct_answer": "C",
+      "elapsed_ms": null,
+      "options": {
+        "A": "MCV 下降",
+        "B": "血清鐵下降",
+        "C": "ferritin < 30 ng/mL",
+        "D": "TIBC 上升",
+        "E": "網狀紅血球上升"
+      }
+    },
+    {
+      "question_id": "113-003",
+      "chosen": "D",
+      "is_correct": 1,
+      "answered_at": 1754000300000,
+      "flagged": 0,
+      "flagged_at": null,
+      "year": 113,
+      "number": 3,
+      "stem": "第 3 題:下列何者為慢性骨髓性白血病的分子標記?",
+      "correct_answer": "D",
+      "elapsed_ms": 31000,
+      "options": {
+        "A": "JAK2 V617F",
+        "B": "FLT3-ITD",
+        "C": "PML::RARA",
+        "D": "BCR::ABL1",
+        "E": "CALR exon 9"
+      }
+    }
+  ]
+}
