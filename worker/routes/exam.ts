@@ -4,6 +4,10 @@ import type { AppContext, Env, ExamSession, Question } from "../types";
 import { uuid, optionsToRecord } from "../lib/db";
 import { clampElapsedMs, insertAttemptOp } from "../lib/attempts";
 import { planAnswerWrites } from "../lib/exam-answers";
+import {
+	planApplyToReview,
+	type ExamAnswerRow,
+} from "../lib/apply-exam-to-review";
 import { readIdemKey, idemLookup, idemRecordOp } from "../lib/idempotency";
 import { median, pacingSplit } from "../lib/pacing";
 import {
@@ -728,9 +732,11 @@ examRoutes.get("/:sid", async (c) => {
               ea.flagged, ea.flagged_at,
               q.year, q.number, q.stem, q.options_json,
               COALESCE(ea.correct_answer_at_finish, q.answer) AS correct_answer,
-              t.elapsed_ms
+              t.elapsed_ms, rp.last_chosen AS review_last_chosen
        FROM exam_answers ea
        JOIN questions q ON q.id = ea.question_id
+       LEFT JOIN review_progress rp
+              ON rp.question_id = ea.question_id AND rp.user_email = ?
        LEFT JOIN (
          SELECT question_id, SUM(elapsed_ms) AS elapsed_ms
          FROM attempts WHERE session_id = ? AND elapsed_ms IS NOT NULL
@@ -739,7 +745,7 @@ examRoutes.get("/:sid", async (c) => {
        WHERE ea.session_id = ?
        ORDER BY COALESCE(ea.seq, q.number) ASC, q.year ASC, q.number ASC`,
 	)
-		.bind(sid, sid)
+		.bind(sid, email, sid)
 		.all<{ options_json: string }>();
 
 	// 選項文字跟著成績一起回,不另外開一支端點:它就在同一列 questions 上,
@@ -752,6 +758,84 @@ examRoutes.get("/:sid", async (c) => {
 			...a,
 			options: optionsToRecord(options_json),
 		})),
+	});
+});
+
+// 把這次模擬考的結果登記進複習進度(`review_progress`)。
+//
+// 為什麼需要它:模擬考只寫 `exam_answers` 與 `attempts`,**從不碰
+// `review_progress`** —— 而 `/q/:id` 的「我的作答」讀的正是後者。所以考完之後
+// 打開任何一題,看到的是你上一次在複習模式答的那個,連 ✓/✗ 都是舊的。回報的
+// 原話是「他對答案,卻用的是我在複習 mode 時的答案」。
+//
+// 為什麼是**明確的動作**而不是自動同步:「清除本題作答紀錄」(reviewRoutes 的
+// DELETE /answer/:id)只刪 `review_progress`,`attempts` 原封不動。所以若改成
+// 「`/q/:id` 自動讀最新一筆 attempt」,清除會靜靜失效 —— 清完重整,答案又回來
+// 了。保住那個功能就得再加墓碑欄位,而 `attempts` 是全站作答真相、不能刪。
+//
+// ⚠️ **只登記考對的,而且只動 last_*,不碰 times_seen / times_correct。**
+// 前者讓複習紀錄維持「目前最好的狀態」,不會因為一次考差把以前答對的拉下來;
+// 後者是刻意的:那兩個欄位餵的是到期佇列與熟練度統計,一次批次登記把它們整批
+// 加一,等於用一個看起來只是「同步顯示」的按鈕去重排整個複習排程。
+//
+// 但 `last_correct` 本身就會影響 `/weakness-map` 的錯題池
+// (`last_correct = 0 OR times_correct * 2 < times_seen`)—— 那是這個功能要的:
+// 已經考對的題目不該一直被丟回來。
+examRoutes.post("/:sid/apply-to-review", async (c) => {
+	const sid = c.req.param("sid");
+	const email = c.var.email;
+	const now = Date.now();
+
+	const body = await c.req
+		.json<{ question_ids?: unknown }>()
+		.catch(() => ({}) as { question_ids?: unknown });
+	const requested = Array.isArray(body.question_ids)
+		? body.question_ids.filter((x): x is string => typeof x === "string")
+		: undefined;
+
+	const session = await c.env.DB.prepare(
+		"SELECT user_email, finished_at FROM exam_sessions WHERE id = ?",
+	)
+		.bind(sid)
+		.first<{ user_email: string; finished_at: number | null }>();
+	if (!session) return c.json({ error: "session not found" }, 404);
+	if (session.user_email !== email) return c.json({ error: "forbidden" }, 403);
+	// 沒交卷就沒有 is_correct —— 這時候「登記考對的」沒有東西可依據。
+	if (!session.finished_at) return c.json({ error: "session not finished" }, 400);
+
+	const { results } = await c.env.DB.prepare(
+		`SELECT ea.question_id, ea.chosen, ea.is_correct,
+            rp.last_chosen AS review_last_chosen
+       FROM exam_answers ea
+       LEFT JOIN review_progress rp
+              ON rp.question_id = ea.question_id AND rp.user_email = ?
+      WHERE ea.session_id = ?`,
+	)
+		.bind(email, sid)
+		.all<ExamAnswerRow>();
+
+	const plan = planApplyToReview(results ?? [], requested);
+
+	// times_seen / times_correct 在新列上是 0:那是「複習模式看過幾次」,而這一題
+	// 確實一次都沒有(它是在模擬考裡答的)。欄位各自說各自的話,不互相冒充。
+	const ops = plan.apply.map((a) =>
+		c.env.DB.prepare(
+			`INSERT INTO review_progress
+         (user_email, question_id, times_seen, times_correct, last_seen_at, last_chosen, last_correct)
+       VALUES (?, ?, 0, 0, ?, ?, 1)
+       ON CONFLICT(user_email, question_id) DO UPDATE SET
+         last_seen_at = excluded.last_seen_at,
+         last_chosen  = excluded.last_chosen,
+         last_correct = 1`,
+		).bind(email, a.question_id, now, a.chosen),
+	);
+	if (ops.length > 0) await c.env.DB.batch(ops);
+
+	return c.json({
+		applied: plan.apply.map((a) => a.question_id),
+		skipped_wrong: plan.skipped_wrong,
+		skipped_already: plan.skipped_already,
+		unknown: plan.unknown,
 	});
 });
 

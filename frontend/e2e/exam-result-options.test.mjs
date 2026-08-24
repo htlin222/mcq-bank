@@ -125,3 +125,77 @@ test('成績頁:卡片展開才看得到選項全文,正解與自己選的都標
     await ctx.close();
   }
 });
+
+test('登記進複習進度:只有考對且複習紀錄還不一致的題目才給按', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    serviceWorkers: 'block',
+  });
+  const posted = [];
+  // ⚠️ 順序:Playwright **後註冊的先比對**,所以擋外連的 catch-all 要先掛,
+  // 專用的那條後掛。反過來的話 catch-all 會把 apply-to-review 直接 continue
+  // 到 fixture 伺服器(回 `{}`),`posted` 永遠是空的 —— 而症狀只是「送出的
+  // 題號不對」,完全不會指向路由註冊順序。
+  await ctx.route('**/*', (r) =>
+    r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+  );
+  await ctx.route('**/api/exam/*/apply-to-review', (route) => {
+    posted.push(JSON.parse(route.request().postData() || '{}'));
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json; charset=utf-8',
+      body: JSON.stringify({ applied: ['113-003'], skipped_wrong: 2, skipped_already: 0, unknown: 0 }),
+    });
+  });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+
+  try {
+    await page.goto(`${server.origin}/exam/${SID}/result`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForSelector('button:has-text("展開選項")', { timeout: 20_000 });
+
+    // fixture:113-003 考對(D)而複習停在 A → 唯一一題可登記。
+    // 113-001 考錯、113-002 未作答 —— 一顆按了不會有變化的按鈕比沒有更糟。
+    const batch = page.locator('button', { hasText: '全部登記' });
+    await batch.waitFor({ timeout: 10_000 });
+    assert.match(
+      await batch.innerText(),
+      /全部登記 \(1\)/,
+      '批次按鈕的數字要等於「按下去會改變幾題」',
+    );
+
+    // ⚠️ 預設篩選是「答錯/未答」,考對的那題根本不在畫面上 —— 逐題那顆按鈕自然
+    // 也不會被渲染。先切到「全部」,否則這裡量到的 0 會被誤讀成「按鈕沒做出來」。
+    const perCard = page.locator('button', { hasText: '登記進複習進度' });
+    assert.equal(await perCard.count(), 0, '「答錯/未答」篩選下不該有可登記的題目');
+
+    await page.locator('button', { hasText: '全部 (' }).click();
+    await page.waitForTimeout(250);
+
+    // 三題裡只有 113-003 符合(考對 + 複習紀錄不一致)。
+    assert.equal(await perCard.count(), 1, '逐題登記鈕出現在不該出現的卡片上');
+
+    await perCard.click();
+    await page.waitForTimeout(300);
+
+    assert.deepEqual(
+      posted,
+      [{ question_ids: ['113-003'] }],
+      '逐題登記送出的題號不對',
+    );
+    // 送出後要就地變成「已登記」,不是把按鈕變不見 —— 後者看起來像壞掉。
+    await page.locator('text=已登記進複習').first().waitFor({ timeout: 5_000 });
+
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});

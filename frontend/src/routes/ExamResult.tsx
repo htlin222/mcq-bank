@@ -30,6 +30,10 @@ type Result = {
     elapsed_ms: number | null;
     /** 選項全文,字母 → 內容。展開卡片時就地顯示,不再另外打一支端點。 */
     options?: Record<string, string>;
+    /** 複習進度目前記著的答案(review_progress.last_chosen)。
+     *  模擬考不寫那張表,所以它可能停在一個月前的複習作答 —— 「登記進複習進度」
+     *  按的就是這個差距。 */
+    review_last_chosen?: string | null;
     /** 標記待回頭檢查(migration 0028)。舊列 DEFAULT 0。 */
     flagged: 0 | 1;
     flagged_at: number | null;
@@ -56,6 +60,8 @@ export function ExamResult() {
   const [data, setData] = useState<Result | null>(null);
   const [filter, setFilter] = useState<'all' | 'wrong' | 'right' | 'flagged'>('wrong');
   const [pacing, setPacing] = useState<Pacing | null>(null);
+  const [applying, setApplying] = useState(false);
+  const [applyMsg, setApplyMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!sid) return;
@@ -64,6 +70,48 @@ export function ExamResult() {
       /* pacing is best-effort — never block the result page */
     });
   }, [sid]);
+
+  // 「登記進複習進度」—— 模擬考只寫 exam_answers / attempts,從不碰
+  // review_progress,而 /q/:id 的「我的作答」讀的是後者。所以考完之後打開題目,
+  // 看到的是上一次在複習模式答的那個。這顆按鈕把考對的那些搬過去。
+  //
+  // 只搬考對的:複習紀錄因此維持「目前最好的狀態」,不會因為一次考差把以前答對
+  // 的拉下來。規則寫在 worker/lib/apply-exam-to-review.ts,前端只負責算出「按下去
+  // 會改變幾題」——**要跟伺服器同一套判準**,否則按鈕上的數字跟結果對不起來。
+  async function applyToReview(ids?: string[]) {
+    if (!sid || applying) return;
+    setApplying(true);
+    setApplyMsg(null);
+    try {
+      const r = await api.post<{ applied: string[]; skipped_already: number }>(
+        `/api/exam/${sid}/apply-to-review`,
+        ids ? { question_ids: ids } : {},
+      );
+      // 就地改寫,不重抓整份成績 —— 這一頁的其他東西(配速、篩選)都沒變。
+      const done = new Set(r.applied);
+      setData((d) =>
+        d
+          ? {
+              ...d,
+              answers: d.answers.map((a) =>
+                done.has(a.question_id)
+                  ? { ...a, review_last_chosen: a.chosen }
+                  : a,
+              ),
+            }
+          : d,
+      );
+      setApplyMsg(
+        r.applied.length > 0
+          ? `已登記 ${r.applied.length} 題`
+          : '沒有需要登記的題目',
+      );
+    } catch (e: any) {
+      setApplyMsg('登記失敗:' + (e?.data?.error ?? e?.message ?? '請稍後再試'));
+    } finally {
+      setApplying(false);
+    }
+  }
 
   if (!data) return <div className="p-8 text-center text-ink-400 dark:text-ink-500">載入中…</div>;
 
@@ -74,6 +122,12 @@ export function ExamResult() {
   const secs = data.session.duration_sec % 60;
 
   const flaggedCount = data.answers.filter((a) => a.flagged === 1).length;
+
+  // 「按下去會改變幾題」——**跟伺服器同一套判準**(考對 + 複習紀錄還不是這個答案)。
+  // 把已經一樣的算進去的話,使用者會按完發現數字沒動。
+  const pendingApply = data.answers.filter(
+    (a) => a.is_correct === 1 && a.chosen && a.review_last_chosen !== a.chosen,
+  );
 
   const visible = data.answers.filter((a) => {
     if (filter === 'all') return true;
@@ -126,6 +180,34 @@ export function ExamResult() {
           {new Date(data.session.finished_at).toLocaleString('zh-TW')}
         </div>
       </div>
+
+      {/* 登記進複習進度。放在分數卡與逐題清單之間 —— 它是「看完成績之後要不要
+          把成果收進複習」的動作,屬於整份成績,不屬於任何一題。 */}
+      {(pendingApply.length > 0 || applyMsg) && (
+        <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 shadow-paper mb-8 flex flex-wrap items-center gap-3">
+          <div className="min-w-0 flex-1 text-sm text-ink-600 dark:text-ink-300">
+            <p>
+              有 <span className="font-medium">{pendingApply.length}</span>{' '}
+              題這次考對了,但複習進度還記著舊答案。
+            </p>
+            <p className="text-xs text-ink-400 dark:text-ink-500 mt-0.5">
+              登記之後,題目頁的「我的作答」會顯示這次的答案,也不會再被當成錯題丟回來。
+              考錯的不會動。
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => applyToReview()}
+            disabled={applying || pendingApply.length === 0}
+            className="shrink-0 rounded bg-accent hover:bg-accent-dark text-white px-3 py-1.5 text-sm disabled:opacity-40"
+          >
+            {applying ? '登記中…' : `全部登記 (${pendingApply.length})`}
+          </button>
+          {applyMsg && (
+            <p className="w-full text-xs text-ink-500 dark:text-ink-400">{applyMsg}</p>
+          )}
+        </div>
+      )}
 
       {/* Pacing card */}
       {pacing && (
@@ -256,6 +338,15 @@ export function ExamResult() {
                 options={a.options ?? {}}
                 chosen={a.chosen}
                 correctAnswer={a.correct_answer}
+                applyState={
+                  a.is_correct !== 1 || !a.chosen
+                    ? 'n/a'
+                    : a.review_last_chosen === a.chosen
+                      ? 'done'
+                      : 'pending'
+                }
+                applying={applying}
+                onApply={() => applyToReview([a.question_id])}
               />
             </li>
           );
@@ -283,11 +374,18 @@ function AnswerDetail({
   options,
   chosen,
   correctAnswer,
+  applyState,
+  applying,
+  onApply,
 }: {
   questionId: string;
   options: Record<string, string>;
   chosen: string | null;
   correctAnswer: string;
+  /** 'n/a' = 考錯或未作答(依規則不登記)· 'pending' = 可登記 · 'done' = 已一致 */
+  applyState: 'n/a' | 'pending' | 'done';
+  applying: boolean;
+  onApply(): void;
 }) {
   const [open, setOpen] = useState(false);
   const [stats, setStats] = useState<StatsPayload | null>(null);
@@ -324,6 +422,24 @@ function AnswerDetail({
       >
         {open ? '收合選項' : '展開選項'}
       </button>
+      {/* 逐題登記。只有「考對了但複習進度還是舊答案」時才出現 —— 一顆按了不會
+          有任何變化的按鈕,比沒有這顆更糟。已登記的留一行灰字當回饋,不留的話
+          按完只是按鈕消失,看起來像壞掉。 */}
+      {applyState === 'pending' && (
+        <button
+          type="button"
+          onClick={onApply}
+          disabled={applying}
+          className="ml-3 text-xs text-accent hover:underline disabled:opacity-40"
+        >
+          登記進複習進度
+        </button>
+      )}
+      {applyState === 'done' && (
+        <span className="ml-3 text-xs text-ink-400 dark:text-ink-500">
+          已登記進複習
+        </span>
+      )}
       {open && (
         <div id={`opts-${questionId}`} className="pb-2 space-y-1">
           <ul className="space-y-1">
