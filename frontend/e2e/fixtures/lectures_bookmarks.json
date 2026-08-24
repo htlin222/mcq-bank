@@ -1,0 +1,32 @@
+[
+  {
+    "id": "bm-1",
+    "slug": "heme-review-02",
+    "page": 17,
+    "created_at": 1754300000000,
+    "title": "白血病分類與治療原則",
+    "instructor": "林醫師",
+    "sort_order": 2,
+    "note_preview": "AML 的 FLT3-ITD 是預後不良因子,midostaurin 併用 7+3 可延長存活。核心結合因子型(t(8;21)、inv(16))預後較佳。"
+  },
+  {
+    "id": "bm-2",
+    "slug": "heme-review-01",
+    "page": 5,
+    "created_at": 1754200000000,
+    "title": "紅血球生成與貧血概論",
+    "instructor": "陳醫師",
+    "sort_order": 1,
+    "note_preview": ""
+  },
+  {
+    "id": "bm-3",
+    "slug": "heme-review-01",
+    "page": 33,
+    "created_at": 1754400000000,
+    "title": "紅血球生成與貧血概論",
+    "instructor": "陳醫師",
+    "sort_order": 1,
+    "note_preview": "缺鐵性貧血的 ferritin < 30 ng/mL 幾乎可確診;發炎狀態下要看 transferrin saturation。"
+  }
+]

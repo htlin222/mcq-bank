@@ -1,7 +1,7 @@
 // /lectures 的分頁列不准隨著切換左右漂移(#111)。
 //
 // 原本標題與分頁列同一條 flex row,而標題就是當前分頁的名字 ——
-// 「複習班講義」/「Wintrobe 教科書」/「其他筆記」字寬各不相同,所以每按一次
+// 「複習班講義」/「Wintrobe 教科書」/「其他筆記」/「書籤」字寬各不相同,所以每按一次
 // 分頁,整條分頁列就跟著標題的寬度往左右跳一段。使用者的描述是「標題在改動時,
 // 就會一直 x position 漂來漂去」。
 //
@@ -102,11 +102,11 @@ for (const viewport of VIEWPORTS) {
 
       const first = await page.evaluate(PROBE);
 
-      // 空掃防線:三顆分頁都要在。
+      // 空掃防線:四顆分頁都要在。
       assert.equal(
         first.tabs.length,
-        3,
-        `找不到三顆分頁,掃到的是:${JSON.stringify(first.tabs)}`,
+        4,
+        `找不到四顆分頁,掃到的是:${JSON.stringify(first.tabs)}`,
       );
 
       const seen = [{ ...first }];
@@ -120,7 +120,7 @@ for (const viewport of VIEWPORTS) {
       const titles = seen.map((s) => s.title);
       assert.equal(
         new Set(titles).size,
-        3,
+        4,
         `切換分頁後標題沒有跟著換,量到:${JSON.stringify(titles)}`,
       );
 

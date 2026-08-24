@@ -207,3 +207,68 @@ export function listPageQuestions(slug: string, page: number): Promise<LecturePa
 export function explainSelection(text: string): Promise<{ text: string }> {
 	return api.post<{ text: string }>("/api/ai/explain-selection", { text });
 }
+
+// ── 書籤 (migration 0042) ─────────────────────────────────────────────
+//
+// 一則書籤 = 「某人在某份講義的某一頁插了旗子」。頁碼一律 1-based —— 跟
+// lecture_notes 一致(預覽就是 join 它來的),跟 lecture_annotations 不一致
+// (那張表是 0-based)。0/1 的轉換只發生在 LectureReader 那一處。
+
+export interface LectureBookmark {
+	id: string;
+	slug: string;
+	/** 1-based PDF 頁碼。 */
+	page: number;
+	created_at: number;
+	/** 講義標題(伺服器 join lecture_docs 帶回來的)。 */
+	title: string;
+	instructor: string;
+	sort_order: number;
+	/** 同一頁 lecture_notes 的純文字開頭;那一頁沒筆記時是空字串。 */
+	note_preview: string;
+}
+
+/**
+ * 全部書籤(/lectures?tab=bookmark)。
+ *
+ * 快取沿用 createQuestionStore,理由同 freeNoteListCache:切分頁時 `peek()`
+ * 同步可讀,回到看過的分頁不閃骨架。ttl 短(30 秒)—— 這是可變的私人狀態,
+ * 而且使用者可能剛在另一個分頁的閱讀器裡加了書籤。
+ *
+ * ⚠️ 失效寫在下面兩個變更函式裡,不是交給呼叫端記得。漏掉的症狀是「在閱讀器
+ * 加了書籤,回首頁看不到」,而且無聲。
+ */
+export const bookmarkListCache = createQuestionStore<LectureBookmark[]>(
+	() => api.get<LectureBookmark[]>("/api/lectures/bookmarks"),
+	{ max: 1, ttlMs: 30_000 },
+);
+
+/** 清單只有一份,鍵是常數。 */
+export const BOOKMARK_LIST_KEY = "all";
+
+function dropBookmarkCache() {
+	bookmarkListCache.invalidate(BOOKMARK_LIST_KEY);
+}
+
+/** 單一講義的書籤,依頁碼排(閱讀器左側 rail)。 */
+export function listBookmarks(slug: string): Promise<LectureBookmark[]> {
+	return api.get<LectureBookmark[]>(`/api/lectures/${slug}/bookmarks`);
+}
+
+/** @param page 1-based。重複加同一頁是 no-op(伺服器 INSERT OR IGNORE)。 */
+export function addBookmark(slug: string, page: number): Promise<LectureBookmark> {
+	return api
+		.post<LectureBookmark>(`/api/lectures/${slug}/bookmarks`, { page })
+		.then((r) => {
+			dropBookmarkCache();
+			return r;
+		});
+}
+
+/** @param page 1-based。 */
+export function removeBookmark(slug: string, page: number): Promise<unknown> {
+	return api.del(`/api/lectures/${slug}/bookmarks/${page}`).then((r) => {
+		dropBookmarkCache();
+		return r;
+	});
+}
