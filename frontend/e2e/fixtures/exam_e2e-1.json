@@ -29,7 +29,8 @@
         "C": "安排 DEK::NUP214 融合基因檢測",
         "D": "以類固醇單獨治療",
         "E": "門診追蹤即可"
-      }
+      },
+      "review_last_chosen": "B"
     },
     {
       "question_id": "113-002",
@@ -49,7 +50,8 @@
         "C": "ferritin < 30 ng/mL",
         "D": "TIBC 上升",
         "E": "網狀紅血球上升"
-      }
+      },
+      "review_last_chosen": null
     },
     {
       "question_id": "113-003",
@@ -69,7 +71,8 @@
         "C": "PML::RARA",
         "D": "BCR::ABL1",
         "E": "CALR exon 9"
-      }
+      },
+      "review_last_chosen": "A"
     }
   ]
 }
