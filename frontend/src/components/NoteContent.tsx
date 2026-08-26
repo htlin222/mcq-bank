@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
-import { ReadOnlyContent } from "./ReadOnlyContent";
+import { StaticContent } from "./StaticContent";
 import { AnnotatableContent, hashContent } from "./AnnotatableContent";
 
 // When annotation is on, section bodies render through AnnotatableContent
@@ -24,8 +24,9 @@ const DefaultOpenCtx = createContext(false);
 //   • every heading (h1/h2/h3) becomes a collapsible accordion, folded by
 //     default and NESTED by level: an h1 section holds the h2 sections under
 //     it, each h2 holds its h3 sections, and so on.
-// Section bodies render through ReadOnlyContent, so tables, images, links and
-// highlights all keep working. Content before the first heading stays visible.
+// Section bodies render through AnnotatableContent (or StaticContent when the
+// note is not annotatable), so tables, images, links and highlights all keep
+// working. Content before the first heading stays visible.
 
 type Node = { type?: string; attrs?: any; content?: Node[]; text?: string };
 type Section = {
@@ -134,7 +135,7 @@ export function NoteContent({
 // present, otherwise plain read-only (used by every other NoteContent caller).
 function SectionBody({ doc }: { doc: any }) {
 	const anno = useContext(AnnotationCtx);
-	if (!anno) return <ReadOnlyContent content={doc} />;
+	if (!anno) return <StaticContent content={doc} />;
 	return (
 		<AnnotatableContent
 			content={doc}
@@ -145,7 +146,7 @@ function SectionBody({ doc }: { doc: any }) {
 	);
 }
 
-// Render items in order: consecutive blocks batch into one ReadOnlyContent (so
+// Render items in order: consecutive blocks batch into one renderer (so
 // lists/paragraphs render correctly); sections render as nested accordions.
 function ItemList({ items }: { items: Item[] }) {
 	const out: ReactNode[] = [];

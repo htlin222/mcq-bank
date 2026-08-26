@@ -15,7 +15,7 @@ import {
 	type ResolvedChallenge,
 } from "../hooks/useChallenge";
 import { RichEditor } from "./RichEditor";
-import { ReadOnlyContent } from "./ReadOnlyContent";
+import { StaticContent } from "./StaticContent";
 
 type Props = {
 	questionId: string;
@@ -351,7 +351,7 @@ function ActiveBanner({
 
 			{showRationale && !editing && !!rationaleDoc && (
 				<article className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-700/60 prose-tight">
-					<ReadOnlyContent content={rationaleDoc} />
+					<StaticContent content={rationaleDoc} />
 				</article>
 			)}
 		</div>
@@ -468,7 +468,7 @@ function RecentPromotionPill({ challenge }: { challenge: ResolvedChallenge }) {
 			</div>
 			{showRationale && !!rationaleDoc && (
 				<article className="mt-2.5 pt-2.5 border-t border-emerald-200 dark:border-emerald-700/60 prose-tight text-sm text-ink-800 dark:text-ink-200">
-					<ReadOnlyContent content={rationaleDoc} />
+					<StaticContent content={rationaleDoc} />
 				</article>
 			)}
 		</div>

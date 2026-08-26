@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { LucideIcon } from "lucide-react";
 import { BookOpen, Check, Clock, Loader2, RotateCcw, X } from "lucide-react";
-import { ReadOnlyContent } from "./ReadOnlyContent";
+import { StaticContent } from "./StaticContent";
 import { groupBadgeClass } from "../lib/groups";
 
 export type RatingKey = "again" | "hard" | "good" | "easy";
@@ -211,7 +211,7 @@ export function AnkiCardView({
 
 						{explanationJson ? (
 							<div className="prose-answer">
-								<ReadOnlyContent content={explanationJson} />
+								<StaticContent content={explanationJson} />
 							</div>
 						) : (
 							<div className="rounded border border-dashed border-ink-200 dark:border-ink-700 bg-ink-50 dark:bg-ink-900/30 p-4 text-sm text-ink-500 dark:text-ink-400">

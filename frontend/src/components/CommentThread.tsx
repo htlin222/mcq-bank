@@ -1,29 +1,24 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { ThumbsUp } from "lucide-react";
-import { api } from "../lib/api";
+import {
+	postComment,
+	editComment,
+	deleteComment,
+	toggleHelpful as voteHelpful,
+	type Comment,
+} from "../lib/commentApi";
+import { useComments } from "../hooks/useComments";
 import { rankByHelpful } from "../lib/helpful";
-import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
+import { loadDraft, saveDraft, clearDraft, isEmptyDoc } from "../lib/drafts";
 import { Avatar } from "./Avatar";
 import { RichEditor } from "./RichEditor";
-import { ReadOnlyContent } from "./ReadOnlyContent";
+import { StaticContent } from "./StaticContent";
 import { CommentListSkeleton } from "./Skeleton";
 import { useOnline } from "../hooks/useOnline";
 
-type Comment = {
-	id: string;
-	question_id: string;
-	parent_id: string | null;
-	author_email: string;
-	display_name: string;
-	avatar_key: string | null;
-	content_json: string;
-	created_at: number;
-	helpful_count: number;
-	voted_by_me: 0 | 1;
-	// 該題有 status='promoted' 的挑戰,且本留言作者就是提案人 —— 社群已用
-	// 行動認證過這個人的判斷,「最有幫助」時置頂。
-	adopted: 0 | 1;
-};
+// 沒有資料時共用同一個空陣列 —— 每次 render 造一個新的,會讓下面那個 useMemo
+// 的依賴每次都變,白白重算整棵樹。
+const NO_COMMENTS: Comment[] = [];
 
 type Tree = Comment & { children: Tree[] };
 
@@ -52,8 +47,9 @@ export function CommentThread({
 	// when comments are added/edited/deleted without re-fetching the question.
 	onCountChange?: (n: number) => void;
 }) {
-	const [comments, setComments] = useState<Comment[]>([]);
-	const [loading, setLoading] = useState(true);
+	// 讀取走 commentCache(見 lib/commentApi.ts):切分頁、換題回來都不再重抓。
+	const { comments: cached, loading, reload } = useComments(questionId);
+	const comments = cached ?? NO_COMMENTS;
 	// The empty case is the common one, and the fetch is tiny — so flashing a
 	// 3-row skeleton and then collapsing to a one-line「還沒有討論」bumps the
 	// layout jarringly. Only reveal the skeleton if the load is actually slow.
@@ -61,25 +57,20 @@ export function CommentThread({
 	// 預設時間序 —— 討論串的可讀性來自時序。「最有幫助」是使用者主動切換的檢視。
 	const [sort, setSort] = useState<"time" | "helpful">("time");
 
-	const load = async () => {
-		setLoading(true);
-		const slow = setTimeout(() => setShowSkeleton(true), 300);
-		try {
-			const data = await api.get<Comment[]>(
-				`/api/questions/${questionId}/comments`,
-			);
-			setComments(data);
-			onCountChange?.(data.length);
-		} finally {
-			clearTimeout(slow);
-			setShowSkeleton(false);
-			setLoading(false);
-		}
-	};
-
 	useEffect(() => {
-		load();
-	}, [questionId]);
+		if (!loading) {
+			setShowSkeleton(false);
+			return;
+		}
+		const slow = setTimeout(() => setShowSkeleton(true), 300);
+		return () => clearTimeout(slow);
+	}, [loading]);
+
+	// 分頁徽章跟著實際筆數走。`cached` 為 null(還沒抓到)時不報 —— 報 0 會讓徽章
+	// 先跳成 0 再跳回真值,而題目 payload 裡的 comment_count 本來就是對的。
+	useEffect(() => {
+		if (cached) onCountChange?.(cached.length);
+	}, [cached, onCountChange]);
 
 	// 排序只作用在 root 層;子回覆永遠維持時序,否則對話讀不通。
 	const tree = useMemo(() => {
@@ -117,7 +108,7 @@ export function CommentThread({
 				)}
 			</div>
 
-			<NewCommentBox questionId={questionId} onPosted={load} />
+			<NewCommentBox questionId={questionId} onPosted={reload} />
 
 			{loading ? (
 				showSkeleton ? (
@@ -135,7 +126,7 @@ export function CommentThread({
 							comment={c}
 							questionId={questionId}
 							currentEmail={currentEmail}
-							onChange={load}
+							onChange={reload}
 							depth={0}
 						/>
 					))}
@@ -163,6 +154,20 @@ function NewCommentBox({
 	const [content, setContent] = useState<any>(
 		() => loadDraft(draftKey) ?? { type: "doc", content: [] },
 	);
+	// 編輯器要到使用者表示「我要寫」才建。RichEditor 是可編輯的 TipTap,一掛載就
+	// 同步建一次 EditorView —— 量到的是 CPU 節流 6x 底下 66.7ms,而那一題**一則留言
+	// 都沒有**,那個時間全部是它自己的。開討論串多半是為了看,不是為了寫。
+	//
+	// 兩種情況要直接展開:
+	//
+	//   • **這是回覆框。** 它本來就是按下「回覆」才掛載的,那一下已經表達過意圖 ——
+	//     再要一次點擊只是把成本轉嫁給每一個要回覆的人。
+	//   • **手上有沒送出的草稿。** 看不見的草稿等於弄丟了,而使用者不會知道要去
+	//     點一下才找得回來。判準用 `isEmptyDoc()` 而不是 `loadDraft() !== null` ——
+	//     後者會被「打了字又刪掉」留下的空文件騙到。
+	const [open, setOpen] = useState(
+		() => !!parentId || !isEmptyDoc(loadDraft(draftKey)),
+	);
 	const [busy, setBusy] = useState(false);
 	// 留言離線送不出去(也沒有離線佇列),寧可停用按鈕也不要送出後才失敗。
 	const online = useOnline();
@@ -178,12 +183,9 @@ function NewCommentBox({
 		setBusy(true);
 		if (!idemKey.current) idemKey.current = crypto.randomUUID();
 		try {
-			await api.post(
-				`/api/questions/${questionId}/comments`,
-				{
-					content_json: content,
-					parent_id: parentId,
-				},
+			await postComment(
+				questionId,
+				{ content_json: content, parent_id: parentId },
 				idemKey.current,
 			);
 			idemKey.current = null;
@@ -197,18 +199,37 @@ function NewCommentBox({
 		}
 	};
 
+	const prompt = parentId
+		? "回覆…  (@提及成員)"
+		: "寫下你的想法,@提及其他成員…";
+
+	// 收起來的樣子刻意長得像輸入框(同樣的框線、圓角、內距與灰字提示),不是一顆
+	// 「寫留言」按鈕 —— 那會多一個要看懂的東西。點下去 `autofocus` 讓游標直接進去,
+	// 所以真的要留言的人並沒有多按一下。
+	if (!open) {
+		return (
+			<button
+				type="button"
+				data-comment-composer=""
+				onClick={() => setOpen(true)}
+				className="w-full text-left px-3 py-2.5 rounded border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-400 dark:text-ink-500 italic hover:border-ink-300 dark:hover:border-ink-600 transition-colors"
+			>
+				{prompt}
+			</button>
+		);
+	}
+
 	return (
 		<div className="space-y-2">
 			<RichEditor
 				key={resetKey}
 				content={content}
+				autofocus
 				onChange={(j) => {
 					setContent(j);
 					saveDraft(draftKey, j);
 				}}
-				placeholder={
-					parentId ? "回覆…  (@提及成員)" : "寫下你的想法,@提及其他成員…"
-				}
+				placeholder={prompt}
 			/>
 			<div className="flex justify-end gap-2">
 				{onCancel && (
@@ -282,14 +303,7 @@ function CommentItem({
 		setHelpful({ count: prev.count + (prev.mine ? -1 : 1), mine: !prev.mine });
 		setVoting(true);
 		try {
-			const r = prev.mine
-				? await api.del<{ helpful_count: number }>(
-						`/api/comments/${comment.id}/helpful`,
-					)
-				: await api.post<{ helpful_count: number }>(
-						`/api/comments/${comment.id}/helpful`,
-						{},
-					);
+			const r = await voteHelpful(questionId, comment.id, prev.mine);
 			setHelpful({ count: r.helpful_count, mine: !prev.mine }); // 以伺服器為準
 		} catch {
 			setHelpful(prev);
@@ -299,9 +313,7 @@ function CommentItem({
 	};
 
 	const saveEdit = async () => {
-		await api.patch(`/api/questions/${questionId}/comments/${comment.id}`, {
-			content_json: editContent,
-		});
+		await editComment(questionId, comment.id, editContent);
 		clearDraft(editDraftKey);
 		setEditing(false);
 		onChange();
@@ -309,7 +321,7 @@ function CommentItem({
 
 	const remove = async () => {
 		if (!confirm("刪除這則留言?")) return;
-		await api.del(`/api/questions/${questionId}/comments/${comment.id}`);
+		await deleteComment(questionId, comment.id);
 		onChange();
 	};
 
@@ -366,7 +378,7 @@ function CommentItem({
 						</div>
 					) : (
 						<div className="prose prose-sm">
-							<ReadOnlyContent content={JSON.parse(comment.content_json)} />
+							<StaticContent content={JSON.parse(comment.content_json)} />
 						</div>
 					)}
 
