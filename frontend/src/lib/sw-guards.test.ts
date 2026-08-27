@@ -3,9 +3,12 @@ import assert from "node:assert/strict";
 import {
 	isAuthRedirect,
 	isCacheableApiResponse,
+	isCacheableImageResponse,
 	isCacheableApiPath,
 	API_CACHE_MAX_ENTRIES,
 	API_CACHE_MAX_AGE_SECONDS,
+	IMG_CACHE_MAX_ENTRIES,
+	IMG_CACHE_MAX_AGE_SECONDS,
 } from "./sw-guards.ts";
 
 const ORIGIN = "https://example.com";
@@ -204,4 +207,54 @@ test("maxEntries 要大於整個題庫 —— 驅逐壓力必須不存在", () =
 test("maxAge 要撐得過一個考季 —— 7 天會讓拓好的一年第 8 天無聲過期", () => {
 	const days = API_CACHE_MAX_AGE_SECONDS / 86400;
 	assert.ok(days >= 30, `至少要 30 天,實際 ${days} 天`);
+});
+
+test("圖片快取要裝得下不只一年 —— 300 張連一年都不夠", () => {
+	// 一年的詳解有 125–259 張圖(2026-08-27 實測)。上限太小的症狀是「拓第二年
+	// 之後,第一年的某些題沒圖」,完全不指向快取容量。
+	assert.ok(
+		IMG_CACHE_MAX_ENTRIES >= 1000,
+		`至少要裝得下好幾年,實際 ${IMG_CACHE_MAX_ENTRIES}`,
+	);
+});
+
+test("圖片 key 是 UUID,不會過期 —— 30 天只會讓備好的圖消失", () => {
+	const days = IMG_CACHE_MAX_AGE_SECONDS / 86400;
+	assert.ok(days >= 180, `至少半年,實際 ${days} 天`);
+});
+
+// —— 圖片的 guard ————————————————————————————————————————————
+//
+// ⚠️ 這一組守的是一個實際的 bug:`/img/*` 原本跟 API 共用 guard,而那支要求
+// content-type 是 application/json —— 於是圖片一張都沒被快取過,連 img-v1 那個
+// cache 都不存在。症狀是「離線看詳解沒圖」,跟「本來就沒預載圖」長得一樣。
+
+test("圖片回應可以快取 —— JSON 那支會拒絕它", () => {
+	const png = res('x', { headers: { 'content-type': 'image/png' }, url: ORIGIN + '/img/a.png' });
+	assert.equal(isCacheableImageResponse(png, ORIGIN), true);
+	// 這一行就是原本的 bug:同一個回應在 JSON 那支底下是「不可快取」。
+	assert.equal(isCacheableApiResponse(png, ORIGIN), false);
+});
+
+test("圖片的 guard 一樣擋 Access 登入頁", () => {
+	// 過期的 session 換來 text/html,用 CacheFirst 存下去的話,那張圖的位置會
+	// 永遠是一頁 HTML —— 而且 CacheFirst 不會再去問網路。
+	const html = res('<html>', {
+		headers: { 'content-type': 'text/html' },
+		url: ORIGIN + '/img/a.png',
+	});
+	assert.equal(isCacheableImageResponse(html, ORIGIN), false);
+
+	const redirected = res('x', {
+		headers: { 'content-type': 'image/png' },
+		url: 'https://team.cloudflareaccess.com/x',
+		redirected: true,
+	});
+	assert.equal(isCacheableImageResponse(redirected, ORIGIN), false);
+});
+
+test("圖片的 guard 不收非 2xx", () => {
+	const e = res('x', { status: 500, headers: { 'content-type': 'image/png' } });
+	assert.equal(isCacheableImageResponse(e, ORIGIN), false);
+	assert.equal(isCacheableImageResponse(undefined, ORIGIN), false);
 });

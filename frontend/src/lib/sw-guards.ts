@@ -58,6 +58,27 @@ export const API_CACHE_MAX_ENTRIES = 1500;
  */
 export const API_CACHE_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
 
+/** R2 圖片的 runtime cache。 */
+export const IMG_CACHE_NAME = 'img-v1';
+
+/**
+ * ⚠️ **原本是 300,而一年的詳解就有 125–259 張圖** —— 也就是說拓第二年會把第一年
+ * 的圖**擠掉**,而症狀是「離線看某些題沒圖」,完全不會指向快取容量。
+ *
+ * 2000 大約是全部 11 年(約 1,700 張)。跟 API 那個上限不同,這個**不**大到讓驅逐
+ * 壓力消失得毫無疑問 —— 圖片一張平均 66 KB,2000 張約 132 MB,再往上就不該由我們
+ * 單方面替使用者決定了。`purgeOnQuotaError` 仍然開著:配額真的滿了就整批讓掉,
+ * 而不是讓瀏覽器把**整個站**的快取清空。
+ */
+export const IMG_CACHE_MAX_ENTRIES = 2000;
+
+/**
+ * 圖片的 key 是 UUID,同一個 URL 的內容永遠不變(所以策略是 CacheFirst)——
+ * 也就是說這裡**不存在過期的內容,只存在過期的可用性**。原本的 30 天會讓使用者
+ * 特地備好的一年在一個月後靜靜消失,同 API 那個 7 天的坑。
+ */
+export const IMG_CACHE_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;
+
 /**
  * True when a response is (or might be) Cloudflare Access asking for a login
  * rather than our own API answering. Errs on the side of true.
@@ -96,6 +117,33 @@ export function isCacheableApiResponse(
   if (!res.ok) return false;
   const ct = res.headers.get('content-type') || '';
   return ct.toLowerCase().includes('application/json');
+}
+
+/**
+ * 同上,但給 `/img/<key>` 用。
+ *
+ * ⚠️ **這支存在的理由是一個實際的 bug:圖片快取從 PWA 上線以來一直是空轉的。**
+ * `/img/*` 那條 CacheFirst 路由跟 API 共用同一個 guard,而
+ * `isCacheableApiResponse` 要求 `content-type` 含 `application/json` ——
+ * 圖片是 `image/webp`,於是 `cacheWillUpdate` 每次都回 null,一張都沒存進去。
+ * 2026-08-27 實測:頁面上有兩張 `/img/` 圖、直接 fetch 回 200 `image/png`,
+ * 而 `caches.keys()` 裡**連 `img-v1` 都不存在**。
+ *
+ * 症狀是「離線看詳解沒有圖」—— 而那跟「圖片本來就沒預載」長得一模一樣,所以
+ * 它可以活很久。
+ *
+ * **防 Access 302 的那一層一行都不能少**:過期的 session 換來的是
+ * `text/html` 的登入頁,用 CacheFirst 存下來的話,那張圖的位置會永遠是一頁 HTML。
+ */
+export function isCacheableImageResponse(
+  res: Response | undefined,
+  selfOrigin: string
+): boolean {
+  if (!res) return false;
+  if (isAuthRedirect(res, selfOrigin)) return false;
+  if (!res.ok) return false;
+  const ct = res.headers.get('content-type') || '';
+  return ct.toLowerCase().startsWith('image/');
 }
 
 // Allowlist, not blocklist: an endpoint added tomorrow is not cached until

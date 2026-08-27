@@ -208,3 +208,51 @@ test('拓過的題目離線讀得到,沒拓過的讀不到', async (t) => {
     await server.close().catch(() => {});
   }
 });
+
+test('圖片:算得出張數、按下去才拓,而且真的進得了 img-v1', async (t) => {
+  if (guard(t)) return;
+  const server = await startServer({ dist: DIST });
+  const ctx = await browser.newContext({ viewport: { width: 900, height: 900 } });
+  const page = await ctx.newPage();
+  try {
+    await page.goto(server.origin + '/year/113', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000);
+    await page.goto(server.origin + '/year/113', { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => /✓ 可離線閱讀/.test(document.body.innerText), {
+      timeout: 12000,
+    });
+
+    // 文字拓完之前不該出現這顆按鈕 —— 那時快取裡只有一半的 payload,算出來的
+    // 張數會偏低,而按鈕上那個數字正是使用者用來決定要不要按的依據。
+    const btn = page.locator('button', { hasText: '連圖片一起離線備用' });
+    await btn.waitFor({ timeout: 8000 });
+
+    // 正面對照:按鈕上真的寫著張數與 MB,不是一句空話。
+    const label = (await btn.innerText()).trim();
+    assert.match(label, /約 \d+ 張/, `按鈕該寫出張數,實際:${label}`);
+    assert.match(label, /約 [\d.]+ MB/, `按鈕該寫出 MB,實際:${label}`);
+
+    // 按之前:img 快取是空的(或至少不含詳解那張)。這條讓下面的 +N 有話語權。
+    const before = await page.evaluate(async () => {
+      const c = await caches.open('img-v1');
+      return (await c.keys()).length;
+    });
+
+    await btn.click();
+    await page.waitForFunction(() => /✓ 圖片也備好了/.test(document.body.innerText), {
+      timeout: 15000,
+    });
+
+    const after = await page.evaluate(async () => {
+      const c = await caches.open('img-v1');
+      return (await c.keys()).length;
+    });
+    // ⚠️ 這條守的是一個真的 bug:`/img/*` 原本跟 API 共用 guard,而那支要求
+    // content-type 是 application/json,於是**一張都沒進去過**,連 img-v1 那個
+    // cache 都不存在。只驗「畫面說備好了」是抓不到的。
+    assert.ok(after > before, `圖片該真的進得了 img-v1(${before} → ${after})`);
+  } finally {
+    await ctx.close();
+    await server.close();
+  }
+});

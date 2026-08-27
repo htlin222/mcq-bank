@@ -9,6 +9,7 @@ import { ExportButton } from '../components/ExportDialog';
 import { GamepadFab, type GamepadHint } from '../components/GamepadFab';
 import { useGamepad, useGamepadConnected } from '../hooks/useGamepad';
 import { useYearPrefetch } from '../hooks/useYearPrefetch';
+import { useYearImages } from '../hooks/useYearImages';
 import {
   loadYearPosition,
   clearYearPosition,
@@ -101,6 +102,10 @@ export function YearList() {
   // 設計:docs/plans/2026-08-27-offline-year-prefetch-design.md
   const offlineIds = useMemo(() => (items ?? []).map((q) => q.id), [items]);
   const offline = useYearPrefetch(year, offlineIds);
+  // 圖片是第二期,而且**不自動拓**:一年 8-17 MB,在行動網路上是真的錢。
+  // 只有文字拓完之後才去算張數 —— 快取裡只有一半的 payload 時算出來會偏低,
+  // 而按鈕上那個數字正是使用者用來決定要不要按的依據。
+  const images = useYearImages(offlineIds, offline.kind === 'ready');
 
   useEffect(() => {
     if (!year) return;
@@ -250,6 +255,33 @@ export function YearList() {
               </span>
             )}
           </p>
+          {/* 圖片。血液抹片、免疫染色本來就是要學的診斷資訊,所以「沒有圖」不是
+              少了裝飾,是真的少了東西 —— 值得一顆明確的按鈕。但 8-17 MB 的量級
+              不該自作主張,所以按鈕上先寫出張數與 MB。 */}
+          {images.state.kind === 'offer' && (
+            <button
+              type="button"
+              onClick={() => void images.start()}
+              className="mt-1 text-xs text-ink-500 dark:text-ink-400 underline underline-offset-2 hover:text-accent"
+            >
+              連圖片一起離線備用({images.state.label})
+            </button>
+          )}
+          {images.state.kind === 'running' && (
+            <p className="mt-1 text-xs text-ink-400 dark:text-ink-500 tabular-nums">
+              下載圖片… {images.state.done}/{images.state.total}
+            </p>
+          )}
+          {images.state.kind === 'ready' && (
+            <p className="mt-1 text-xs text-accent dark:text-accent-light">
+              ✓ 圖片也備好了({images.state.total} 張)
+            </p>
+          )}
+          {images.state.kind === 'no-room' && (
+            <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">
+              裝置空間不足,無法備用圖片({images.state.label})
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
         <ExportButton scope={{ kind: 'year', year: Number(year) }} />
