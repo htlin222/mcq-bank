@@ -30,6 +30,11 @@ import { sanitizeImportedDoc } from '../lib/sanitize-import';
 import { api } from '../lib/api';
 import { OeImportDialog } from './OeImportDialog';
 import { withQuestionHeading, type OeTurn } from '../lib/oe-import';
+import {
+  UploadSpinner,
+  showUploadSpinner,
+  hideUploadSpinner,
+} from '../lib/tiptap-upload-spinner';
 
 type Props = {
   content: any;
@@ -63,12 +68,31 @@ export function RichEditor({
   // insert parsed markdown, but `editor` isn't assigned yet at config time.
   // Read it through a ref that we keep pointed at the latest instance.
   const editorRef = useRef<Editor | null>(null);
-  // Show a progress bar while a paste's external images upload to R2.
-  const [uploading, setUploading] = useState(false);
+  // 上傳中的圖片有幾件在跑。轉圈是畫在游標上的 widget decoration
+  // (lib/tiptap-upload-spinner.ts),不是頂端那條進度條 —— 使用者的視線在
+  // 游標上,而圖片也正要落在那裡。
+  //
+  // 之所以要數而不是用一個 boolean:貼一張圖的同時拖進另一張,先回來的那件
+  // 會把轉圈收掉,剩下那件就變成「什麼都沒發生」的等待。
+  const pending = useRef(0);
+  const busy = useMemo(
+    () => ({
+      begin: () => {
+        pending.current += 1;
+        showUploadSpinner(editorRef.current);
+      },
+      end: () => {
+        pending.current = Math.max(0, pending.current - 1);
+        if (pending.current === 0) hideUploadSpinner(editorRef.current);
+      },
+    }),
+    [],
+  );
   // OpenEvidence link-import dialog.
   const [oeOpen, setOeOpen] = useState(false);
   const editor = useEditor({
-    extensions: buildExtensions({ placeholder }),
+    // UploadSpinner 只掛在這個編輯器上 —— 唯讀的那些沒有貼上、也沒有上傳。
+    extensions: [...buildExtensions({ placeholder }), UploadSpinner],
     content: doc || { type: 'doc', content: [] },
     editable,
     autofocus: autofocus ? 'end' : false,
@@ -124,7 +148,7 @@ export function RichEditor({
           // Markdown may reference hotlinked images (![](https://…)) — sideload
           // them to R2 first, same as an HTML paste, so they don't break.
           if (/<img[^>]+src=["']https?:\/\//i.test(mdHtml)) {
-            insertExternalHtml(editorRef.current, mdHtml, setUploading);
+            insertExternalHtml(editorRef.current, mdHtml, busy);
           } else {
             insertSanitized(editorRef.current, mdHtml);
           }
@@ -137,7 +161,7 @@ export function RichEditor({
         // broken-image window and no risk of saving before the swap completes.
         if (editorRef.current && /<img[^>]+src=["']https?:\/\//i.test(html)) {
           event.preventDefault();
-          insertExternalHtml(editorRef.current, html, setUploading);
+          insertExternalHtml(editorRef.current, html, busy);
           return true;
         }
         return false;
@@ -153,18 +177,23 @@ export function RichEditor({
       alert('離線中,無法上傳圖片。連線後再試一次。');
       return;
     }
+    busy.begin();
     try {
       const { url } = await api.upload<{ url: string }>('/api/upload', file);
       editor.chain().focus().setImage({ src: url }).run();
     } catch (e) {
       alert('上傳失敗: ' + String(e));
+    } finally {
+      // 收轉圈與插圖之間沒有 paint(同一個 microtask 排空前都不會重繪),
+      // 所以不會閃出「圖片旁邊還掛著一顆轉圈」的那一格。
+      busy.end();
     }
-  }, [editor]);
+  }, [editor, busy]);
 
   // Insert HTML from an OpenEvidence link import (same pipeline as a paste).
   const insertOeHtml = useCallback(
-    (html: string) => insertExternalHtml(editorRef.current, html, setUploading),
-    [],
+    (html: string) => insertExternalHtml(editorRef.current, html, busy),
+    [busy],
   );
 
   // 同一份 HTML,但不插進這個編輯器 —— 每則轉成一份完整文件交給呼叫端去開新
@@ -174,17 +203,15 @@ export function RichEditor({
     async (turns: OeTurn[]) => {
       const ed = editorRef.current;
       if (!ed || !onImportAsNotes) return;
-      setUploading(true);
-      try {
-        const docs: any[] = [];
-        for (const turn of turns) {
-          const fixed = await sideloadImagesInHtml(turn.answerHtml);
-          docs.push(withQuestionHeading(importedHtmlToDoc(ed, fixed), turn.question));
-        }
-        await onImportAsNotes(docs);
-      } finally {
-        setUploading(false);
+      // 這條路不往這個編輯器插任何東西(每則各自開一則新筆記),所以**不**放
+      // 游標轉圈 —— 游標處不會有東西落下,那顆轉圈只會讓人等錯地方。等待狀態
+      // 由 OeImportDialog 自己的「匯入中…」負責。
+      const docs: any[] = [];
+      for (const turn of turns) {
+        const fixed = await sideloadImagesInHtml(turn.answerHtml);
+        docs.push(withQuestionHeading(importedHtmlToDoc(ed, fixed), turn.question));
       }
+      await onImportAsNotes(docs);
     },
     [onImportAsNotes],
   );
@@ -225,11 +252,6 @@ export function RichEditor({
           onInsertSeparate={onImportAsNotes ? importOeAsNotes : undefined}
         />
       )}
-      {uploading && (
-        <div className="h-0.5 bg-accent/15 overflow-hidden shrink-0" role="progressbar" aria-label="上傳圖片中">
-          <div className="h-full w-1/3 bg-accent animate-progress-bar" />
-        </div>
-      )}
       <div className={'p-4' + (editable ? ' flex-1 min-h-0 overflow-y-auto overscroll-contain' : '')}>
         <EditorContent editor={editor} />
       </div>
@@ -238,21 +260,23 @@ export function RichEditor({
 }
 
 // Insert externally-sourced HTML (a paste or an OpenEvidence link import):
-// sideload its hotlinked images to R2 first (progress bar on), then rebuild
+// sideload its hotlinked images to R2 first (游標上轉圈), then rebuild
 // OE's flat markup and insert. Shared so both entry points behave identically.
 function insertExternalHtml(
   editor: Editor | null,
   html: string,
-  setUploading: (b: boolean) => void,
+  busy: UploadBusy,
 ): Promise<void> {
   if (!editor) return Promise.resolve();
-  setUploading(true);
+  busy.begin();
   return sideloadImagesInHtml(html)
     .then((fixed) => {
       insertSanitized(editor, fixed);
     })
-    .finally(() => setUploading(false));
+    .finally(() => busy.end());
 }
+
+type UploadBusy = { begin: () => void; end: () => void };
 
 // The single choke point for externally-sourced content: rebuild OE's flat
 // markup, parse it to a doc with the editor's own schema, purge machine
