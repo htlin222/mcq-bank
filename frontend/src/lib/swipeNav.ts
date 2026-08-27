@@ -55,3 +55,37 @@ export function swipeDirection(
 
 	return dx < 0 ? "left" : "right";
 }
+
+/**
+ * 一個左右可捲容器在**起手當下**的狀態。捲動位置在手勢過程中會變,所以要在
+ * touchstart 就量 —— 從表格中段拖到最右緣,`touchend` 時它已經到底了,那時再問
+ * 「還捲得動嗎」會得到「不能」,於是照樣把筆記換掉。
+ */
+export type ScrollerState = {
+	scrollLeft: number;
+	scrollWidth: number;
+	clientWidth: number;
+};
+
+/**
+ * 手指底下那個左右可捲的東西,攔不攔得住這次滑動?
+ *
+ * 筆記內文裡真的有這種東西:`AnnotatableContent` 把每個 `<table>` 包進
+ * `.table-scroll`(`overflow-x:auto`,而表格 `min-width: 36rem`),`.tiptap pre`
+ * 也是 `overflow-x-auto`。390px 上一張表必定捲得動 —— 使用者橫拖是要看右邊那幾欄,
+ * 那一下又平又快又超過 60px,四道護欄一道都擋不住,筆記就被換掉、表格捲到哪裡也
+ * 一起丟了。**角度分不出這兩件事,只有問「底下有沒有東西還捲得動」分得出來。**
+ *
+ * 已經捲到那一側的底了就不攔:那時使用者的意圖已經不在表格上。
+ */
+export function scrollerBlocks(
+	s: ScrollerState,
+	dir: "left" | "right",
+): boolean {
+	const max = s.scrollWidth - s.clientWidth;
+	// 1px 的容差:子像素與縮放會讓 scrollWidth 比 clientWidth 大一點點,那不是
+	// 「捲得動」。少了它,幾乎每個區塊都會被當成可捲容器,整個功能靜靜失效。
+	if (max <= 1) return false;
+	// 往左滑 = 內容往左走 = scrollLeft 變大。
+	return dir === "left" ? s.scrollLeft < max - 1 : s.scrollLeft > 1;
+}

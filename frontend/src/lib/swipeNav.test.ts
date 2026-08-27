@@ -5,6 +5,7 @@ import {
 	SWIPE_MAX_MS,
 	SWIPE_MIN_X,
 	SWIPE_RATIO,
+	scrollerBlocks,
 	swipeDirection,
 	type SwipePoint,
 } from "./swipeNav.ts";
@@ -72,4 +73,38 @@ test("拖太久就不是滑,是在選字", () => {
 
 test("完全沒動 → null(不是 right)", () => {
 	assert.equal(dir(0), null);
+});
+
+// —— scrollerBlocks:手指底下那個左右可捲的東西攔不攔得住 ——————————————
+
+const table = (scrollLeft: number) => ({
+	scrollLeft,
+	scrollWidth: 576, // .table-scroll 裡的表格 min-width: 36rem
+	clientWidth: 350, // 390px 手機扣掉內距
+});
+
+test("表格還能往右捲時,往左滑是捲它,不是換筆記", () => {
+	assert.equal(scrollerBlocks(table(0), "left"), true);
+	assert.equal(scrollerBlocks(table(100), "left"), true);
+});
+
+test("已經捲到最右緣了,往左滑就放行給換筆記", () => {
+	assert.equal(scrollerBlocks(table(576 - 350), "left"), false);
+});
+
+test("往右滑看的是另一側", () => {
+	assert.equal(scrollerBlocks(table(0), "right"), false); // 已在最左
+	assert.equal(scrollerBlocks(table(100), "right"), true);
+});
+
+test("根本不會左右捲的容器一律不攔", () => {
+	const plain = { scrollLeft: 0, scrollWidth: 350, clientWidth: 350 };
+	assert.equal(scrollerBlocks(plain, "left"), false);
+	assert.equal(scrollerBlocks(plain, "right"), false);
+});
+
+test("1px 以內的子像素溢出不算可捲", () => {
+	// 少了這條容差,幾乎每個區塊都會被當成可捲容器,整個功能靜靜失效。
+	const hair = { scrollLeft: 0, scrollWidth: 350.5, clientWidth: 350 };
+	assert.equal(scrollerBlocks(hair, "left"), false);
 });

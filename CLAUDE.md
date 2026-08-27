@@ -440,8 +440,17 @@ except 38 · 為非 31 · 不正確 29 · false 5),並抽樣看過 `wrong` 的�
 
 **用 Touch events,不用 Pointer events。** 瀏覽器一旦認定手勢是捲動就會送出
 `pointercancel`,而在一個只能垂直捲的頁面上,水平拖曳常常在我們看清方向之前就被
-收走 —— 症狀是「滑動時靈時不靈」,而且在桌機上完全重現不出來。touch 那組不會被
-這樣收掉。這跟 `NoteSwitcher` 的拖曳握把用 pointer 不衝突:那裡的握把可以掛
+收走 —— 症狀是「滑動時靈時不靈」,而且在桌機上完全重現不出來。touch 那組不會:
+**實測** WebKit 與 Blink 在頁面真的捲了 633px 之後,仍然照常送 `touchend` 且座標
+正確,一次 `touchcancel` 都沒有(React 18 的 touch listener 是 passive,瀏覽器不必
+把手勢收走)。所以 `touchcancel` 在這裡只當「系統把手勢拿走了」處理,不拿來判方向
+—— 拿來判的話,來電或下拉通知會在使用者沒放手的情況下換掉筆記。
+
+⚠️ **「Chrome 一開始捲動就送 touchcancel」是舊時代的行為,現在不成立。** 這條被
+當成 review findings 提過一次,用 CDP `Input.dispatchTouchEvent` 打真實手勢序列
+量完才確定沒有。要再質疑這一段之前,先跑一次那個量測。
+
+這跟 `NoteSwitcher` 的拖曳握把用 pointer 不衝突:那裡的握把可以掛
 `touch-action: none` 把捲動整個關掉,**筆記卡不行 —— 它就是要捲的**。同理
 `routes/Play.tsx` 的棋盤(不捲)可以直接關,這裡只能靠角度分。
 
@@ -455,7 +464,23 @@ except 38 · 為非 31 · 不正確 29 · false 5),並抽樣看過 `wrong` 的�
 | `SWIPE_MAX_MS` 700ms    | 選字 / 畫螢光      | 畫記畫到一半整則筆記被換走                  |
 
 選字另外有第二層:`touchend` 當下 selection 沒收合就整個不處理。副作用是**選字
-工具列開著時滑不動**,那是要的 —— 那時使用者的意圖在那段文字上。
+工具列開著時滑不動**,那是要的 —— 那時使用者的意圖在那段文字上。**但範圍要收在
+筆記卡裡面**(`e.currentTarget.contains(sel.anchorNode)`):`KeepAlive` 會把切走的
+分頁留著只是藏起來,所以留在詳解裡的一段選取會讓筆記這邊完全滑不動,而使用者
+看不到那段選取、也沒有地方去清掉它。
+
+**第五道護欄不是角度,是「手指底下有沒有東西還捲得動」。** 筆記內文裡真的有左右
+可捲的東西:`AnnotatableContent` 把每個 `<table>` 包進 `.table-scroll`
+(`overflow-x:auto`),`.tiptap pre` 也是。使用者橫拖是要看表格右邊那幾欄,而那一下
+又平又快又超過 60px —— 前四道一道都擋不住,筆記被換掉、表格捲到哪裡也一起丟了。
+**角度分不出這兩件事。** 所以 touchstart 時往上找一個 `overflow-x: auto/scroll`
+且真的溢出的祖先,`scrollerBlocks()` 再看它在那個方向上還捲不捲得動(捲到底了就
+放行)。**狀態一定要在 touchstart 量**:從表格中段拖到最右緣的話,`touchend` 時
+它已經到底,那時再問會得到「不能」,於是照樣換掉。
+
+判斷「是不是可捲容器」問的是 `getComputedStyle` 的 `overflow-x`,不是認 class 名
+—— 列舉 class 的清單會腐爛,而下次有人加第三種可捲區塊時,症狀是「在那個東西上
+橫拖會換筆記」,不會有人聯想到這裡。
 
 **`goNote()` 一定要捲回頂端,而且捲的容器有三種。** 全螢幕時是卡片自己
 (`fixed inset-0`)、雙欄模式是右欄、其餘是頁面。不捲的症狀是「好像沒換」:
@@ -466,7 +491,23 @@ except 38 · 為非 31 · 不正確 29 · false 5),並抽樣看過 `wrong` 的�
 `page.mouse` 發的是滑鼠事件(這個功能刻意不吃),WebKit 的 `new Touch()` 是
 Illegal constructor —— 可用的是舊 API `document.createTouch` /
 `createTouchList` + `new TouchEvent`。時長不能用參數假造:`timeStamp` 由引擎給,
-所以 `SWIPE_MAX_MS` 那條要真的等。
+所以 `SWIPE_MAX_MS` 那條要真的等。事件要**派發在起手點底下的元素上**
+(`elementFromPoint`),不是卡片上 —— `e.target` 決定了可捲容器那道護欄看得到什麼。
+
+⚠️ **造一個「真的會左右捲」的筆記,比想像中難,而三次都失敗得很安靜:**
+
+- `heading` 底下的東西不會進 DOM。`NoteContent` 把標題底下收成手風琴,而**收合的
+  區段不渲染子節點** —— 表格連 DOM 都沒有,測試在驗一個不存在的東西。標題改用
+  `paragraph`。
+- **三欄短字的表格量出來 316/316,完全捲不動。** `styles.css` 的
+  `.table-scroll table { min-width: 36rem }` 被 prosemirror-tables 寫在 `<table>`
+  上的**行內** `min-width`(每欄 25px)蓋掉了 —— 也就是說「會不會超出容器」是由
+  真實內容決定的,不是那條規則。要六欄長字才量得到 846/316。
+- `codeBlock` 也不行:ProseMirror 的根節點是 `white-space: pre-wrap` +
+  `word-wrap: break-word`,一長串不斷行的字會被折掉,`<pre>` 一樣不溢出。
+
+所以那支測試**先斷言 `scrollWidth > clientWidth`** 再滑 —— 少了它,上面任何一種
+失敗都會讓「沒換筆記」自動成立。
 
 ⚠️ **「不該換筆記」那三條斷言在功能沒接上時全部成立**,所以同一支測試的結尾有一條
 對照組(同樣位移、快滑,要換得動)。停用 `enabled` 重建驗證過:兩支都紅,而且第二支
