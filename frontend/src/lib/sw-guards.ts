@@ -28,13 +28,35 @@
 /**
  * Runtime cache name for allowlisted read-only API GETs.
  *
- * Exported (rather than inlined in sw.ts) because the *page* also writes to
- * this cache — after an answer is submitted we push the known-good payload in,
- * so a later NetworkFirst timeout falls back to something correct instead of
- * a pre-answer copy. Two string literals in two files would drift silently:
- * the page would happily write into a cache the SW never reads.
+ * Exported rather than inlined so sw.ts and the page agree on one string — the
+ * year prefetcher (lib/yearPrefetch.ts + hooks/useYearPrefetch.ts) counts this
+ * cache's keys to decide whether a year is fully available offline.
+ *
+ * ⚠️ 這段註解原本寫的是「頁面也會寫入這個快取(答題後推一份正確的 payload
+ * 進去)」—— **那條路徑已經不存在了**,答題後的就地補寫改成了
+ * lib/questionProgress.ts 的 preserveLocalAnswer,而註解留了下來。留著它的代價
+ * 不是多幾行字:下一個人會照著它去設計「頁面寫快取」的方案,而那個前提是假的。
  */
 export const API_CACHE_NAME = 'api-json-v1';
+
+/**
+ * 這個快取的上限。**不是隨手挑的數字,是「大於整個題庫」。**
+ *
+ * 全部 1100 題以 JSON 計約 4.4 MB,所以 1500 > 1100 之後**驅逐壓力整個消失** ——
+ * 不必再區分「使用者刻意拓的一年」與「隨手看過的題目」,因為兩者都放得下。
+ * 那一整套驅逐策略(第二個 cache、SW fallback 路由、清除 UI)因此不需要存在。
+ * 題庫長到五千題以上時,這個假設才會失效,那時要回頭讀
+ * docs/plans/2026-08-27-offline-year-prefetch-design.md。
+ */
+export const API_CACHE_MAX_ENTRIES = 1500;
+
+/**
+ * ⚠️ **原本是 7 天,而那會讓拓好的一年在第 8 天無聲過期** —— 考前兩週拓好,
+ * 考當天打開是空的。代價是 NetworkFirst 的 3 秒 timeout 落回快取時,拿到的共筆
+ * 詳解可能更舊;但詳解很少改,6 天前的版本跟 60 天前的版本在這件事上沒有量級
+ * 差別,而「考當天打不開」有。
+ */
+export const API_CACHE_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
 
 /**
  * True when a response is (or might be) Cloudflare Access asking for a login

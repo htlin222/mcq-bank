@@ -697,8 +697,14 @@ CSV 帶 BOM(否則 Excel 會用系統字碼頁開成亂碼),欄位走 `csvCell()
 
 `frontend/src/sw.ts` (built by `vite-plugin-pwa` in **`injectManifest`** mode)
 precaches the app shell and runtime-caches an **allowlist** of read-only GET
-endpoints. There is no offline write path — no outbox, no background sync.
-Write UI is disabled while `navigator.onLine` is false.
+endpoints. 共筆詳解、留言這類**協作**寫入仍然沒有離線路徑,UI 在
+`navigator.onLine` 為 false 時停用。
+
+⚠️ **但「離線一律不寫」那句已經不成立了** —— `frontend/src/lib/attemptOutbox.ts`
+(2026-08-09,e-ink 上連續四題靜默沒進 D1 那次)把**作答**排除在外。理由寫在那個
+檔的檔頭:原則的成本是「寫入衝突的複雜度」,而一筆作答只屬於一個人、只會被寫一次,
+`/api/review/answer` 又本來就帶 idempotency key —— 沒有衝突要解,自然也就沒有那個
+複雜度。改這一區之前先讀那個檔,不要照著這裡舊的一句話把它拆掉。
 
 The one thing to understand before touching any of this: **an expired
 Cloudflare Access session is answered by the edge with a 302 to the login
@@ -727,9 +733,67 @@ all caches. Deploy it as `/sw.js` (`cp frontend/public/sw-kill.js
 frontend/public/sw.js`, rebuild, redeploy Pages) and every client self-heals on
 next open. A Pages rollback alone does **not** remove a registered SW.
 
+**快取容量的兩個數字大於整個題庫,而那是刻意的。** `API_CACHE_MAX_ENTRIES`
+(1500)與 `API_CACHE_MAX_AGE_SECONDS`(90 天)在 `sw-guards.ts`,原本是 400 / 7 天。
+1500 > 1100(全部題數)之後,**驅逐壓力整個消失** —— 不必區分「使用者刻意拓的一年」
+與「隨手看過的題目」,因為兩者都放得下(全部 1100 題以 JSON 計約 4.4 MB)。
+第二個 cache、SW fallback 路由、清除 UI 那一整套驅逐策略因此不需要存在:**這不是把
+問題解決掉,是讓它不存在。** 7 天那個舊上限的症狀是「考前兩週拓好,考當天打開是
+空的」。題庫長到五千題以上時這個假設才失效,那時回頭讀
+`docs/plans/2026-08-27-offline-year-prefetch-design.md`。
+
 Adding an endpoint to the runtime cache means editing `CACHEABLE_API` in
 `sw-guards.ts`. `/api/me`, notifications, chat, exam, review/drill scheduling,
 highlights and `/pdf/*` must stay out — see the comment block there for why.
+
+### 離線預載一年: 兩個原本以為要設計的東西,量完發現不必做
+
+進 `/year/:y` 時在 idle 把那一年 100 題的 payload 拓進 SW 快取。設計:
+`docs/plans/2026-08-27-offline-year-prefetch-design.md`。純函式在
+`lib/yearPrefetch.ts`,接線在 `hooks/useYearPrefetch.ts`。
+
+**量到的數字**(本機 D1 + R2 抽樣):一年的題目 38–66 KB、詳解 119–344 KB、
+圖片 **8–17 MB**(125–259 張,平均 66 KB)。全部 11 年的**文字**加起來只有 2.4 MB
+—— 文字不是成本,圖片才是,差 40 倍。所以一期只做文字,而且免費到不需要問使用者。
+
+**不做批次端點,而理由不是「不好做」。** 原本要開 `/api/questions/bulk?year=X` 把
+900 個查詢壓成 9 個,但量完發現那個勝利不存在:相關的表全都有索引,
+`question_refs` 全表 0 列、`comments` 全表 27 列,一題的 payload 只讀約 **10 列**,
+一年約 1,000 列 —— 而 D1 free tier 是每天 500 萬列。**那條路上沒有瓶頸可以優化。**
+代價卻是真的:批次版會是**第二份組 payload 的程式碼**(12 個欄位、5 個帶 `email`、
+`my_note = notes[0]`、`ORDER BY sort_order, slot`、`back_refs` 那個 `CASE` join),
+而抄漏的症狀是「**離線看某題少一塊,線上正常**」—— 這個 repo 沒有 route 層測試
+(`worker/**/*.test.ts` 全是純函式),那種漂移沒有任何一道防線接得住。真的要開之前,
+先把 `buildQuestionPayload()` 抽成純函式讓兩邊共用。
+
+**不開第二個 cache** —— 見上面 PWA 那節的容量說明。
+
+**不要沿用 `questionStore.prefetch()`**,雖然它看起來剛好就是要的東西:TTL 60 秒是
+「換題預抓」的 horizon(兩分鐘後再進同一頁,100 趟整批重來)、記憶體 LRU 只有 40 筆
+(拓 100 題會把使用者正在讀的擠掉)、而且沒有並行度上限。
+
+**SW 沒接管就一趟都不要發**(`navigator.serviceWorker.controller`)。收下這些回應的
+是 SW 的 runtime cache;它不在的話那 100 趟是純粹的浪費,而使用者離線時一樣打不開。
+所以**第一次造訪不拓**,下一次導覽才拓。
+
+**「拓完了沒」要去數快取,不要自己記帳。** 記帳一定會跟真實快取漂移(清過站台資料、
+SW 換版、配額不足被瀏覽器丟掉),而漂移的症狀是「顯示可離線,實際打不開」——
+比不顯示更糟。同理**有失敗就不寫時間戳**,否則那幾題會缺整整 24 小時而畫面上看不出來。
+
+**拓完之後離線仍然不能用的東西**,要講清楚否則使用者會以為「拓好了就什麼都能用」:
+到期佇列(`/api/review/due/next`,FSRS 排程,刻意排除且應該繼續排除)、討論串
+(可快取但**不預抓** —— 同「刻意不預抓鄰居題的留言」那條)、圖片(二期)。
+
+⚠️ **`e2e/offline-year.test.mjs` 是整個套件裡唯一讓 SW 真的上線的測試**(其餘全是
+`serviceWorkers: 'block'`)。兩個踩過的坑:
+
+- **離線不要用 `page.goto()`。** WebKit 在 `setOffline(true)` 下對整頁導覽會丟
+  "WebKit encountered an internal error",畫面停在原地 —— 於是「拓過的」與「沒拓過
+  的」看起來一模一樣,**兩邊都沒真的導覽過**,那組對照什麼都沒證明。用 SPA 內部導覽
+  (那也才是真實情境),並且直接**把 fixture 伺服器關掉**而不是 `setOffline`。
+- **對照組要挑真的有 fixture 的題號。** 沒有 fixture 的端點伺服器回 `{}`,拿它當
+  「拓過的」目標會紅在一個跟功能無關的地方。113 年清單有 50 題,只有 `113-050`
+  有真 fixture。
 
 ### 換題延遲: 應用層快取 + 預抓,刻意不動 Service Worker
 

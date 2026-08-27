@@ -4,6 +4,8 @@ import {
 	isAuthRedirect,
 	isCacheableApiResponse,
 	isCacheableApiPath,
+	API_CACHE_MAX_ENTRIES,
+	API_CACHE_MAX_AGE_SECONDS,
 } from "./sw-guards.ts";
 
 const ORIGIN = "https://example.com";
@@ -182,4 +184,24 @@ test("the allowlist is closed — unknown endpoints default to no cache", () => 
 	assert.equal(isCacheableApiPath("/api/questions/114-001/challenges"), false);
 	assert.equal(isCacheableApiPath("/pdf/lecture.pdf"), false);
 	assert.equal(isCacheableApiPath("/img/abc"), false);
+});
+
+// —— 快取容量 —————————————————————————————————————————————————
+//
+// 這兩個數字不是隨手挑的,而且改小會讓「離線預載一年」無聲失效
+// (docs/plans/2026-08-27-offline-year-prefetch-design.md)。
+
+test("maxEntries 要大於整個題庫 —— 驅逐壓力必須不存在", () => {
+	// 全部 11 年 × 100 題 = 1100。大於它之後,就不必區分「刻意拓的一年」與
+	// 「隨手看過的題目」,那一整套驅逐策略因此不需要存在。
+	// 題庫長到超過這個數字時,這個假設失效,要回頭讀設計文件。
+	assert.ok(
+		API_CACHE_MAX_ENTRIES > 1100,
+		`maxEntries 必須大於題庫題數(1100),實際 ${API_CACHE_MAX_ENTRIES}`,
+	);
+});
+
+test("maxAge 要撐得過一個考季 —— 7 天會讓拓好的一年第 8 天無聲過期", () => {
+	const days = API_CACHE_MAX_AGE_SECONDS / 86400;
+	assert.ok(days >= 30, `至少要 30 天,實際 ${days} 天`);
 });
