@@ -199,3 +199,64 @@ test('登記進複習進度:只有考對且複習紀錄還不一致的題目才�
     await ctx.close();
   }
 });
+
+test('成績頁:hover 才出現「在新分頁開啟」,而且它沒有被巢狀在整列連結裡', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    serviceWorkers: 'block',
+  });
+  await ctx.route('**/*', (r) =>
+    r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+  );
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+
+  try {
+    await page.goto(`${server.origin}/exam/${SID}/result`, {
+      waitUntil: 'domcontentloaded',
+    });
+
+    const row = page.locator('ul li').first();
+    await row.waitFor({ timeout: 20_000 });
+    const btn = row.locator('a[target="_blank"]').first();
+    await btn.waitFor({ state: 'attached', timeout: 10_000 });
+
+    // ⚠️ **巢狀 `<a>` 是無效 HTML,而症狀是靜默的**:瀏覽器解析時會把內層拉到
+    // 外層之外,按鈕就跑到列的上面、位置整個歪掉。這條直接問 DOM:它的祖先鏈上
+    // 不該再有另一個 <a>。停用外面那層 `relative group` 的包裝時,這條會紅。
+    const nested = await btn.evaluate((el) => {
+      let p = el.parentElement;
+      while (p) {
+        if (p.tagName === 'A') return true;
+        if (p.tagName === 'LI') return false;
+        p = p.parentElement;
+      }
+      return false;
+    });
+    assert.equal(nested, false, '「在新分頁開啟」不該巢狀在整列連結裡');
+
+    // 連到對的地方,而且真的是新分頁 + 帶 rel。
+    assert.match(await btn.getAttribute('href'), /\/q\/\d{3}-\d{3}$/);
+    assert.equal(await btn.getAttribute('rel'), 'noreferrer');
+
+    // hover 之前看不見(opacity 0),hover 之後看得見。
+    // 用 opacity 量而不是 `toBeVisible` —— `opacity-0` 的元素在 Playwright 眼裡
+    // 仍然是 visible(它有尺寸、沒有 display:none),那樣寫兩邊都會通過。
+    const opacityNow = () => btn.evaluate((el) => getComputedStyle(el).opacity);
+    assert.equal(await opacityNow(), '0', 'hover 之前不該看得見');
+
+    await row.hover();
+    await page.waitForTimeout(300);
+    assert.equal(await opacityNow(), '1', 'hover 之後該看得見');
+
+    assert.deepEqual(errors, [], '不該有未捕捉的例外');
+  } finally {
+    await ctx.close();
+  }
+});
