@@ -48,6 +48,7 @@ import { useOnline } from "../hooks/useOnline";
 import { QuestionCard } from "../components/QuestionCard";
 import { GamepadFab, type GamepadHint } from "../components/GamepadFab";
 import { useGamepad, useGamepadScroll } from "../hooks/useGamepad";
+import { useSwipeNav } from "../hooks/useSwipeNav";
 import { RichEditor } from "../components/RichEditor";
 import { AnnotatableContent } from "../components/AnnotatableContent";
 import { NoteContent } from "../components/NoteContent";
@@ -256,6 +257,8 @@ export function Question() {
 	const rightColRef = useRef<HTMLDivElement>(null);
 	// 個人筆記面板的容器 —— 手把在裡面找可展開的標題按鈕。
 	const notePaneRef = useRef<HTMLDivElement>(null);
+	// 筆記卡本身。全螢幕時它自己就是捲動容器,換筆記後要把它歸零(見 goNote)。
+	const noteCardRef = useRef<HTMLElement>(null);
 
 	// The inner 詳解共筆/… tab strip is sticky (see below); its measured height
 	// drives where the sticky per-pane toolbar (自動挖空/防劇透/編輯) pins, so the
@@ -1238,6 +1241,59 @@ export function Question() {
 	}
 	useGamepadScroll(gamepadScrollEl);
 
+	/**
+	 * 換上一則 / 下一則個人筆記。手把的十字鍵左右、以及觸控的左右滑都走這裡 ——
+	 * 兩個入口做的是同一件事,分開寫的話「換完要捲回頂端」遲早只會在其中一邊成立。
+	 *
+	 * `nextSlot` 會繞圈(見 lib/headingCursor.ts):滑到最後一則再往左會回到第一則。
+	 */
+	function goNote(delta: 1 | -1) {
+		if (notes.length < 2) return;
+		const to = nextSlot(
+			notes.map((n) => n.slot),
+			activeSlot,
+			delta,
+		);
+		if (to === activeSlot) return;
+		setNoteSlot(to);
+
+		// 不捲回頂端的話,讀到一半換過去會停在上一則的捲動位置 —— 短的那則看到的
+		// 是頁尾或空白,症狀是「好像沒換」。全螢幕時捲的是卡片自己(fixed inset-0),
+		// 雙欄模式捲的是右欄,其餘才是頁面。
+		if (noteFullscreen) noteCardRef.current?.scrollTo({ top: 0 });
+		else {
+			const el = gamepadScrollEl();
+			if (el) el.scrollTop = 0;
+			else window.scrollTo({ top: 0, behavior: "auto" });
+		}
+
+		// 換題那條路徑上的同一個訊號(見上面的 lastNavigatedId effect):內容瞬間
+		// 換掉時,一次淡入補回「換了」。用 WAAPI 而不是 key/remount —— 重掛整棵
+		// 子樹會連 TipTap 一起重建。
+		if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+		notePaneRef.current?.animate?.([{ opacity: 0.4 }, { opacity: 1 }], {
+			duration: 140,
+			easing: "ease-out",
+		});
+	}
+
+	// 左右滑動換筆記(手機)。只有兩則以上才接手 —— 一則的時候接了也只是把
+	// 手勢吃掉。編輯中不必特別擋:那時 <article> 根本不在畫面上(換成 RichEditor)。
+	const noteSwipe = useSwipeNav({
+		enabled: notes.length > 1,
+		onLeft: () => goNote(1),
+		onRight: () => goNote(-1),
+	});
+
+	// 滑動沒有任何視覺提示可言,不講就沒人會知道 —— 所以筆記卡的頁尾補一句。
+	// 只在觸控裝置上講:桌機讀到「左右滑動」只會困惑。`(pointer: coarse)` 在一次
+	// 工作階段裡不會變(不像視窗寬度),算一次就好。
+	const [coarsePointer] = useState(
+		() =>
+			typeof window !== "undefined" &&
+			!!window.matchMedia?.("(pointer: coarse)").matches,
+	);
+
 	// 個人筆記在看的時候,十字鍵改成走訪筆記本身,而不是捲頁面:
 	//   ↑ ↓  在**目前展開得到的** h1/h2/h3 之間移動
 	//   FACE ▼ 展開 / 收合游標所在的那個區段
@@ -1366,13 +1422,7 @@ export function Question() {
 				case "left":
 				case "right":
 					if (notes.length > 1) {
-						setNoteSlot(
-							nextSlot(
-								notes.map((n) => n.slot),
-								activeSlot,
-								action === "right" ? 1 : -1,
-							),
-						);
+						goNote(action === "right" ? 1 : -1);
 						return;
 					}
 					break;
@@ -2052,6 +2102,12 @@ export function Question() {
 								</div>
 							) : noteJson ? (
 								<article
+									ref={noteCardRef}
+									// 左右滑動換上一則 / 下一則。掛在整張卡上而不是只在內文:
+									// 讀到一半停在工具列或頁尾附近時,手指落點多半不在 NoteContent 裡。
+									// **不要在這裡加 `touch-action`** —— 這張卡是要捲的,關掉垂直平移
+									// 等於讓長筆記捲不動;「這是捲動還是換頁」交給角度判準(見 lib/swipeNav.ts)。
+									{...noteSwipe}
 									className={
 										"bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 shadow-paper " +
 										(noteFullscreen
@@ -2159,6 +2215,9 @@ export function Question() {
 									</div>
 									<footer className="mt-5 pt-3 border-t border-ink-100 dark:border-ink-700 text-xs text-ink-400 dark:text-ink-500">
 										僅你可見
+										{coarsePointer && notes.length > 1 && (
+											<> · 左右滑動換筆記</>
+										)}
 										{activeNote?.updated_at && (
 											<>
 												{" "}
