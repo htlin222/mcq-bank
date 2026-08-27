@@ -195,7 +195,12 @@ export function NoteSwitcher({
 				aria-haspopup="menu"
 				aria-expanded={open}
 				title="切換這一題的筆記"
-				className="inline-flex max-w-full items-center gap-1.5 rounded px-2 py-1 text-sm text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-700 transition disabled:opacity-50"
+				// `min-w-0` 是承重的,不能寫成 `max-w-full`。flex item 的 `min-width`
+				// 預設是 `auto`(= 內容寬),所以標題一長這顆就**不肯縮**;而
+				// `max-w-full` 只是把上界訂在「整個容器」—— 容器裡還有左右兩顆跳頁鈕,
+				// 於是它長到 100% 就把「下一則筆記」整顆擠到容器外(實測溢出 46px)。
+				// 縮不縮得下去由 `min-w-0` 決定,截字交給裡面那個 `truncate`。
+				className="inline-flex min-w-0 items-center gap-1.5 rounded px-2 py-1 text-sm text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-700 transition disabled:opacity-50"
 			>
 				<StickyNote
 					size={14}
