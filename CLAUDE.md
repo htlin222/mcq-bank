@@ -639,6 +639,44 @@ that is already depended on by existing Durable Objects [code: 10074]
 所以 wrangler 從頭重放。**這個症狀在本機重現不出來**,因為本機那份是對的。
 同步方式:`gh secret set WRANGLER_TOML < wrangler.toml`。`CONFIG_TOML` 同理。
 
+### D1 的 bind 是位置對應的,而錯位是無聲的
+
+`worker/lib/bind-order.ts` + 測試。**這不是預防性的潔癖,是 2026-08-27 真的發生
+過的事。**
+
+#184 為成績頁加「登記進複習進度」時,在 SQL 最前面插了
+`LEFT JOIN review_progress rp ON ... AND rp.user_email = ?`,然後把
+`.bind(sid, sid)` 改成 `.bind(sid, email, sid)` —— **新的 `?` 在最前面,新的引數卻
+插在中間**。兩個後果都不會報錯:
+
+| 錯位 | 症狀 |
+| --- | --- |
+| `rp.user_email = <session id>` | 永遠不匹配 → `review_last_chosen` 全 NULL → 成績頁把**每一題答對的**都當成待登記(實測 79 題,伺服器實際要登記 0 題) |
+| `attempts.session_id = <email>` | 永遠不匹配 → **每題用時全部顯示「—」**,即使那場考試有 115 筆 attempts |
+
+使用者回報的是「數字不匹」:`全部登記 (47)` 跟「沒有需要登記的題目」同時出現。
+47 是因為他先按過一次 —— 伺服器用它自己**正確**的查詢登記了 32 題,前端把那 32 題
+劃掉,剩下 79−32=47 個假的。**同一份判準寫在兩邊(`ExamResult.tsx` 的
+`pendingApply` 與 `worker/lib/apply-exam-to-review.ts`)是對的,而且兩邊的邏輯完全
+一致 —— 壞的是餵給其中一邊的資料。** 查這種回報時不要只比對兩邊的規則。
+
+`worker/routes/questions.ts` 早就有一句註解在提醒(「Bind params are positional —
+keep these arrays in the same order the placeholders appear」),**而註解沒有擋住
+它**。所以改成一條讀得到的規則:掃 `worker/{routes,lib}/*.ts`,凡 `user_email = ?`
+綁的東西名字裡沒有 `email`、`session_id = ?` 綁的沒有 `sid`,就報出來。
+
+- **刻意只認這兩個欄位。** 通用地判斷「第 N 個 `?` 該綁哪個變數」要真的懂那段 SQL
+  的語意,做不到;而誤報一多就會有人把整支停用,那比沒有更糟。掃過全 repo 只有
+  這一處真的錯,另外兩處是解析器誤判(`.batch([...])` 陣列、`.bind(...bind)` 展開),
+  兩者現在都明確跳過並各有一條測試。
+- ⚠️ **解析器要吃得下 `)` 與 `.bind(` 之間的註解。** 這條是寫完之後立刻踩到的:
+  我在真正的 `exam.ts` 那個位置補了一段說明,**整個檔案就被跳過了,而測試全綠** ——
+  守衛靜靜漏掉它要守的那一行,比沒有守衛更糟。驗證方式是把修正還原、確認那支測試
+  真的紅,不是看它綠就相信。
+- 掃描器自己有測試(同 `einkIsolation.test.ts` 的教訓:**掃描器壞掉的時候是全綠
+  的**),而且那支真實掃描帶兩個對照組 —— 「真的掃到 20 個以上的檔案」與「真的有
+  檔案用到這些欄位」,否則 cwd 一變就退化成空掃的綠燈。
+
 ### 作答歷史: `attempts` is the source of truth
 
 `attempts` (migration `0023`) is an append-only event log — one row per

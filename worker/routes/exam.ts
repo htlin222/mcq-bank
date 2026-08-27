@@ -745,7 +745,17 @@ examRoutes.get("/:sid", async (c) => {
        WHERE ea.session_id = ?
        ORDER BY COALESCE(ea.seq, q.number) ASC, q.year ASC, q.number ASC`,
 	)
-		.bind(sid, email, sid)
+		// ⚠️ 順序是 SQL 裡 `?` 出現的順序,不是「重要的排前面」:
+		//   #1 rp.user_email(LEFT JOIN review_progress)
+		//   #2 attempts.session_id(算每題用時的子查詢)
+		//   #3 ea.session_id(WHERE)
+		// 這裡曾經是 `.bind(sid, email, sid)`,而兩個錯位都是**靜默**的:
+		// `rp.user_email = <session id>` 永遠不匹配 → `review_last_chosen` 全部
+		// 是 NULL → 成績頁把每一題答對的都當成「待登記」(實測 79 題,伺服器實際
+		// 只需要登記 0 題);`attempts.session_id = <email>` 也永遠不匹配 → 每題
+		// 用時全部顯示「—」,即使那場考試有 115 筆 attempts。
+		// 靜態檢查在 worker/lib/bind-order.ts。
+		.bind(email, sid, sid)
 		.all<{ options_json: string }>();
 
 	// 選項文字跟著成績一起回,不另外開一支端點:它就在同一列 questions 上,
