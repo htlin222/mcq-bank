@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Flag } from 'lucide-react';
+import { ExternalLink, Flag } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { choicePct, type StatsPayload } from '../lib/choiceStats';
@@ -289,6 +289,13 @@ export function ExamResult() {
           const unanswered = !a.chosen;
           return (
             <li key={a.question_id}>
+              {/* ⚠️ 「在新分頁開啟」**必須是整列連結的兄弟,不能放進去** ——
+                  巢狀 `<a>` 是無效 HTML,瀏覽器解析時會把內層拉到外層之外,
+                  於是那顆按鈕會跑到列的上面、而且點了不一定去對的地方。
+                  所以這裡多包一層 `relative group` 讓它疊上去。
+                  只包整列連結,不包 AnswerDetail —— 否則絕對定位的基準會變成
+                  「連同展開的選項」那一整塊,按鈕會飄在很下面。 */}
+              <div className="relative group">
               <Link
                 to={`/q/${a.question_id}`}
                 className="flex gap-3 items-start bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
@@ -333,6 +340,24 @@ export function ExamResult() {
                   </div>
                 </div>
               </Link>
+              {/* hover 才現身,同 NoteSwitcher 的刪除鈕:檢討成績時每一列都會看,
+                  但「另開分頁」不是每一列都要,不該和題號一樣顯眼。
+                  觸控裝置上等於看不見 —— 那是可以接受的,因為長按整列本來就有
+                  系統的「在新分頁開啟」,平台慣例已經涵蓋了。
+                  `focus:opacity-100` 讓鍵盤走得到。
+                  底色要**不透明**(不是 `bg-white/90`):它會蓋在題幹上,而且
+                  e-ink 那層的顏色掃描要求可見元素的 alpha 必須是 1。 */}
+              <Link
+                to={`/q/${a.question_id}`}
+                target="_blank"
+                rel="noreferrer"
+                title="在新分頁開啟這一題"
+                aria-label={`在新分頁開啟第 ${a.number} 題`}
+                className="absolute right-2 top-2 inline-flex items-center gap-1 rounded border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 py-1 text-xs text-ink-500 dark:text-ink-400 opacity-0 transition hover:text-accent hover:border-accent focus:opacity-100 group-hover:opacity-100"
+              >
+                <ExternalLink size={12} /> 在新分頁開啟
+              </Link>
+              </div>
               <AnswerDetail
                 questionId={a.question_id}
                 options={a.options ?? {}}
