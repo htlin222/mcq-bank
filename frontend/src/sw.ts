@@ -22,11 +22,15 @@ import {
 import { ExpirationPlugin } from 'workbox-expiration';
 import {
   isCacheableApiResponse,
+  isCacheableImageResponse,
   isCacheableApiPath,
   isAuthRedirect,
   API_CACHE_NAME,
   API_CACHE_MAX_ENTRIES,
   API_CACHE_MAX_AGE_SECONDS,
+  IMG_CACHE_NAME,
+  IMG_CACHE_MAX_ENTRIES,
+  IMG_CACHE_MAX_AGE_SECONDS,
 } from './lib/sw-guards';
 
 declare const self: ServiceWorkerGlobalScope;
@@ -55,17 +59,29 @@ setCatchHandler(async ({ request }) => {
 // `cacheWillUpdate` returning null tells workbox to skip the write. Workbox's
 // own cacheableResponse plugin only looks at status codes and would happily
 // store a 200 that is really the Access login page.
+const notifyIfAuthRedirect = async ({ response }: { response: Response }) => {
+  if (isAuthRedirect(response, ORIGIN)) {
+    for (const client of await self.clients.matchAll({ type: 'window' })) {
+      client.postMessage({ type: 'auth-required' });
+    }
+  }
+  return response;
+};
+
 const authGuard = {
   cacheWillUpdate: async ({ response }: { response: Response }) =>
     isCacheableApiResponse(response, ORIGIN) ? response : null,
-  fetchDidSucceed: async ({ response }: { response: Response }) => {
-    if (isAuthRedirect(response, ORIGIN)) {
-      for (const client of await self.clients.matchAll({ type: 'window' })) {
-        client.postMessage({ type: 'auth-required' });
-      }
-    }
-    return response;
-  },
+  fetchDidSucceed: notifyIfAuthRedirect,
+};
+
+// ⚠️ 圖片**必須**用自己的 cacheWillUpdate。共用 authGuard 的話,
+// `isCacheableApiResponse` 會因為 content-type 不是 application/json 而拒絕每一張
+// 圖 —— 那正是 2026-08-27 查出來的:`img-v1` 從 PWA 上線以來一張都沒存過,
+// 連那個 cache 都不存在。防 Access 302 的那一層兩者共用,一行都沒少。
+const imgGuard = {
+  cacheWillUpdate: async ({ response }: { response: Response }) =>
+    isCacheableImageResponse(response, ORIGIN) ? response : null,
+  fetchDidSucceed: notifyIfAuthRedirect,
 };
 
 // --- runtime caches ------------------------------------------------------
@@ -97,12 +113,12 @@ registerRoute(
   ({ url, request, sameOrigin }) =>
     sameOrigin && request.method === 'GET' && url.pathname.startsWith('/img/'),
   new CacheFirst({
-    cacheName: 'img-v1',
+    cacheName: IMG_CACHE_NAME,
     plugins: [
-      authGuard,
+      imgGuard,
       new ExpirationPlugin({
-        maxEntries: 300,
-        maxAgeSeconds: 30 * 24 * 60 * 60,
+        maxEntries: IMG_CACHE_MAX_ENTRIES,
+        maxAgeSeconds: IMG_CACHE_MAX_AGE_SECONDS,
         purgeOnQuotaError: true,
       }),
     ],

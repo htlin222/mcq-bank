@@ -784,6 +784,27 @@ Adding an endpoint to the runtime cache means editing `CACHEABLE_API` in
 `sw-guards.ts`. `/api/me`, notifications, chat, exam, review/drill scheduling,
 highlights and `/pdf/*` must stay out — see the comment block there for why.
 
+### 圖片快取從 PWA 上線起就是空轉的
+
+`/img/*` 那條 CacheFirst 路由跟 API 共用同一個 `authGuard`,而
+`isCacheableApiResponse` 要求 `content-type` 含 `application/json` —— 圖片是
+`image/webp`,於是 `cacheWillUpdate` 每次都回 null。**一張都沒存過,連 `img-v1`
+那個 cache 都不存在。**
+
+2026-08-27 做離線預載二期時才發現。實測:頁面上有兩張 `/img/` 圖、直接 fetch
+回 200 `image/png`,而 `caches.keys()` 回的是
+`['workbox-precache…', 'gfonts-v1', 'api-json-v1']` —— 沒有 `img-v1`。
+
+**它能活這麼久,是因為症狀跟「本來就沒預載圖」長得一模一樣**:離線看詳解沒有圖。
+在做二期之前,沒有人有理由期待它有圖。
+
+修法是給圖片一支自己的 `isCacheableImageResponse`(`content-type` 以 `image/`
+開頭),**防 Access 302 的那一層完全共用,一行都沒少** —— CacheFirst 存下一頁
+`text/html` 的登入頁,那張圖的位置會永遠是那頁 HTML,而且它不會再去問網路。
+
+⚠️ **只驗「畫面說備好了」抓不到這種 bug。** `e2e/offline-year.test.mjs` 那條因此
+去數 `img-v1` 的 key,並且先量一次按之前的數量當基準。停用修正重建驗證過會紅。
+
 ### 離線預載一年: 兩個原本以為要設計的東西,量完發現不必做
 
 進 `/year/:y` 時在 idle 把那一年 100 題的 payload 拓進 SW 快取。設計:
