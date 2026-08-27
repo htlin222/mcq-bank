@@ -104,36 +104,49 @@ async function swipe(page, { dx, dy = 0, ms = 200, fromX = null, at = null }) {
         : Math.round(r.top + Math.min(r.height, window.innerHeight) / 2);
       const target = document.elementFromPoint(x0, y0) ?? card;
 
-      const touchAt = (x, y) => {
-        const t = document.createTouch(window, target, 1, x, y, x, y);
-        return document.createTouchList(t);
-      };
-      const fire = (type, list) =>
+      const list = (x, y) =>
+        document.createTouchList(document.createTouch(window, target, 1, x, y, x, y));
+      const fire = (type, tl) =>
         target.dispatchEvent(
           new TouchEvent(type, {
             bubbles: true,
             cancelable: true,
-            touches: type === 'touchend' ? document.createTouchList() : list,
-            targetTouches: type === 'touchend' ? document.createTouchList() : list,
-            changedTouches: list,
+            touches: type === 'touchend' ? document.createTouchList() : tl,
+            targetTouches: type === 'touchend' ? document.createTouchList() : tl,
+            changedTouches: tl,
           }),
         );
 
-      fire('touchstart', touchAt(x0, y0));
-      fire('touchmove', touchAt(x0 + dx / 2, y0 + dy / 2));
-      // timeStamp 由引擎給,是「事件建立的當下」—— 所以時長靠真的等。
+      // 位移過程中量到的最大 translateX —— 「卡片有沒有跟著手指走」靠它。
+      window.__dragPeak = 0;
+      const STEPS = 6;
+      fire('touchstart', list(x0, y0));
       return new Promise((res) => {
-        setTimeout(() => {
-          fire('touchend', touchAt(x0 + dx, y0 + dy));
-          res(true);
-        }, ms);
+        let i = 1;
+        const step = () => {
+          if (i > STEPS) {
+            fire('touchend', list(x0 + dx, y0 + dy));
+            res(true);
+            return;
+          }
+          fire('touchmove', list(x0 + (dx * i) / STEPS, y0 + (dy * i) / STEPS));
+          const m = /translateX\((-?[\d.]+)px\)/.exec(card.style.transform || '');
+          if (m) window.__dragPeak = Math.max(window.__dragPeak, Math.abs(+m[1]));
+          i++;
+          setTimeout(step, Math.max(1, Math.round(ms / STEPS)));
+        };
+        setTimeout(step, Math.max(1, Math.round(ms / STEPS)));
       });
     },
     { dx, dy, ms, fromX, at },
   );
-  await page.waitForTimeout(250);
+  // 過臨界點時會先飛出去(170ms)再換內容,所以要等久一點。
+  await page.waitForTimeout(500);
   return ok;
 }
+
+/** 上一次 swipe() 過程中,卡片實際位移過的最大距離。 */
+const DRAG_PEAK = `window.__dragPeak || 0`;
 
 /** 切換器上顯示的那一則筆記的標題。 */
 const CURRENT = `document.querySelector('[title="切換這一題的筆記"]').textContent`;
@@ -209,12 +222,17 @@ test('捲動與返回手勢不會被當成換筆記', async (t) => {
       '從螢幕邊緣起滑不該換筆記',
     );
 
-    // ③ 慢慢拖 —— 那是在選字,不是滑。
+    // ③ ⚠️ 慢慢拖**現在該換得動**。舊版有一個 700ms 上限(用來擋選字),但卡片
+    //    跟著手指走之後,「慢慢拖過臨界點」是正常操作 —— 用時間擋會讓一個正確
+    //    的手勢無聲彈回去。選字改由鎖定當下的 selection 檢查擋(見下一支測試)。
     assert.ok(await swipe(page, { dx: -150, ms: 900 }), '找不到筆記卡');
     assert.ok(
-      (await page.evaluate(CURRENT)).includes(TITLES[0]),
-      '拖太久不該換筆記',
+      (await page.evaluate(CURRENT)).includes(TITLES[1]),
+      '慢慢拖過臨界點該換得動 —— 直接操作沒有時間上限',
     );
+    // 換回第一則,好讓下面的對照組從同一個起點開始。
+    assert.ok(await swipe(page, { dx: 150 }), '找不到筆記卡');
+    assert.ok((await page.evaluate(CURRENT)).includes(TITLES[0]));
 
     // 對照組:同樣的位移,快滑就換得動 —— 少了這條,上面三條在功能沒接上時
     // 也全綠。
@@ -350,6 +368,87 @@ test('手指落在會左右捲的東西上時,滑動是捲它,不是換筆記', 
       (await page.evaluate(CURRENT)).includes(TITLES[1]),
       '落在表格外面的同一個手勢該換得動(上一條的對照組)',
     );
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('卡片跟著手指走:沒到臨界點會彈回原位,過了才換', async (t) => {
+  if (guard(t)) return;
+
+  const ctx = await browser.newContext({
+    viewport: { width: W, height: H },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const page = await ctx.newPage();
+  try {
+    await page.goto(server.origin + '/q/113-050', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(800);
+    await openNoteTab(page);
+    assert.ok(
+      (await page.evaluate(CURRENT)).includes(TITLES[0]),
+      '一開始該停在第一則',
+    );
+
+    // ① 拖一小段就放手 —— 390px 上臨界點約 86px,拖 40px 不該換。
+    assert.ok(await swipe(page, { dx: -40, ms: 300 }), '找不到筆記卡');
+
+    // **卡片真的動過** —— 這才是這次改動的重點。少了這條,整個「跟著手指走」
+    // 拿掉之後上面每一條「換不換」的測試仍然全綠。
+    const peak = await page.evaluate(DRAG_PEAK);
+    assert.ok(peak > 10, `拖曳過程中卡片該跟著位移,實際峰值 ${peak}px`);
+    // 1:1 跟手:臨界點之前不衰減,所以峰值該接近實際拖的距離。
+    assert.ok(peak <= 40 + 1, `臨界點之前該 1:1 跟手,實際 ${peak}px`);
+
+    // 沒到臨界點 → 沒換,而且回到原位。
+    assert.ok(
+      (await page.evaluate(CURRENT)).includes(TITLES[0]),
+      '沒到臨界點不該換筆記',
+    );
+    await page.waitForTimeout(300);
+    const rested = await page.evaluate(() => {
+      const card = [...document.querySelectorAll('article')].find(
+        (el) => el.getClientRects().length && /僅你可見/.test(el.textContent || ''),
+      );
+      return card ? card.style.transform : 'NO-CARD';
+    });
+    assert.ok(
+      rested === '' || /translateX\(0px\)/.test(rested),
+      `該彈回原位,實際 transform="${rested}"`,
+    );
+
+    // ② 拖過臨界點 → 換過去(對照組:證明上面的「沒換」不是因為功能壞了)。
+    assert.ok(await swipe(page, { dx: -150, ms: 300 }), '找不到筆記卡');
+    assert.ok(
+      (await page.evaluate(CURRENT)).includes(TITLES[1]),
+      '拖過臨界點該換筆記',
+    );
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('橡皮筋:拖得再遠,卡片位移也不會等比例跟著跑', async (t) => {
+  if (guard(t)) return;
+
+  const ctx = await browser.newContext({
+    viewport: { width: W, height: H },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const page = await ctx.newPage();
+  try {
+    await page.goto(server.origin + '/q/113-050', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(800);
+    await openNoteTab(page);
+
+    // 拖到遠超過臨界點(390px 上臨界點約 86px)。
+    assert.ok(await swipe(page, { dx: -320, ms: 300 }), '找不到筆記卡');
+    const peak = await page.evaluate(DRAG_PEAK);
+    // 有動,但明顯比手指走的少 —— 「變重」本身就是回饋。
+    assert.ok(peak > 80, `該超過臨界點,實際 ${peak}px`);
+    assert.ok(peak < 200, `超過臨界點後該衰減,實際 ${peak}px(手指走了 320px)`);
   } finally {
     await ctx.close();
   }

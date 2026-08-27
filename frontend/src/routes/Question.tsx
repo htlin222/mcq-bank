@@ -1279,7 +1279,8 @@ export function Question() {
 
 	// 左右滑動換筆記(手機)。只有兩則以上才接手 —— 一則的時候接了也只是把
 	// 手勢吃掉。編輯中不必特別擋:那時 <article> 根本不在畫面上(換成 RichEditor)。
-	const noteSwipe = useSwipeNav({
+	const noteCardSwipeRef = useSwipeNav({
+		cardRef: noteCardRef,
 		enabled: notes.length > 1,
 		onLeft: () => goNote(1),
 		onRight: () => goNote(-1),
@@ -2102,12 +2103,14 @@ export function Question() {
 								</div>
 							) : noteJson ? (
 								<article
-									ref={noteCardRef}
-									// 左右滑動換上一則 / 下一則。掛在整張卡上而不是只在內文:
-									// 讀到一半停在工具列或頁尾附近時,手指落點多半不在 NoteContent 裡。
-									// **不要在這裡加 `touch-action`** —— 這張卡是要捲的,關掉垂直平移
-									// 等於讓長筆記捲不動;「這是捲動還是換頁」交給角度判準(見 lib/swipeNav.ts)。
-									{...noteSwipe}
+									// 左右滑動換上一則 / 下一則:卡片跟著手指走,過臨界點就換過去。
+									// 監聽器由 useSwipeNav 直接掛在這個元素上(要 passive: false 才能
+									// preventDefault),所以這裡只給 ref,沒有 onTouch* props。
+									//
+									// **不要在這裡加 `touch-action`。** `none` 會讓長筆記捲不動;而
+									// `pan-y` 看起來剛好,實際上更糟 —— 那個屬性沿祖先鏈取交集,底下
+									// `.table-scroll` 的表格會再也橫捲不動,而且子元素加不回來。
+									ref={noteCardSwipeRef}
 									className={
 										"bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 shadow-paper " +
 										(noteFullscreen

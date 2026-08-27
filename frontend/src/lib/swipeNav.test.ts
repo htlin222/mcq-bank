@@ -1,86 +1,74 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+	LOCK_PX,
 	SWIPE_EDGE,
-	SWIPE_MAX_MS,
-	SWIPE_MIN_X,
 	SWIPE_RATIO,
+	lockDecision,
 	scrollerBlocks,
-	swipeDirection,
-	type SwipePoint,
+	startsInEdge,
 } from "./swipeNav.ts";
 
 const W = 390;
-const MID = W / 2;
 
-/** 從畫面中央出發、耗時 200ms 的一次手勢。 */
-function gesture(dx: number, dy = 0, ms = 200, x0 = MID): [SwipePoint, SwipePoint] {
-	return [
-		{ x: x0, y: 400, t: 1000 },
-		{ x: x0 + dx, y: 400 + dy, t: 1000 + ms },
-	];
-}
+// —— 邊緣 ——————————————————————————————————————————————————
 
-const dir = (...args: Parameters<typeof gesture>) =>
-	swipeDirection(...gesture(...args), W);
-
-test("往左滑得夠遠 → left", () => {
-	assert.equal(dir(-120), "left");
+test("起手在螢幕邊緣就整個讓開 —— 那是 iOS 的返回手勢", () => {
+	assert.equal(startsInEdge(SWIPE_EDGE - 1, W), true);
+	assert.equal(startsInEdge(W - SWIPE_EDGE + 1, W), true);
+	// 邊界:剛好等於門檻不算邊緣。
+	assert.equal(startsInEdge(SWIPE_EDGE, W), false);
+	assert.equal(startsInEdge(W - SWIPE_EDGE, W), false);
+	assert.equal(startsInEdge(W / 2, W), false);
 });
 
-test("往右滑得夠遠 → right", () => {
-	assert.equal(dir(120), "right");
+// —— 要不要接管 ————————————————————————————————————————————
+
+const decide = (dx: number, dy = 0, scroller = null) =>
+	lockDecision({ dx, dy, scroller });
+
+test("還沒動夠就先等著", () => {
+	assert.equal(decide(0, 0), "wait");
+	assert.equal(decide(LOCK_PX - 1, LOCK_PX - 1), "wait");
 });
 
-test("位移不到下限就不算", () => {
-	assert.equal(dir(-(SWIPE_MIN_X - 1)), null);
-	// 剛好等於下限要算 —— 門檻寫成 `<` 還是 `<=` 在畫面上分不出來,只有這裡看得到。
-	assert.equal(dir(-SWIPE_MIN_X), "left");
+test("水平贏得夠多就接管", () => {
+	assert.equal(decide(-40, 0), "lock");
+	assert.equal(decide(40, 10), "lock");
 });
 
 test("斜著滑一律讓給捲動", () => {
-	// 水平 120,垂直 100 → 120 < 100 * 1.5,不算。
-	assert.equal(dir(120, 100), null);
-	assert.equal(dir(120, -100), null);
-	// 同樣的水平位移,垂直小一點就算。
-	assert.equal(dir(120, 40), "right");
+	// 水平 40、垂直 40 → 40 < 40 × 1.5,不接管。
+	assert.equal(decide(40, 40), "abandon");
+	assert.equal(decide(40, -40), "abandon");
 });
 
-test("垂直為 0 時不會被比例判準誤殺", () => {
-	assert.equal(dir(-SWIPE_MIN_X, 0), "left");
+test("角度的邊界:剛好打平算接管,再斜一點就讓開", () => {
+	const dy = 60 / SWIPE_RATIO; // 60 === dy × 1.5 —— 判準是 `<`,平手歸接管
+	assert.equal(decide(60, dy), "lock");
+	assert.equal(decide(60, dy + 1), "abandon");
 });
 
-test("比例的邊界:剛好打平算滑動,再斜一點就讓給捲動", () => {
-	const dy = 120 / SWIPE_RATIO; // 120 === dy * 1.5 —— 判準是 `<`,平手歸滑動
-	assert.equal(dir(120, dy), "right");
-	assert.equal(dir(120, dy + 1), null);
+test("純垂直是捲動,不是猶豫", () => {
+	// 這條容易寫錯成 "wait" —— 那會讓每一次向下捲都在等一個永遠不來的水平位移。
+	assert.equal(decide(0, 40), "abandon");
 });
 
-test("起點在左邊緣 → 讓給瀏覽器的返回手勢", () => {
-	assert.equal(dir(150, 0, 200, SWIPE_EDGE - 1), null);
-	assert.equal(dir(150, 0, 200, SWIPE_EDGE), "right");
+test("手指底下還捲得動的東西會擋下接管", () => {
+	// .table-scroll 裡的六欄表格:390px 上量到 846/316。
+	const table = { scrollLeft: 0, scrollWidth: 846, clientWidth: 316 };
+	assert.equal(lockDecision({ dx: -60, dy: 0, scroller: table }), "abandon");
+	// 已經捲到最右緣就放行 —— 那時使用者的意圖已經不在表格上。
+	const atEnd = { scrollLeft: 846 - 316, scrollWidth: 846, clientWidth: 316 };
+	assert.equal(lockDecision({ dx: -60, dy: 0, scroller: atEnd }), "lock");
 });
 
-test("起點在右邊緣 → 同樣讓開", () => {
-	assert.equal(dir(-150, 0, 200, W - SWIPE_EDGE + 1), null);
-	assert.equal(dir(-150, 0, 200, W - SWIPE_EDGE), "left");
-});
-
-test("拖太久就不是滑,是在選字", () => {
-	assert.equal(dir(-150, 0, SWIPE_MAX_MS + 1), null);
-	assert.equal(dir(-150, 0, SWIPE_MAX_MS), "left");
-});
-
-test("完全沒動 → null(不是 right)", () => {
-	assert.equal(dir(0), null);
-});
-
-// —— scrollerBlocks:手指底下那個左右可捲的東西攔不攔得住 ——————————————
+// —— 可捲容器本身 ————————————————————————————————————————————
 
 const table = (scrollLeft: number) => ({
 	scrollLeft,
-	scrollWidth: 576, // .table-scroll 裡的表格 min-width: 36rem
-	clientWidth: 350, // 390px 手機扣掉內距
+	scrollWidth: 846,
+	clientWidth: 316,
 });
 
 test("表格還能往右捲時,往左滑是捲它,不是換筆記", () => {
@@ -89,7 +77,7 @@ test("表格還能往右捲時,往左滑是捲它,不是換筆記", () => {
 });
 
 test("已經捲到最右緣了,往左滑就放行給換筆記", () => {
-	assert.equal(scrollerBlocks(table(576 - 350), "left"), false);
+	assert.equal(scrollerBlocks(table(846 - 316), "left"), false);
 });
 
 test("往右滑看的是另一側", () => {
