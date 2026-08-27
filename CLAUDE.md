@@ -719,6 +719,122 @@ API 模組自己的變更函式裡**(`freeNoteApi.ts` 的 `dropListCache()`)而�
 呼叫端記得。清單帶著標題之類的可變欄位時,漏掉失效的症狀是「改完名回到清單還是
 舊的」,而且無聲。
 
+### 分頁的載入卡頓: 兩個成因,而 KV 一個都救不到
+
+回報是「每天的評論 / 個人筆記 / 詳解,載入總覺得卡頓一下」,問的是「有沒有更好的
+KV、快取、預載入」。量完之後成因有兩個,**而它們一個是網路、一個是主執行緒,
+解法完全不同**:
+
+| 量到的(桌機 Chromium 未節流,手機約三到五倍)       | 改之前         | 改之後 |
+| ------------------------------------------------- | -------------- | ------ |
+| 進 `/q/:id`(**還沒點討論串**)就建好的 ProseMirror | 14 個          | 1 個   |
+| 同上,留言端點被打的次數                           | 1 次           | 0 次   |
+| 同一題來回切三圈,留言端點累計                     | 4 次           | 1 次   |
+| 桌機雙欄下點開「討論串」                          | 編輯器 14 → 26 | 不變   |
+| 第一次點開「討論串」(6x CPU 節流)                 | 66.7ms         | 7ms    |
+| 一次切分頁的 render + commit(6x 節流)             | 7.5ms          | 4.9ms  |
+
+⚠️ **這一節第一版寫著「切分頁要 20–25ms,那是 `Question.tsx` 自己重繪的成本,
+想再往下壓要動那個元件」—— 那是錯的,而錯在量測方法上。** 更正連同方法一起留在
+這裡,因為這個 repo 之後還會量很多次 UI 延遲:
+
+- **不要用 `requestAnimationFrame` 當「做完了」的訊號。** 一個 rAF 就是一次幀邊界
+  (60Hz ≈ 16.7ms),兩個就是 33ms。那 20–25ms 幾乎全是**等下一幀**,不是工作。
+  用 CDP profiler 對著同一段操作取樣,結果是 **91.2% idle**。
+- **也不要在 `click()` 之後同步讀 DOM 就以為量到了。** React 18 的 sync work 排在
+  **microtask**(`ensureRootIsScheduled` → `scheduleMicrotask`),所以
+  `btn.click()` 回來的當下畫面**還沒換**。照那樣量會得到 0.1ms 這種假數字 ——
+  當時差點據此宣布「完全沒有成本」。判準是同步讀一個會變的東西(例如看得見的
+  編輯器數)有沒有真的變。
+- 正確的量法:`click()` → `await` 兩層 `queueMicrotask` → 讀時間,並用
+  `Emulation.setCPUThrottlingRate` 節流 6x 模擬中階手機。這樣量到的 render +
+  commit 是 **0.7ms(1x)/ 5.1ms(6x)** —— 遠低於一幀,`Question.tsx` 的重繪從來
+  就不是瓶頸。
+
+**真正貴的是 TipTap 的 `EditorView` 建構,一個約 30–50ms(6x 節流)。** 所以會不會
+頓,取決於**這個動作有沒有順手建一個編輯器**,而不是分頁大不大。
+
+**KV 是錯的工具,而且理由不是「不夠快」。** `/api/questions/:id` 早就把九個查詢
+併成一趟 `Promise.all`,D1 那一趟不是瓶頸;KV 是最終一致、寫入全球傳播最長 60
+秒,而詳解是共筆、筆記是本人三秒前存的 —— 「存完重整看到舊的」比慢更糟,同上面
+那節不把 `/api/questions/:id` 改成 SWR 的理由。
+
+**四個踩過的坑:**
+
+- **CSS 隱藏不是不渲染。** 頁尾那份給「雙欄模式的窄版面」用的 `CommentThread`,
+  class 是 `tabsMode ? "hidden" : "md:hidden"`。#96 之後 `<md` 一律走 tabs,所以
+  `!tabsMode` 就等於 `≥md` —— **兩種情況都看不見**。它卻照樣掛載、照樣抓一次留言、
+  照樣替每一則留言建一個 TipTap。也就是說每個人開任何一題都在背景抓討論串,而使用
+  者連分頁都還沒點。已移除;上面那條 strip 是現在唯一的入口。
+- **唯讀內容原本用的是真的編輯器。** `useEditor` 在 tiptap 2.x 的
+  `immediatelyRender` 預設是 true,所以每一個唯讀區塊都在 **render phase 同步**
+  建構一次 EditorView(建 schema、實例化 15 個 extension、掛 plugin)。現在分成
+  兩條路:需要畫記 / 自動挖空 / 防劇透的(詳解、個人筆記)仍然走
+  `AnnotatableContent`,其餘(留言、挑戰理由、Anki 卡)走
+  `lib/staticDoc.ts` 的 JSON→React 渲染器。
+  **刻意不用 `generateHTML()` + `dangerouslySetInnerHTML`** —— 那會把文件裡的屬性
+  原樣序列化成標記,而 `content_json` 是使用者可寫的欄位。React 元素沒有這個問題。
+  渲染器寫成 `.ts` + `createElement` 而不是 `.tsx`,是為了進得了 `pnpm test`
+  (node 的型別剝離不處理 JSX),而它的兩個要害 —— 未知節點會不會讓內容整段消失、
+  `href` 有沒有擋住 `javascript:` —— 正是最需要單元測試釘住的。
+- **「看過就留著」買到的是狀態,不是時間。** 分頁原本切走就整棵卸載,於是**筆記
+  展開到一半的手風琴會全部收合回去** —— 瞄一眼詳解再切回來,讀到哪裡就沒了。
+  `components/KeepAlive.tsx` 第一次符合條件才掛載,之後改用 `hidden`。
+  **不要拿它當效能改善來賣** —— 切分頁的 render + commit 本來就只有幾毫秒。
+- **而且它必須凍住隱形的子樹。** 天真的實作會讓每次 `setTab` 的重繪連三個 pane
+  一起跑 —— 留著的 pane 愈多、每次切換愈貴。作法是收著上一次的 element,`active`
+  為 false 時原樣交回去:React 看到 `prev === next` 就**整棵跳過**(element
+  identity 的短路,不是 memo)。隱形時看到的是舊 props,而那正好是要的 —— 它看不
+  見,重新亮起來時交出去的就是新的那一份。實測(6x 節流)切到詳解 8.5 → 4.4ms、
+  切到討論串 12.6 → 10ms。
+- **代價是隱形分頁的控制項還在 DOM 裡。**
+  使用者碰不到(`hidden` 同時移出 a11y tree 與 tab order),但
+  `document.querySelector('article')`
+  與 `page.locator('button', {hasText:'編輯'}).first()` 會拿到**隱形的那一個**。
+  三支 e2e 因此紅了,而症狀(click 逾時、`getBoundingClientRect` 讀到 undefined)
+  完全不指向原因。**這一頁上的選擇器一律要限定看得見的元素** ——
+  `getClientRects().length` / `button:visible`,repo 裡本來就有這個慣用法
+  (`countDelete`)。
+
+**`seedEmptyComments()` 那道閘是承重的。** 大多數題目底下一則留言都沒有,而題目
+payload 的 `comment_count` 已經回答了 —— 零則就直接把空陣列寫進快取,點開分頁是
+同步命中、一次網路都不發。但 **`comment_count` 來自快取的 payload**:使用者剛發完
+言,它仍然寫著 0。少了 `locallyMutated` 這道閘,發完言切走再切回來會把自己剛寫的
+那則蓋成空陣列 —— 無聲,而且只有換分頁才看得到。
+
+**刻意不預抓鄰居題的留言。** 那會把「換題順一點」換成每換一題多一趟請求,而使用者
+多半根本不會打開討論串。本題的留言排在 idle 預抓,不跟題目本身搶頻寬。
+
+**Service Worker 那一層一行都沒動。** `/api/questions/*/comments` 本來就在
+`sw-guards.ts` 的 `CACHEABLE_API` 裡,策略是 **NetworkFirst + 3 秒 timeout** ——
+那是給離線閱讀用的,拿快取之前一定先等網路。它治不了這裡的病(每次切分頁還是要
+等一趟 RTT),而且**不能改成 StaleWhileRevalidate**:那會讓「發完言重整看到自己
+那則」讀到舊值,同上面 `/api/questions/:id` 那條。所以快取做在應用層 —— 失效時機
+由 `lib/commentApi.ts` 自己掌握,SW 的 Access-redirect 防護不受影響。
+
+**「討論串」的 66.7ms 其實一則留言都沒有 —— 全部是輸入框自己。**
+`NewCommentBox` 是一個可編輯的 `RichEditor`,原本一掛載就同步建一次 EditorView。
+而開討論串多半是為了**看**。現在收起來的時候畫一顆長得跟輸入框一模一樣的按鈕
+(同樣的框線、圓角、內距、灰字提示),點下去才建真的編輯器並 `autofocus` ——
+所以真的要留言的人沒有多按一下。
+
+⚠️ **兩個例外一定要直接展開,而第二個是 TDD 才抓到的:**
+
+- **手上有沒送出的草稿。** 草稿在 sessionStorage(`lib/drafts.ts`),看不見的草稿
+  等於弄丟了,而使用者不會知道要去點一下才找得回來。判準用現成的 `isEmptyDoc()`,
+  不是 `loadDraft() !== null` —— 後者會被「打了字又刪掉」留下的空文件騙到。
+- **這是回覆框(`parentId` 有值)。** `NewCommentBox` 同時是最上面那個輸入框**和**
+  每則留言底下的回覆框,而後者本來就是按下「回覆」才掛載的 —— 那一下已經表達過
+  意圖,再要一次點擊只是把成本轉嫁給每一個要回覆的人。漏掉這條的症狀很輕微
+  (「按了回覆好像沒反應」),所以容易活很久。編輯框走的是 `RichEditor`,不受影響。
+
+守門在兩支,兩支都是**正面**斷言(先確認東西找得到、分頁真的打得開,再確認行為):
+
+- `frontend/e2e/tab-cache.test.mjs` —— 快取與 KeepAlive。停用後重建過一次,三條都紅。
+- `frontend/e2e/comment-composer.test.mjs` —— 延後掛載。「沒有編輯器」是負面斷言,
+  **在整塊輸入區被拿掉時也會成立**,所以同一支測試裡先斷言「入口看得見」再斷言
+  「點下去真的長出一個」,那個 0 才有話語權。
+
 ### 手把: 同一顆鍵在不同情境換意思,而且說明要跟著換
 
 `/q/:id` 的手把綁定分散在兩層:`QuestionCard` 擁有選項游標與送出/複製/收藏,

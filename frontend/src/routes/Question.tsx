@@ -56,6 +56,7 @@ import { CommentThread } from "../components/CommentThread";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionDetailSkeleton } from "../components/Skeleton";
 import { BackToTopFab } from "../components/BackToTopFab";
+import { KeepAlive } from "../components/KeepAlive";
 import { searchNeighbors } from "../lib/searchCache";
 import {
 	HEADING_SELECTOR,
@@ -67,6 +68,7 @@ import {
 	yearListCache,
 	type YearListItem,
 } from "../lib/questionCache";
+import { commentCache, seedEmptyComments } from "../lib/commentApi";
 import { withAnswer, withProgressCleared } from "../lib/questionProgress";
 import {
 	recordAnswer as recordLocalAnswer,
@@ -610,10 +612,10 @@ export function Question() {
 		// 淡入補回那個「換了」的訊號。用 WAAPI 而不是 key/remount:重掛整棵子樹會
 		// 連 TipTap 一起重建,那正是 2026-07 iOS 白屏的成因(見 CLAUDE.md)。
 		if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-		contentRef.current?.animate?.(
-			[{ opacity: 0.4 }, { opacity: 1 }],
-			{ duration: 140, easing: "ease-out" },
-		);
+		contentRef.current?.animate?.([{ opacity: 0.4 }, { opacity: 1 }], {
+			duration: 140,
+			easing: "ease-out",
+		});
 	}, [data?.id]);
 
 	// In tabs mode, land on 題目 for every new question — arriving on 詳解區
@@ -825,6 +827,29 @@ export function Question() {
 	const warm = useCallback((id: string | undefined) => {
 		questionCache.prefetch(id);
 	}, []);
+
+	// 討論串:大多數題目底下一則留言都沒有,而那件事題目 payload 已經講了
+	// (`comment_count`)。零則就直接把空陣列寫進快取 —— 點開分頁是同步命中,
+	// 一次網路都不發。有留言才值得預抓,而且排在 idle,不跟題目本身搶頻寬。
+	//
+	// 這裡刻意**不**預抓鄰居題的留言:那會把「換題順一點」換成每換一題多一趟
+	// 請求,而使用者多半根本不會打開討論串。
+	useEffect(() => {
+		if (!data) return;
+		if (data.comment_count === 0) {
+			seedEmptyComments(data.id);
+			return;
+		}
+		if (!online) return;
+		const run = () => commentCache.prefetch(data.id);
+		const ric = window.requestIdleCallback;
+		if (typeof ric === "function") {
+			const handle = ric(run, { timeout: 3000 });
+			return () => window.cancelIdleCallback?.(handle);
+		}
+		const t = window.setTimeout(run, 600);
+		return () => window.clearTimeout(t);
+	}, [data?.id, data?.comment_count, online]);
 
 	// Half-finished edits survive route switches (sessionStorage). The 詳解
 	// key is scoped to the version being edited, so a draft goes stale (and is
@@ -1222,9 +1247,8 @@ export function Question() {
 	const noteHeadings = useCallback(
 		() =>
 			Array.from(
-				notePaneRef.current?.querySelectorAll<HTMLElement>(
-					HEADING_SELECTOR,
-				) ?? [],
+				notePaneRef.current?.querySelectorAll<HTMLElement>(HEADING_SELECTOR) ??
+					[],
 			),
 		[],
 	);
@@ -1327,7 +1351,8 @@ export function Question() {
 					// 原本這裡直接 break,於是剛切到筆記分頁按 FACE ▼ 完全沒反應 ——
 					// 而說明列只寫「展開 / 收合這一段」,沒告訴使用者得先用 ↑↓ 選一段。
 					// 一顆按下去什麼都不發生的鍵,讀起來就是「這功能在我的手把上壞了」。
-					if (headingIdx.current < 0 && items.length > 0) headingIdx.current = 0;
+					if (headingIdx.current < 0 && items.length > 0)
+						headingIdx.current = 0;
 					const at = headingIdx.current;
 					if (at >= 0 && at < items.length) {
 						// click() 不會移動焦點,所以 -1 那條路徑得自己補 —— 少了它,
@@ -1531,79 +1556,93 @@ export function Question() {
 			    - tabs: one full-width pane at a time behind a 題目/詳解區 tab
 			      strip, with normal page scrolling and a comfortable reading width.
 			    Below md both modes collapse to the same single stacked column. */}
-				{tabsMode && (() => {
-					// 分頁列:窄螢幕把尾端摺進 <EllipsisVertical />(同 header 的階梯,
-					// 見 CLAUDE.md)。六個分頁在 390px 上必定折行,而這條 strip 是
-					// sticky 的 —— 折行等於每次換題都少一行可讀高度。
-					//
-					// 頭三個(題目/詳解/個人筆記)是每天來回切的,永遠留在列上;
-					// 尾端三個(討論串/相似題目/影片)才摺。**目前這一頁一定要在列上**,
-					// 即使它屬於尾端 —— 否則從選單挑了「影片」之後,列上沒有一個是亮的。
-					const items = [
-						{ key: "question" as const, label: "題目" },
-						{ key: "explanation" as const, label: "詳解" },
-						{
-							key: "note" as const,
-							label: "個人筆記",
-							badge: data.my_note ? (
-								<span className="ml-1.5 text-[10px] text-ink-400 dark:text-ink-500">●</span>
-							) : null,
-						},
-						{ key: "discussion" as const, label: "討論串", count: commentCount },
-						{ key: "similar" as const, label: "相似題目", count: similar.length },
-						...(hasVideos
-							? [{ key: "video" as const, label: "影片", count: videoCount }]
-							: []),
-					];
-					const HEAD = 3;
-					const inline = tabsNarrow
-						? items.filter((t, i) => i < HEAD || t.key === mainTab)
-						: items;
-					const folded = tabsNarrow
-						? items.filter((t, i) => i >= HEAD && t.key !== mainTab)
-						: [];
-					const countOf = (t: (typeof items)[number]) =>
-						t.count === undefined ? null : (
-							<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
-								({t.count})
-							</span>
-						);
+				{tabsMode &&
+					(() => {
+						// 分頁列:窄螢幕把尾端摺進 <EllipsisVertical />(同 header 的階梯,
+						// 見 CLAUDE.md)。六個分頁在 390px 上必定折行,而這條 strip 是
+						// sticky 的 —— 折行等於每次換題都少一行可讀高度。
+						//
+						// 頭三個(題目/詳解/個人筆記)是每天來回切的,永遠留在列上;
+						// 尾端三個(討論串/相似題目/影片)才摺。**目前這一頁一定要在列上**,
+						// 即使它屬於尾端 —— 否則從選單挑了「影片」之後,列上沒有一個是亮的。
+						const items = [
+							{ key: "question" as const, label: "題目" },
+							{ key: "explanation" as const, label: "詳解" },
+							{
+								key: "note" as const,
+								label: "個人筆記",
+								badge: data.my_note ? (
+									<span className="ml-1.5 text-[10px] text-ink-400 dark:text-ink-500">
+										●
+									</span>
+								) : null,
+							},
+							{
+								key: "discussion" as const,
+								label: "討論串",
+								count: commentCount,
+							},
+							{
+								key: "similar" as const,
+								label: "相似題目",
+								count: similar.length,
+							},
+							...(hasVideos
+								? [{ key: "video" as const, label: "影片", count: videoCount }]
+								: []),
+						];
+						const HEAD = 3;
+						const inline = tabsNarrow
+							? items.filter((t, i) => i < HEAD || t.key === mainTab)
+							: items;
+						const folded = tabsNarrow
+							? items.filter((t, i) => i >= HEAD && t.key !== mainTab)
+							: [];
+						const countOf = (t: (typeof items)[number]) =>
+							t.count === undefined ? null : (
+								<span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 font-sans">
+									({t.count})
+								</span>
+							);
 
-					return (
-						<div
-							className={
-								"border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto pt-1 pb-0 items-center " +
-								// 窄螢幕一律 tabs,所以這條要顯示;≥md 才由 tabsMode 決定。
-								(narrow ? "flex" : "hidden md:flex") +
-								// 摺疊生效時不准折行 —— 會折的話摺疊就沒有意義了。
-								(tabsNarrow ? "" : " flex-wrap")
-							}
-						>
-							{inline.map((t) => (
-								<TabButton
-									key={t.key}
-									active={mainTab === t.key}
-									onClick={() => pickTab(t.key)}
-								>
-									{t.label}
-									{"badge" in t ? t.badge : null}
-									{countOf(t)}
-								</TabButton>
-							))}
-							<div className="ml-auto">
-								<TabOverflowMenu count={folded.length}>
-									{folded.map((t) => (
-										<TabOverflowItem key={t.key} onClick={() => pickTab(t.key)}>
-											{t.label}
-											{"badge" in t ? t.badge : null}
-											{countOf(t)}
-										</TabOverflowItem>
-									))}
-								</TabOverflowMenu>
+						return (
+							<div
+								className={
+									"border-b border-ink-200 dark:border-ink-700 max-w-4xl mx-auto pt-1 pb-0 items-center " +
+									// 窄螢幕一律 tabs,所以這條要顯示;≥md 才由 tabsMode 決定。
+									(narrow ? "flex" : "hidden md:flex") +
+									// 摺疊生效時不准折行 —— 會折的話摺疊就沒有意義了。
+									(tabsNarrow ? "" : " flex-wrap")
+								}
+							>
+								{inline.map((t) => (
+									<TabButton
+										key={t.key}
+										active={mainTab === t.key}
+										onClick={() => pickTab(t.key)}
+									>
+										{t.label}
+										{"badge" in t ? t.badge : null}
+										{countOf(t)}
+									</TabButton>
+								))}
+								<div className="ml-auto">
+									<TabOverflowMenu count={folded.length}>
+										{folded.map((t) => (
+											<TabOverflowItem
+												key={t.key}
+												onClick={() => pickTab(t.key)}
+											>
+												{t.label}
+												{"badge" in t ? t.badge : null}
+												{countOf(t)}
+											</TabOverflowItem>
+										))}
+									</TabOverflowMenu>
+								</div>
 							</div>
-						</div>
-					);
-				})()}
+						);
+					})()}
 			</div>
 			<div
 				ref={splitRowRef}
@@ -1612,10 +1651,10 @@ export function Question() {
 				{/* Left: question stem / options / answer */}
 				<div
 					className={
-						(tabsMode
+						tabsMode
 							? "md:max-w-4xl md:mx-auto md:pb-12" +
 								(mainTab === "question" ? "" : ` ${mdHidden}`)
-							: "md:h-full md:min-w-0 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8")
+							: "md:h-full md:min-w-0 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pr-1 md:pb-8"
 					}
 					style={tabsMode ? undefined : { flexBasis: `${splitPct}%` }}
 				>
@@ -1779,8 +1818,8 @@ export function Question() {
 								↺ 有未送出的詳解草稿——點「編輯」繼續
 							</p>
 						)}
-						{tab === "explanation" &&
-							(editing ? (
+						<KeepAlive active={tab === "explanation"}>
+							{editing ? (
 								<div className="bg-white dark:bg-ink-800 border-2 border-accent/40 rounded-lg p-4 sm:p-5 shadow-paper">
 									<div className="mb-3 text-xs text-ink-500 dark:text-ink-400">
 										{lockState.status === "held" && (
@@ -1960,15 +1999,16 @@ export function Question() {
 										</button>
 									</div>
 								</>
-							))}
+							)}
+						</KeepAlive>
 
 						{tab === "note" && hasNoteDraft && (
 							<p className="mb-2 text-xs text-amber-700 dark:text-amber-400">
 								↺ 有未送出的筆記草稿——點「編輯」繼續
 							</p>
 						)}
-						{tab === "note" &&
-							(noteEditing ? (
+						<KeepAlive active={tab === "note"}>
+							{noteEditing ? (
 								<div className="bg-white dark:bg-ink-800 border-2 border-accent/40 rounded-lg p-4 sm:p-5 shadow-paper">
 									<div className="mb-3 flex items-center gap-3 text-xs text-ink-500 dark:text-ink-400">
 										<span>✎ 個人筆記 · 僅你可見</span>
@@ -2084,7 +2124,11 @@ export function Question() {
 											aria-pressed={noteFullscreen}
 											className={TOOL_BTN(noteFullscreen)}
 										>
-											{noteFullscreen ? <Shrink size={14} /> : <Expand size={14} />}{" "}
+											{noteFullscreen ? (
+												<Shrink size={14} />
+											) : (
+												<Expand size={14} />
+											)}{" "}
 											{noteFullscreen ? "離開全螢幕" : "全螢幕"}
 										</button>
 										{noteAutoMsg && (
@@ -2140,14 +2184,14 @@ export function Question() {
 										開始寫筆記
 									</button>
 								</div>
-							))}
+							)}
+						</KeepAlive>
 
-						{/* Discussion tab panel — lg-only. On mobile the discussion lives
-				    in its own section at the bottom (Comments below). The effect
-				    above forces tab back to "explanation" if the viewport drops
-				    below lg while this tab is active, so we never land in a state
-				    where the tab is set to "discussion" but invisible. */}
-						{tab === "discussion" && (
+						{/* 討論串 —— 這是唯一的入口(下面那份給窄版面的重複區塊已於
+				    #96 之後失效並移除)。上面那個 effect 會在視窗變窄、這個分頁
+				    不再存在時把 tab 推回 "explanation",所以不會停在一個
+				    「選了討論串卻看不到」的狀態。 */}
+						<KeepAlive active={tab === "discussion"}>
 							<div className={(narrow ? "block" : "hidden md:block") + " mt-2"}>
 								{me ? (
 									<CommentThread
@@ -2161,7 +2205,7 @@ export function Question() {
 									</p>
 								)}
 							</div>
-						)}
+						</KeepAlive>
 					</section>
 
 					{/* 策展影片 — 依主題分組。跟 討論串/相似題目 不同,窄螢幕也走 tab
@@ -2334,25 +2378,12 @@ export function Question() {
 						</section>
 					)}
 
-					{/* Comments — 只有雙欄模式殘留的窄版面才需要。tabs 模式(≥md 的分頁檢視,
-			    以及所有 <md)上面那條 strip 裡就有「討論串」分頁,這裡再渲染一次會讓
-			    CommentThread 掛兩份、重複抓一次留言。 */}
-					<section className={"mt-12 " + (tabsMode ? "hidden" : "md:hidden")}>
-						<h2 className="font-serif text-xl text-ink-800 dark:text-ink-100 mb-3">
-							討論
-						</h2>
-						{me ? (
-							<CommentThread
-								questionId={data.id}
-								currentEmail={me.email}
-								onCountChange={setCommentCount}
-							/>
-						) : (
-							<p className="text-ink-400 dark:text-ink-500 text-sm">
-								載入使用者…
-							</p>
-						)}
-					</section>
+					{/* #96 之前這裡還有第二份 CommentThread,給「雙欄模式的窄版面」用。
+			    那個版面已經不存在了:窄螢幕(<md)一律走 tabs,所以 `!tabsMode`
+			    就等於 ≥md,而它的 class 是 `md:hidden` —— 兩種情況都看不見。
+			    它卻照樣掛載、照樣抓一次留言:量到的是「每個人開任何一題,都在
+			    背景抓討論串」,而使用者連分頁都還沒點。上面那條 strip 裡的
+			    「討論串」分頁是現在唯一的入口。 */}
 				</div>
 				{/* /right column */}
 			</div>

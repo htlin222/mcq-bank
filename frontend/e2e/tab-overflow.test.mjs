@@ -164,15 +164,22 @@ async function noteTools(width) {
   }
   await page.locator('button', { hasText: '個人筆記' }).first().click();
   await page.waitForTimeout(400);
-  const r = await page.evaluate(() => ({
-    more: !!document.querySelector('[aria-label="更多筆記工具"]'),
-    inline: ['自動挖空', '防劇透', '編輯'].filter((t) =>
-      [...document.querySelectorAll('button')].some((b) => b.textContent.trim().startsWith(t)),
-    ),
-    fullscreen: [...document.querySelectorAll('button')].some((b) =>
-      b.textContent.trim().startsWith('全螢幕'),
-    ),
-  }));
+  // 只數**看得見**的按鈕。分頁自 #150 起是「看過就留著」
+  // (components/KeepAlive.tsx),切走的分頁還掛在 DOM 裡只是 `hidden` ——
+  // 詳解分頁也有一顆「編輯」,不濾掉的話這裡會多出一個它,而那跟窄螢幕收不收得
+  // 起來完全無關。
+  const r = await page.evaluate(() => {
+    const visible = [...document.querySelectorAll('button')].filter(
+      (b) => b.getClientRects().length,
+    );
+    return {
+      more: !!document.querySelector('[aria-label="更多筆記工具"]'),
+      inline: ['自動挖空', '防劇透', '編輯'].filter((t) =>
+        visible.some((b) => b.textContent.trim().startsWith(t)),
+      ),
+      fullscreen: visible.some((b) => b.textContent.trim().startsWith('全螢幕')),
+    };
+  });
   await ctx.close();
   return r;
 }

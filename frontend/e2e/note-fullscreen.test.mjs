@@ -11,6 +11,12 @@
 //   3. 順便驗筆記內文還在。DOM 沒有重掛是這個做法的重點(NoteContent/TipTap
 //      重建正是 2026-07 iOS 白屏的成因),整塊消失要看得出來。
 //
+// ⚠️ 這支的每一個選擇器都要**限定在看得見的元素**。分頁自 #150 起是「看過就
+// 留著」(components/KeepAlive.tsx):切走的分頁仍然掛在 DOM 裡,只是 `hidden`。
+// 於是 `<article>` 與「編輯」在文件裡各有兩個,而 `.first()` 拿到的是 DOM 順序
+// 上的第一個 —— 也就是那個隱形的。症狀是 click 逾時或 getBoundingClientRect
+// 讀到 undefined,兩者都完全不指向真正的原因。
+//
 //   pnpm test:webkit
 //
 // 沒安裝 playwright / webkit 時預設跳過;CI 設 E2E_REQUIRE=1 改為失敗。
@@ -36,7 +42,7 @@ const VIEWPORTS = [
 const PROBE = `
   (() => {
     const btn = [...document.querySelectorAll('button')].find(
-      (b) => /全螢幕/.test(b.textContent || ''),
+      (b) => /全螢幕/.test(b.textContent || '') && b.getClientRects().length,
     );
     const card = btn ? btn.closest('article') : null;
     const r = card ? card.getBoundingClientRect() : null;
@@ -57,11 +63,11 @@ const PROBE = `
 async function openNoteTab(page, width) {
   // 手機是分頁版:先切到「題目以外」那一頁,筆記欄才會渲染出來。
   if (width < 768) {
-    const tab = page.locator('button', { hasText: '詳解' }).first();
+    const tab = page.locator('button:visible', { hasText: '詳解' }).first();
     if (await tab.count()) await tab.click().catch(() => {});
     await page.waitForTimeout(200);
   }
-  const noteTab = page.locator('button', { hasText: '個人筆記' }).first();
+  const noteTab = page.locator('button:visible', { hasText: '個人筆記' }).first();
   await noteTab.click();
   await page.waitForTimeout(400);
 }
@@ -177,7 +183,8 @@ test('全螢幕:工具列黏在捲動區頂端,而且上方沒有縫', async (t)
 
   const bar = `
     (() => {
-      const a = document.querySelector('article');
+      // 隱形分頁裡也有 <article>(見檔頭)—— 要的是使用者眼前那一個。
+      const a = [...document.querySelectorAll('article')].find((el) => el.getClientRects().length);
       // 用「全螢幕」認這一列:自動挖空/防劇透/編輯 在窄螢幕會收進「更多」、
       // 在寬螢幕直接畫成按鈕(#137 後續),只有全螢幕兩種形態都在列上。
       const tb = [...a.children].find((c) => /全螢幕/.test(c.textContent || ''));
@@ -216,7 +223,10 @@ test('全螢幕:工具列黏在捲動區頂端,而且上方沒有縫', async (t)
     assert.ok(top.top <= 2, `工具列上方有 ${top.top}px 的縫,內文會從那裡透出來`);
 
     await page.evaluate(() => {
-      document.querySelector('article').scrollTop = 9999;
+      // 同上:要捲的是看得見的那一張卡,不是隱形分頁裡的那一張。
+      [...document.querySelectorAll('article')]
+        .find((el) => el.getClientRects().length)
+        .scrollTop = 9999;
     });
     await page.waitForTimeout(250);
 
@@ -270,7 +280,7 @@ test('個人筆記:唯讀工具列沒有刪除,按下編輯才有', async (t) =>
       // 開著選單時不該憑空冒出刪除 —— 少了這條,下面的斷言可能是選單自己帶來的。
       assert.equal(await page.evaluate(countDelete), 0, '選單裡不該有刪除');
     } else {
-      edit = page.locator('button', { hasText: '編輯' }).first();
+      edit = page.locator('button:visible', { hasText: '編輯' }).first();
       assert.equal(await edit.count(), 1, '找不到「編輯」—— 沒有停在筆記面板上');
       assert.equal(await page.evaluate(countDelete), 0, '唯讀狀態不該有刪除按鈕');
     }
