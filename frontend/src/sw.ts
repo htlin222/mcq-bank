@@ -24,6 +24,9 @@ import {
   isCacheableApiResponse,
   isCacheableApiPath,
   isAuthRedirect,
+  API_CACHE_NAME,
+  API_CACHE_MAX_ENTRIES,
+  API_CACHE_MAX_AGE_SECONDS,
 } from './lib/sw-guards';
 
 declare const self: ServiceWorkerGlobalScope;
@@ -76,11 +79,14 @@ registerRoute(
     request.method === 'GET' &&
     isCacheableApiPath(url.pathname + url.search),
   new NetworkFirst({
-    cacheName: 'api-json-v1',
+    cacheName: API_CACHE_NAME,
     networkTimeoutSeconds: 3,
     plugins: [
       authGuard,
-      new ExpirationPlugin({ maxEntries: 400, maxAgeSeconds: 7 * 24 * 60 * 60 }),
+      new ExpirationPlugin({
+        maxEntries: API_CACHE_MAX_ENTRIES,
+        maxAgeSeconds: API_CACHE_MAX_AGE_SECONDS,
+      }),
     ],
   })
 );

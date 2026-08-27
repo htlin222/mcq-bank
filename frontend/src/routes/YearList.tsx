@@ -8,6 +8,7 @@ import { ResumeChip } from '../components/ResumeChip';
 import { ExportButton } from '../components/ExportDialog';
 import { GamepadFab, type GamepadHint } from '../components/GamepadFab';
 import { useGamepad, useGamepadConnected } from '../hooks/useGamepad';
+import { useYearPrefetch } from '../hooks/useYearPrefetch';
 import {
   loadYearPosition,
   clearYearPosition,
@@ -94,6 +95,12 @@ export function YearList() {
   const [answerFilter, setAnswerFilter] = useState<AnswerFilter>('all');
   // 「你上次停在…」 for this specific year, synced across devices, never expires.
   const [resume, setResume] = useState<YearPosition | null>(null);
+
+  // 進來之後在 idle 時把這一年的 payload 拓進 SW 快取,好讓之後離線也讀得到。
+  // 判準與並行度都在 lib/yearPrefetch.ts;這裡只把題號交出去。
+  // 設計:docs/plans/2026-08-27-offline-year-prefetch-design.md
+  const offlineIds = useMemo(() => (items ?? []).map((q) => q.id), [items]);
+  const offline = useYearPrefetch(year, offlineIds);
 
   useEffect(() => {
     if (!year) return;
@@ -227,7 +234,22 @@ export function YearList() {
           <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mt-2">
             民國 {year} 年 · {items.length} 題
           </h1>
-          <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{countsSummary}</p>
+          <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">
+            {countsSummary}
+            {/* 自動 + 無聲 = 使用者不知道現在能不能離線,而那正是他要這個功能的
+                唯一原因(通勤、地下室、醫院沒訊號的角落)。失敗與 saveData 一律
+                不顯示 —— 不要為了一個他沒要求的背景行為製造焦慮。 */}
+            {offline.kind === 'running' && (
+              <span className="ml-2 text-ink-400 dark:text-ink-500 tabular-nums">
+                · 離線備用中… {offline.done}/{offline.total}
+              </span>
+            )}
+            {offline.kind === 'ready' && (
+              <span className="ml-2 text-accent dark:text-accent-light">
+                · ✓ 可離線閱讀
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-2">
         <ExportButton scope={{ kind: 'year', year: Number(year) }} />
