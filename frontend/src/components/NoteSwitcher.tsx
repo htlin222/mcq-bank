@@ -1,4 +1,9 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+	useEffect,
+	useRef,
+	useState,
+	type PointerEvent as ReactPointerEvent,
+} from "react";
 import {
 	Check,
 	ChevronDown,
@@ -80,9 +85,16 @@ export function NoteSwitcher({
 	const listRef = useRef<HTMLUListElement>(null);
 	// 拖曳中的樂觀順序。`null` = 沒在拖。
 	// 存在這裡而不是交給呼叫端:放開之前不該打任何請求,而畫面必須即時跟著手指走。
-	const [dragging, setDragging] = useState<{ slot: number; order: number[] } | null>(null);
+	const [dragging, setDragging] = useState<{
+		slot: number;
+		order: number[];
+	} | null>(null);
 	const titleOf = (n: NoteMeta) =>
-		noteTitleFromJson(n.content_json, undefined, narrow ? NOTE_TITLE_NARROW : undefined);
+		noteTitleFromJson(
+			n.content_json,
+			undefined,
+			narrow ? NOTE_TITLE_NARROW : undefined,
+		);
 
 	useEffect(() => {
 		if (!open) return;
@@ -138,7 +150,10 @@ export function NoteSwitcher({
 		const from = dragging.order.indexOf(dragging.slot);
 		const to = dropIndex(mids, e.clientY, from);
 		if (to === from) return;
-		setDragging({ slot: dragging.slot, order: moveItem(dragging.order, from, to) });
+		setDragging({
+			slot: dragging.slot,
+			order: moveItem(dragging.order, from, to),
+		});
 	}
 
 	function endDrag() {
@@ -146,7 +161,13 @@ export function NoteSwitcher({
 		const next = dragging.order;
 		setDragging(null);
 		// 放回原位不送請求 —— 那只是一次沒改變任何東西的往返。
-		if (!sameOrder(next, notes.map((n) => n.slot))) onReorder?.(next);
+		if (
+			!sameOrder(
+				next,
+				notes.map((n) => n.slot),
+			)
+		)
+			onReorder?.(next);
 	}
 
 	const active = notes.find((n) => n.slot === activeSlot) ?? notes[0];
@@ -174,9 +195,17 @@ export function NoteSwitcher({
 				aria-haspopup="menu"
 				aria-expanded={open}
 				title="切換這一題的筆記"
-				className="inline-flex max-w-full items-center gap-1.5 rounded px-2 py-1 text-sm text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-700 transition disabled:opacity-50"
+				// `min-w-0` 是承重的,不能寫成 `max-w-full`。flex item 的 `min-width`
+				// 預設是 `auto`(= 內容寬),所以標題一長這顆就**不肯縮**;而
+				// `max-w-full` 只是把上界訂在「整個容器」—— 容器裡還有左右兩顆跳頁鈕,
+				// 於是它長到 100% 就把「下一則筆記」整顆擠到容器外(實測溢出 46px)。
+				// 縮不縮得下去由 `min-w-0` 決定,截字交給裡面那個 `truncate`。
+				className="inline-flex min-w-0 items-center gap-1.5 rounded px-2 py-1 text-sm text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-700 transition disabled:opacity-50"
 			>
-				<StickyNote size={14} className="shrink-0 text-ink-400 dark:text-ink-500" />
+				<StickyNote
+					size={14}
+					className="shrink-0 text-ink-400 dark:text-ink-500"
+				/>
 				<span className="truncate">
 					{active ? noteTitleFromJson(active.content_json) : "尚無筆記"}
 				</span>
@@ -185,7 +214,10 @@ export function NoteSwitcher({
 						{idx}/{notes.length}
 					</span>
 				)}
-				<ChevronDown size={14} className="shrink-0 text-ink-400 dark:text-ink-500" />
+				<ChevronDown
+					size={14}
+					className="shrink-0 text-ink-400 dark:text-ink-500"
+				/>
 			</button>
 			{next && (
 				<StepButton
@@ -202,34 +234,34 @@ export function NoteSwitcher({
 					className="absolute left-0 top-full z-30 mt-1 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl"
 				>
 					<ul ref={listRef} className="max-h-72 overflow-y-auto py-1">
-							{shown.map((n) => (
-								<li
-									key={n.slot}
-									className={
-										"group flex items-stretch " +
-										(dragging?.slot === n.slot
-											? "bg-ink-100 dark:bg-ink-700 opacity-90"
-											: "")
-									}
-								>
-									{/* 握把。只有兩則以上才出現 —— 一則的時候它只是個拖不動的裝飾。
+						{shown.map((n) => (
+							<li
+								key={n.slot}
+								className={
+									"group flex items-stretch " +
+									(dragging?.slot === n.slot
+										? "bg-ink-100 dark:bg-ink-700 opacity-90"
+										: "")
+								}
+							>
+								{/* 握把。只有兩則以上才出現 —— 一則的時候它只是個拖不動的裝飾。
 									    `touch-action: none` 是必要的:少了它,手指在握把上往下滑會被
 									    瀏覽器判定成捲動清單,拖曳收不到 move 事件。 */}
-									{onReorder && notes.length > 1 && (
-										<span
-											role="button"
-											tabIndex={-1}
-											aria-label={`拖曳排序:${titleOf(n)}`}
-											title="拖曳調整順序"
-											onPointerDown={(e) => startDrag(e, n.slot)}
-											onPointerMove={moveDrag}
-											onPointerUp={endDrag}
-											onPointerCancel={endDrag}
-											className="flex shrink-0 cursor-grab touch-none items-center pl-2 text-ink-300 hover:text-ink-500 active:cursor-grabbing dark:text-ink-600 dark:hover:text-ink-400"
-										>
-											<GripVertical size={14} />
-										</span>
-									)}
+								{onReorder && notes.length > 1 && (
+									<span
+										role="button"
+										tabIndex={-1}
+										aria-label={`拖曳排序:${titleOf(n)}`}
+										title="拖曳調整順序"
+										onPointerDown={(e) => startDrag(e, n.slot)}
+										onPointerMove={moveDrag}
+										onPointerUp={endDrag}
+										onPointerCancel={endDrag}
+										className="flex shrink-0 cursor-grab touch-none items-center pl-2 text-ink-300 hover:text-ink-500 active:cursor-grabbing dark:text-ink-600 dark:hover:text-ink-400"
+									>
+										<GripVertical size={14} />
+									</span>
+								)}
 								<button
 									type="button"
 									role="menuitem"
