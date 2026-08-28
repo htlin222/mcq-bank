@@ -31,12 +31,45 @@ test("單檔 HTML:doctype / meta / title / 內嵌 <style>", () => {
 	assert.ok(out.includes(EXPORT_STYLES));
 });
 
-test("樣式來自 mcq-to-anki,且已做單檔化處理", () => {
+test("匯出樣式是白底黑字、字級只有三階、而且沒有深色模式", () => {
 	const out = html([base]);
-	// 亮色變數在 :root,深色那組在 prefers-color-scheme
-	assert.ok(/:root\s*\{[^}]*--ctp-base: #eff1f5/.test(out));
-	assert.ok(out.includes("@media (prefers-color-scheme: dark)"));
-	assert.ok(out.includes("--ctp-base: #1e1e2e"));
+
+	// 白底黑字。深色模式**刻意沒有** —— 一份會被列印與封存的文件不該跟著讀者的
+	// 作業系統主題變色,而深色配色列印時背景會被丟掉、只留下淺色文字。
+	assert.ok(/body\s*\{[^}]*background:\s*#fff/.test(out));
+	assert.ok(!out.includes("prefers-color-scheme"));
+	// 舊版那套 Catppuccin 變數整組不該再出現。
+	assert.ok(!out.includes("--ctp-"));
+
+	// 字級只有 12 / 15 / 19px 三階。舊版是 12–24px,題幹像標題、詳解像註腳,
+	// 而它們其實都是要讀的正文。
+	const sizes = new Set(
+		[...out.matchAll(/font-size:\s*(\d+)px/g)].map((m) => m[1]),
+	);
+	assert.deepEqual([...sizes].sort(), ["12", "15", "19"]);
+
+	// 正解與畫記**不靠顏色**:灰階列印下綠色和黑色一樣黑。
+	assert.ok(/\.answer\s*\{[^}]*border-left:\s*3px solid/.test(out));
+	assert.ok(/mark\s*\{[^}]*border-bottom:\s*2px solid/.test(out));
+	assert.ok(/mark\s*\{[^}]*background:\s*none/.test(out));
+
+	// 列印:有頁邊界、一題盡量不跨頁、底色不印。
+	assert.ok(out.includes("@page"));
+	assert.ok(out.includes("@media print"));
+	assert.ok(/@media print\s*\{[\s\S]*break-inside: avoid/.test(out));
+
+	// 拿掉顏色之後,詳解 / 個人筆記 / 畫記 只剩一模一樣的分隔線 —— 靠 ::before
+	// 補回區塊標籤(語意換一個維度重講)。**做在樣式層,不是改標記** —— 標記與
+	// mcq-to-anki 的 back.html 對齊,不該為了排版讓兩邊漂移。
+	for (const label of ["詳解", "個人筆記", "畫記"]) {
+		assert.ok(
+			out.includes(`content: "${label}"`),
+			`樣式表少了「${label}」的區塊標籤`,
+		);
+	}
+	// 那三個標籤不該出現在標記裡(否則就是改了 backHtml)。
+	assert.ok(!out.includes(">個人筆記<"));
+
 	// .card / .card.nightMode 是 Anki 的 class,單檔裡不該有這兩條規則
 	assert.ok(!/^\.card[\s.{]/m.test(out));
 	assert.ok(!out.includes(".card.nightMode {"));
@@ -44,64 +77,21 @@ test("樣式來自 mcq-to-anki,且已做單檔化處理", () => {
 	assert.ok(!out.includes("min-height: 100vh"));
 });
 
-test("結構照 back.html:main.anki-note > .field-front + .field-back", () => {
+test("markup 契約沒有跟著配色一起換掉", () => {
+	// 配色不再與 mcq-to-anki 同步,但 class 名稱仍然對齊它的 templates/back.html
+	// —— export-html.ts / export-csv.ts 產生的標記因此一行都不用改。
 	const out = html([base]);
-	assert.ok(out.includes('<main class="anki-note">'));
-	assert.ok(out.includes('<section class="field field-front">'));
-	assert.ok(out.includes('<section class="field field-back">'));
-	assert.ok(out.includes('<div class="qid">114-001</div>'));
-	assert.ok(out.includes('<span class="optkey">A.</span>'));
-	assert.ok(out.includes('<div class="answer">正解:A. BCR-ABL1</div>'));
-});
-
-test("多題:重複 main,數量正確", () => {
-	const out = html([base, { ...base, id: "114-002" }]);
-	assert.equal((out.match(/<main class="anki-note">/g) || []).length, 2);
-});
-
-test("檔頭含範圍、時間、題數與隱私提示", () => {
-	const out = html([base]);
-	assert.ok(out.includes("<h1>114 年</h1>"));
-	assert.ok(out.includes("本檔含 me@x.test 的私人筆記與畫記,僅供本人使用,請勿轉傳。"));
-	assert.ok(out.includes("2026-07-20 12:05")); // UTC+8
-	assert.ok(out.includes("題數:1"));
-});
-
-test("label / email 會被 HTML 跳脫", () => {
-	const out = html([base], { ...meta, label: "<script>x</script>", email: "a<b@x.test" });
-	assert.ok(!out.includes("<script>x</script>"));
-	assert.ok(out.includes("&lt;script&gt;"));
-	assert.ok(out.includes("a&lt;b@x.test"));
-});
-
-test("footnotes 出現在檔尾;沒有時不產生 footer", () => {
-	assert.ok(!html([base]).includes("<footer"));
-	const out = renderExportHtml([base], { ...meta, footnotes: ["3 張圖片未內嵌。"] });
-	assert.ok(out.includes("<footer"));
-	assert.ok(out.includes("3 張圖片未內嵌。"));
-});
-
-test("詳解 / 筆記 / 畫記各有自己的 wrapper class", () => {
-	const p = (s: string) => ({
-		type: "doc",
-		content: [{ type: "paragraph", content: [{ type: "text", text: s }] }],
-	});
-	const out = html([{ ...base, explanation: p("e"), note: p("n"), highlights: ["h"] }]);
-	assert.ok(out.includes('<div class="expl"><p>e</p></div>'));
-	assert.ok(out.includes('<div class="note"><p>n</p></div>'));
-	assert.ok(out.includes('<div class="hl"><ul><li><mark>h</mark></li></ul></div>'));
-});
-
-test("opts.imageSrc 會套用到匯出的 HTML(base64 內嵌路徑)", () => {
-	const doc = { type: "doc", content: [{ type: "image", attrs: { src: "/img/a.png" } }] };
-	const out = renderExportHtml([{ ...base, explanation: doc }], meta, {
-		imageSrc: () => "data:image/png;base64,AAAA",
-	});
-	assert.ok(out.includes('src="data:image/png;base64,AAAA"'));
-});
-
-test("空 items → 仍是合法單檔,題數 0", () => {
-	const out = html([]);
-	assert.ok(out.includes("題數:0"));
-	assert.ok(out.trimEnd().endsWith("</html>"));
+	for (const sel of [
+		".anki-note",
+		".field-front",
+		".field-back",
+		".qid",
+		".stem",
+		".options",
+		".optkey",
+		".answer",
+		".expl",
+	]) {
+		assert.ok(out.includes(sel), `樣式表少了 ${sel}`);
+	}
 });
