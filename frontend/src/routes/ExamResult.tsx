@@ -186,14 +186,28 @@ export function ExamResult() {
       {(pendingApply.length > 0 || applyMsg) && (
         <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 shadow-paper mb-8 flex flex-wrap items-center gap-3">
           <div className="min-w-0 flex-1 text-sm text-ink-600 dark:text-ink-300">
-            <p>
-              有 <span className="font-medium">{pendingApply.length}</span>{' '}
-              題這次考對了,但複習進度還記著舊答案。
-            </p>
-            <p className="text-xs text-ink-400 dark:text-ink-500 mt-0.5">
-              登記之後,題目頁的「我的作答」會顯示這次的答案,也不會再被當成錯題丟回來。
-              考錯的不會動。
-            </p>
+            {/* 做完之後整段換掉,而不是把數字變成 0 ——「有 0 題這次考對了,但
+                複習進度還記著舊答案」在做完之後是一句沒有意義的話,而且看起來
+                像沒成功。 */}
+            {applyMsg && pendingApply.length === 0 ? (
+              <>
+                <p>已經把這次考對的登記進複習進度了。</p>
+                <p className="text-xs text-ink-400 dark:text-ink-500 mt-0.5">
+                  題目頁的「我的作答」現在顯示這次的答案,也不會再被當成錯題丟回來。
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  有 <span className="font-medium">{pendingApply.length}</span>{' '}
+                  題這次考對了,但複習進度還記著舊答案。
+                </p>
+                <p className="text-xs text-ink-400 dark:text-ink-500 mt-0.5">
+                  登記之後,題目頁的「我的作答」會顯示這次的答案,也不會再被當成錯題丟回來。
+                  考錯的不會動。
+                </p>
+              </>
+            )}
           </div>
           <button
             type="button"
@@ -201,7 +215,16 @@ export function ExamResult() {
             disabled={applying || pendingApply.length === 0}
             className="shrink-0 rounded bg-accent hover:bg-accent-dark text-white px-3 py-1.5 text-sm disabled:opacity-40"
           >
-            {applying ? '登記中…' : `全部登記 (${pendingApply.length})`}
+            {/* 按完之後 pendingApply 會歸零,而「全部登記 (0)」那個 0 沒有意義,
+                看起來還像沒成功。做完就直接說做完了。
+                判準是「按過(applyMsg 有值)而且已經沒有待登記的」—— 只看
+                pendingApply 為 0 的話,一進頁面就沒東西可登記時也會顯示
+                「登記完成」,而那時使用者根本沒按過任何東西。 */}
+            {applying
+              ? '登記中…'
+              : applyMsg && pendingApply.length === 0
+                ? '✓ 登記完成'
+                : `全部登記 (${pendingApply.length})`}
           </button>
           {applyMsg && (
             <p className="w-full text-xs text-ink-500 dark:text-ink-400">{applyMsg}</p>

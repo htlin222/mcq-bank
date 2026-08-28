@@ -260,3 +260,75 @@ test('成績頁:hover 才出現「在新分頁開啟」,而且它沒有被巢狀
     await ctx.close();
   }
 });
+
+test('批次登記按完之後,按鈕與說明都要換成「做完了」,不是「全部登記 (0)」', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    serviceWorkers: 'block',
+  });
+  await ctx.route('**/*', (r) =>
+    r.request().url().startsWith(server.origin) ? r.continue() : r.abort(),
+  );
+  // ⚠️ 專用路由要**後**掛(見上一支測試的註解)。
+  await ctx.route('**/api/exam/*/apply-to-review', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json; charset=utf-8',
+      body: JSON.stringify({
+        applied: ['113-003'],
+        skipped_wrong: 2,
+        skipped_already: 0,
+        unknown: 0,
+      }),
+    }),
+  );
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+
+  try {
+    await page.goto(`${server.origin}/exam/${SID}/result`, {
+      waitUntil: 'domcontentloaded',
+    });
+
+    const batch = page.locator('button', { hasText: '全部登記' });
+    await batch.waitFor({ timeout: 20_000 });
+    // 正面對照:按之前確實是「還有東西可登記」的狀態。少了這條,底下每一句
+    // 「按完之後長怎樣」在功能整個沒接上時也會成立。
+    assert.match(await batch.innerText(), /全部登記 \(1\)/);
+    const card = page.locator('div', { hasText: '題這次考對了' }).last();
+    assert.match(await card.innerText(), /有 1 題這次考對了/);
+
+    await batch.click();
+    await page.waitForTimeout(400);
+
+    // ① 按鈕不該停在「全部登記 (0)」—— 那個 0 沒有意義,而且看起來像沒成功。
+    const done = page.locator('button', { hasText: '登記完成' });
+    await done.waitFor({ timeout: 5_000 });
+    assert.equal(
+      await page.locator('button', { hasText: '全部登記' }).count(),
+      0,
+      '按完之後不該還留著「全部登記 (0)」',
+    );
+
+    // ② 說明也要換掉 ——「有 0 題這次考對了,但複習進度還記著舊答案」在做完之後
+    //    是一句沒有意義的話。
+    const body = await page.locator('body').innerText();
+    assert.ok(
+      !/有 0 題這次考對了/.test(body),
+      '做完之後不該還說「有 0 題這次考對了」',
+    );
+    assert.match(body, /已經把這次考對的登記進複習進度了/);
+    // 明細仍然看得到(按鈕說狀態,這一行說細節)。
+    assert.match(body, /已登記 1 題/);
+
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
