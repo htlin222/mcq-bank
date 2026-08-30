@@ -169,3 +169,42 @@ for (const vp of VIEWPORTS) {
     }
   });
 }
+
+test('暫停時不再顯示「暫停中」badge —— 主畫面已經整個換成暫停面板了', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 700 },
+    isMobile: true,
+    hasTouch: true,
+    serviceWorkers: 'block',
+  });
+  // running_since: null = 暫停中。
+  await ctx.route('**/api/exam/e2e-1/state', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json; charset=utf-8',
+      body: JSON.stringify({ ...STATE, running_since: null, elapsed_ms: 60_000 }),
+    }),
+  );
+  const page = await ctx.newPage();
+  try {
+    await page.goto(server.origin + '/exam/e2e-1', { waitUntil: 'domcontentloaded' });
+
+    // ⚠️ **對照組:先證明真的在暫停狀態。** 「badge 不在」是負面斷言 ——
+    // 頁面沒載出來、或 fixture 形狀不對時它也會成立。
+    await page.locator('text=已暫停作答').first().waitFor({ timeout: 20_000 });
+    await page.locator('button', { hasText: '繼續作答' }).first().waitFor({ timeout: 5_000 });
+
+    const body = await page.locator('body').innerText();
+    assert.ok(
+      !body.includes('暫停中'),
+      '暫停時不該再有「暫停中」badge —— 同一個狀態已經由暫停面板、工具列的「繼續」鈕講過了',
+    );
+  } finally {
+    await ctx.close();
+  }
+});

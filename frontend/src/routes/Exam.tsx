@@ -745,11 +745,10 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 					<span className="text-ink-600 dark:text-ink-300">
 						{answered}/{total} 題已答
 					</span>
-					{isPaused && (
-						<span className="inline-flex items-center gap-1 text-xs bg-ink-100 dark:bg-ink-700 text-ink-700 dark:text-ink-200 px-2 py-0.5 rounded">
-							<Pause size={12} /> 暫停中
-						</span>
-					)}
+					{/* ⚠️ 這裡曾經有一個「暫停中」badge,已移除。暫停時主畫面**整個**換成
+					    「已暫停作答」面板(底下的 `{isPaused && ...}`,只要暫停就一定在),
+					    工具列也已經變成「繼續」鈕,計時器的 title 還寫著「已暫停」——
+					    同一個狀態講四次。要加回來之前,先想清楚它比那個面板多說了什麼。 */}
 				</div>
 				<div className="flex items-center gap-2">
 					{isPaused ? (
