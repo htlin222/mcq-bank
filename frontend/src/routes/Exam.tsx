@@ -34,6 +34,7 @@ import {
 	pause as pauseTimer,
 	resume as resumeTimer,
 	read,
+	formatElapsed,
 	type TimerState,
 } from "../lib/questionTimer";
 
@@ -406,6 +407,10 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 	// the tab is hidden (looking something up shouldn't count as think time).
 	useEffect(() => {
 		timer.current = startTimer(Date.now());
+		// `timer` 是 ref —— 改它不會觸發 render,而畫面上那個「本題 m:ss」是靠底下
+		// 每秒跳一次的 `now` 取樣的。少了這一行,按下一題之後**最多有一整秒**顯示
+		// 的還是上一題的時間,看起來像沒重設(e2e 抓到過)。
+		setNow(Date.now());
 		function onVisibility() {
 			timer.current = document.hidden
 				? hide(timer.current, Date.now())
@@ -740,11 +745,10 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 					<span className="text-ink-600 dark:text-ink-300">
 						{answered}/{total} 題已答
 					</span>
-					{isPaused && (
-						<span className="inline-flex items-center gap-1 text-xs bg-ink-100 dark:bg-ink-700 text-ink-700 dark:text-ink-200 px-2 py-0.5 rounded">
-							<Pause size={12} /> 暫停中
-						</span>
-					)}
+					{/* ⚠️ 這裡曾經有一個「暫停中」badge,已移除。暫停時主畫面**整個**換成
+					    「已暫停作答」面板(底下的 `{isPaused && ...}`,只要暫停就一定在),
+					    工具列也已經變成「繼續」鈕,計時器的 title 還寫著「已暫停」——
+					    同一個狀態講四次。要加回來之前,先想清楚它比那個面板多說了什麼。 */}
 				</div>
 				<div className="flex items-center gap-2">
 					{isPaused ? (
@@ -888,7 +892,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 						)}
 					</div>
 
-					<div className="mt-5 flex gap-2 justify-between">
+					<div className="mt-5 flex gap-2 justify-between items-center">
 						<button
 							onClick={() => setActiveIdx((i) => Math.max(0, i - 1))}
 							disabled={activeIdx === 0}
@@ -896,6 +900,23 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 						>
 							<ChevronLeft size={14} /> 上一題
 						</button>
+						{/* 本題已用時間。**跟送進 attempts 的 elapsed_ms 是同一個來源**
+						    (timer.current + read()),不是另外算一份 —— 分開算的話,畫面上
+						    的數字會跟成績頁的「用時」對不起來,而那種不一致沒有人會想到要
+						    回報。
+						    取樣靠上面那個每秒跳一次的 `now` state;暫停時 tick 會停,分頁
+						    隱藏時 timer 自己會停,所以數字跟著凍住 —— 那正是要的(切出去查
+						    資料不該算進思考時間)。 */}
+						<span
+							data-testid="question-timer"
+							title="本題已用時間。切到別的分頁或暫停時不累計,換題歸零。僅供參考,不影響計分。"
+							className="tabular-nums text-xs text-ink-400 dark:text-ink-500 select-none"
+						>
+							本題 {(() => {
+								const r = read(timer.current, now);
+								return formatElapsed(r.elapsedMs, r.outlier);
+							})()}
+						</span>
 						<button
 							onClick={() => setActiveIdx((i) => Math.min(total - 1, i + 1))}
 							disabled={activeIdx === total - 1}

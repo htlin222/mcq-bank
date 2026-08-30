@@ -45,3 +45,21 @@ export function read(t: TimerState, now: number): { elapsedMs: number; outlier: 
     outlier: raw > MAX_QUESTION_MS,
   };
 }
+
+/**
+ * 給畫面看的 `m:ss`。
+ *
+ * ⚠️ **負數要夾到 0。** 換題時 `timer` 立刻重設成 `startTimer(Date.now())`,但畫面
+ * 取樣用的那個 `now` 是每秒才更新一次的 state —— 兩者最多差一秒,於是 `read()` 會
+ * 回一個小負數,直接格式化會顯示成「0:-1」這種東西。這在真的裝置上一閃而過,
+ * 但每換一題都會發生。
+ *
+ * `outlier` 代表已經被 `MAX_QUESTION_MS` 截斷 —— 顯示成 `10:00+` 而不是停在
+ * 一個看起來像壞掉的 `10:00`。
+ */
+export function formatElapsed(ms: number, outlier = false): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const mm = Math.floor(s / 60);
+  const ss = String(s % 60).padStart(2, "0");
+  return `${mm}:${ss}${outlier ? "+" : ""}`;
+}

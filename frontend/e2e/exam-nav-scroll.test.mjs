@@ -185,3 +185,53 @@ test('從「題號跳轉」跳過去也會捲回題幹', async (t) => {
     await ctx.close();
   }
 });
+
+test('本題計時:會走,而且換題歸零', async (t) => {
+  if (guard(t)) return;
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 420 },
+    isMobile: true,
+    hasTouch: true,
+    serviceWorkers: 'block',
+  });
+  await serveFreshState(ctx);
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  try {
+    await openExam(page);
+
+    const timer = page.locator('[data-testid="question-timer"]');
+    await timer.waitFor({ timeout: 10_000 });
+
+    // ⚠️ **對照組要先證明它真的在走。** 少了這一段,「換題之後是 0:0x」在計時器
+    // 根本沒動、永遠停在 0:00 時也會成立 —— 整支測試就退化成空掃的綠燈。
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector('[data-testid="question-timer"]');
+        return el && /本題 0:0[3-9]/.test(el.textContent || '');
+      },
+      { timeout: 12_000 },
+    );
+    const ran = (await timer.innerText()).trim();
+
+    await page.locator('button', { hasText: '下一題' }).first().click();
+    await page.waitForTimeout(300);
+    const after = (await timer.innerText()).trim();
+
+    assert.notEqual(after, ran, `換題之後該歸零(換題前 ${ran},換題後 ${after})`);
+    assert.match(
+      after,
+      /本題 0:0[01]/,
+      `換題之後該回到 0 附近,實際:${after}`,
+    );
+
+    // 換題那一瞬間 timer 已重設但取樣的 now 還停在上一秒 —— read() 會回一個小
+    // 負數。formatElapsed 夾到 0,所以畫面上不該出現負號。
+    assert.ok(!after.includes('-'), `不該顯示負數,實際:${after}`);
+
+    assert.deepEqual(errors, [], '不該有未捕捉的例外');
+  } finally {
+    await ctx.close();
+  }
+});
