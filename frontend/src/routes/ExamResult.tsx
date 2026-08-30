@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { choicePct, type StatsPayload } from '../lib/choiceStats';
 import { describeFilters } from '../lib/customTestLabel';
+import { createGate } from '../lib/requestQueue';
 import { ExportButton } from '../components/ExportDialog';
 
 type Result = {
@@ -55,10 +56,18 @@ function fmtMs(ms: number): string {
   return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
 }
 
+// 選項分布的請求閘門。「展開全部選項」會讓所有展開區同時打開,而 HTTP/2 沒有
+// 瀏覽器那條「每個 origin 最多 6 條連線」的天然上限 —— 不排隊的話一次點擊就是
+// 一百個 fetch 同時飛出去。模組層共用一個,因為要限的是**整頁**的同時在飛數。
+const statsGate = createGate(6);
+
 export function ExamResult() {
   const { sid } = useParams<{ sid: string }>();
   const [data, setData] = useState<Result | null>(null);
   const [filter, setFilter] = useState<'all' | 'wrong' | 'right' | 'flagged'>('wrong');
+  // 全部展開/收合。切換之後每一題仍然可以單獨開關 —— 這顆只是把所有卡片推到
+  // 同一個狀態,不是把個別的開關鎖住。
+  const [expandAll, setExpandAll] = useState(false);
   const [pacing, setPacing] = useState<Pacing | null>(null);
   const [applying, setApplying] = useState(false);
   const [applyMsg, setApplyMsg] = useState<string | null>(null);
@@ -284,7 +293,10 @@ export function ExamResult() {
       )}
 
       {/* Filter tabs */}
-      <div className="flex gap-2 mb-4 text-sm">
+      {/* `flex-wrap` 是必要的:多了右邊那顆之後,窄螢幕四顆篩選 + 展開全部一定
+          排不下,不換行就是整頁被撐出水平捲軸。換行之後 `ml-auto` 仍然把它推到
+          自己那一行的最右邊。 */}
+      <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
         {(['wrong', 'right', 'flagged', 'all'] as const).map((f) => (
           <button
             key={f}
@@ -303,6 +315,16 @@ export function ExamResult() {
             {f === 'flagged' && `標記 (${flaggedCount})`}
           </button>
         ))}
+        {/* 檢討整份考卷時,一題一題點開選項是一百次點擊。這顆刻意靠右:它跟左邊
+            那組不是同一件事 —— 那組換的是**看哪些題**,這顆換的是**每一題看多細**。 */}
+        <button
+          type="button"
+          onClick={() => setExpandAll((v) => !v)}
+          aria-pressed={expandAll}
+          className="ml-auto px-3 py-1.5 rounded border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-ink-400 dark:hover:border-ink-500 transition"
+        >
+          {expandAll ? '收合全部選項' : '展開全部選項'}
+        </button>
       </div>
 
       {/* Per-question list */}
@@ -395,6 +417,7 @@ export function ExamResult() {
                 }
                 applying={applying}
                 onApply={() => applyToReview([a.question_id])}
+                expandAll={expandAll}
               />
             </li>
           );
@@ -425,6 +448,7 @@ function AnswerDetail({
   applyState,
   applying,
   onApply,
+  expandAll,
 }: {
   questionId: string;
   options: Record<string, string>;
@@ -434,16 +458,29 @@ function AnswerDetail({
   applyState: 'n/a' | 'pending' | 'done';
   applying: boolean;
   onApply(): void;
+  /** 頁面層級的「展開全部選項」。切換的那一刻同步過來,之後這一題仍可單獨開關。 */
+  expandAll: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  // 初始值就吃 expandAll —— 換篩選會讓新出現的卡片重新掛載,少了它,展開全部之後
+  // 切到「全部」會看到新的那幾題是收合的,而按鈕還寫著「收合全部選項」。
+  const [open, setOpen] = useState(expandAll);
   const [stats, setStats] = useState<StatsPayload | null>(null);
   const [failed, setFailed] = useState(false);
+
+  // 全部展開/收合。**只在 expandAll 真的變了才同步**(靠 deps),不是每次 render
+  // 都推 —— 否則單獨收合某一題會立刻被推回去(expandAll 還是 true),看起來像
+  // 那顆按鈕壞了。
+  useEffect(() => {
+    setOpen(expandAll);
+  }, [expandAll]);
 
   useEffect(() => {
     if (!open || stats) return;
     let cancelled = false;
-    api
-      .get<StatsPayload>(`/api/questions/${questionId}/stats`)
+    // 排隊送,不要一次全部飛出去(見 lib/requestQueue.ts)。已經排進隊伍的請求
+    // 在收合之後仍然會送出 —— 這裡只擋 setState,不取消請求:要取消得把
+    // AbortController 一路傳進 api.get(),而這支的回應本來就會留著當快取。
+    void statsGate(() => api.get<StatsPayload>(`/api/questions/${questionId}/stats`))
       .then((r) => { if (!cancelled) setStats(r); })
       .catch(() => { if (!cancelled) setFailed(true); });
     return () => { cancelled = true; };
