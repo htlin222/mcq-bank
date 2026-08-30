@@ -313,6 +313,27 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 		() => new Set(flaggedIds(sessionId)),
 	);
 	const flushTimers = useRef<Record<string, number>>({});
+
+	// 換題時捲回題幹。**掛在 activeIdx 上,不是掛在按鈕上** —— 上一題/下一題、
+	// 題號跳轉、手把的 L1/R1 與 ±10、以及「送出並前進」全都只是改這個 state,
+	// 一個一個補 onClick 遲早會漏掉其中一條路徑,而症狀是「有時候會捲、有時候
+	// 不會」,很難回報得清楚。
+	//
+	// 不捲的話,答完一題往下捲看完選項再按「下一題」,下一題會從**選項中段**開始
+	// 顯示 —— 題幹在畫面外,而使用者不會馬上發現自己漏讀了題目。
+	//
+	// `behavior: "auto"`(瞬間)不是 smooth:考試在計時,一段 300ms 的平滑捲動
+	// 每題都來一次是實際的損失,而且會讓連按下一題的手感變黏。
+	const lastIdxRef = useRef<number | null>(null);
+	useEffect(() => {
+		const first = lastIdxRef.current === null;
+		const changed = lastIdxRef.current !== activeIdx;
+		lastIdxRef.current = activeIdx;
+		// 第一次(含從中斷處續考)不捲:那時本來就在頂端,而且動它會跟瀏覽器自己的
+		// 捲動位置還原打架。
+		if (first || !changed) return;
+		window.scrollTo({ top: 0, behavior: "auto" });
+	}, [activeIdx]);
 	// Per-question timer: restarts on every question change, and follows both
 	// the tab's visibility and the session's own pause state.
 	const timer = useRef<TimerState>(startTimer(Date.now()));
