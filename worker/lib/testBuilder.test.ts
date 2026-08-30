@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildTestFilter, normalizeFilters, MAX_COUNT, DEFAULT_COUNT } from './testBuilder.ts';
+import { WRONG_PREDICATE } from './wrong-criterion.ts';
 
 test('無任何條件 = 全題庫,只有兩個 join 用的 email 參數', () => {
   const f = buildTestFilter(normalizeFilters({}), 'a@b.c');
@@ -30,9 +31,11 @@ test('範圍條件之間是 AND,狀態組與範圍組也是 AND', () => {
   );
   // status組 / year組 / group組,三段以 AND 串接。
   // 注意 'wrong' 片段內部自己也有 AND,所以不能用 split(' AND ') 數。
-  assert.match(
+  // 錯題判準本身不在這條的守備範圍(它在 wrong-criterion.test.ts)—— 這裡問的是
+  // 「三組怎麼串」。寫死那段 SQL 的話,判準一改這條就假紅。
+  assert.equal(
     f.whereSql,
-    /^WHERE \(\(rp\.times_seen > 0 AND rp\.times_correct < rp\.times_seen\)\) AND q\.year IN \(\?,\?\) AND q\."group" IN \(\?\)$/,
+    `WHERE (${WRONG_PREDICATE}) AND q.year IN (?,?) AND q."group" IN (?)`,
   );
   assert.deepEqual(f.params.slice(2), [114, 113, '內科']);
 });

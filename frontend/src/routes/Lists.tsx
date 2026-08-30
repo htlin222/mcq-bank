@@ -6,6 +6,7 @@ import { BookmarkBadge } from '../components/BookmarkBadge';
 import { GROUPS, groupBadgeClass } from '../lib/groups';
 import { ExportButton } from '../components/ExportDialog';
 import type { ExportScope } from '../lib/export-scope';
+import { DEFAULT_WRONG_SORT, WRONG_SORT_LABELS, type WrongSort } from '../lib/wrongSort';
 
 type Row = {
   id: string;
@@ -24,6 +25,7 @@ export function WrongQuestions() {
   const [year, setYear] = useState('');
   const [group, setGroup] = useState('');
   const [tagSet, setTagSet] = useState<Set<string>>(new Set());
+  const [sort, setSort] = useState<WrongSort>(DEFAULT_WRONG_SORT);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [years, setYears] = useState<Year[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
@@ -38,8 +40,10 @@ export function WrongQuestions() {
     if (year) sp.set('year', year);
     if (group) sp.set('group', group);
     if (tagSet.size > 0) sp.set('tags', [...tagSet].join(','));
+    // 預設不寫進 query string —— 少一個參數,分享出去的網址也少一個會過期的東西。
+    if (sort !== DEFAULT_WRONG_SORT) sp.set('sort', sort);
     return sp.toString();
-  }, [year, group, tagSet]);
+  }, [year, group, tagSet, sort]);
 
   useEffect(() => {
     setRows(null);
@@ -71,8 +75,11 @@ export function WrongQuestions() {
         <ExportButton scope={wrongScope} />
       </div>
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-6">
-        <p className="text-sm text-ink-500 dark:text-ink-400">複習模式中答錯的題目,按錯誤率排序。</p>
-        {/* 帶著當前 filter 進出卷頁,status 預設勾「做錯過」 */}
+        <p className="text-sm text-ink-500 dark:text-ink-400">
+          最近一次作答答錯的題目,{WRONG_SORT_LABELS[sort]}。
+        </p>
+        {/* 帶著當前 filter 進出卷頁,status 預設勾「最近答錯」—— 判準跟這份清單共用
+            同一個定義(worker/lib/wrong-criterion.ts),所以出來的就是畫面上這些。 */}
         <Link
           to={`/exam/new?status=wrong${query ? '&' + query : ''}`}
           className="text-sm text-accent hover:text-accent-dark"
@@ -100,6 +107,18 @@ export function WrongQuestions() {
           <option value="">所有 group</option>
           {GROUPS.map((g) => (
             <option key={g.label} value={g.label}>{g.label}</option>
+          ))}
+        </select>
+        {/* 排序。清單一次最多 200 列,而排序決定的是「哪 200 列」—— 不只是
+            順序,所以它跟上面兩個 filter 放在同一列。 */}
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as WrongSort)}
+          aria-label="排序方式"
+          className="px-3 py-1.5 border border-ink-200 dark:border-ink-700 rounded bg-white dark:bg-ink-800 text-ink-800 dark:text-ink-200"
+        >
+          {(Object.keys(WRONG_SORT_LABELS) as WrongSort[]).map((k) => (
+            <option key={k} value={k}>{WRONG_SORT_LABELS[k]}</option>
           ))}
         </select>
         {tagSet.size > 0 && (

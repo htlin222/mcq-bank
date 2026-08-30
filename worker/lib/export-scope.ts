@@ -28,6 +28,7 @@ export type ExportScope =
 // Hard cap. Free-plan Workers get 10 ms CPU per invocation; string assembly
 // for 200 questions is comfortably inside that, 1000 is not.
 import { parseTagList } from "./sql-params.ts";
+import { WRONG_WHERE } from "./wrong-criterion.ts";
 
 export const MAX_QUESTIONS = 200;
 
@@ -216,15 +217,12 @@ export function scopeSql(scope: ExportScope, email: string): ScopedSql {
 				params: [email],
 			};
 		case "wrong": {
-			// Mirrors worker/routes/review.ts:909 (times_seen > 0 且正確率 < 100%).
+			// 判準跟畫面上那份清單共用同一個定義(lib/wrong-criterion.ts)——
+			// 各寫一份的話,匯出的題數會跟畫面上看到的不一樣,而那沒有人會回報。
 			// Filters live in WHERE (not a JOIN) so every extra param lands AFTER
 			// the email — the params[0] invariant depends on that ordering.
 			const params: unknown[] = [email];
-			const where = [
-				"rp.user_email = ?",
-				"rp.times_seen > 0",
-				"(rp.times_correct * 100 / rp.times_seen) < 100",
-			];
+			const where = ["rp.user_email = ?", WRONG_WHERE];
 			if (scope.year !== undefined) {
 				where.push("q.year = ?");
 				params.push(scope.year);

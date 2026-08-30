@@ -2,11 +2,13 @@
 // preview(算 COUNT)與 build(選題建 session)共用同一份,避免兩邊漂移。
 //
 // 語意:
-//   status 之間 OR(「未做過 或 做錯過」= 兩者聯集)
+//   status 之間 OR(「未做過 或 最近答錯」= 兩者聯集)
 //   scope(year / group / tag)之間 AND,同一維度內部 OR
 //   tag 用 OR — 與 GET /api/questions 的 AND(questions.ts 的
 //   `HAVING COUNT(DISTINCT tag) = ?`)刻意不同:組卷時多選 tag 若取交集
 //   幾乎必然回 0 題,使用者要的是「AML 或 MDS 都算」。
+
+import { WRONG_PREDICATE } from './wrong-criterion.ts';
 
 export type TestStatus = 'unseen' | 'wrong' | 'correct' | 'bookmarked';
 export const ALL_STATUS: TestStatus[] = ['unseen', 'wrong', 'correct', 'bookmarked'];
@@ -74,10 +76,12 @@ export function normalizeFilters(raw: RawTestFilters | undefined): TestFilters {
   };
 }
 
-// 狀態片段 — 語意對齊 review.ts 的錯題判準(times_seen > 0 且未全對)。
+// 狀態片段。「最近答錯」跟錯題回顧共用同一個定義(lib/wrong-criterion.ts)——
+// 出卷精靈這顆勾選框正是清單頁「把這些出成一份測驗 →」連過來的目的地,兩邊判準
+// 不同的話,出來的題目跟畫面上那份清單對不起來。
 const STATUS_SQL: Record<TestStatus, string> = {
   unseen: '(rp.question_id IS NULL OR rp.times_seen = 0)',
-  wrong: '(rp.times_seen > 0 AND rp.times_correct < rp.times_seen)',
+  wrong: WRONG_PREDICATE,
   correct: '(rp.times_correct > 0)',
   bookmarked: '(bi.question_id IS NOT NULL)',
 };

@@ -22,6 +22,7 @@ import {
 	setFlag,
 	toServerFlags,
 } from "../lib/examFlagStore";
+import { resumeIdx } from "../lib/examResume";
 import { TutorReveal } from "../components/TutorReveal";
 import { StemText } from "../components/StemText";
 import { GamepadFab, type GamepadHint } from "../components/GamepadFab";
@@ -301,6 +302,28 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 	const [state, setState] = useState<ExamState | null>(null);
 	const [answers, setAnswers] = useState<Record<string, string>>({});
 	const [activeIdx, setActiveIdx] = useState(0);
+	// 續考落點:第一題**未作答**,不是第一題(見 lib/examResume.ts)。
+	//
+	// 只在載入時套用,不放進 useEffect 掛 `state` —— 暫停/繼續也會換掉 `state`,
+	// 那樣按一次暫停就會把使用者拉回未作答的地方。
+	//
+	// 快取先到、伺服器後到時允許再套用一次(另一台裝置答過的題目要算數),但
+	// **使用者已經自己換過題就不動** —— 讀到一半被跳走比落在第一題更糟。
+	const autoIdx = useRef<number | null>(null);
+	const activeIdxRef = useRef(0);
+	useEffect(() => {
+		activeIdxRef.current = activeIdx;
+	}, [activeIdx]);
+	function applyResumeIdx(
+		qs: ExamQuestion[],
+		ans: Record<string, string | undefined>,
+	) {
+		if (autoIdx.current !== null && activeIdxRef.current !== autoIdx.current)
+			return;
+		const target = resumeIdx(qs, ans);
+		autoIdx.current = target;
+		setActiveIdx(target);
+	}
 	const [now, setNow] = useState(Date.now());
 	const [submitting, setSubmitting] = useState(false);
 	const [busy, setBusy] = useState(false);
@@ -359,6 +382,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 			const seed: Record<string, string> = {};
 			for (const q of s.questions) if (q.chosen) seed[q.id] = q.chosen;
 			setAnswers(seed);
+			applyResumeIdx(s.questions, seed);
 		}
 		api
 			.get<ExamState>(`/api/exam/${sessionId}/state`)
@@ -368,6 +392,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 				const seed: Record<string, string> = {};
 				for (const q of s.questions) if (q.chosen) seed[q.id] = q.chosen;
 				setAnswers((prev) => ({ ...seed, ...prev }));
+				applyResumeIdx(s.questions, seed);
 				// 教學模式續答:已作答的題目答案早就送出過,揭曉狀態要一起還原。
 				if (s.tutor === 1) setRevealed(new Set(Object.keys(seed)));
 				// 標記對帳:複用這份 /state 回應,不多打 API。本機較新的會被推上去,

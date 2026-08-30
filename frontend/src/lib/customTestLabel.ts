@@ -11,7 +11,7 @@ export type SessionLike = {
 
 const STATUS_LABEL: Record<string, string> = {
   unseen: '未做過',
-  wrong: '做錯過',
+  wrong: '最近答錯',
   correct: '曾答對',
   bookmarked: '已收藏',
 };

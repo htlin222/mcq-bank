@@ -1,0 +1,29 @@
+[
+  {
+    "id": "113-002",
+    "year": 113,
+    "number": 2,
+    "stem": "第 2 題:關於慢性骨髓性白血病的治療,下列敘述何者最為適當?",
+    "group": "內科",
+    "times_seen": 4,
+    "times_correct": 1
+  },
+  {
+    "id": "113-001",
+    "year": 113,
+    "number": 1,
+    "stem": "第 1 題:一名 62 歲男性因反覆發燒與體重減輕就診,骨髓抹片顯示芽細胞比例上升。下列敘述何者最為適當?",
+    "group": "內科",
+    "times_seen": 2,
+    "times_correct": 1
+  },
+  {
+    "id": "112-031",
+    "year": 112,
+    "number": 31,
+    "stem": "第 31 題:ADAMTS13 activity 68%, without evidence for an inhibitor。下列處置何者最為適當?",
+    "group": "共同",
+    "times_seen": 6,
+    "times_correct": 5
+  }
+]

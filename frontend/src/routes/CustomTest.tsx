@@ -14,7 +14,7 @@ type Status = 'unseen' | 'wrong' | 'correct' | 'bookmarked';
 
 const STATUS_OPTIONS: { key: Status; label: string; hint: string }[] = [
   { key: 'unseen', label: '未做過', hint: '沒有任何作答紀錄' },
-  { key: 'wrong', label: '做錯過', hint: '曾經答錯,尚未全對' },
+  { key: 'wrong', label: '最近答錯', hint: '最近一次作答答錯的題目' },
   { key: 'bookmarked', label: '已收藏', hint: '加進收藏夾的題目' },
   { key: 'correct', label: '曾答對', hint: '至少答對過一次' },
 ];

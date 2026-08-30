@@ -31,6 +31,8 @@ import {
 	pickNextKind,
 	remainingNewToday,
 } from "../lib/queue-mix";
+import { WRONG_WHERE } from "../lib/wrong-criterion";
+import { wrongOrderBy } from "../lib/wrong-sort";
 
 export const reviewRoutes = new Hono<AppContext>();
 
@@ -1030,11 +1032,7 @@ reviewRoutes.get("/wrong", async (c) => {
 	const group = c.req.query("group");
 	const tags = c.req.query("tags");
 
-	const where: string[] = [
-		"rp.user_email = ?",
-		"rp.times_seen > 0",
-		"(rp.times_correct * 100 / rp.times_seen) < 100",
-	];
+	const where: string[] = ["rp.user_email = ?", WRONG_WHERE];
 	const params: any[] = [email];
 
 	if (year) {
@@ -1072,7 +1070,7 @@ reviewRoutes.get("/wrong", async (c) => {
     JOIN questions q ON q.id = rp.question_id
     ${tagJoin}
     WHERE ${where.join(" AND ")}
-    ORDER BY (rp.times_correct * 100 / rp.times_seen) ASC, rp.last_seen_at DESC
+    ORDER BY ${wrongOrderBy(c.req.query("sort"))}
     LIMIT 200
   `;
 	const { results } = await c.env.DB.prepare(sql)
