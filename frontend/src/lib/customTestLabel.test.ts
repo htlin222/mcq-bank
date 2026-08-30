@@ -13,7 +13,7 @@ test('describeFilters:狀態翻成中文,年份/科別/tag/題數依序串接', 
     describeFilters(
       JSON.stringify({ status: ['unseen', 'wrong'], years: [114, 113], groups: ['內科'], tags: ['AML'], count: 20 }),
     ),
-    '未做過/做錯過 · 114,113 · 內科 · #AML · 20 題',
+    '未做過/最近答錯 · 114,113 · 內科 · #AML · 20 題',
   );
 });
 

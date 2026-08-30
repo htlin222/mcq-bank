@@ -76,9 +76,10 @@ export function WrongQuestions() {
       </div>
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-6">
         <p className="text-sm text-ink-500 dark:text-ink-400">
-          複習模式中答錯的題目,{WRONG_SORT_LABELS[sort]}。
+          最近一次作答答錯的題目,{WRONG_SORT_LABELS[sort]}。
         </p>
-        {/* 帶著當前 filter 進出卷頁,status 預設勾「做錯過」 */}
+        {/* 帶著當前 filter 進出卷頁,status 預設勾「最近答錯」—— 判準跟這份清單共用
+            同一個定義(worker/lib/wrong-criterion.ts),所以出來的就是畫面上這些。 */}
         <Link
           to={`/exam/new?status=wrong${query ? '&' + query : ''}`}
           className="text-sm text-accent hover:text-accent-dark"
