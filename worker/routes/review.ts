@@ -31,6 +31,7 @@ import {
 	pickNextKind,
 	remainingNewToday,
 } from "../lib/queue-mix";
+import { wrongOrderBy } from "../lib/wrong-sort";
 
 export const reviewRoutes = new Hono<AppContext>();
 
@@ -1072,7 +1073,7 @@ reviewRoutes.get("/wrong", async (c) => {
     JOIN questions q ON q.id = rp.question_id
     ${tagJoin}
     WHERE ${where.join(" AND ")}
-    ORDER BY (rp.times_correct * 100 / rp.times_seen) ASC, rp.last_seen_at DESC
+    ORDER BY ${wrongOrderBy(c.req.query("sort"))}
     LIMIT 200
   `;
 	const { results } = await c.env.DB.prepare(sql)
