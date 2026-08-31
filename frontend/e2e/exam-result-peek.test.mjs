@@ -93,6 +93,16 @@ after(async () => {
   if (browser) await browser.close();
 });
 
+/** 等到 `probe()` 為真,或逾時 —— 預抓是背景行為,頁面上看不到它。 */
+async function until(probe, ms = 5_000) {
+  const deadline = Date.now() + ms;
+  while (Date.now() < deadline) {
+    if (probe()) return true;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  return false;
+}
+
 async function open(contextOptions = {}) {
   const ctx = await browser.newContext({
     viewport: { width: 1280, height: 900 },
@@ -110,10 +120,13 @@ async function open(contextOptions = {}) {
     });
   // 附屬端點沒有 fixture,伺服器回 `{}`,而消費端是 `.map()`。
   await ctx.route('**/api/questions/113-0*/*', (route) => json(route, []));
+  // 題目 payload 由 ctx.route 直接答覆,所以數不到伺服器那邊 —— 在這裡記。
+  const hits = [];
   for (const a of EXAM.answers) {
-    await ctx.route(`**/api/questions/${a.question_id}`, (route) =>
-      json(route, payload(a)),
-    );
+    await ctx.route(`**/api/questions/${a.question_id}`, (route) => {
+      hits.push(a.question_id);
+      return json(route, payload(a));
+    });
   }
   const page = await ctx.newPage();
   const errors = [];
@@ -122,7 +135,7 @@ async function open(contextOptions = {}) {
     waitUntil: 'domcontentloaded',
   });
   await page.waitForSelector('button:has-text("展開選項")', { timeout: 20_000 });
-  return { ctx, page, errors };
+  return { ctx, page, errors, hits };
 }
 
 const peekBtn = (page, n) =>
@@ -226,6 +239,35 @@ test('沒有詳解的題目要明講,不是開一個空白對話框', async (t) 
     await page.waitForSelector('text=這一題還沒有共筆詳解', { timeout: 10_000 });
     // 而且要給一條出路,不是死路。
     assert.match(await dialog.innerText(), /去寫一則詳解/);
+
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('指標一碰就開抓,而且點下去真的用到了那一份', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const { ctx, page, errors, hits } = await open();
+  const mine = () => hits.filter((id) => id === Q1.question_id).length;
+  try {
+    // 對照組:成績頁本身不抓題目 payload。少了這一步,底下的「1」可能只是
+    // 頁面載入順手抓的,而跟預抓一點關係都沒有。
+    assert.equal(mine(), 0, '還沒碰按鈕就抓了 —— 這條測不到預抓');
+
+    await peekBtn(page, Q1.number).hover();
+    assert.ok(await until(() => mine() >= 1), '指標碰到之後沒有開抓');
+    assert.equal(mine(), 1, '碰一下抓了不只一次');
+
+    // ⚠️ 這條才是重點:點下去**不能**再抓一次。只驗「碰了會抓」的話,一個
+    // 「抓完就丟、點擊時重抓」的實作也會全綠 —— 而那沒有省下任何等待。
+    await peekBtn(page, Q1.number).click();
+    await page.waitForSelector(`text=${PEEK_TEXT}`, { timeout: 10_000 });
+    assert.equal(mine(), 1, '點下去又抓了一次 —— 預抓沒有被用到');
 
     assert.deepEqual(errors, []);
   } finally {

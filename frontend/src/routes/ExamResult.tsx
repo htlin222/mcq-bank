@@ -11,6 +11,7 @@ import {
   writeExamResultView,
 } from '../lib/examResultView';
 import { markProgrammaticScroll } from '../lib/autoHideChrome';
+import { questionCache } from '../lib/questionCache';
 import { ExportButton } from '../components/ExportDialog';
 import { ExplanationPeek } from '../components/ExplanationPeek';
 
@@ -518,6 +519,18 @@ export function ExamResult() {
               <button
                 type="button"
                 onClick={() => setPeek({ id: a.question_id, number: a.number })}
+                // 指標一碰就開抓,等於在點擊前偷到一個 RTT。走 questionCache 的
+                // prefetch(),所以在飛的、還沒過期的都會自己 no-op。
+                //
+                // 刻意只掛在**這顆按鈕**上,不掛整列:整列是每一題都會滑過的,
+                // 那等於把 100 題全預抓一遍,而 questionCache 的 LRU 只有 40 筆
+                // —— 洗掉的正是使用者真的要看的那幾題。碰按鈕是明確的意圖。
+                //
+                // 觸控沒有 pointerenter,但 pointerdown 仍然早於 click(手指抬起
+                // 那段),所以還是偷得到。
+                onPointerEnter={() => questionCache.prefetch(a.question_id)}
+                onPointerDown={() => questionCache.prefetch(a.question_id)}
+                onFocus={() => questionCache.prefetch(a.question_id)}
                 title="不離開清單,快速看這一題的詳解"
                 aria-label={`查看第 ${a.number} 題的詳解`}
                 className="absolute right-2 top-10 inline-flex items-center gap-1 rounded border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 py-1 text-xs text-ink-500 dark:text-ink-400 opacity-100 transition hover:text-accent hover:border-accent focus:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
