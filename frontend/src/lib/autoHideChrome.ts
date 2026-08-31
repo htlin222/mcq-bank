@@ -94,6 +94,30 @@ export function nextChromeState(prev: ChromeState, s: ScrollSample): ChromeState
 }
 
 /**
+ * 程式化的捲動不是使用者的意圖。
+ *
+ * 成績頁回來時會還原上次的捲動位置(`lib/examResultView.ts`),而那一下在這裡
+ * 長得跟「一口氣往下捲一千多像素」一模一樣 —— 兩條列會在使用者一根手指都還沒
+ * 動的時候收起來,而且要往回捲才叫得回來。呼叫端在 `scrollTo` **之前**標記,
+ * 掛鉤在下一次量測時把狀態重新起算(等同重新掛載),不當成一次捲動。
+ *
+ * 旗標放在模組層而不是傳參數:標記的人(路由元件)跟讀的人(掛在 App 上的掛鉤)
+ * 之間沒有 props 可走,而中間隔著整棵樹。
+ */
+let programmaticScroll = false;
+
+export function markProgrammaticScroll() {
+  programmaticScroll = true;
+}
+
+/** 讀完就清 —— 一次標記只能吃掉一次量測,否則後面每一次真的捲動都會被忽略。 */
+export function consumeProgrammaticScroll(): boolean {
+  const was = programmaticScroll;
+  programmaticScroll = false;
+  return was;
+}
+
+/**
  * 哪些路由不收合。判準是「這一頁有沒有東西是消失了會出事的」,不是「這一頁長不長」。
  *
  * - `/exam`、`/exam/:sid`:計時與交卷。考試中最不需要的就是「東西不見了」。
