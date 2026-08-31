@@ -80,6 +80,28 @@ const ROUTES = [
     },
     expectAfter: ['點擊顯示詳解'],
   },
+  {
+    path: '/exam/e2e-1/result',
+    name: '成績頁 → 查看詳解(整個對話框從來沒有被掃過)',
+    // 對話框活在 portal 裡,載入任何一條路由都不會讓它自己出現 —— 所以它是
+    // **一整塊沒被掃過的畫面**,而它同時是這個站上新的長文閱讀面。半透明的
+    // 遮罩(bg-ink-900/40)正是這一層在消滅的那種中間灰,而它在 light/dark
+    // 底下完全正常 —— 同「防劇透那團灰能活到使用者手上」的成因。
+    //
+    // `force: true`:那顆鈕在有指標的裝置上是 opacity-0(hover 才現身),而
+    // 掃描用的是桌機視窗。
+    async interact(page) {
+      await page
+        .locator('button[aria-label^="查看第"]')
+        .first()
+        .click({ force: true });
+      await page.waitForSelector('[role="dialog"]', { timeout: 10_000 });
+      await page.waitForTimeout(500);
+    },
+    // fixture(questions_113-001.json)裡的標記字串 —— 用「詳解」兩個字當判準
+    // 會恆真,那兩個字在按鈕上本來就有。
+    expectAfter: ['凝血因子的鑑別診斷'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是

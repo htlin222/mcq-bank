@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ExternalLink, Flag } from 'lucide-react';
+import { ExternalLink, Flag, Info } from 'lucide-react';
 import { api } from '../lib/api';
 import { BookmarkBadge } from '../components/BookmarkBadge';
 import { choicePct, type StatsPayload } from '../lib/choiceStats';
@@ -12,6 +12,7 @@ import {
 } from '../lib/examResultView';
 import { markProgrammaticScroll } from '../lib/autoHideChrome';
 import { ExportButton } from '../components/ExportDialog';
+import { ExplanationPeek } from '../components/ExplanationPeek';
 
 type Result = {
   session: {
@@ -66,6 +67,21 @@ function fmtMs(ms: number): string {
 // 一百個 fetch 同時飛出去。模組層共用一個,因為要限的是**整頁**的同時在飛數。
 const statsGate = createGate(6);
 
+/**
+ * 還原捲動位置的補正視窗。頁面高度會在資料到齊之後才長到最終值(配速卡、
+ * 展開的選項分布),所以要多等幾幀 —— 但也不能無限等下去,否則一個永遠長不到
+ * 那麼高的頁面會讓這段邏輯一直跑。
+ */
+const RESTORE_WINDOW_MS = 1500;
+
+/** 使用者一動手就放棄還原 —— 被程式碼拉回去比沒有還原更難用。 */
+const USER_SCROLL_EVENTS = [
+  'wheel',
+  'touchstart',
+  'keydown',
+  'pointerdown',
+] as const;
+
 export function ExamResult() {
   const { sid } = useParams<{ sid: string }>();
   const [data, setData] = useState<Result | null>(null);
@@ -79,6 +95,9 @@ export function ExamResult() {
   // 同一個狀態,不是把個別的開關鎖住。
   const [expandAll, setExpandAll] = useState(saved.expandAll);
   const [pacing, setPacing] = useState<Pacing | null>(null);
+  // 「查看詳解」開起來的那一題。存 id + 題號而不是整列:對話框只需要這兩個,
+  // 而存整列的話「登記進複習進度」就地改寫 data 之後,手上這份就過期了。
+  const [peek, setPeek] = useState<{ id: string; number: number } | null>(null);
   const [applying, setApplying] = useState(false);
   const [applyMsg, setApplyMsg] = useState<string | null>(null);
 
@@ -119,20 +138,51 @@ export function ExamResult() {
     };
   }, [sid, data, filter, expandAll]);
 
-  // 還原捲動位置。**要等清單真的畫出來**(高度夠了)才捲得到那個位置,所以掛在
-  // 資料進來之後的 layout effect —— 早一步的話 scrollTo 會被夾回 0,而症狀是
-  // 「有時候會還原、有時候不會」。只做一次:之後 data 因為「登記進複習進度」
-  // 就地改寫時再捲一次,等於把使用者拉回去。
+  // 還原捲動位置。
+  //
+  // ⚠️ **「等 data 到了」是不夠的。** 這一頁的高度還取決於配速卡(另一支請求)
+  // 與展開中的選項分布,它們比題目清單晚到 —— 早一步 `scrollTo` 會被夾在當時
+  // 的最大值上,而症狀是「有時候還原得到、有時候差一截」(實測目標 550、
+  // 當下上限只有 405)。這種時序差會隨 bundle 大小飄,所以不能靠「剛好夠快」。
+  //
+  // 因此在資料進來之後的一小段時間內逐幀補正,碰得到目標就收工。碰不到就停在
+  // 頁尾 —— 那本來就是能給的最好答案。使用者一動手就整段放棄:被程式碼拉回去
+  // 比沒有還原更難用。
   const restored = useRef(false);
   useLayoutEffect(() => {
     if (restored.current || !data || saved.y <= 0) return;
     restored.current = true;
-    // 還原完就地補上 —— 使用者可能一動都不動就離開,那時 ref 還是 0,
-    // 存回去會把剛剛還原的位置清掉。
-    yRef.current = saved.y;
-    if (Math.abs(window.scrollY - saved.y) < 1) return;
-    markProgrammaticScroll();
-    window.scrollTo(0, saved.y);
+    const deadline = Date.now() + RESTORE_WINDOW_MS;
+    let raf = 0;
+    let stopped = false;
+    const stop = () => {
+      stopped = true;
+      if (raf) cancelAnimationFrame(raf);
+      for (const ev of USER_SCROLL_EVENTS)
+        window.removeEventListener(ev, stop);
+    };
+    const tick = () => {
+      raf = 0;
+      if (stopped) return;
+      const maxY = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
+      const target = Math.min(saved.y, maxY);
+      if (Math.abs(window.scrollY - target) > 1) {
+        markProgrammaticScroll();
+        window.scrollTo(0, target);
+      }
+      // 還原完就地補上 ref —— 使用者可能一動都不動就離開,那時 ref 還是 0,
+      // 存回去會把剛剛還原的位置清掉。
+      yRef.current = target;
+      if (maxY >= saved.y || Date.now() > deadline) return stop();
+      raf = requestAnimationFrame(tick);
+    };
+    for (const ev of USER_SCROLL_EVENTS)
+      window.addEventListener(ev, stop, { passive: true, once: true });
+    tick();
+    return stop;
   }, [data, saved.y]);
 
   // 「登記進複習進度」—— 模擬考只寫 exam_answers / attempts,從不碰
@@ -459,6 +509,21 @@ export function ExamResult() {
               >
                 <ExternalLink size={12} /> 在新分頁開啟
               </Link>
+              {/* 正下方那一顆:不離開清單就把詳解看完。
+                  ⚠️ **它不能跟上面那顆一樣只在 hover 才出現。** 那顆在觸控裝置上
+                  看不見是可以的 —— 長按整列本來就有系統的「在新分頁開啟」。
+                  這顆沒有任何平台等價物,藏起來等於手機上根本沒有這個功能,
+                  而手機正是「不想離開清單」最強烈的地方。所以預設看得見,
+                  只有真的有指標的裝置才收起來等 hover。 */}
+              <button
+                type="button"
+                onClick={() => setPeek({ id: a.question_id, number: a.number })}
+                title="不離開清單,快速看這一題的詳解"
+                aria-label={`查看第 ${a.number} 題的詳解`}
+                className="absolute right-2 top-10 inline-flex items-center gap-1 rounded border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 py-1 text-xs text-ink-500 dark:text-ink-400 opacity-100 transition hover:text-accent hover:border-accent focus:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
+              >
+                <Info size={12} /> 查看詳解
+              </button>
               </div>
               <AnswerDetail
                 questionId={a.question_id}
@@ -480,6 +545,15 @@ export function ExamResult() {
           );
         })}
       </ul>
+
+      {peek && (
+        <ExplanationPeek
+          questionId={peek.id}
+          number={peek.number}
+          fromExam={sid}
+          onClose={() => setPeek(null)}
+        />
+      )}
     </div>
   );
 }

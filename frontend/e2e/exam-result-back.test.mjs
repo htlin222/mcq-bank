@@ -92,7 +92,7 @@ after(async () => {
   if (browser) await browser.close();
 });
 
-async function newPage({ height = 900 } = {}) {
+async function newPage({ height = 900, pacingDelayMs = 0 } = {}) {
   const ctx = await browser.newContext({
     viewport: { width: 1280, height },
     serviceWorkers: 'block',
@@ -107,6 +107,14 @@ async function newPage({ height = 900 } = {}) {
       contentType: 'application/json; charset=utf-8',
       body: JSON.stringify(body),
     });
+  // 配速卡是另一支請求,而它會讓這一頁**變高**。延遲它就等於把「還原時頁面
+  // 還不夠高」這個時序做成可重現的。
+  if (pacingDelayMs > 0) {
+    await ctx.route('**/api/exam/*/pacing', async (route) => {
+      await new Promise((r) => setTimeout(r, pacingDelayMs));
+      return route.fallback();
+    });
+  }
   // 同年度清單:上一題/下一題就是靠它算出來的,沒有它按鈕根本不會出現。
   await ctx.route('**/api/questions?year=*', (route) => json(route, YEAR_LIST));
   // 題目底下那幾支附屬端點沒有 fixture,伺服器會回 `{}` —— 而它們的消費端是
@@ -315,6 +323,65 @@ test('走回成績頁時篩選也還原 —— 否則那個 y 是落在別份清
     });
     // 篩選沒還原的話這一列不會存在(它只在「全部」底下)。
     await row(answered.question_id).waitFor({ timeout: 10_000 });
+
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('配速卡晚到也要還原得到 —— 頁面是後來才長高的', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  // 這條是實際踩到的:還原只等 `data` 的話,scrollTo 會被夾在**當時**的最大值
+  // 上(實測目標 550、當下上限 405),而配速卡稍後才把頁面撐高。時序差會隨
+  // bundle 大小飄 —— 上一版就是加了一顆按鈕之後才翻掉的,所以這裡把它釘死。
+  const { ctx, page, errors } = await newPage({
+    height: 400,
+    pacingDelayMs: 600,
+  });
+  try {
+    await page.goto(`${server.origin}${RESULT_PATH}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForSelector('button:has-text("展開選項")', {
+      timeout: 20_000,
+    });
+    // 對照組:配速卡真的還沒到的時候,頁面比最後矮 —— 少了這一步,延遲可能
+    // 根本沒生效,而這條測試會退化成上一條的複本。
+    const shortMax = await page.evaluate(
+      () => document.documentElement.scrollHeight - window.innerHeight,
+    );
+    await page.waitForSelector('text=最慢五題', { timeout: 10_000 });
+    const tallMax = await page.evaluate(
+      () => document.documentElement.scrollHeight - window.innerHeight,
+    );
+    assert.ok(
+      tallMax > shortMax,
+      `配速卡沒有讓頁面變高(${shortMax} → ${tallMax}),這條測不到東西`,
+    );
+
+    const row = page.locator(`a[href="/q/${Q2.question_id}"]`).first();
+    await row.scrollIntoViewIfNeeded();
+    const y0 = await page.evaluate(() => window.scrollY);
+    assert.ok(y0 > shortMax, `y0(${y0})要落在配速卡到之前碰不到的位置`);
+
+    await row.click();
+    await page.waitForSelector(`text=這是第 ${Q2.number} 題的題幹`, {
+      timeout: 20_000,
+    });
+    await page.evaluate(() => window.scrollTo(0, 0));
+
+    await backLink(page).first().click();
+    await page.waitForFunction((p) => location.pathname === p, RESULT_PATH, {
+      timeout: 10_000,
+    });
+    await page.waitForFunction((y) => Math.abs(window.scrollY - y) <= 4, y0, {
+      timeout: 10_000,
+    });
 
     assert.deepEqual(errors, []);
   } finally {
