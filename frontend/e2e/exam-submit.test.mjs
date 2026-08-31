@@ -103,18 +103,21 @@ test('交卷:0 次單題請求 + 1 次批次請求 + 1 次 finish', async (t) =>
   });
 
   const page = await ctx.newPage();
-  // 33/100 已作答 → submit() 會先 confirm 一次。不接的話整條流程根本不會開始,
-  // 而計數全 0 看起來就像「修好了」。
-  page.on('dialog', (d) => d.accept());
 
   try {
     await page.goto(`${server.origin}/exam/${SID}`, { waitUntil: 'domcontentloaded' });
 
     // 空掃防線:交卷鈕要真的找得到。
-    const btn = page.locator('button', { hasText: '交卷' }).first();
+    const btn = page.locator('header button', { hasText: '交卷' }).first();
     await btn.waitFor({ timeout: 20_000 });
 
+    // 33/100 已作答 → 兩段確認(見 exam-submit-confirm.test.mjs)。這裡不驗對話框
+    // 本身,只是走完它 —— 少了這幾行,計數全 0 看起來就像「修好了」。
     await btn.click();
+    const dialog = page.locator('[role="dialog"]');
+    await dialog.waitFor({ timeout: 10_000 });
+    await dialog.getByRole('button', { name: '仍要交卷', exact: true }).click();
+    await dialog.getByRole('button', { name: '確定交卷', exact: true }).click();
     await page.waitForURL(`**/exam/${SID}/result`, { timeout: 20_000 });
 
     assert.equal(

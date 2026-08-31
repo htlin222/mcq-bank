@@ -255,7 +255,10 @@ reviewRoutes.get("/calibration", async (c) => {
 			at: number;
 		}>();
 
-	return c.json({ buckets: calibration(events), high_conf_wrong: highConfWrong });
+	return c.json({
+		buckets: calibration(events),
+		high_conf_wrong: highConfWrong,
+	});
 });
 
 // Weakness concept map — cluster the user's wrong questions by semantic
@@ -372,7 +375,10 @@ async function topicClusters(db: Env["DB"], ids: string[]) {
 	}
 }
 
-function topTag(members: string[], tagsByQ: Map<string, string[]>): string | null {
+function topTag(
+	members: string[],
+	tagsByQ: Map<string, string[]>,
+): string | null {
 	const count = new Map<string, number>();
 	for (const id of members) {
 		for (const tag of tagsByQ.get(id) ?? []) {
@@ -742,7 +748,11 @@ reviewRoutes.get("/due/next", async (c) => {
 		.bind(row.id)
 		.all<{ tag: string }>();
 
-	return c.json({ queue, kind, question: ankiQuestionPayload(row, tagRows, now) });
+	return c.json({
+		queue,
+		kind,
+		question: ankiQuestionPayload(row, tagRows, now),
+	});
 });
 
 // Grade the current Anki card with FSRS. `chosen` is optional: if present,
@@ -1063,9 +1073,13 @@ reviewRoutes.get("/wrong", async (c) => {
 		}
 	}
 
+	// 選項全文 / 正解 / 我上次選的都跟著清單一起回來 —— 展開一題不再多打一支
+	// 端點。同 `/api/exam/:sid` 的作法(見 ExamResult 的 AnswerDetail 註解):
+	// 200 列的選項是幾十 KB,而懶載入的代價是每展開一題就一趟 RTT。
+	// 分布(`/stats`)仍然懶載入,那個才是每題一趟的東西。
 	const sql = `
-    SELECT q.id, q.year, q.number, q.stem, q."group",
-           rp.times_seen, rp.times_correct
+    SELECT q.id, q.year, q.number, q.stem, q."group", q.options_json, q.answer,
+           rp.times_seen, rp.times_correct, rp.last_chosen
     FROM review_progress rp
     JOIN questions q ON q.id = rp.question_id
     ${tagJoin}
@@ -1075,6 +1089,13 @@ reviewRoutes.get("/wrong", async (c) => {
   `;
 	const { results } = await c.env.DB.prepare(sql)
 		.bind(...params)
-		.all();
-	return c.json(results);
+		.all<{ options_json: string; answer: string }>();
+	return c.json(
+		(results ?? []).map(({ options_json, answer, ...r }) => ({
+			...r,
+			options: optionsToRecord(options_json),
+			// 欄名跟成績頁對齊(`correct_answer`),兩邊才餵得進同一個元件。
+			correct_answer: answer,
+		})),
+	);
 });

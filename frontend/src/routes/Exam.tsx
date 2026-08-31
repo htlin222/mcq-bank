@@ -26,7 +26,11 @@ import { resumeIdx } from "../lib/examResume";
 import { TutorReveal } from "../components/TutorReveal";
 import { StemText } from "../components/StemText";
 import { GamepadFab, type GamepadHint } from "../components/GamepadFab";
-import { useGamepad } from "../hooks/useGamepad";
+import {
+	SubmitExamDialog,
+	type ExamQuestionRef,
+} from "../components/SubmitExamDialog";
+import { useGamepad, useGamepadConnected } from "../hooks/useGamepad";
 import { rumble } from "../lib/gamepad";
 import {
 	startTimer,
@@ -55,7 +59,7 @@ const EXAM_HINTS: GamepadHint[] = [
 	{ btn: "FACE ▶", label: "標記 / 取消標記這一題" },
 	{ btn: "L1 / R1", label: "上一題 / 下一題(不連發,一下一題)" },
 	{ btn: "L2 / R2", label: "−10 題 / +10 題(到頭就停在頭尾)" },
-	{ btn: "START", label: "交卷(有未答題會先問一次)" },
+	{ btn: "START", label: "交卷(先跳確認,鍵位說明在對話框裡)" },
 	{ btn: "SELECT", label: "開關這份說明" },
 ];
 
@@ -326,6 +330,10 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 	}
 	const [now, setNow] = useState(Date.now());
 	const [submitting, setSubmitting] = useState(false);
+	// 交卷確認對話框:0 = 收起來,1 = 攤開現況,2 = 有未答題時的最終確認。
+	// **兩段的狀態放在這裡而不是對話框裡面**,因為手把的 START 也要推得動它。
+	const [confirmStage, setConfirmStage] = useState<0 | 1 | 2>(0);
+	const { connected: padConnected } = useGamepadConnected();
 	const [busy, setBusy] = useState(false);
 	// 標記題目 (待回頭檢查) — 本機(localStorage)即時生效,server 背景同步,
 	// 進入 session 時對帳(examFlagStore)。換裝置/關分頁都留得住。
@@ -476,7 +484,25 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 	// everything it touches is read off `state` rather than the consts below,
 	// which don't exist on the loading render.
 	useGamepad((action) => {
-		if (!state || submitting) return;
+		if (!state) return;
+		// 對話框開著時整組作答綁定要讓開。少了這一段,十字鍵會在使用者**看不見的
+		// 地方**改掉答案(對話框正蓋著選項)—— 那是這次回報的相反面:不小心改了
+		// 答案,而且畫面上沒有任何東西在說。
+		if (confirmStage > 0) {
+			if (submitting) return;
+			// 位置而非廠商字母:FACE ▼ 是底鍵(確認)、FACE ▶ 是右鍵(取消),
+			// 兩支手把印的字母不同但位置一致。START 一併保留 —— 它本來就是交卷,
+			// 多按一次正好就是這裡要的那一次確認。
+			if (action === "start" || action === "faceDown") {
+				if (confirmStage === 1 && unansweredRefs().length > 0)
+					setConfirmStage(2);
+				else void submit();
+			} else if (action === "faceRight") {
+				setConfirmStage(confirmStage === 2 ? 1 : 0);
+			}
+			return;
+		}
+		if (submitting) return;
 		const qs = state.questions;
 		const cur = qs[activeIdx];
 		if (!cur) return;
@@ -547,9 +573,9 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 			case "faceRight":
 				toggleMark(cur.id);
 				break;
-			// 不開快速通道:submit() 本來就會在有未答題時問一次。
+			// 不開快速通道:交卷一律先跳確認,對話框裡再按一次 START 才送出。
 			case "start":
-				void submit();
+				askSubmit();
 				break;
 		}
 	});
@@ -664,16 +690,38 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 		}
 	}
 
+	// 對話框要攤開的兩份清單。**`idx` 是卷內位置,`label` 是畫面上的題號** ——
+	// 自訂測驗跨年份時 number 會重複,兩者不是同一件事,混用的症狀是「點了題號
+	// 跳到別題」。
+	function refsOf(pick: (q: ExamQuestion) => boolean): ExamQuestionRef[] {
+		if (!state) return [];
+		const out: ExamQuestionRef[] = [];
+		state.questions.forEach((qq, i) => {
+			if (pick(qq))
+				out.push({
+					idx: i,
+					label: String(state.kind === "custom" ? i + 1 : qq.number),
+				});
+		});
+		return out;
+	}
+	function unansweredRefs() {
+		return refsOf((qq) => !answers[qq.id]);
+	}
+
+	/**
+	 * 使用者主動要交卷 —— 一律先問。
+	 *
+	 * ⚠️ **時間到的自動交卷不走這裡,直接呼叫 `submit()`。** 那條路徑沒有「要不
+	 * 要」可以問,而彈一個沒有人回答的對話框只會讓考卷卡在畫面上送不出去。
+	 */
+	function askSubmit() {
+		if (submitting || !state) return;
+		setConfirmStage(1);
+	}
+
 	async function submit() {
 		if (submitting || !state) return;
-		if (
-			!overtime &&
-			Object.keys(answers).length < state.questions.length &&
-			!confirm(
-				`你還有 ${state.questions.length - Object.keys(answers).length} 題未作答,確定要交卷嗎?`,
-			)
-		)
-			return;
 		setSubmitting(true);
 		try {
 			Object.entries(flushTimers.current).forEach(([, id]) =>
@@ -794,7 +842,7 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 						</button>
 					)}
 					<button
-						onClick={submit}
+						onClick={askSubmit}
 						disabled={submitting}
 						className="bg-accent hover:bg-accent-dark text-white px-4 py-1.5 rounded text-sm font-medium disabled:opacity-40"
 					>
@@ -1006,6 +1054,25 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 						</div>
 					</details>
 				</main>
+			)}
+			{confirmStage !== 0 && (
+				<SubmitExamDialog
+					stage={confirmStage}
+					answered={answered}
+					total={total}
+					unanswered={unansweredRefs()}
+					marked={refsOf((qq) => marked.has(qq.id))}
+					submitting={submitting}
+					onJump={(i) => {
+						setConfirmStage(0);
+						setActiveIdx(i);
+					}}
+					onAdvance={() => setConfirmStage(2)}
+					onBack={() => setConfirmStage(1)}
+					onConfirm={() => void submit()}
+					onCancel={() => setConfirmStage(0)}
+					gamepad={padConnected}
+				/>
 			)}
 			<GamepadFab hints={EXAM_HINTS} />
 		</div>

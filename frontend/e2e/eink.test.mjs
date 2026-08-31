@@ -102,6 +102,38 @@ const ROUTES = [
     // 會恆真,那兩個字在按鈕上本來就有。
     expectAfter: ['凝血因子的鑑別診斷'],
   },
+  {
+    path: '/wrong',
+    name: '錯題回顧 → 展開全部選項(共用的選項區從來沒有被掃過)',
+    // `AnswerOptions` 預設是收合的,成績頁那條路由也是 —— 所以「正解=整列反白 /
+    // 選錯=粗框+刪除線 / 分布長條改畫成貼底黑槓」這一整組 e-ink 語意,在這條加進來
+    // 之前**一次都沒有被掃描到**。掃在這一頁而不是成績頁:那是同一個元件,掃一次
+    // 就夠,而這一頁的預設篩選比較不會變。
+    async interact(page) {
+      await page.getByRole('button', { name: '展開全部選項' }).click();
+      await page.waitForTimeout(600);
+    },
+    // fixture(review_wrong.json)裡的選項全文 —— 用「正解」兩個字當判準會恆真,
+    // 收合狀態下按鈕上本來就有字。
+    expectAfter: ['✓ 正解', '你選的'],
+  },
+  {
+    path: '/exam/e2e-1',
+    name: '作答中 → 交卷確認(整個對話框從來沒有被掃過)',
+    // 同上一條:portal 裡的對話框,載入路由不會讓它自己出現。而它是這一頁上
+    // 顏色最重的一塊 —— 未答題號、標記題號(amber)、警告圖示,三種語意在
+    // 1-bit 下會塌成同一種,所以它需要被掃到。
+    //
+    // fixture 的 running_since 是 null(暫停中),主畫面換成暫停面板,但計時列
+    // 上的交卷鈕照樣在 —— 所以這條不必注入「現在」,而暫停中交卷本來就該可以。
+    async interact(page) {
+      await page.locator('header button', { hasText: '交卷' }).first().click();
+      await page.waitForSelector('[role="dialog"]', { timeout: 10_000 });
+      await page.waitForTimeout(500);
+    },
+    // 兩個字串都只存在於對話框裡(頁面上原本沒有),所以不會恆真。
+    expectAfter: ['仍要交卷', '回去作答'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是
