@@ -1,0 +1,24 @@
+[
+	{
+		"id": "notif-e2e-1",
+		"recipient": "dev@example.com",
+		"kind": "mention",
+		"question_id": "113-050",
+		"challenge_id": null,
+		"actor_email": "member1@example.com",
+		"preview": "這一題的詳解我補了一段機轉,你看看對不對",
+		"read_at": null,
+		"created_at": 1780000000000
+	},
+	{
+		"id": "notif-e2e-2",
+		"recipient": "dev@example.com",
+		"kind": "reply",
+		"question_id": "113-049",
+		"challenge_id": null,
+		"actor_email": "member2@example.com",
+		"preview": "同意,不過 DAT 那段我有不同看法",
+		"read_at": null,
+		"created_at": 1779999000000
+	}
+]
