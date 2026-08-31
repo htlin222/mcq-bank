@@ -280,6 +280,7 @@ export function ExamResult() {
                     <Link
                       key={s.question_id}
                       to={`/q/${s.question_id}`}
+                      state={{ fromExam: sid }}
                       className="hover:text-accent"
                     >
                       第 {s.number} 題 {fmtMs(s.ms)}
@@ -343,6 +344,7 @@ export function ExamResult() {
               <div className="relative group">
               <Link
                 to={`/q/${a.question_id}`}
+                state={{ fromExam: sid }}
                 className="flex gap-3 items-start bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 hover:border-accent hover:shadow-paper transition"
               >
                 <span

@@ -17,6 +17,7 @@ import {
 	Trash2,
 	LinkIcon,
 	Search as SearchIcon,
+	ClipboardCheck,
 	Eye,
 	ExternalLink,
 	GripVertical,
@@ -758,6 +759,10 @@ export function Question() {
 	// which is correct: there's no search to go back to.
 	const fromSearch = (location.state as { fromSearch?: string } | null)
 		?.fromSearch;
+	// 同上,但來源是全真作答的成績頁:檢討時點進某一題之後,得走得回去。
+	// 成績頁那張清單上的「在新分頁開啟」不帶 state —— 那是真正的整頁導覽,
+	// history state 過不去,而且原本那個分頁還開著成績頁,本來就回得去。
+	const fromExam = (location.state as { fromExam?: string } | null)?.fromExam;
 
 	// Prev/next in same year. 走 yearListCache,所以在同一年度內換題時清單是現成
 	// 的 —— 上一題/下一題按鈕跟題目同一幀出現,不再慢半拍。
@@ -1512,6 +1517,15 @@ export function Question() {
 					}
 				>
 					<div className="flex items-center gap-3 flex-wrap">
+						{fromExam && (
+							<Link
+								to={`/exam/${fromExam}/result`}
+								className="inline-flex items-center gap-1 text-ink-500 dark:text-ink-400 hover:text-accent"
+							>
+								<ChevronLeft size={16} />
+								<ClipboardCheck size={13} /> 全真結果
+							</Link>
+						)}
 						{fromSearch && (
 							<Link
 								to={`/search${fromSearch}`}
