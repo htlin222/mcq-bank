@@ -675,6 +675,64 @@ keep these arrays in the same order the placeholders appear」),**而註解沒�
   的**),而且那支真實掃描帶兩個對照組 —— 「真的掃到 20 個以上的檔案」與「真的有
   檔案用到這些欄位」,否則 cwd 一變就退化成空掃的綠燈。
 
+### 聊天撤回: 難的不是刪那一列,是找出內容還有幾份副本
+
+`worker/chat-room.ts` 的 `handleRecall` + `frontend/src/chat/recall.ts`。
+只能撤回自己的訊息(伺服器認 `who.email === row.email`),**沒有時間窗** ——
+加一個窗只是多一種「按了沒反應」,而這是自己的訊息。
+
+**是墓碑,不是刪列。** `id` 被 `reply_to`、`reactions` 與 `history` 的
+`WHERE id < ?` 分頁一起用著,整列刪掉會讓引用它的回覆指向一個不存在的東西
+(跳轉鈕就變成按了沒反應)。留一列 `deleted_at` 非 null 的空殼。
+
+⚠️ **但 `text` 一定要真的抹掉,不能只掛旗標。** 只掛旗標的話那不是撤回,是
+「藏起來的訊息」:任何一條忘了看旗標的查詢(`init`、`history`、未來新增的匯出)
+都會把它送回瀏覽器。
+
+⚠️ **抹掉自己還不夠 —— 同一段文字有三份副本,漏掉任何一份的症狀都一樣:
+「我按了撤回,字還在」。**
+
+| 副本                                     | 在哪                        | 誰負責清                       |
+| ---------------------------------------- | --------------------------- | ------------------------------ |
+| 訊息本身 `text`                          | DO 的 SQLite                | `handleRecall`                 |
+| **每一則引用它的回覆的 `reply_snippet`** | DO 的 SQLite + client state | `handleRecall` / `applyRecall` |
+| **`notifications.preview`**              | D1                          | `dropMentionNotifications`     |
+
+第二份最容易漏,而且**只有在有人引用過那則訊息時才看得到** —— 自己測多半不會
+發現。回覆快照是刻意去正規化的(被引用的訊息可能早就被 trim 掉了),代價就是
+同一段文字在畫面上可能有好幾份。
+
+第三份是跨儲存的:`notifications` 沒有 `message_id`,但 `notifyOffline` 是拿
+**訊息本身的 `created_at`** 當那批列的 `created_at`(同一個 `now` 同時寫兩邊),
+所以 `(actor_email, created_at)` 就是精確對應。同「答題狀態分析」那節靠 timestamp
+接 `confidence_events` 的作法 —— 哪天把兩邊的時間戳拆開寫,這裡會**靜默**變成
+刪不到而不是報錯。
+
+- **`reply_snippet` 抹成 `null` 而不是空字串。** `reply_to` 非 null 而快照是 null,
+  這個組合唯一的來源就是「被引用的那則撤回了」—— `MessageItem` 靠它畫出
+  「訊息已撤回」,不必再多一個欄位。`handleSend` 引用一則已撤回的訊息時也走同一
+  條路(指標留著、快照給 null)。
+- **表情跟著刪,而且 `handleReact` 要擋墓碑。** 少了後面那道閘,「撤回的同時對方
+  剛好按了個讚」會讓那個讚活下來,掛在一塊沒有內容的泡泡上。
+- **兩段確認。** 撤回鈕跟「回覆」只差一顆按鈕的距離,而它不可逆。確認狀態記在
+  `Chat.tsx`(跟表情面板同一個地方),這樣「點訊息區就收起來」那條路徑一次收掉
+  兩者 —— 各自記一份的話一定會有一個關不掉。
+- **`applyRecall` 是純函式**,因為它回答的問題是「內容還有幾份」而不是「怎麼改
+  state」。測試裡有一條直接 `JSON.stringify(out).includes(SECRET)`,那才是這個
+  功能真正的驗收條件。
+- **收不回已經送到別人眼前的那一眼**(toast、通知推播)。還飄在畫面上的 toast 會
+  跟著收掉(key 就是訊息 id),但讀過就是讀過 —— 所有 IM 都一樣,不必假裝。
+
+⚠️ **`ALTER TABLE ... ADD COLUMN` 沒有 `IF NOT EXISTS`。** DO 的 constructor 每次
+喚醒都會跑,所以 `deleted_at` 那一行要包 try/catch —— 同 `client_id` 已經踩過的坑。
+
+驗證分兩層:`src/chat/recall.test.ts`(副本清乾淨了沒),以及
+`e2e/chat-recall.test.mjs` —— **repo 裡第一支聊天測試**,用 Playwright 的
+`routeWebSocket` 整條攔下來假扮 DO(這一頁的資料只從那條 socket 來,fixture
+伺服器給不了)。⚠️ 那支的每個 `getByRole` 都要 `exact: true`:`name` 預設是**子字串**
+比對,而回覆的引用區是一顆 `<button>`,它的可及名稱含著被引用訊息的全文 ——
+訊息裡剛好提到「撤回」兩個字時,「別人的訊息上沒有撤回鈕」會驗成 1 !== 0。
+
 ### 檢討介面只有一套: 成績頁與錯題回顧共用同兩個元件
 
 回報是「錯題回顧也要像全真對答案一樣」——展開選項、hover 開新分頁、彈出詳解。
