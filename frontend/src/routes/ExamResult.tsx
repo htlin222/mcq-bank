@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ExternalLink, Flag } from 'lucide-react';
 import { api } from '../lib/api';
@@ -6,6 +6,11 @@ import { BookmarkBadge } from '../components/BookmarkBadge';
 import { choicePct, type StatsPayload } from '../lib/choiceStats';
 import { describeFilters } from '../lib/customTestLabel';
 import { createGate } from '../lib/requestQueue';
+import {
+  readExamResultView,
+  writeExamResultView,
+} from '../lib/examResultView';
+import { markProgrammaticScroll } from '../lib/autoHideChrome';
 import { ExportButton } from '../components/ExportDialog';
 
 type Result = {
@@ -64,10 +69,15 @@ const statsGate = createGate(6);
 export function ExamResult() {
   const { sid } = useParams<{ sid: string }>();
   const [data, setData] = useState<Result | null>(null);
-  const [filter, setFilter] = useState<'all' | 'wrong' | 'right' | 'flagged'>('wrong');
+  // 「我剛才看到哪裡」。點進某一題再走回來時要落在同一個畫面上,所以篩選、
+  // 展開全部、捲動位置是**一組**的 —— 理由寫在 lib/examResultView.ts。
+  const [saved] = useState(() => readExamResultView(sid));
+  const [filter, setFilter] = useState<'all' | 'wrong' | 'right' | 'flagged'>(
+    saved.filter,
+  );
   // 全部展開/收合。切換之後每一題仍然可以單獨開關 —— 這顆只是把所有卡片推到
   // 同一個狀態,不是把個別的開關鎖住。
-  const [expandAll, setExpandAll] = useState(false);
+  const [expandAll, setExpandAll] = useState(saved.expandAll);
   const [pacing, setPacing] = useState<Pacing | null>(null);
   const [applying, setApplying] = useState(false);
   const [applyMsg, setApplyMsg] = useState<string | null>(null);
@@ -79,6 +89,51 @@ export function ExamResult() {
       /* pacing is best-effort — never block the result page */
     });
   }, [sid]);
+
+  // ⚠️ **要存的是捲動途中記下來的位置,不能在卸載時才讀 `window.scrollY`。**
+  // React 的清理函式跑在 DOM 變動**之後**:這一頁的節點已經拔掉了,文件高度
+  // 塌成一屏,瀏覽器順手把 scrollY 夾到 0 —— 於是每次存進去的都是 0,而畫面上
+  // 的症狀是「還原功能好像沒做」。實測值:離開前 550,卸載時讀到 0。
+  //
+  // 被動監聽器只寫一個 ref,不碰 sessionStorage(同步寫入,每幀一次是拿捲動的
+  // 順暢度去換一個沒有人在看的中間狀態)。真正的寫入只發生在卸載與 pagehide。
+  const yRef = useRef(0);
+  useEffect(() => {
+    const onScroll = () => {
+      yRef.current = window.scrollY;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // `data` 進 deps 是承重的:資料還沒到的時候整頁只有「載入中…」,那時存下去
+  // 等於把使用者上次的位置清掉。
+  useEffect(() => {
+    if (!sid || !data) return;
+    const save = () =>
+      writeExamResultView(sid, { filter, expandAll, y: yRef.current });
+    window.addEventListener('pagehide', save);
+    return () => {
+      window.removeEventListener('pagehide', save);
+      save();
+    };
+  }, [sid, data, filter, expandAll]);
+
+  // 還原捲動位置。**要等清單真的畫出來**(高度夠了)才捲得到那個位置,所以掛在
+  // 資料進來之後的 layout effect —— 早一步的話 scrollTo 會被夾回 0,而症狀是
+  // 「有時候會還原、有時候不會」。只做一次:之後 data 因為「登記進複習進度」
+  // 就地改寫時再捲一次,等於把使用者拉回去。
+  const restored = useRef(false);
+  useLayoutEffect(() => {
+    if (restored.current || !data || saved.y <= 0) return;
+    restored.current = true;
+    // 還原完就地補上 —— 使用者可能一動都不動就離開,那時 ref 還是 0,
+    // 存回去會把剛剛還原的位置清掉。
+    yRef.current = saved.y;
+    if (Math.abs(window.scrollY - saved.y) < 1) return;
+    markProgrammaticScroll();
+    window.scrollTo(0, saved.y);
+  }, [data, saved.y]);
 
   // 「登記進複習進度」—— 模擬考只寫 exam_answers / attempts,從不碰
   // review_progress,而 /q/:id 的「我的作答」讀的是後者。所以考完之後打開題目,

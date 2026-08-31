@@ -15,6 +15,11 @@
 //   3. 題目 payload 與同年度清單都由 `ctx.route` 注入 —— fixture 只有 113-050
 //      有真的題目,而成績頁 fixture 的題號是 113-001~003。
 //
+// 同一段旅程的另一半:**走回去要落在原本的畫面上**(捲動位置 + 篩選)。
+// 只還原 y 是不夠的 —— 清單長度隨篩選變,落在一份比較短的清單上的同一個 y
+// 看起來只是「隨便跳」。純函式(壞掉的 JSON、認不得的 filter、NaN 的 y)在
+// `frontend/src/lib/examResultView.test.ts`,這裡驗的是接線。
+//
 //   pnpm test:webkit
 
 import { test, before, after } from 'node:test';
@@ -87,9 +92,9 @@ after(async () => {
   if (browser) await browser.close();
 });
 
-async function newPage() {
+async function newPage({ height = 900 } = {}) {
   const ctx = await browser.newContext({
-    viewport: { width: 1280, height: 900 },
+    viewport: { width: 1280, height },
     serviceWorkers: 'block',
   });
   // ⚠️ 順序:Playwright **後註冊的先比對**,所以擋外連的 catch-all 要先掛。
@@ -215,6 +220,102 @@ test('直接深連結到題目時沒有「全真結果」', async (t) => {
       0,
       '沒有來源的深連結不該有「全真結果」—— 那條連結會指向 /exam/undefined/result',
     );
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('走回成績頁時落在原本的捲動位置', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  // 矮視窗:預設的 900 高度下這份 fixture(兩張卡)根本捲不動,底下每一條
+  // 斷言都會恆真 —— 同「量折行用倍率不用固定餘裕」那類的假綠。
+  const { ctx, page, errors } = await newPage({ height: 400 });
+  try {
+    await page.goto(`${server.origin}${RESULT_PATH}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForSelector('button:has-text("展開選項")', {
+      timeout: 20_000,
+    });
+
+    // 對照組:頁面真的捲得動。
+    const scrollable = await page.evaluate(
+      () => document.documentElement.scrollHeight - window.innerHeight,
+    );
+    assert.ok(scrollable > 50, `頁面捲不動(可捲 ${scrollable}px),測不到還原`);
+
+    // 捲到第二張卡再點它 —— 已經在畫面內,所以 click() 不會再自己捲一次,
+    // 記下來的 y 才等於離開時的 y。
+    const row = page.locator(`a[href="/q/${Q2.question_id}"]`).first();
+    await row.scrollIntoViewIfNeeded();
+    const y0 = await page.evaluate(() => window.scrollY);
+    assert.ok(y0 > 0, '沒有捲動,還原什麼都不做也會通過');
+
+    await row.click();
+    await page.waitForSelector(`text=這是第 ${Q2.number} 題的題幹`, {
+      timeout: 20_000,
+    });
+    // 題目頁先歸零。不歸零的話「還原」與「本來就停在那裡」分不出來 ——
+    // SPA 導覽不會自己重設 window.scrollY。
+    await page.evaluate(() => window.scrollTo(0, 0));
+
+    await backLink(page).first().click();
+    await page.waitForFunction((p) => location.pathname === p, RESULT_PATH, {
+      timeout: 10_000,
+    });
+    await page.waitForFunction((y) => Math.abs(window.scrollY - y) <= 4, y0, {
+      timeout: 10_000,
+    });
+
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('走回成績頁時篩選也還原 —— 否則那個 y 是落在別份清單上', async (t) => {
+  if (skipReason) {
+    if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
+    return t.skip(skipReason);
+  }
+
+  const { ctx, page, errors } = await newPage();
+  const answered = EXAM.answers.find((a) => a.is_correct === 1);
+  const row = (id) => page.locator(`a[href="/q/${id}"]`).first();
+  try {
+    await page.goto(`${server.origin}${RESULT_PATH}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForSelector('button:has-text("展開選項")', {
+      timeout: 20_000,
+    });
+
+    // 對照組:預設篩選是「答錯/未答」,考對的那題本來就不在畫面上。
+    assert.equal(
+      await row(answered.question_id).count(),
+      0,
+      '預設篩選下不該看得到考對的題目 —— 底下的斷言會恆真',
+    );
+
+    await page.locator('button', { hasText: '全部 (' }).click();
+    await row(answered.question_id).waitFor({ timeout: 10_000 });
+    await row(answered.question_id).click();
+    await page.waitForSelector(`text=這是第 ${answered.number} 題的題幹`, {
+      timeout: 20_000,
+    });
+
+    await backLink(page).first().click();
+    await page.waitForFunction((p) => location.pathname === p, RESULT_PATH, {
+      timeout: 10_000,
+    });
+    // 篩選沒還原的話這一列不會存在(它只在「全部」底下)。
+    await row(answered.question_id).waitFor({ timeout: 10_000 });
+
     assert.deepEqual(errors, []);
   } finally {
     await ctx.close();

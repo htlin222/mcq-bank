@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import {
   CHROME_HIDDEN_CLASS,
   CHROME_REVEAL_ABOVE,
+  consumeProgrammaticScroll,
   nextChromeState,
   seedChrome,
 } from '../lib/autoHideChrome.ts';
@@ -48,6 +49,12 @@ export function useAutoHideChrome(enabled: boolean) {
 
     const measure = () => {
       raf = 0;
+      // 還原捲動位置那一下不是使用者捲的 —— 當成重新掛載,以新位置起算。
+      if (consumeProgrammaticScroll()) {
+        state = seedChrome(window.scrollY);
+        root.classList.remove(CHROME_HIDDEN_CLASS);
+        return;
+      }
       const next = nextChromeState(state, {
         y: window.scrollY,
         maxY: Math.max(0, document.documentElement.scrollHeight - window.innerHeight),

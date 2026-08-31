@@ -9,6 +9,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   INITIAL_CHROME,
+  consumeProgrammaticScroll,
+  markProgrammaticScroll,
   nextChromeState,
   seedChrome,
   CHROME_THRESHOLD,
@@ -135,4 +137,14 @@ test('delta 為 0 的事件(慣性停下)不改變任何東西', () => {
 
 test('初始狀態是顯示', () => {
   assert.equal(INITIAL_CHROME.hidden, false);
+});
+
+test('程式化捲動的標記讀完就清', () => {
+  // 一次標記只能吃掉一次量測。清不掉的話,還原捲動位置之後**每一次**真的捲動
+  // 都會被當成程式化的而重新起算 —— 症狀是兩條列從此再也不收合,而那跟
+  // 「這個功能沒做」長得一模一樣。
+  assert.equal(consumeProgrammaticScroll(), false);
+  markProgrammaticScroll();
+  assert.equal(consumeProgrammaticScroll(), true);
+  assert.equal(consumeProgrammaticScroll(), false);
 });
