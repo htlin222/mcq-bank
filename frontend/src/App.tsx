@@ -150,7 +150,20 @@ export default function App() {
 			    此時它跟一般元素沒有兩樣 —— iOS 橡皮筋回彈把整份文件往下平移,它
 			    就跟著走。底部導覽一直是 fixed 所以一直不會飄,差別只在這裡。
 			    脫離文件流之後空間由 <main> 的 pt-[var(--header-h)] 留(見 styles.css)。 */}
-			<header className="app-chrome app-chrome-top safe-top fixed top-0 left-0 right-0 z-30 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
+			{/* ⚠️ **z-40 是承重的,不是隨手挑的數字。**
+			    header 是 `fixed` chrome,而且 `.app-chrome` 帶 `will-change: transform`
+			    —— 那本身就建立一個 stacking context,所以**從 header 掉出來的下拉,
+			    z-index 再高也只是在 header 自己的層裡排序**,永遠贏不了外面的兄弟。
+			    (`NotificationBell` 的下拉寫著 z-50,而那一直是沒有作用的。)
+
+			    原本 header 跟頁面內容一樣是 z-30,於是同層由 DOM 順序決勝 —— `<main>`
+			    在後面,講義筆記面板(`LecturePanel` 的 `<aside>`,也是 z-30)就蓋掉了
+			    掉進閱讀區的那半截下拉(實測「線上人數」右側 x≥896 的部分點不到)。
+
+			    契約:頁面內容 ≤ z-30(閱讀器全螢幕時的 z-40 例外 —— 那時 header 不在
+			    畫面上)、chrome = z-40、對話框/吐司 = z-50。往這裡加東西之前先確認
+			    它屬於哪一層。守門在 frontend/e2e/header-popover-z.test.mjs。 */}
+			<header className="app-chrome app-chrome-top safe-top fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-ink-800/95 backdrop-blur border-b border-ink-200 dark:border-ink-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
 					{/* 品牌是這一列唯一可以讓步的東西,所以由它吸收壓縮(`min-w-0` +
 					    `truncate`),其餘兩塊 `shrink-0`。這條是結構性保證:不管品牌
