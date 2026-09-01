@@ -51,6 +51,14 @@ const PAGES = [
     rows: fixture('search.json').items,
   },
   {
+    name: '收藏',
+    path: '/bookmarks',
+    // 最後一筆刻意沒有作答紀錄(沒有 correct_answer),那一列畫不出選項也畫不出
+    // 判定 —— 所以表裡的 rows 只取有紀錄的那幾筆,而「沒紀錄也要畫得出來」由
+    // 底下那條獨立的測試守著。
+    rows: fixture('bookmarks.json').filter((r) => r.correct_answer),
+  },
+  {
     name: '弱點地圖',
     path: '/weakness-map',
     rows: WEAKNESS.clusters[0].question_ids.map((id) => WEAKNESS.questions[id]),
@@ -204,6 +212,57 @@ for (const P of PAGES) {
         text,
         new RegExp(`✗ 你選 ${R0.last_chosen} · 正解 ${R0.correct_answer}`),
         `列上沒有判定那一行:${text.slice(0, 160)}`,
+      );
+      assert.deepEqual(errors, []);
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  test(`${P.name}:題幹整段顯示,不截斷`, async (t) => {
+    if (guard(t)) return;
+    // 舊版是 `line-clamp-2`,而清單上那一列常常剛好停在關鍵的那一句之前 ——
+    // 使用者得逐題點進去才知道是不是要找的。搜尋頁更麻煩:顯示的是 FTS5 的
+    // snippet() 片段,連題目在問什麼都看不到。
+    //
+    // **窄螢幕才量得到。** 桌機寬度下這幾則題幹本來就只有一兩行,`line-clamp-2`
+    // 什麼都不會切,斷言就恆真了 —— 所以下面有一條前置斷言把「真的多行」變成
+    // 紅燈而不是假綠。
+    const { ctx, errors, row } = await open(t, P, { width: 390, height: 780 }, true);
+    try {
+      // ⚠️ **不能用 `scrollHeight > clientHeight` 判斷。** `line-clamp` 是
+      // `-webkit-box` + `overflow: hidden`,WebKit 對它回報的 scrollHeight 等於
+      // clientHeight —— 加回 `line-clamp-2` 重建驗證過,那樣寫是**假綠**。
+      // 改成把限制拿掉再量一次:長高了就代表原本被切掉了。
+      const box = await row
+        .locator('[data-stem]')
+        .first()
+        .evaluate((el) => {
+          const cs = getComputedStyle(el);
+          const before = el.clientHeight;
+          const saved = el.getAttribute('style') ?? '';
+          el.style.setProperty('-webkit-line-clamp', 'none', 'important');
+          el.style.setProperty('display', 'block', 'important');
+          el.style.setProperty('overflow', 'visible', 'important');
+          const after = el.clientHeight;
+          el.setAttribute('style', saved);
+          return {
+            before,
+            after,
+            lineH: parseFloat(cs.lineHeight) || 0,
+            text: el.textContent ?? '',
+          };
+        });
+
+      // 對照組:這段題幹在 390px 下真的不只兩行,否則「沒有被切」恆真。
+      const lines = box.lineH > 0 ? Math.round(box.after / box.lineH) : 0;
+      assert.ok(
+        lines >= 3,
+        `題幹在 390px 只有 ${lines} 行,量不到截斷與否(題幹:${box.text.slice(0, 30)}…)`,
+      );
+      assert.ok(
+        box.after <= box.before + 2,
+        `題幹被切掉了:拿掉限制之後要 ${box.after}px,實際只畫了 ${box.before}px`,
       );
       assert.deepEqual(errors, []);
     } finally {

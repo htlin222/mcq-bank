@@ -2,12 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, ChevronRight, RefreshCcw } from "lucide-react";
 import { api } from "../lib/api";
-import { AnswerOptions } from "../components/AnswerOptions";
-import { AnswerVerdict } from "../components/AnswerVerdict";
-import { BookmarkBadge } from "../components/BookmarkBadge";
 import { ExplanationPeek } from "../components/ExplanationPeek";
-import { QuestionRowActions } from "../components/QuestionRowActions";
-import { groupBadgeClass } from "../lib/groups";
+import { QuestionResultCard } from "../components/QuestionResultCard";
 import { type QuestionListRow, rowTitle } from "../lib/questionRow";
 
 // 弱點概念地圖 — clusters the user's wrong questions into semantic themes and
@@ -153,62 +149,14 @@ export function WeaknessMap() {
 												const title = rowTitle(r);
 												return (
 													<li key={qid}>
-														{/* `relative group` 是 QuestionRowActions 的前提
-														    (理由寫在那個檔)。**只包整列連結,不包
-														    AnswerOptions**。 */}
-														<div className="relative group">
-															<Link
-																to={`/q/${qid}`}
-																className="flex gap-3 items-start bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 pr-28 hover:border-accent hover:shadow-paper transition"
-															>
-																<span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0 w-16 text-right">
-																	{title}
-																</span>
-																<BookmarkBadge
-																	questionId={qid}
-																	className="mt-1"
-																/>
-																<span className="flex-1 min-w-0">
-																	<span className="block text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed">
-																		{r.stem}
-																	</span>
-																	{r.correct_answer && (
-																		<span className="block text-xs text-ink-500 dark:text-ink-400 mt-1">
-																			<AnswerVerdict
-																				chosen={r.last_chosen ?? null}
-																				correctAnswer={r.correct_answer}
-																				correct={r.last_correct === 1}
-																				seen={(r.times_seen ?? 0) > 0}
-																			/>
-																		</span>
-																	)}
-																</span>
-																{r.group && (
-																	<span
-																		className={
-																			"text-[11px] px-2 py-0.5 rounded shrink-0 self-center " +
-																			groupBadgeClass(r.group)
-																		}
-																	>
-																		{r.group}
-																	</span>
-																)}
-															</Link>
-															<QuestionRowActions
-																questionId={qid}
-																title={title}
-																onPeek={() => setPeek({ id: qid, title })}
-															/>
-														</div>
-														{r.correct_answer && (
-															<AnswerOptions
-																questionId={qid}
-																options={r.options ?? {}}
-																chosen={r.last_chosen ?? null}
-																correctAnswer={r.correct_answer}
-																expandAll={expandAll}
-															/>
-														)}
+														{/* 四頁共用同一張卡(見 components/QuestionResultCard)。 */}
+														<QuestionResultCard
+															row={r}
+															expandAll={expandAll}
+															onPeek={() =>
+																setPeek({ id: qid, title: rowTitle(r) })
+															}
+														/>
 													</li>
 												);
 											})}

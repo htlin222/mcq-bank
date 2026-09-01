@@ -2,13 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { X as XIcon } from "lucide-react";
 import { api } from "../lib/api";
-import { AnswerOptions } from "../components/AnswerOptions";
-import { AnswerVerdict } from "../components/AnswerVerdict";
+import { QuestionResultCard } from "../components/QuestionResultCard";
 import { type QuestionListRow, rowTitle } from "../lib/questionRow";
-import { BookmarkBadge } from "../components/BookmarkBadge";
 import { ExplanationPeek } from "../components/ExplanationPeek";
-import { QuestionRowActions } from "../components/QuestionRowActions";
-import { GROUPS, groupBadgeClass } from "../lib/groups";
+import { GROUPS } from "../lib/groups";
 import { ExportButton } from "../components/ExportDialog";
 import type { ExportScope } from "../lib/export-scope";
 import {
@@ -192,75 +189,23 @@ export function WrongQuestions() {
 				<ul className="space-y-2">
 					{rows.map((r) => (
 						<li key={r.id}>
-							{/* `relative group` 是 QuestionRowActions 的前提(理由寫在那個檔)。
-                  **只包整列連結,不包 AnswerOptions** —— 否則絕對定位的基準會
-                  變成「連同展開的選項」那一整塊,按鈕會飄在很下面。 */}
-							<div className="relative group">
-								<Link
-									to={`/q/${r.id}`}
-									// `pr-28` 是替右上角那兩顆浮起來的動作鈕留位子。成績頁不必留
-									// (那一列右側本來就空著),這裡的右邊卻放著 group badge 與
-									// 「答對/作答」次數 —— 不留位子的話,hover 時它們會被蓋掉,而
-									// 那是這份清單上唯二的數字。
-									className="flex gap-3 items-start bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 pr-28 hover:border-accent hover:shadow-paper transition"
-								>
-									<span className="font-mono text-sm text-ink-500 dark:text-ink-400 shrink-0 w-16 text-right">
-										{rowTitle(r)}
-									</span>
-									<BookmarkBadge questionId={r.id} className="mt-1" />
-									{/* 題幹 + 「我上次選了什麼」。**這一行原本沒有**,而少了它,
-                      「我當初錯在哪」得先展開選項才看得到 —— 成績頁那一列一眼
-                      就講完了,這裡卻要多按一下。同一份資訊、同一種說法,
-                      判準是 AnswerVerdict。 */}
-									<span className="flex-1 min-w-0">
-										<span className="block text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed">
-											{r.stem}
-										</span>
-										{r.correct_answer && (
-											<span className="block text-xs text-ink-500 dark:text-ink-400 mt-1">
-												<AnswerVerdict
-													chosen={r.last_chosen ?? null}
-													correctAnswer={r.correct_answer}
-													correct={false}
-													seen={(r.times_seen ?? 0) > 0}
-												/>
-											</span>
-										)}
-									</span>
-									{r.group && (
+							{/* 四頁共用同一張卡(見 components/QuestionResultCard)。 */}
+							<QuestionResultCard
+								row={r}
+								expandAll={expandAll}
+								onPeek={() => setPeek({ id: r.id, title: rowTitle(r) })}
+								aside={
+									r.times_seen !== undefined &&
+									r.times_correct !== undefined ? (
 										<span
-											className={
-												"text-[11px] px-2 py-0.5 rounded shrink-0 self-center " +
-												groupBadgeClass(r.group)
-											}
+											className="text-xs text-ink-500 dark:text-ink-400 shrink-0 self-center"
+											title="答對次數 / 作答次數"
 										>
-											{r.group}
+											{r.times_correct}/{r.times_seen}
 										</span>
-									)}
-									{r.times_seen !== undefined &&
-										r.times_correct !== undefined && (
-											<span className="text-xs text-ink-500 dark:text-ink-400 shrink-0 self-center">
-												{r.times_correct}/{r.times_seen}
-											</span>
-										)}
-								</Link>
-								<QuestionRowActions
-									questionId={r.id}
-									title={rowTitle(r)}
-									onPeek={() => setPeek({ id: r.id, title: rowTitle(r) })}
-								/>
-							</div>
-							{/* `correct_answer` 缺席時整塊不畫:少了正解,「✓ 正解」那一維就
-                  沒有東西可講,展開只剩五行沒有語意的選項 —— 那比收著更糟。 */}
-							{r.correct_answer && (
-								<AnswerOptions
-									questionId={r.id}
-									options={r.options ?? {}}
-									chosen={r.last_chosen ?? null}
-									correctAnswer={r.correct_answer}
-									expandAll={expandAll}
-								/>
-							)}
+									) : undefined
+								}
+							/>
 						</li>
 					))}
 				</ul>
