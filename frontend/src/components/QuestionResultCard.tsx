@@ -6,6 +6,7 @@ import { BookmarkBadge } from "./BookmarkBadge";
 import { QuestionRowActions } from "./QuestionRowActions";
 import { groupBadgeClass } from "../lib/groups";
 import { markTerms } from "../lib/markTerms";
+import { optionHits, stemHasHit } from "../lib/optionHits";
 import { type QuestionListRow, rowTitle } from "../lib/questionRow";
 
 /**
@@ -55,6 +56,16 @@ export function QuestionResultCard({
 }) {
 	const title = rowTitle(row);
 	const parts = highlight?.length ? markTerms(row.stem, highlight) : null;
+	// 搜尋索引涵蓋題幹 + **選項** + 標籤,所以一題完全可以因為某個選項裡的字被
+	// 找出來 —— 而題幹上一個標記都沒有,那一列看起來就莫名其妙。舊版顯示 FTS5 的
+	// snippet() 時這件事會自己解釋(它標的是命中的位置,不限於題幹);換成整段
+	// 題幹之後那個解釋沒了,所以在這裡補回來。
+	//
+	// **只在題幹沒有命中時才畫** —— 題幹已經標起來的話,再多一行只是重複說一次。
+	const inOptions =
+		highlight?.length && !stemHasHit(row.stem, highlight)
+			? optionHits(row.options, highlight)
+			: [];
 
 	return (
 		<>
@@ -90,6 +101,29 @@ export function QuestionResultCard({
 									)
 								: row.stem}
 						</span>
+						{inOptions.length > 0 && (
+							<span className="mt-1 block text-xs text-ink-500 dark:text-ink-400">
+								{inOptions.map((o) => (
+									<span key={o.key} className="block truncate">
+										符合選項 {o.key}:
+										{markTerms(o.text, highlight ?? []).map((p, i) =>
+											p.hit ? (
+												// eslint-disable-next-line react/no-array-index-key
+												<mark
+													key={i}
+													className="bg-amber-200 dark:bg-amber-700 text-inherit rounded px-0.5"
+												>
+													{p.text}
+												</mark>
+											) : (
+												// eslint-disable-next-line react/no-array-index-key
+												<span key={i}>{p.text}</span>
+											),
+										)}
+									</span>
+								))}
+							</span>
+						)}
 						{row.correct_answer && (
 							<span className="block text-xs text-ink-500 dark:text-ink-400 mt-1">
 								<AnswerVerdict

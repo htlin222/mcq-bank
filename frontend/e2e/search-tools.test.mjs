@@ -236,3 +236,51 @@ test('把結果出成一份測驗:連結帶的是這一批題號', async (t) => 
     await ctx.close();
   }
 });
+
+test('命中只發生在選項時,要在列上講出來', async (t) => {
+  if (guard(t)) return;
+  // 搜尋索引涵蓋題幹 + **選項** + 標籤(migrations/0005_search_fts.sql),所以
+  // 一題完全可以因為某個選項裡的字被找出來。舊版顯示 FTS5 的 snippet() 時這件事
+  // 會自己解釋(它標的是命中的位置);換成整段題幹之後,那一列會完全沒有標記,
+  // 看起來像「這題為什麼會被找出來」。
+  const { ctx, page, errors } = await open(t, '/search?q=Imatinib');
+  try {
+    const row = page.locator('ul li').first();
+    await row.waitFor({ timeout: 20_000 });
+
+    // 對照組:這個詞真的**不在**題幹裡,否則這條驗到的是另一件事。
+    assert.ok(
+      !HITS[0].stem.toLowerCase().includes('imatinib'),
+      'fixture 的題幹裡有這個詞,這條驗不到「只命中選項」的情況',
+    );
+
+    const text = await row.innerText();
+    assert.match(text, /符合選項 A[::]/, `列上沒有講命中在哪個選項:${text.slice(0, 200)}`);
+    // 而且那一段裡的字也要標起來。
+    const marks = await row.locator('mark').allInnerTexts();
+    assert.ok(
+      marks.some((m) => m.toLowerCase() === 'imatinib'),
+      `選項片段裡沒有標記:${JSON.stringify(marks)}`,
+    );
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('題幹已經命中時**不要**再多一行「符合選項」', async (t) => {
+  if (guard(t)) return;
+  // 重複說一次命中,而清單上每多一行都是成本。
+  const { ctx, page, errors } = await open(t, '/search?q=' + encodeURIComponent('白血病'));
+  try {
+    const row = page.locator('ul li').first();
+    await row.waitFor({ timeout: 20_000 });
+    const text = await row.innerText();
+    // 對照組:題幹真的標到了(否則「沒有那一行」在功能全壞時也成立)。
+    assert.ok((await row.locator('mark').count()) > 0, '題幹裡一個標記都沒有');
+    assert.ok(!/符合選項/.test(text), `題幹已命中卻還多了一行:${text.slice(0, 200)}`);
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
