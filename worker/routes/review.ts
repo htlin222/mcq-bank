@@ -5,6 +5,7 @@ import type {
 } from "@cloudflare/workers-types";
 import type { AppContext, Env, Explanation, Question } from "../types";
 import { optionsToRecord } from "../lib/db";
+import { QUESTION_ROW_COLUMNS, toQuestionRow } from "../lib/question-row";
 import {
 	nextFsrsCard,
 	previewFsrs,
@@ -280,7 +281,8 @@ reviewRoutes.get("/weakness-map", async (c) => {
 		.bind(email)
 		.all<{ question_id: string }>();
 	const ids = wrong.map((r) => r.question_id);
-	if (ids.length < 2) return c.json({ clusters: [], wrong_count: ids.length });
+	if (ids.length < 2)
+		return c.json({ clusters: [], wrong_count: ids.length, questions: {} });
 
 	// Fetch vectors for those questions. Best-effort — no index → empty map.
 	let items: VecItem[] = [];
@@ -302,6 +304,7 @@ reviewRoutes.get("/weakness-map", async (c) => {
 		return c.json({
 			clusters: await topicClusters(c.env.DB, ids),
 			wrong_count: ids.length,
+			questions: await weaknessQuestions(c.env.DB, email, ids),
 			basis: "topic",
 		});
 	}
@@ -339,12 +342,49 @@ reviewRoutes.get("/weakness-map", async (c) => {
 		return c.json({
 			clusters: await topicClusters(c.env.DB, ids),
 			wrong_count: ids.length,
+			questions: await weaknessQuestions(c.env.DB, email, ids),
 			basis: "topic",
 		});
 	}
 
-	return c.json({ clusters, wrong_count: ids.length, basis: "semantic" });
+	return c.json({
+		clusters,
+		wrong_count: ids.length,
+		questions: await weaknessQuestions(c.env.DB, email, ids),
+		basis: "semantic",
+	});
 });
+
+/**
+ * 這一頁那 60 題的列資料,鍵是題號。
+ *
+ * **整批跟著地圖一起回來,不做「展開哪一群才抓哪一群」。** 上面那支查詢
+ * `LIMIT 60`,所以這裡最多 60 列(約 36 KB)—— 跟錯題回顧一次送 200 列是同一個
+ * 量級。換成懶載入的話要多一支端點、多一份載入中/失敗的狀態,買到的只有幾十 KB。
+ *
+ * ⚠️ **`ids` 是上面那支查詢的結果,而那支已經釘死 `user_email = ?`。** 這裡的
+ * `LEFT JOIN review_progress` 仍然要再釘一次 —— 少了它,`last_chosen` 會是**別人**
+ * 的作答。同 CLAUDE.md「D1 的 bind 是位置對應的」那節:這種錯不會報錯,只會靜靜
+ * 顯示錯的答案。
+ */
+async function weaknessQuestions(db: Env["DB"], email: string, ids: string[]) {
+	if (ids.length === 0) return {};
+	const ph = ids.map(() => "?").join(",");
+	const { results } = await db
+		.prepare(
+			`SELECT ${QUESTION_ROW_COLUMNS},
+              rp.times_seen, rp.times_correct, rp.last_correct, rp.last_chosen
+         FROM questions q
+         LEFT JOIN review_progress rp
+                ON rp.question_id = q.id AND rp.user_email = ?
+        WHERE q.id IN (${ph})`,
+		)
+		.bind(email, ...ids)
+		.all<{ id: string; options_json: string; answer: string }>();
+	const out: Record<string, ReturnType<typeof toQuestionRow>> = {};
+	for (const r of results ?? []) out[r.id] = toQuestionRow(r);
+	return out;
+}
 
 /**
  * 確定性的保底分群:錯題 → question_tags → tag_topics → video_topics。
@@ -1073,12 +1113,9 @@ reviewRoutes.get("/wrong", async (c) => {
 		}
 	}
 
-	// 選項全文 / 正解 / 我上次選的都跟著清單一起回來 —— 展開一題不再多打一支
-	// 端點。同 `/api/exam/:sid` 的作法(見 ExamResult 的 AnswerDetail 註解):
-	// 200 列的選項是幾十 KB,而懶載入的代價是每展開一題就一趟 RTT。
-	// 分布(`/stats`)仍然懶載入,那個才是每題一趟的東西。
+	// 列的形狀與另外三個清單端點共用(見 lib/question-row.ts)。
 	const sql = `
-    SELECT q.id, q.year, q.number, q.stem, q."group", q.options_json, q.answer,
+    SELECT ${QUESTION_ROW_COLUMNS},
            rp.times_seen, rp.times_correct, rp.last_chosen
     FROM review_progress rp
     JOIN questions q ON q.id = rp.question_id
@@ -1090,12 +1127,5 @@ reviewRoutes.get("/wrong", async (c) => {
 	const { results } = await c.env.DB.prepare(sql)
 		.bind(...params)
 		.all<{ options_json: string; answer: string }>();
-	return c.json(
-		(results ?? []).map(({ options_json, answer, ...r }) => ({
-			...r,
-			options: optionsToRecord(options_json),
-			// 欄名跟成績頁對齊(`correct_answer`),兩邊才餵得進同一個元件。
-			correct_answer: answer,
-		})),
-	);
+	return c.json((results ?? []).map(toQuestionRow));
 });

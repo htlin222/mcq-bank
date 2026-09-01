@@ -11,15 +11,10 @@
 // cache is fine — the question page degrades to same-year neighbours and the
 // search page degrades to re-running the query.
 
-export type Hit = {
-	id: string;
-	year: number;
-	number: number;
-	stem: string;
-	group: string | null;
+import type { QuestionListRow } from "./questionRow";
+
+export type Hit = QuestionListRow & {
 	snippet: string;
-	times_seen?: number | null;
-	last_correct?: number | null;
 };
 
 type Entry = { key: string; hits: Hit[]; scrollY: number };

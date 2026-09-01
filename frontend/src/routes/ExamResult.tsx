@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Flag } from "lucide-react";
 import { api } from "../lib/api";
 import { AnswerOptions } from "../components/AnswerOptions";
+import { AnswerVerdict } from "../components/AnswerVerdict";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { QuestionRowActions } from "../components/QuestionRowActions";
 import { describeFilters } from "../lib/customTestLabel";
@@ -495,17 +496,11 @@ export function ExamResult() {
 											<span>{a.stem}</span>
 										</p>
 										<div className="text-xs text-ink-500 dark:text-ink-400 mt-1">
-											{unanswered ? (
-												<span>未作答 · 正解 {a.correct_answer}</span>
-											) : right ? (
-												<span className="text-emerald-700 dark:text-emerald-400">
-													✓ {a.chosen}
-												</span>
-											) : (
-												<span className="text-rose-700 dark:text-rose-400">
-													✗ 你選 {a.chosen} · 正解 {a.correct_answer}
-												</span>
-											)}
+											<AnswerVerdict
+												chosen={a.chosen}
+												correctAnswer={a.correct_answer}
+												correct={right}
+											/>
 											<span>
 												{" "}
 												· 用時{" "}
