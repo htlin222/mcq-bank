@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { optionHits, stemHasHit } from "./optionHits.ts";
+import { optionHits, termsMissingFromStem } from "./optionHits.ts";
 
 // 搜尋索引涵蓋題幹 + 選項 + 標籤,所以一題完全可以因為某個選項裡的字被找出來
 // —— 而題幹上一個標記都沒有。舊版靠 FTS5 的 snippet() 自己解釋這件事;換成
@@ -12,10 +12,19 @@ const OPTS = {
 	C: "慢性期仍建議每三個月做骨髓穿刺",
 };
 
-test("題幹有命中就是有命中(不分大小寫)", () => {
-	assert.equal(stemHasHit("Acute Myeloid Leukemia", ["myeloid"]), true);
-	assert.equal(stemHasHit("慢性骨髓性白血病", ["白血病"]), true);
-	assert.equal(stemHasHit("慢性骨髓性白血病", ["淋巴瘤"]), false);
+test("挑出「不在題幹裡」的那幾個詞(不分大小寫)", () => {
+	assert.deepEqual(termsMissingFromStem("Acute Myeloid Leukemia", ["myeloid"]), []);
+	assert.deepEqual(termsMissingFromStem("慢性骨髓性白血病", ["白血病"]), []);
+	assert.deepEqual(termsMissingFromStem("慢性骨髓性白血病", ["淋巴瘤"]), ["淋巴瘤"]);
+});
+
+test("**逐個詞判斷,不是「題幹有沒有命中」** —— 這正是回報的那個情況", () => {
+	// 「搜 lupus erythematosus disease,結果只有 disease 也會找到」:題幹確實有
+	// disease(舊判準因此認為「不用解釋」),而另外兩個字落在選項裡。
+	assert.deepEqual(
+		termsMissingFromStem("lupus is a disease", ["lupus", "erythematosus", "disease"]),
+		["erythematosus"],
+	);
 });
 
 test("找得出命中在哪幾個選項", () => {

@@ -19,8 +19,21 @@ test("FTS5 的運算子要丟掉 —— 標起來會讓人以為那是命中", (
 	assert.deepEqual(queryTerms("AML or CML"), ["AML", "or", "CML"]);
 });
 
-test("引號與尾端的 * 要剝掉 —— 那是語法不是使用者要找的字", () => {
-	assert.deepEqual(queryTerms('"白血病" AML*'), ["白血病", "AML"]);
+test("尾端的 * 要剝掉 —— 那是語法不是使用者要找的字", () => {
+	assert.deepEqual(queryTerms("AML*"), ["AML"]);
+});
+
+test("**引號內是一個整體**", () => {
+	// 使用者打引號的用意正好是「這幾個字要連在一起」,拆開分別標等於把那個意思
+	// 丟掉。切法要跟 worker/lib/fts-query.ts 一致。
+	assert.deepEqual(queryTerms('"lupus erythematosus"'), ["lupus erythematosus"]);
+	assert.deepEqual(queryTerms('"lupus erythematosus" nephritis'), [
+		"lupus erythematosus",
+		"nephritis",
+	]);
+	// 全形與 CJK 引號都認。
+	assert.deepEqual(queryTerms("\u300c慢性骨髓\u300d"), ["慢性骨髓"]);
+	assert.deepEqual(queryTerms("\u201clupus erythematosus\u201d"), ["lupus erythematosus"]);
 });
 
 test("標記不改變原文", () => {

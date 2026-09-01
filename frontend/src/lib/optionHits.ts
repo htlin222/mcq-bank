@@ -8,6 +8,12 @@
  * 換成「整段題幹 + client 端標記」之後那個解釋沒了,畫面上只剩一列看起來莫名其妙
  * 的結果。這支就是把它補回來。
  *
+ * ⚠️ **判準是「逐個詞」,不是「整段題幹有沒有命中」。** 這一版改過:回報是
+ * 「搜 `lupus erythematosus disease`,結果只有 disease 也會找到」—— 那一列的題幹
+ * 確實有 `disease`(所以舊判準認為「題幹命中了,不用解釋」),而 `lupus` 與
+ * `erythematosus` 落在**選項**裡。使用者看到的就是一列只有 disease 被標起來、
+ * 卻不知道另外兩個字在哪的結果。空白是 AND 沒錯,但那個 AND 是**整列**的。
+ *
  * 選項全文本來就跟著清單一起送過來(展開選項用的),所以這裡不打任何請求。
  */
 
@@ -18,16 +24,20 @@ function contains(haystack: string, needle: string): boolean {
 	return haystack.toLowerCase().includes(needle.toLowerCase());
 }
 
-/** 題幹裡有沒有命中任何一個詞。 */
-export function stemHasHit(stem: string, terms: string[]): boolean {
-	return terms.some((t) => t.length > 0 && contains(stem, t));
+/**
+ * 哪幾個詞**不在題幹裡**。
+ *
+ * 這幾個就是需要解釋的 —— 它們命中在使用者看不見的地方(選項 / 標籤)。
+ */
+export function termsMissingFromStem(stem: string, terms: string[]): string[] {
+	return terms.filter((t) => t.length > 0 && !contains(stem, t));
 }
 
 /**
  * 哪些選項命中了。
  *
- * **只在題幹沒有命中時才需要問這件事** —— 題幹已經標起來的話,再多一行
- * 「符合選項 C」只是重複說一次命中,而清單上每多一行都是成本。判斷留給呼叫端。
+ * 呼叫端只該把 `termsMissingFromStem()` 的結果傳進來 —— 題幹上已經標起來的詞
+ * 再講一次只是重複,而清單上每多一行都是成本。
  */
 export function optionHits(
 	options: Record<string, string> | undefined,

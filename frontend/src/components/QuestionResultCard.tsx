@@ -6,7 +6,7 @@ import { BookmarkBadge } from "./BookmarkBadge";
 import { QuestionRowActions } from "./QuestionRowActions";
 import { groupBadgeClass } from "../lib/groups";
 import { markTerms } from "../lib/markTerms";
-import { optionHits, stemHasHit } from "../lib/optionHits";
+import { optionHits, termsMissingFromStem } from "../lib/optionHits";
 import { type QuestionListRow, rowTitle } from "../lib/questionRow";
 
 /**
@@ -61,11 +61,14 @@ export function QuestionResultCard({
 	// snippet() 時這件事會自己解釋(它標的是命中的位置,不限於題幹);換成整段
 	// 題幹之後那個解釋沒了,所以在這裡補回來。
 	//
-	// **只在題幹沒有命中時才畫** —— 題幹已經標起來的話,再多一行只是重複說一次。
-	const inOptions =
-		highlight?.length && !stemHasHit(row.stem, highlight)
-			? optionHits(row.options, highlight)
-			: [];
+	// ⚠️ **逐個詞判斷,不是「題幹有沒有命中」。** 回報是「搜
+	// `lupus erythematosus disease`,結果只有 disease 也會找到」—— 那一列的題幹
+	// 確實有 disease(所以舊判準認為不用解釋),而另外兩個字落在選項裡。
+	// 空白是 AND 沒錯,但那個 AND 是**整列**的。
+	const missing = highlight?.length
+		? termsMissingFromStem(row.stem, highlight)
+		: [];
+	const inOptions = missing.length > 0 ? optionHits(row.options, missing) : [];
 
 	return (
 		<>
@@ -106,7 +109,7 @@ export function QuestionResultCard({
 								{inOptions.map((o) => (
 									<span key={o.key} className="block truncate">
 										符合選項 {o.key}:
-										{markTerms(o.text, highlight ?? []).map((p, i) =>
+										{markTerms(o.text, missing).map((p, i) =>
 											p.hit ? (
 												// eslint-disable-next-line react/no-array-index-key
 												<mark
