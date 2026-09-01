@@ -44,9 +44,42 @@ test("整串只有逗號與空白時回空字串 —— 呼叫端要靠它跳過
 	assert.equal(ftsQuery('"""'), "");
 });
 
-test("落單的引號換成空白,不會把我們自己的引號配對打斷", () => {
+test("引號 = 片語(相鄰且同序)", () => {
+	// ⚠️ 這條是「只有 disease 也找得到」那個回報的解法。空白是 AND 沒錯,但那個
+	// AND 是**整列**的:`lupus erythematosus disease` 會命中一列題幹寫著
+	// 「lupus is a disease」、而 erythematosus 只出現在某個**選項**裡的題目
+	// (索引涵蓋 stem + options + tags,實測驗證過)。引號是唯一能表達
+	// 「這幾個字要連在一起」的方式。
+	assert.equal(
+		ftsQuery('"lupus erythematosus"'),
+		'"lupus erythematosus"*',
+	);
+	// 片語可以跟一般的詞混用,彼此仍然是 AND。
+	assert.equal(
+		ftsQuery('"lupus erythematosus" nephritis'),
+		'"lupus erythematosus"* nephritis*',
+	);
+	// 也可以跟逗號的 OR 混用。
+	assert.equal(
+		ftsQuery('"lupus erythematosus", "rheumatoid arthritis"'),
+		'("lupus erythematosus"*) OR ("rheumatoid arthritis"*)',
+	);
+});
+
+test("**全形與 CJK 引號都認**", () => {
+	// 同逗號那條:中文輸入法預設打出來的不是半形。
+	assert.equal(ftsQuery("\u201clupus erythematosus\u201d"), '"lupus erythematosus"*');
+	assert.equal(ftsQuery("\u300c慢性骨髓\u300d"), '"慢性骨髓"*');
+});
+
+test("沒有配對的引號不會把查詢弄壞", () => {
+	// 只打了半邊 —— 常見的手滑。整串查詢不能因此變成語法錯誤。
 	assert.equal(ftsQuery('AML"'), "AML*");
+	assert.equal(ftsQuery('"AML'), "AML*");
 	assert.equal(ftsQuery('"白血病"'), '"白血病"*');
+	assert.equal(ftsQuery('""'), "");
+	// 空片語不產生空的 `""*`(那是語法錯誤)。
+	assert.equal(ftsQuery('"" AML'), "AML*");
 });
 
 test("**不做 toLowerCase()**", () => {

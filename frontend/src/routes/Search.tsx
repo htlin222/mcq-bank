@@ -260,6 +260,15 @@ export function Search() {
 				)}
 			</div>
 
+			{/* 語法提示。**不放進 placeholder** —— 那一行打了第一個字就消失,而這三種
+			    寫法正是打字打到一半才會想起來的東西。也不做成說明浮層:一行字的成本
+			    比一顆要點開的按鈕低。 */}
+			<p className="mb-2 text-xs text-ink-400 dark:text-ink-500">
+				空白 = <b>都要有</b>(可能散在題幹與選項各處)· 逗號 = <b>其中之一</b>
+				(<span className="font-mono">AML, CML</span>)· 引號 ={" "}
+				<b>連在一起</b>(<span className="font-mono">"lupus erythematosus"</span>)
+			</p>
+
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
@@ -275,7 +284,7 @@ export function Search() {
 						onFocus={() => {
 							if (!q.trim()) openHistory();
 						}}
-						placeholder="關鍵字 (例:AML、Factor VIII、誘導化療)"
+						placeholder={'關鍵字。逗號 = 或,引號 = 整段連在一起'}
 						className="w-full px-4 py-2.5 border border-ink-200 dark:border-ink-700 rounded text-base focus:outline-none focus:border-accent bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-100"
 					/>
 					{showHistory && history.length > 0 && (

@@ -236,3 +236,94 @@ test('把結果出成一份測驗:連結帶的是這一批題號', async (t) => 
     await ctx.close();
   }
 });
+
+test('命中只發生在選項時,要在列上講出來', async (t) => {
+  if (guard(t)) return;
+  // 搜尋索引涵蓋題幹 + **選項** + 標籤(migrations/0005_search_fts.sql),所以
+  // 一題完全可以因為某個選項裡的字被找出來。舊版顯示 FTS5 的 snippet() 時這件事
+  // 會自己解釋(它標的是命中的位置);換成整段題幹之後,那一列會完全沒有標記,
+  // 看起來像「這題為什麼會被找出來」。
+  const { ctx, page, errors } = await open(t, '/search?q=Imatinib');
+  try {
+    const row = page.locator('ul li').first();
+    await row.waitFor({ timeout: 20_000 });
+
+    // 對照組:這個詞真的**不在**題幹裡,否則這條驗到的是另一件事。
+    assert.ok(
+      !HITS[0].stem.toLowerCase().includes('imatinib'),
+      'fixture 的題幹裡有這個詞,這條驗不到「只命中選項」的情況',
+    );
+
+    const text = await row.innerText();
+    assert.match(text, /符合選項 A[::]/, `列上沒有講命中在哪個選項:${text.slice(0, 200)}`);
+    // 而且那一段裡的字也要標起來。
+    const marks = await row.locator('mark').allInnerTexts();
+    assert.ok(
+      marks.some((m) => m.toLowerCase() === 'imatinib'),
+      `選項片段裡沒有標記:${JSON.stringify(marks)}`,
+    );
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('題幹裡的詞不再講一次 —— 那只是重複', async (t) => {
+  if (guard(t)) return;
+  // 清單上每多一行都是成本。
+  const { ctx, page, errors } = await open(t, '/search?q=' + encodeURIComponent('白血病'));
+  try {
+    const row = page.locator('ul li').first();
+    await row.waitFor({ timeout: 20_000 });
+    const text = await row.innerText();
+    // 對照組:題幹真的標到了(否則「沒有那一行」在功能全壞時也成立)。
+    assert.ok((await row.locator('mark').count()) > 0, '題幹裡一個標記都沒有');
+    assert.ok(!/符合選項/.test(text), `題幹已命中卻還多了一行:${text.slice(0, 200)}`);
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('題幹命中了一個詞、另一個只在選項裡:**那一行還是要出現**', async (t) => {
+  if (guard(t)) return;
+  // ⚠️ 這是回報「搜 lupus erythematosus disease,結果只有 disease 也會找到」的
+  // 核心情況:題幹確實有其中一個詞,所以舊判準(「題幹有沒有命中」)認為不用解釋,
+  // 而剩下那幾個字落在使用者看不見的選項裡 —— 畫面上就是一列只有一個詞被標起來、
+  // 卻不知道其他字在哪的結果。空白是 AND 沒錯,但那個 AND 是**整列**的。
+  const { ctx, page, errors } = await open(
+    t,
+    '/search?q=' + encodeURIComponent('白血病 Imatinib'),
+  );
+  try {
+    const row = page.locator('ul li').first();
+    await row.waitFor({ timeout: 20_000 });
+
+    // 對照組:一個在題幹裡、一個不在 —— 否則這條驗到的是別的情況。
+    const stem = HITS[0].stem;
+    assert.ok(stem.includes('白血病'), 'fixture 題幹裡沒有這個詞');
+    assert.ok(!stem.toLowerCase().includes('imatinib'), 'fixture 題幹裡有 Imatinib');
+
+    const text = await row.innerText();
+    assert.match(text, /符合選項 A[::]/, `沒有解釋 Imatinib 命中在哪:${text.slice(0, 220)}`);
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('引號 = 片語:原樣送到伺服器(展開只在那一側做)', async (t) => {
+  if (guard(t)) return;
+  const { ctx, page, errors, searches } = await open(t);
+  try {
+    await page
+      .locator('input[placeholder^="關鍵字"]')
+      .fill('"lupus erythematosus"');
+    await page.getByRole('button', { name: '搜尋', exact: true }).click();
+    await page.locator('ul li').first().waitFor({ timeout: 20_000 });
+    assert.deepEqual(searches, ['"lupus erythematosus"']);
+    assert.deepEqual(errors, []);
+  } finally {
+    await ctx.close();
+  }
+});

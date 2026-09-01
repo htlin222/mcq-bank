@@ -19,15 +19,26 @@ function escapeRe(s: string): string {
 /**
  * 把查詢字串切成「要標起來的字」。
  *
- * 逗號(半形/全形)與空白都是分隔符 —— 跟 `worker/lib/fts-query.ts` 的切法一致,
- * 所以畫面上標起來的,就是伺服器真的拿去比對的那些。**FTS5 的運算子要丟掉**:
- * `AML OR CML` 裡的 `OR` 不是使用者要找的字,標起來只會讓人以為那是命中。
+ * 逗號(半形/全形)與空白都是分隔符,**引號內是一個整體** —— 跟
+ * `worker/lib/fts-query.ts` 的切法一致,所以畫面上標起來的,就是伺服器真的拿去
+ * 比對的那些。少了引號那一段,`"lupus erythematosus"` 會被拆成兩個字分別標,
+ * 而使用者打引號的用意正好是「這兩個字要連在一起」。
+ *
+ * **FTS5 的運算子要丟掉**:`AML OR CML` 裡的 `OR` 不是使用者要找的字,標起來
+ * 只會讓人以為那是命中。
  */
 export function queryTerms(q: string): string[] {
-	return q
-		.split(/[\s,，]+/)
-		.map((t) => t.replace(/^["']+|["'*]+$/g, "").trim())
-		.filter((t) => t.length > 0 && t !== "AND" && t !== "OR" && t !== "NOT");
+	const src = q.replace(/[“”„«»「」『』]/g, '"');
+	const out: string[] = [];
+	const re = /"([^"]*)"|([^\s,，]+)/g;
+	let m = re.exec(src);
+	while (m !== null) {
+		const raw = m[1] !== undefined ? m[1] : m[2].replace(/["'*]/g, "");
+		const t = raw.trim();
+		if (t && t !== "AND" && t !== "OR" && t !== "NOT") out.push(t);
+		m = re.exec(src);
+	}
+	return out;
 }
 
 /**
