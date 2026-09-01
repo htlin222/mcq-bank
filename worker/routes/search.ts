@@ -1,4 +1,11 @@
 import { Hono } from "hono";
+import { TEXT_MODEL } from "../lib/ai-models";
+import { ftsQuery } from "../lib/fts-query";
+import {
+	MAX_QUERY_LEN,
+	buildExpandSystemPrompt,
+	parseExpandResponse,
+} from "../lib/search-expand";
 import { parseTagList } from "../lib/sql-params";
 import { QUESTION_ROW_COLUMNS, toQuestionRow } from "../lib/question-row";
 import type { AppContext } from "../types";
@@ -34,7 +41,11 @@ searchRoutes.get("/", async (c) => {
 	const limit = Math.min(parseInt(c.req.query("limit") || "30"), 100);
 	const offset = parseInt(c.req.query("offset") || "0");
 
-	if (!q && !year && !group && !tags) {
+	// `q` 可能整串都是逗號 / 引號 / 空白 —— 那樣 ftsQuery 會回空字串,而
+	// `MATCH ''` 是 FTS5 語法錯誤(路由把它變成 400「搜尋失敗」)。所以判斷
+	// 「這次要不要走全文檢索」看的是**轉換之後**的字串,不是使用者原本打了什麼。
+	const match = q ? ftsQuery(q) : "";
+	if (!match && !year && !group && !tags) {
 		return c.json({ items: [], total: 0, q });
 	}
 
@@ -43,7 +54,7 @@ searchRoutes.get("/", async (c) => {
 	// correct even when several filters combine.
 	const params: any[] = [];
 
-	const joinFts = q ? "JOIN questions_fts f ON f.rowid = q.rowid" : "";
+	const joinFts = match ? "JOIN questions_fts f ON f.rowid = q.rowid" : "";
 
 	// Per-user answered state via LEFT JOIN — placeholder for user_email sits in
 	// the JOIN clause, so its param comes before any WHERE/tag params.
@@ -68,10 +79,9 @@ searchRoutes.get("/", async (c) => {
 	}
 
 	const where: string[] = [];
-	if (q) {
-		// Escape FTS quotes; build a permissive prefix query for partial matches.
+	if (match) {
 		where.push("questions_fts MATCH ?");
-		params.push(ftsQuery(q));
+		params.push(match);
 	}
 	if (year) {
 		where.push("q.year = ?");
@@ -91,11 +101,11 @@ searchRoutes.get("/", async (c) => {
 	// bm25 relevance is only meaningful when an FTS query ran; without `q`, or
 	// when the user explicitly picks 年份排序, fall back to year/number order.
 	const orderSql =
-		sort === "relevance" && q
+		sort === "relevance" && match
 			? "ORDER BY bm25(questions_fts) ASC, q.year DESC, q.number ASC"
 			: "ORDER BY q.year DESC, q.number ASC";
 
-	const snippetSelect = q
+	const snippetSelect = match
 		? `, snippet(questions_fts, 1, '<<', '>>', '…', 16) AS snippet`
 		: `, '' AS snippet`;
 
@@ -141,6 +151,43 @@ searchRoutes.get("/", async (c) => {
 });
 
 /**
+ * POST /api/search/expand  { q }  →  { terms: string[] }
+ *
+ * 「AI 進階搜尋」:把一個關鍵字展開成一排寫法變體(縮寫 ↔ 全名、單複數、
+ * 常見同義詞、中文對照),前端再用逗號串起來丟回 `/api/search` —— 逗號在
+ * `lib/fts-query.ts` 就是 OR,所以這裡不需要碰查詢語法。
+ *
+ * **不寫入任何東西,也不記進 search_history** —— 這一步只是「幫你想關鍵字」,
+ * 使用者按下搜尋之前它什麼都還沒發生。
+ *
+ * 失敗時回 503 而不是空陣列:前端要分得出「模型掛了」與「模型覺得沒有別的寫法」,
+ * 後者是正常結果,前者該讓使用者知道可以自己手動加逗號。
+ */
+searchRoutes.post("/expand", async (c) => {
+	const body = await c.req
+		.json<{ q?: unknown }>()
+		.catch(() => ({}) as { q?: unknown });
+	const q = typeof body.q === "string" ? body.q.trim() : "";
+	if (!q) return c.json({ error: "empty query" }, 400);
+	// 這是要丟給模型的東西,不該變成貼一整段文章的入口。
+	if (q.length > MAX_QUERY_LEN) return c.json({ error: "query too long" }, 400);
+
+	try {
+		const out = await c.env.AI.run(TEXT_MODEL, {
+			messages: [
+				{ role: "system", content: buildExpandSystemPrompt() },
+				{ role: "user", content: q },
+			],
+		});
+		return c.json({ terms: parseExpandResponse(out, q) });
+	} catch (e) {
+		// free tier 是每天 10K neurons,額度用完就是這條路。
+		console.warn("search expand failed", String(e));
+		return c.json({ error: "expand failed" }, 503);
+	}
+});
+
+/**
  * GET /api/search/history?limit=10
  * Recent distinct queries for the caller, newest first.
  */
@@ -179,29 +226,6 @@ searchRoutes.delete("/history", async (c) => {
 	return c.json({ ok: true });
 });
 
-/**
- * Convert user input into an FTS5-safe query.
- *
- * - Replaces stray `"` characters with spaces so user tokens never break
- *   our own phrase quoting.
- * - Pure ASCII alnum tokens get a trailing `*` for prefix matching
- *   (e.g. `AML` → `AML*` matches `AML7`).
- * - Mixed / CJK tokens are wrapped in `"..."` so FTS5 treats them as
- *   literal phrases.
- * - FTS5 operators (AND / OR / NOT / parentheses / column filters) are
- *   intentionally NOT stripped — they're useful in the search box and
- *   only operate over our indexed columns (stem / options / tags),
- *   none of which leak private data.
- *
- * Safety: the returned string is always passed via `.bind(?)` so SQL
- * injection is not possible regardless of input.
- */
-export function ftsQuery(raw: string): string {
-	const cleaned = raw.replace(/"/g, " ").trim();
-	if (!cleaned) return "";
-	const parts = cleaned.split(/\s+/).map((t) => {
-		if (/^[A-Za-z0-9_]+$/.test(t)) return `${t}*`;
-		return `"${t}"`;
-	});
-	return parts.join(" ");
-}
+// `worker/routes/mcq.ts` 從這裡拿 —— 實作已搬到 lib(純函式才進得了
+// `node --test`),這一行只是不讓呼叫端跟著改。
+export { ftsQuery };

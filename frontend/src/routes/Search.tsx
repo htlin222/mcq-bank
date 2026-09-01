@@ -11,17 +11,17 @@ import {
 	X as XIcon,
 	FolderPlus,
 	Clock,
+	Sparkles,
 } from "lucide-react";
 import { api } from "../lib/api";
-import { AnswerOptions } from "../components/AnswerOptions";
-import { AnswerVerdict } from "../components/AnswerVerdict";
-import { BookmarkBadge } from "../components/BookmarkBadge";
 import { ExplanationPeek } from "../components/ExplanationPeek";
-import { QuestionRowActions } from "../components/QuestionRowActions";
+import { QuestionResultCard } from "../components/QuestionResultCard";
+import { SearchExpandDialog } from "../components/SearchExpandDialog";
+import { queryTerms } from "../lib/markTerms";
 import { rowTitle } from "../lib/questionRow";
 import { useBookmarkSet } from "../hooks/useBookmarkSet";
 import { ExportButton } from "../components/ExportDialog";
-import { GROUPS, groupBadgeClass } from "../lib/groups";
+import { GROUPS } from "../lib/groups";
 import {
 	type Hit,
 	setSearchCache,
@@ -67,6 +67,10 @@ export function Search() {
 	const [expandAll, setExpandAll] = useState(false);
 	// 「查看詳解」開起來的那一題。存 id + 稱呼而不是整列 —— 對話框只需要這兩個。
 	const [peek, setPeek] = useState<{ id: string; title: string } | null>(null);
+	const [expandOpen, setExpandOpen] = useState(false);
+	// 要在題幹裡標起來的字。**用送出當下那一份查詢**(`hits` 是那次查詢的結果),
+	// 不是輸入框現在的內容 —— 否則使用者一邊改字,舊結果上的標記就會跟著跳。
+	const [marks, setMarks] = useState<string[]>([]);
 
 	// Recent-searches dropdown
 	const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -107,6 +111,9 @@ export function Search() {
 				setSp(params, { replace: true });
 				const r = await api.get<{ items: Hit[] }>(`/api/search?${params}`);
 				setHits(r.items);
+				// 標記的依據**跟著這一次送出的查詢走**,不是輸入框當下的內容 ——
+				// 否則使用者一邊改字,舊結果上的標記就會跟著跳。
+				setMarks(queryTerms(params.get("q") ?? ""));
 				setSearchCache(`?${params}`, r.items);
 			} finally {
 				setSearching(false);
@@ -126,6 +133,9 @@ export function Search() {
 		const cached = getSearchCache();
 		if (cached && cached.key === cacheKey) {
 			setHits(cached.hits);
+			// 從題目頁走回來時也要標 —— 少了這行,回到清單標記會整批消失,
+			// 看起來像「重新整理就壞了」。
+			setMarks(queryTerms(initialQ));
 			return;
 		}
 		if (initialQ || sp.get("year") || sp.get("group") || sp.get("tags")) {
@@ -302,6 +312,18 @@ export function Search() {
 						</ul>
 					)}
 				</div>
+				{/* 在搜尋鈕左邊。**沒有關鍵字時停用** —— 沒有東西可以展開,而一顆按了
+				    不會有任何變化的按鈕比沒有這顆更糟(同成績頁「登記進複習進度」)。 */}
+				<button
+					type="button"
+					disabled={!q.trim()}
+					onClick={() => setExpandOpen(true)}
+					title="用 AI 想出這個詞的各種寫法(縮寫、全名、單複數、中英),一次全部搜"
+					className="inline-flex items-center gap-1.5 shrink-0 px-3 py-2.5 rounded border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-accent hover:text-accent transition disabled:opacity-40 disabled:hover:border-ink-200 disabled:hover:text-ink-600"
+				>
+					<Sparkles size={15} />
+					<span className="hidden sm:inline">AI 進階搜尋</span>
+				</button>
 				<button
 					type="submit"
 					disabled={searching}
@@ -406,6 +428,17 @@ export function Search() {
 							{hits.length} 筆結果
 						</p>
 						<div className="flex items-center gap-2">
+							{/* 「把這些出成一份測驗」——同錯題回顧那條入口。
+							    ⚠️ **帶的是題號清單,不是篩選條件。** 這一頁的條件是全文檢索,
+							    沒有辦法用 status/year/group/tag 表達出來(錯題回顧可以,所以它
+							    帶的是 query string)。伺服器那側 `ids` 與其他條件是 AND,
+							    於是「從這批結果裡只出我答錯的」在出卷頁勾一下就有。 */}
+							<Link
+								to={`/exam/new?ids=${hits.map((h) => h.id).join(",")}`}
+								className="text-xs text-accent hover:text-accent-dark whitespace-nowrap"
+							>
+								把這 {hits.length} 題出成測驗 →
+							</Link>
 							{/* 同成績頁與錯題回顧:一次把所有卡片推到同一個狀態,之後每一題
                   仍然可以單獨開關。 */}
 							<button
@@ -467,85 +500,37 @@ export function Search() {
 						</div>
 					</div>
 					<ul className="space-y-2">
-						{hits.map((h) => {
-							const seen = (h.times_seen ?? 0) > 0;
-							const correct = seen && h.last_correct === 1;
-							const title = rowTitle(h);
-							return (
-								<li key={h.id}>
-									{/* `relative group` 是 QuestionRowActions 的前提(理由寫在那個檔)。
-                      **只包整列連結,不包 AnswerOptions** —— 否則絕對定位的基準
-                      會變成「連同展開的選項」那一整塊,按鈕會飄在很下面。 */}
-									<div className="relative group">
-										<Link
-											to={`/q/${h.id}`}
-											state={{ fromSearch: cacheKey }}
-											// `pr-28` 替右上角那兩顆浮起來的動作鈕留位子。這一列的
-											// meta 是**靠左**排的,所以留的是右邊那塊空白 —— 不留的話
-											// 長題號 + group badge + 判定會鑽到按鈕底下。
-											className="block bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded p-3 pr-28 hover:border-accent hover:shadow-paper transition"
-										>
-											{/* `flex-wrap`:判定從一顆「答對」徽章換成「✗ 你選 B ·
-                          正解 A」之後這一列會變長,窄螢幕必須折得下去。 */}
-											<div className="flex items-center gap-2 text-xs mb-1.5 flex-wrap">
-												<span className="font-mono text-ink-500 dark:text-ink-400">
-													{title}
-												</span>
-												<BookmarkBadge questionId={h.id} />
-												{h.group && (
-													<span
-														className={
-															"px-1.5 py-0.5 rounded text-[10px] " +
-															groupBadgeClass(h.group)
-														}
-													>
-														{h.group}
-													</span>
-												)}
-												{/* 三頁同一種說法(見 components/AnswerVerdict)。舊版
-                            這裡只說「答對 / 答錯」,而檢討時真正要知道的是
-                            **選了哪一個** —— 那原本得先展開選項才看得到。 */}
-												{seen && h.correct_answer && (
-													<span className="text-ink-500 dark:text-ink-400">
-														<AnswerVerdict
-															chosen={h.last_chosen ?? null}
-															correctAnswer={h.correct_answer}
-															correct={correct}
-															seen
-														/>
-													</span>
-												)}
-											</div>
-											<div className="text-ink-800 dark:text-ink-200 text-sm leading-relaxed">
-												{h.snippet ? (
-													<Snippet text={h.snippet} />
-												) : (
-													<span className="line-clamp-2">{h.stem}</span>
-												)}
-											</div>
-										</Link>
-										<QuestionRowActions
-											questionId={h.id}
-											title={title}
-											onPeek={() => setPeek({ id: h.id, title })}
-										/>
-									</div>
-									{/* `correct_answer` 缺席時整塊不畫:少了正解,「✓ 正解」那一維
-                      就沒有東西可講,展開只剩五行沒有語意的選項。 */}
-									{h.correct_answer && (
-										<AnswerOptions
-											questionId={h.id}
-											options={h.options ?? {}}
-											chosen={h.last_chosen ?? null}
-											correctAnswer={h.correct_answer}
-											expandAll={expandAll}
-										/>
-									)}
-								</li>
-							);
-						})}
+						{hits.map((h) => (
+							<li key={h.id}>
+								{/* 四頁共用同一張卡(見 components/QuestionResultCard)。
+								    題幹**整段顯示**:舊版是 FTS5 的 snippet() 片段,連題目在問
+								    什麼都看不到 —— 命中的字改成在 client 標。 */}
+								<QuestionResultCard
+									row={h}
+									highlight={marks}
+									linkState={{ fromSearch: cacheKey }}
+									expandAll={expandAll}
+									onPeek={() => setPeek({ id: h.id, title: rowTitle(h) })}
+								/>
+							</li>
+						))}
 					</ul>
 				</>
+			)}
+
+			{expandOpen && (
+				<SearchExpandDialog
+					query={q.trim()}
+					onClose={() => setExpandOpen(false)}
+					onApply={(next) => {
+						setExpandOpen(false);
+						setQ(next);
+						// 直接搜,不要讓使用者再按一次 —— 他按那顆按鈕的意圖就是
+						// 「用這些字去找」。`buildParams` 讀的是 state,而 setQ 這一幀
+						// 還沒生效,所以用 override。
+						void runSearch(buildParams(next));
+					}}
+				/>
 			)}
 
 			{peek && (
@@ -556,26 +541,5 @@ export function Search() {
 				/>
 			)}
 		</div>
-	);
-}
-
-// Render FTS5 snippet (uses << >> as our markers — see worker/routes/search.ts)
-function Snippet({ text }: { text: string }) {
-	const parts = text.split(/(<<[^>]+>>)/g);
-	return (
-		<span className="line-clamp-3">
-			{parts.map((p, i) =>
-				p.startsWith("<<") && p.endsWith(">>") ? (
-					<mark
-						key={i}
-						className="bg-amber-200 dark:bg-amber-700 text-inherit rounded px-0.5"
-					>
-						{p.slice(2, -2)}
-					</mark>
-				) : (
-					<span key={i}>{p}</span>
-				),
-			)}
-		</span>
 	);
 }
