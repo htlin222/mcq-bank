@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { X as XIcon } from "lucide-react";
 import { api } from "../lib/api";
 import { AnswerOptions } from "../components/AnswerOptions";
+import { AnswerVerdict } from "../components/AnswerVerdict";
+import { type QuestionListRow, rowTitle } from "../lib/questionRow";
 import { BookmarkBadge } from "../components/BookmarkBadge";
 import { ExplanationPeek } from "../components/ExplanationPeek";
 import { QuestionRowActions } from "../components/QuestionRowActions";
@@ -15,25 +17,9 @@ import {
 	type WrongSort,
 } from "../lib/wrongSort";
 
-type Row = {
-	id: string;
-	year: number;
-	number: number;
-	stem: string;
-	group: string | null;
-	times_seen?: number;
+type Row = QuestionListRow & {
 	times_correct?: number;
-	/** 選項全文,字母 → 內容。跟清單一起回來,所以展開是即時的。 */
-	options?: Record<string, string>;
-	correct_answer?: string;
-	/** 複習進度記著的答案 —— 這份清單的定義就是「它上次答錯了」。 */
-	last_chosen?: string | null;
 };
-
-/** 一列的稱呼。跨年份,所以只有題號數字指不到任何一題。 */
-function rowTitle(r: Row): string {
-	return `${r.year}-${String(r.number).padStart(3, "0")}`;
-}
 
 type Year = { year: number; count: number };
 type Tag = { tag: string; count: number };
@@ -222,8 +208,24 @@ export function WrongQuestions() {
 										{rowTitle(r)}
 									</span>
 									<BookmarkBadge questionId={r.id} className="mt-1" />
-									<span className="text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed flex-1">
-										{r.stem}
+									{/* 題幹 + 「我上次選了什麼」。**這一行原本沒有**,而少了它,
+                      「我當初錯在哪」得先展開選項才看得到 —— 成績頁那一列一眼
+                      就講完了,這裡卻要多按一下。同一份資訊、同一種說法,
+                      判準是 AnswerVerdict。 */}
+									<span className="flex-1 min-w-0">
+										<span className="block text-ink-800 dark:text-ink-200 line-clamp-2 leading-relaxed">
+											{r.stem}
+										</span>
+										{r.correct_answer && (
+											<span className="block text-xs text-ink-500 dark:text-ink-400 mt-1">
+												<AnswerVerdict
+													chosen={r.last_chosen ?? null}
+													correctAnswer={r.correct_answer}
+													correct={false}
+													seen={(r.times_seen ?? 0) > 0}
+												/>
+											</span>
+										)}
 									</span>
 									{r.group && (
 										<span

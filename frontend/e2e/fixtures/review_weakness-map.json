@@ -1,0 +1,75 @@
+{
+  "clusters": [
+    {
+      "label": "骨髓增生性腫瘤",
+      "size": 3,
+      "anchor": "113-002",
+      "question_ids": [
+        "113-002",
+        "113-001",
+        "112-031"
+      ]
+    }
+  ],
+  "wrong_count": 3,
+  "questions": {
+    "113-002": {
+      "id": "113-002",
+      "year": 113,
+      "number": 2,
+      "stem": "第 2 題:關於慢性骨髓性白血病的治療,下列敘述何者最為適當?",
+      "group": "內科",
+      "options": {
+        "A": "Imatinib 為第一線治療,達到主要分子生物學反應後仍應持續追蹤 BCR::ABL1",
+        "B": "一經診斷即應立即安排異體造血幹細胞移植",
+        "C": "慢性期即使治療反應良好,仍建議每三個月做一次骨髓穿刺",
+        "D": "出現 T315I 突變時應改用 dasatinib",
+        "E": "干擾素是目前慢性期的標準第一線用藥"
+      },
+      "correct_answer": "A",
+      "last_chosen": "D",
+      "times_seen": 4,
+      "times_correct": 1,
+      "last_correct": 0
+    },
+    "113-001": {
+      "id": "113-001",
+      "year": 113,
+      "number": 1,
+      "stem": "第 1 題:一名 62 歲男性因反覆發燒與體重減輕就診,骨髓抹片顯示芽細胞比例上升。下列敘述何者最為適當?",
+      "group": "內科",
+      "options": {
+        "A": "骨髓芽細胞比例 ≥ 20% 可診斷急性白血病",
+        "B": "流式細胞術對區分淋巴系與骨髓系沒有幫助",
+        "C": "細胞遺傳學檢查不影響預後分層",
+        "D": "一律先給予高劑量類固醇再評估",
+        "E": "不需要檢驗凝血功能"
+      },
+      "correct_answer": "A",
+      "last_chosen": "C",
+      "times_seen": 2,
+      "times_correct": 1,
+      "last_correct": 0
+    },
+    "112-031": {
+      "id": "112-031",
+      "year": 112,
+      "number": 31,
+      "stem": "第 31 題:ADAMTS13 activity 68%, without evidence for an inhibitor。下列處置何者最為適當?",
+      "group": "共同",
+      "options": {
+        "A": "立即開始血漿置換",
+        "B": "先尋找其他可解釋的病因,不支持 TTP 的診斷",
+        "C": "給予 rituximab",
+        "D": "輸注血小板至 > 50,000/µL",
+        "E": "開始 caplacizumab"
+      },
+      "correct_answer": "B",
+      "last_chosen": "A",
+      "times_seen": 6,
+      "times_correct": 5,
+      "last_correct": 0
+    }
+  },
+  "basis": "semantic"
+}
