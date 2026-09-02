@@ -11,6 +11,12 @@ flags. No SKILL.md reasoning needed — the prefix decides the action:
     note <題號>: <內容>  → 附加個人筆記(append)          note 114-011: TKI 首選…
     note <題號> #2: …    → 附加到第 2 則筆記              note 114-011 #2: …
     note <題號> new: …   → 另開一則筆記                  note 114-011 new: …
+    other               → 列出「其他筆記」(不掛題目的私人筆記)
+    other <短碼>         → 讀某一則全文                   other 4fef0394
+    other new: <內容>    → 新增一則                       other new: 今天讀到…
+    other new [標題]: …  → 新增並指定標題                  other new [語氣作答法]: …
+    other <短碼>: <內容> → 附加到那一則                    other 4fef0394: 補充…
+    other <短碼> replace: … → 整則覆寫
 
 `answer` 也接受:ans / --answer / -a / 答案 / 看答案 / 揭曉。
 題號格式沿用 get_mcq.py(114-1、'114 1' 也可)。錯誤訊息由 get_mcq.py 產生。
@@ -19,6 +25,7 @@ flags. No SKILL.md reasoning needed — the prefix decides the action:
 進階(帶圖 HTML / OpenEvidence 匯入、--replace 覆寫)仍直接用 get_mcq.py —
 本 router 只覆蓋日常三種前綴,不重新實作那些流程。
 """
+
 import subprocess
 import sys
 from pathlib import Path
@@ -53,6 +60,48 @@ def main() -> None:
             sys.exit("search: 後面要接關鍵字,例:search: CML")
         run(["--search", query])
 
+    # other …  —— 其他筆記(free_notes),不掛在任何題目上
+    #
+    # 放在 note 之前判斷,因為兩者的字首不同、不會互相吃掉;但順序寫死比較好讀。
+    if low == "other" or low.startswith("other ") or low.startswith("other:"):
+        rest = raw[len("other") :].lstrip(":").strip()
+        if not rest:
+            run(["--free-notes"])
+        head, sep, text = rest.partition(":")
+        head = head.strip()
+        text = text.strip()
+        if not sep:
+            # 沒有冒號 → 只是要讀某一則
+            run(["--free", head])
+        if not head:
+            sys.exit("格式:other <短碼|new>[ replace][ [標題]]: <內容>")
+        # head 可能長成:「new」「new [標題]」「<短碼>」「<短碼> replace」
+        title = None
+        if "[" in head and head.rstrip().endswith("]"):
+            pre, _, rest_t = head.partition("[")
+            title = rest_t.rstrip().rstrip("]").strip()
+            head = pre.strip()
+        parts = head.split()
+        if not parts:
+            sys.exit("格式:other <短碼|new>[ replace][ [標題]]: <內容>")
+        ref = parts[0]
+        extra: list[str] = []
+        for tok in parts[1:]:
+            if tok.lower() in ("replace", "覆寫", "--replace"):
+                extra = ["--replace"]
+            else:
+                sys.exit(
+                    f"看不懂的參數「{tok}」—— other 只吃 replace,或用 [標題] 指定標題"
+                )
+        if not text:
+            sys.exit("筆記內容是空的,未送出")
+        if ref == "new" and extra:
+            sys.exit("new 是另開一則,沒有舊內容可覆寫 —— 拿掉 replace")
+        argv = ["--free", ref, "--note", "-", *extra]
+        if title:
+            argv += ["--title", title]
+        run(argv, stdin_text=text)
+
     # note <題號>[ #<編號>|new]: <內容>
     if low.startswith("note ") or low.startswith("note:"):
         rest = raw[len("note") :].lstrip()  # drop leading "note", keep the rest
@@ -75,7 +124,9 @@ def main() -> None:
             elif tok.startswith("#") and tok[1:].isdigit():
                 where = ["--slot", tok[1:]]
             else:
-                sys.exit(f"看不懂的筆記位置「{tok}」—— 用 #<編號> 指定某一則,或 new 另開一則")
+                sys.exit(
+                    f"看不懂的筆記位置「{tok}」—— 用 #<編號> 指定某一則,或 new 另開一則"
+                )
         if not text:
             sys.exit("筆記內容是空的,未送出")
         # Pass the note body via stdin so quotes / newlines survive intact.

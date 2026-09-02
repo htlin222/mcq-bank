@@ -6,15 +6,22 @@ MCQ_USER_EMAIL), sends the per-user key + member email, prints the question.
 The .env comes pre-baked in the .skill downloaded from /profile.
 Standard library only — no pip install needed.
 """
+
 import hashlib
 import json
 import os
 import sys
+import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
-ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+# 預設讀 skill 根目錄那份 .env(下載 .skill 時已內含個人金鑰)。
+# `MCQ_ENV_FILE` 只換「讀哪一個檔」,給測試與多環境用 —— 它**不**動
+# 「.env 蓋過 os.environ」那條優先序:下載下來的 .env 就是這個人的身分,
+# 不該被殘留的環境變數悄悄蓋掉。
+ENV_FILE = Path(os.environ.get("MCQ_ENV_FILE") or Path(__file__).resolve().parent.parent / ".env")
 
 
 def load_env() -> dict:
@@ -49,7 +56,9 @@ def clean_snippet(snip: str) -> str:
     return " ".join(snip.split())
 
 
-def do_search(base: str, headers: dict, query: str, year: str | None, limit: int) -> None:
+def do_search(
+    base: str, headers: dict, query: str, year: str | None, limit: int
+) -> None:
     import urllib.parse
 
     params = {"q": query, "limit": str(limit)}
@@ -87,7 +96,10 @@ def do_search(base: str, headers: dict, query: str, year: str | None, limit: int
 
 
 def render(d: dict, with_answer: bool = False) -> str:
-    out = [f"# {d['id']}（{d.get('group') or '?'}・難度 {d.get('difficulty') or '?'}）", ""]
+    out = [
+        f"# {d['id']}（{d.get('group') or '?'}・難度 {d.get('difficulty') or '?'}）",
+        "",
+    ]
     out.append(d["stem"])
     out.append("")
     for opt in d.get("options", []):
@@ -102,7 +114,9 @@ def render(d: dict, with_answer: bool = False) -> str:
     exp = d.get("explanation")
     if exp and exp.get("markdown"):
         out.append("")
-        out.append(f"## 共筆詳解（v{exp.get('version')},最後更新 {exp.get('updated_by') or '—'}）")
+        out.append(
+            f"## 共筆詳解（v{exp.get('version')},最後更新 {exp.get('updated_by') or '—'}）"
+        )
         out.append(exp["markdown"])
     else:
         out.append("")
@@ -160,6 +174,87 @@ def idem_key(qid: str, payload_obj: dict) -> str:
     return "mcq-note-" + hashlib.sha256(material.encode("utf-8")).hexdigest()[:32]
 
 
+# ── 其他筆記(free_notes)────────────────────────────────────────────────
+#
+# 不掛在任何題目上的私人筆記,與網頁的 /lectures?tab=note 是同一批資料。
+# 代號用 id 的前 8 碼(短碼)—— 完整 UUID 沒有人會想手打,而 8 碼在 500 則的
+# 量級下撞號機率極低;真的撞到時伺服器回 409 並列出候選,不會猜。
+
+
+def _free_req(base, headers, path, data=None, method=None, extra=None):
+    url = f"{base}/api/mcq/free-notes{path}"
+    h = dict(headers)
+    if extra:
+        h.update(extra)
+    body = None
+    if data is not None:
+        body = json.dumps(data).encode("utf-8")
+        h["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=body, method=method, headers=h)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            return json.load(resp)
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "replace")
+        hints = {
+            401: "金鑰錯誤/已重新產生 → 回 /profile 重新下載 .skill",
+            404: "找不到這則筆記 → 先跑 --free-notes 看有哪些短碼",
+            409: "短碼不只對應一則 → 多打幾碼,或用完整 id",
+        }
+        sys.exit(f"API {e.code}: {detail}\n提示:{hints.get(e.code, '')}")
+    except urllib.error.URLError as e:
+        sys.exit(f"連線失敗:{e.reason} — 檢查 MCQ_API_BASE 是否正確")
+
+
+def do_free_list(base, headers):
+    d = _free_req(base, headers, "")
+    items = d.get("items") or []
+    if not items:
+        print("(還沒有任何其他筆記 —— 用 `other new: 內容` 建立第一則)")
+        return
+    print(f"📒 其他筆記 {d.get('count', len(items))} 則(上限 {d.get('max', '?')})\n")
+    for it in items:
+        when = ""
+        if it.get("updated_at"):
+            when = time.strftime("%Y-%m-%d", time.localtime(it["updated_at"] / 1000))
+        print(f"  [{it['short']}] {it.get('title') or '(無標題)'}   {when}")
+        if it.get("excerpt"):
+            print(f"           {it['excerpt']}")
+    print("\n讀全文:other <短碼>   附加:other <短碼>: 內容   新增:other new: 內容")
+
+
+def do_free_read(base, headers, ref):
+    d = _free_req(base, headers, f"/{urllib.parse.quote(ref)}")
+    print(f"# {d.get('title') or '(無標題)'}   [{d['short']}]\n")
+    print(d.get("note_markdown") or "(空白)")
+
+
+def do_free_write(base, headers, ref, text, mode, title, force):
+    payload = {"markdown": text, "mode": mode, "id": ref}
+    if title:
+        payload["title"] = title
+    extra = {}
+    if not force:
+        # 與題目筆記同一套去重:預設是 append,同一份內容送兩次會多出一份。
+        extra["Idempotency-Key"] = idem_key(f"free:{ref}", payload)
+    d = _free_req(base, headers, "", data=payload, method="PUT", extra=extra)
+    verb = {"create": "已建立", "append": "已附加到", "replace": "已覆寫"}[d["mode"]]
+    if d.get("replayed"):
+        print(
+            f"♻️  這份內容先前已寫入,本次未重複寫入 [{d['short']}]「{d.get('title')}」"
+        )
+        print("   (確定要再寫一份就加 --force)")
+    else:
+        print(f"📝 {verb}其他筆記 [{d['short']}]「{d.get('title')}」")
+    for w in d.get("warnings") or []:
+        print(f"⚠️  {w}")
+    if d.get("previous_markdown"):
+        print("\n--- 被覆寫的舊內容(留存於此,如需可救回)---")
+        print(d["previous_markdown"])
+    print("\n--- 目前筆記全文 ---")
+    print(d["note_markdown"])
+
+
 def main() -> None:
     args = sys.argv[1:]
     with_answer = False
@@ -174,6 +269,9 @@ def main() -> None:
     search_query = None
     year_filter = None
     limit = 20
+    free_ref = None  # --free <id|前綴|new>:其他筆記(不掛題目)
+    free_list = False  # --free-notes:列出其他筆記
+    free_title = None  # --title <標題>(只在 --free 建立/更新時有意義)
     positional = []
     i = 0
     while i < len(args):
@@ -221,6 +319,20 @@ def main() -> None:
             if i >= len(args) or not args[i].isdigit():
                 sys.exit("--year 需要年份數字,例如 --year 113")
             year_filter = args[i]
+        elif a in ("--free-notes", "--free-list", "--others"):
+            free_list = True
+        elif a in ("--free", "--free-note", "--other"):
+            i += 1
+            if i >= len(args):
+                sys.exit(
+                    "--free 需要筆記代號(先跑 --free-notes 看短碼),或 new 另開一則"
+                )
+            free_ref = args[i]
+        elif a == "--title":
+            i += 1
+            if i >= len(args):
+                sys.exit("--title 需要標題文字")
+            free_title = args[i]
         elif a == "--limit":
             i += 1
             if i >= len(args) or not args[i].isdigit():
@@ -229,15 +341,27 @@ def main() -> None:
         else:
             positional.append(a)
         i += 1
-    if not positional and search_query is None:
+    if free_list or free_ref is not None:
+        if positional:
+            sys.exit(
+                "其他筆記不掛在題目上 —— 不要帶題號。用 --free-notes 列出、--free <代號> 指定"
+            )
+        if search_query is not None:
+            sys.exit("--search 與其他筆記模式不能同時使用")
+    if not positional and search_query is None and not free_list and free_ref is None:
         sys.exit(
             "用法:get_mcq.py <題號> [--answer]"
             " [--note <內容|->|--html <HTML|->|--oe-url <URL> [--turn N]]"
             " [--slot N|--new] [--replace] [--force]"
-            " | get_mcq.py --search <關鍵字> [--year YYY] [--limit N],"
+            " | get_mcq.py --search <關鍵字> [--year YYY] [--limit N]"
+            " | get_mcq.py --free-notes | get_mcq.py --free <代號|new> [--note <內容|->] [--title T] [--replace],"
             "例如 get_mcq.py 114-001 或 get_mcq.py --search CML"
         )
-    content_flags = [f for f, v in (("--note", note_text), ("--html", html_text), ("--oe-url", oe_url)) if v is not None]
+    content_flags = [
+        f
+        for f, v in (("--note", note_text), ("--html", html_text), ("--oe-url", oe_url))
+        if v is not None
+    ]
     if len(content_flags) > 1:
         sys.exit(f"{' 與 '.join(content_flags)} 不能同時使用")
     if replace and not content_flags:
@@ -292,12 +416,43 @@ def main() -> None:
         do_search(base, headers, search_query, year_filter, limit)
         return
 
+    # ── 其他筆記(free_notes)——不掛在任何題目上的私人筆記 ──────────────
+    if free_list:
+        do_free_list(base, headers)
+        return
+    if free_ref is not None:
+        if html_text is not None or oe_url is not None:
+            sys.exit(
+                "其他筆記目前只吃 --note(markdown);--html / --oe-url 請寫進題目筆記"
+            )
+        if note_text is None:
+            if free_ref == "new":
+                sys.exit("--free new 是建立筆記,要搭配 --note <內容>")
+            do_free_read(base, headers, free_ref)
+            return
+        if not note_text.strip():
+            sys.exit("筆記內容是空的,未送出")
+        do_free_write(
+            base,
+            headers,
+            free_ref,
+            note_text,
+            "replace" if replace else "append",
+            free_title,
+            force,
+        )
+        return
+
     qid = normalize(positional[0])
 
     if content_flags:
         mode = "replace" if replace else "append"
         # 不帶 slot 就是第一則 —— 與 0.7.x 的 .skill 行為相同。
-        slot_field = {"slot": "new"} if new_note else ({"slot": slot} if slot is not None else {})
+        slot_field = (
+            {"slot": "new"}
+            if new_note
+            else ({"slot": slot} if slot is not None else {})
+        )
         if note_text is not None:
             if not note_text.strip():
                 sys.exit("筆記內容是空的,未送出")
@@ -322,7 +477,9 @@ def main() -> None:
                         "解析不到任何對話內容 — 確認該連結是公開(Make public)的"
                         " /ask/<id> 對話"
                     )
-                print(f"🔎 已解析 OpenEvidence 對話「{convo['title']}」,共 {len(convo['turns'])} 輪")
+                print(
+                    f"🔎 已解析 OpenEvidence 對話「{convo['title']}」,共 {len(convo['turns'])} 輪"
+                )
                 doc = oe_import.oe_conversation_to_doc(convo, final_url, turn)
             payload_obj = {"doc": doc, "mode": mode, **slot_field}
         payload = json.dumps(payload_obj).encode("utf-8")
@@ -349,7 +506,9 @@ def main() -> None:
             sys.exit(f"API {e.code}: {body}\n提示:{hints.get(e.code, '')}")
         except urllib.error.URLError as e:
             sys.exit(f"連線失敗:{e.reason} — 檢查 MCQ_API_BASE 是否正確")
-        verb = {"create": "已建立", "append": "已附加到", "replace": "已覆寫"}[d["mode"]]
+        verb = {"create": "已建立", "append": "已附加到", "replace": "已覆寫"}[
+            d["mode"]
+        ]
         # slot / title 是 0.8.0 才有的;對舊版 Worker 就退回原本的說法。
         where = ""
         if d.get("slot") is not None and (d.get("notes_count") or 1) > 1:
