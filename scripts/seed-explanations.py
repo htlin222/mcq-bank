@@ -14,6 +14,7 @@ Supported markdown subset (matches the frontend tiptap extension set):
   - inline code (`code`)
   - links ([text](url))
   - images (![alt](url))  — block-level only, must be on their own line
+  - fenced code blocks (``` or ~~~, optional language tag)
   - tables (GitHub-flavored pipe tables, with or without a header row)
   - bullet lists (-, *, +)
   - ordered lists (1., 2., ...)
@@ -63,6 +64,7 @@ CHUNK_SIZE = 50  # statements per wrangler call
 
 # ---------- Markdown → TipTap converter --------------------------------------
 
+RE_FENCE = re.compile(r"^(```+|~~~+)[ \t]*([^\n`]*)$")
 RE_HEADING = re.compile(r"^(#{1,3})\s+(.*)$")
 RE_IMAGE = re.compile(r'^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)\s*$')
 RE_BULLET = re.compile(r"^[-*+]\s+(.*)$")
@@ -264,6 +266,40 @@ def md_to_tiptap(md: str) -> dict:
         if not stripped:
             i += 1
             continue
+
+        # 圍籬程式區塊(``` 或 ~~~)。
+        #
+        # ⚠️ 一定要排在**表格之前**:區塊裡畫的常是 ASCII 機轉圖,而那種圖很容易
+        # 出現 `|` 當直線。先問表格的話,一張圖會被吃成一個爛掉的表。
+        #
+        # 沒有這一段時,圍籬只是普通文字 —— 兩行 ``` 會原樣顯示在畫面上,而且圖
+        # 用內文的比例字體排,箭頭全部對不齊(103 年 24 篇詳解就是這樣進去的)。
+        m = RE_FENCE.match(stripped)
+        if m:
+            lang = m.group(2).strip() or None
+            marker = m.group(1)[0] * 3
+            body: list[str] = []
+            j = i + 1
+            closed = False
+            while j < len(lines):
+                if (
+                    lines[j].strip().startswith(marker)
+                    and not lines[j].strip()[3:].strip()
+                ):
+                    closed = True
+                    break
+                body.append(lines[j])
+                j += 1
+            # 沒有收尾的圍籬就不當程式區塊 —— 落回原本的段落處理,寧可原樣顯示
+            # 也不要把後面整篇詳解吞進一個灰底方塊裡(同本檔「降級成純文字」的原則)。
+            if closed:
+                text = "\n".join(body).rstrip()
+                node: dict = {"type": "codeBlock", "attrs": {"language": lang}}
+                if text:
+                    node["content"] = [{"type": "text", "text": text}]
+                blocks.append(node)
+                i = j + 1
+                continue
 
         # 表格(要排在段落之前 —— 段落會把連續非空行全部吃掉)
         if "|" in stripped:
