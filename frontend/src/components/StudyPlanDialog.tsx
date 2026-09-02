@@ -410,7 +410,7 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-sm flex items-center justify-center dialog-scrim"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -421,7 +421,7 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
         // 根節點給明確文字色:對話框裡有一整批元素(計畫表格列、統計格、
         // 「還差 N 題」那些)沒有自己的 text-*,原本一路繼承到 body 的瀏覽器
         // 預設近黑色 —— 淺色模式下看不出來,深色模式下整片消失(issue #75)。
-        className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-lg overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)] text-ink-800 dark:text-ink-100"
+        className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-lg overflow-hidden flex flex-col max-h-full text-ink-800 dark:text-ink-100"
       >
         <header className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-ink-100 dark:border-ink-700">
           <h2 className="font-serif text-lg text-ink-900 dark:text-ink-100 inline-flex items-center gap-2">

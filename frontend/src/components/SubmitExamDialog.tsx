@@ -105,7 +105,7 @@ export function SubmitExamDialog({
 				aria-label="交卷確認"
 				className="bg-white dark:bg-ink-800 w-full flex flex-col outline-none h-[100dvh] sm:h-auto sm:max-h-[calc(100dvh-4rem)] sm:max-w-md sm:rounded-lg sm:border sm:border-ink-200 sm:dark:border-ink-700 sm:shadow-paper"
 			>
-				<header className="shrink-0 flex items-center gap-2 px-5 py-3 border-b border-ink-100 dark:border-ink-700">
+				<header className="dialog-sheet-top shrink-0 flex items-center gap-2 px-5 py-3 border-b border-ink-100 dark:border-ink-700">
 					{missing > 0 ? (
 						<AlertTriangle size={17} className="shrink-0 text-amber-600" />
 					) : (
@@ -205,7 +205,7 @@ export function SubmitExamDialog({
 					)}
 				</div>
 
-				<footer className="shrink-0 flex items-center justify-between gap-3 px-5 py-3 border-t border-ink-100 dark:border-ink-700">
+				<footer className="dialog-sheet-bottom shrink-0 flex items-center justify-between gap-3 px-5 py-3 border-t border-ink-100 dark:border-ink-700">
 					{stage === 2 ? (
 						<>
 							<button

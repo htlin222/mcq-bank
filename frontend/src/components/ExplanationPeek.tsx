@@ -110,7 +110,7 @@ export function ExplanationPeek({
 				aria-label={`${label}的詳解`}
 				className="bg-white dark:bg-ink-800 w-full flex flex-col outline-none h-[100dvh] sm:h-auto sm:max-h-[calc(100dvh-4rem)] sm:max-w-2xl sm:rounded-lg sm:border sm:border-ink-200 sm:dark:border-ink-700 sm:shadow-paper"
 			>
-				<header className="shrink-0 flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-ink-100 dark:border-ink-700">
+				<header className="dialog-sheet-top shrink-0 flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-ink-100 dark:border-ink-700">
 					<h2 className="font-serif text-lg text-ink-900 dark:text-ink-100 inline-flex items-center gap-2 min-w-0">
 						<Info size={17} className="shrink-0 text-accent" />
 						<span className="truncate">{label} · 詳解</span>
@@ -160,7 +160,7 @@ export function ExplanationPeek({
 					)}
 				</div>
 
-				<footer className="shrink-0 px-4 sm:px-5 py-3 border-t border-ink-100 dark:border-ink-700 flex justify-end">
+				<footer className="dialog-sheet-bottom shrink-0 px-4 sm:px-5 py-3 border-t border-ink-100 dark:border-ink-700 flex justify-end">
 					<Link
 						to={`/q/${questionId}`}
 						state={fromExam ? { fromExam } : undefined}

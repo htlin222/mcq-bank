@@ -215,3 +215,95 @@ test('左下角那顆強制手機版面 FAB 已經搬走(#135)', () => {
     'App.tsx 不該再渲染 ViewportModeFab(註解裡提到沒關係)',
   );
 });
+
+// ── 對話框自己的安全區 ────────────────────────────────────────────
+//
+// `fixed inset-0 z-50` 的對話框 portal 掛在 <body>,蓋在 header 之上 —— 也就是
+// **脫離了 header 的 `.safe-top` 與底部導覽的 `.safe-bottom`**。而
+// `viewport-fit=cover` 讓視窗一路延伸到瀏海與 home indicator 底下,所以貼著上下
+// 緣的那一排按鈕會落在系統手勢區裡:看得見,按不到。
+//
+// ⚠️ 同 #137 全螢幕筆記卡:一般瀏覽器裡 inset 是 0,帶不帶 env() 算出來一模一樣,
+// Playwright 兩個引擎也都不模擬 inset。靜態掃是唯一擋得住的角度。
+//
+// ⚠️ 掃描器自己要有對照組 —— 掃不到檔案時它是全綠的(同 users_online.json 空
+// fixture 那個坑)。
+
+const DIALOG_DIR = path.join(HERE, '..', 'components');
+
+function tsxFiles(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const full = path.join(dir, e.name);
+    if (e.isDirectory()) return tsxFiles(full);
+    return e.name.endsWith('.tsx') ? [full] : [];
+  });
+}
+
+/** 全螢幕遮罩型的對話框(`fixed inset-0 z-50`)。 */
+function overlayComponents() {
+  return tsxFiles(DIALOG_DIR)
+    .map((f) => ({ path: f, src: fs.readFileSync(f, 'utf8') }))
+    .filter((f) => f.src.includes('fixed inset-0 z-50'));
+}
+
+test('對話框的安全區工具類存在,而且真的用了 env()', () => {
+  // 置中型:縮的是 scrim 的四周。
+  assert.match(
+    STYLES,
+    /\.dialog-scrim\s*\{[^}]*env\(safe-area-inset-top\)[^}]*env\(safe-area-inset-bottom\)/,
+  );
+  // 滿版型(<sm 的 sheet):縮的是 header / footer 自己的內距,底色仍然鋪滿。
+  assert.match(
+    STYLES,
+    /\.dialog-sheet-top\s*\{[^}]*padding-top:\s*calc\([^)]*env\(safe-area-inset-top\)\)/,
+  );
+  assert.match(
+    STYLES,
+    /\.dialog-sheet-bottom\s*\{[^}]*padding-bottom:\s*calc\([^)]*env\(safe-area-inset-bottom\)\)/,
+  );
+  // 講義的手機底部 sheet 不是 portal 對話框,但貼著 bottom-0,同一個病灶。
+  assert.match(
+    STYLES,
+    /\.sheet-safe-bottom\s*\{[^}]*padding-bottom:\s*env\(safe-area-inset-bottom\)/,
+  );
+});
+
+test('每一個全螢幕對話框都讓開了安全區', () => {
+  const found = overlayComponents();
+  assert.ok(found.length >= 9, `只掃到 ${found.length} 個對話框,掃描器壞了`);
+  const bad = found.filter(
+    (f) => !/dialog-scrim|dialog-sheet-(top|bottom)/.test(f.src),
+  );
+  assert.deepEqual(
+    bad.map((f) => path.basename(f.path)),
+    [],
+    '這些對話框沒有帶安全區:按鈕會落在瀏海 / home indicator 底下',
+  );
+});
+
+test('對話框的高度不准跟視窗高度綁死', () => {
+  // 兩種寫法會讓安全區白讓:
+  //
+  //   `calc(100dvh - 2rem)` —— 那個 2rem 是「scrim 的 p-4」的鏡像,而 scrim 現在
+  //   的 padding 會長出一個 inset,面板就比 padding box 還高、照樣溢出去。
+  //   `max-h-full` 是跟著 padding box 走的,padding 變它自己就縮。
+  //
+  //   `vh` —— iOS Safari 的 100vh 是**大視窗**(把收起來的網址列也算進去),比
+  //   看得見的還高,所以 `max-h-[85vh]` 未必真的留得住那 15%。全站一律 dvh。
+  //
+  // 單純的分數上限(底部 sheet 的 `70dvh`)不在此限:它不貼著視窗上下緣,而且
+  // 下緣另外掛了 .sheet-safe-bottom。
+  for (const f of overlayComponents()) {
+    const bad = (
+      f.src.match(/(?:^|[\s"'`+])((?:sm:|md:|lg:|max-md:)?max-h-\[[^\]]*\])/g) ?? []
+    )
+      .map((c) => c.trim().replace(/^["'`+]/, ''))
+      .filter((c) => !/^(sm|md|lg):/.test(c)) // ≥sm 是置中卡片,離邊緣還有 sm:p-4
+      .filter((c) => /\dvh\]/.test(c) || /100dvh\s*-/.test(c));
+    assert.deepEqual(
+      bad,
+      [],
+      `${path.basename(f.path)} 的對話框高度跟視窗綁死了:${bad.join(', ')}`,
+    );
+  }
+});

@@ -377,6 +377,55 @@
 	padding-top: env(safe-area-inset-top);
 }
 
+/* === 對話框的安全區 =========================================================
+
+   `fixed inset-0` 的對話框(portal 掛在 <body>)蓋在 header 之上,也就是
+   **脫離了 header 的 `.safe-top` 與底部導覽的 `.safe-bottom`** —— 安全區得
+   自己帶。`viewport-fit=cover` 讓視窗一路延伸到瀏海與 home indicator 底下,
+   所以貼著上下緣的那一排按鈕會落在系統手勢區裡:**看得見,按不到**。
+
+   ⚠️ 又是一條在一般瀏覽器裡看不出來的規則 —— inset 是 0 時帶不帶 env() 算出來
+   一模一樣。Playwright 兩個引擎也都不模擬 inset,所以只擋得住靜態掃
+   (lib/mobileChrome.test.ts)。同 #137 全螢幕筆記卡那條。
+
+   對話框有兩種形態,安全區的答案不同:
+
+   - **置中型**:整個 scrim 縮進安全區,面板用 `max-h-full` 跟著縮 —— 寫死
+     `max-h-[calc(100dvh-2rem)]` 的話(那個 2rem 是 `p-4` 的鏡像),padding 一長
+     出一個 inset,面板就比 padding box 還高而溢出去,安全區等於白讓。
+   - **滿版型**(<sm 的 sheet):sheet 刻意貼著上下緣(有 e2e 釘著「手機上要
+     滿版」),所以縮的是 header 與 footer 自己的內距,底色仍然鋪滿整個畫面。 */
+.dialog-scrim {
+	padding: max(1rem, env(safe-area-inset-top)) 1rem
+		max(1rem, env(safe-area-inset-bottom));
+}
+
+.dialog-sheet-top {
+	padding-top: calc(0.75rem + env(safe-area-inset-top));
+}
+.dialog-sheet-bottom {
+	padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+/* ≥sm 這幾個 sheet 變成置中的卡片、離視窗邊緣還有 `sm:p-4`,再讓一次安全區
+   就是重複計算(iPad 直立仍有 home indicator 的 inset)。 */
+@media (min-width: 640px) {
+	.dialog-sheet-top {
+		padding-top: 0.75rem;
+	}
+	.dialog-sheet-bottom {
+		padding-bottom: 0.75rem;
+	}
+}
+
+/* 講義面板在手機是貼著 `bottom-0` 的底部 sheet,下緣就是 home indicator。
+   ≥md 它變成右欄、不再貼著視窗下緣,所以只在 <md 讓。 */
+@media (max-width: 767px) {
+	.sheet-safe-bottom {
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+}
+
 /* Height reserved for the fixed app header (h-14 + 頂端安全區).
    header 是 `fixed` 而不是 `sticky`(#132 的追問):sticky 的定義是「在自己的
    正常位置與 top 之間切換」,而捲到頂端時它就**在**正常位置 —— 此時它跟一般

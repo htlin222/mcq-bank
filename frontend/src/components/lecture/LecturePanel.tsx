@@ -104,7 +104,7 @@ export function LecturePanel(props: LecturePanelProps) {
 					"max-md:!w-auto md:relative md:h-full md:border-l " +
 					(props.open ? "" : "md:overflow-hidden md:border-l-0") +
 					// Mobile: bottom sheet (inline width is overridden by inset-x-0 below).
-					" fixed inset-x-0 bottom-0 max-h-[70vh] rounded-t-2xl border-t shadow-paper transition-transform md:inset-auto md:bottom-auto md:max-h-none md:rounded-none md:border-t-0 md:shadow-none " +
+					" fixed inset-x-0 bottom-0 max-h-[70dvh] sheet-safe-bottom rounded-t-2xl border-t shadow-paper transition-transform md:inset-auto md:bottom-auto md:max-h-none md:rounded-none md:border-t-0 md:shadow-none " +
 					(props.open ? "translate-y-0" : "translate-y-full md:translate-y-0")
 				}
 			>
@@ -373,12 +373,12 @@ function PromptDialog(props: {
 
 	return createPortal(
 		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4 backdrop-blur-sm"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 dialog-scrim backdrop-blur-sm"
 			onMouseDown={(e) => {
 				if (e.target === e.currentTarget) props.onClose();
 			}}
 		>
-			<div className="flex w-full max-w-lg flex-col overflow-hidden rounded-lg border border-ink-200 bg-white shadow-paper dark:border-ink-700 dark:bg-ink-800">
+			<div className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-lg border border-ink-200 bg-white shadow-paper dark:border-ink-700 dark:bg-ink-800">
 				<header className="flex shrink-0 items-center justify-between border-b border-ink-100 px-5 py-3 dark:border-ink-700">
 					<h2 className="inline-flex items-center gap-2 font-serif text-lg text-ink-900 dark:text-ink-100">
 						<SquarePen size={18} className="text-accent" />
@@ -392,7 +392,7 @@ function PromptDialog(props: {
 						<XIcon size={18} />
 					</button>
 				</header>
-				<div className="space-y-3 p-5">
+				<div className="space-y-3 overflow-y-auto p-5">
 					<p className="text-xs text-ink-500 dark:text-ink-400">
 						送出時會把這段 prompt 放在最前面,後面接本頁筆記內容,於新分頁開啟
 						OpenEvidence。
@@ -627,12 +627,12 @@ function QuestionPreviewDialog({
 
 	return createPortal(
 		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4 backdrop-blur-sm"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 dialog-scrim backdrop-blur-sm"
 			onMouseDown={(e) => {
 				if (e.target === e.currentTarget) onClose();
 			}}
 		>
-			<div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-ink-200 bg-white shadow-paper dark:border-ink-700 dark:bg-ink-800">
+			<div className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-lg border border-ink-200 bg-white shadow-paper dark:border-ink-700 dark:bg-ink-800">
 				<header className="flex shrink-0 items-center justify-between gap-2 border-b border-ink-100 px-5 py-3 dark:border-ink-700">
 					<div className="flex items-center gap-2">
 						<span className="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-xs text-ink-600 dark:bg-ink-700 dark:text-ink-300">
