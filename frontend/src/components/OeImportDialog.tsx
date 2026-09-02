@@ -109,12 +109,12 @@ export function OeImportDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-sm flex items-center justify-center dialog-scrim"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]">
+      <div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-2xl overflow-hidden flex flex-col max-h-full">
         <header className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-ink-100 dark:border-ink-700">
           <h2 className="font-serif text-lg text-ink-900 dark:text-ink-100 inline-flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-5 h-5 rounded-full border-[1.5px] border-accent text-accent text-[11px] font-bold">

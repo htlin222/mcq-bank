@@ -1857,6 +1857,46 @@ When extending the UI, preserve this voice. It's a serious study tool — looks 
 給 `null`(暫停)則整份題目不渲染,頁面只剩「已暫停作答」、捲不動 128px。所以
 fixture 只提供形狀,「現在」由測試在請求當下用 `ctx.route` 注入。
 
+### 對話框的安全區: portal 出去就等於離開了 `.safe-top` / `.safe-bottom`
+
+回報是「mobile 上的 dialog 高度都太高了,撐滿整個畫面,有些按鈕會按不到 —— 特別是
+有瀏海的 iOS」。**病灶不是高度,是位置。** `fixed inset-0 z-50` 的對話框 portal 掛在
+`<body>`、蓋在 header 之上,也就是脫離了 header 的 `.safe-top` 與底部導覽的
+`.safe-bottom`;而 `viewport-fit=cover` 讓視窗一路延伸到瀏海與 home indicator 底下。
+於是貼著上下緣的那一排按鈕**看得見,按不到** —— iOS 的 home indicator 區會吃掉第一
+下觸控。實測(390×844,注入 iPhone 15 Pro 的 inset 59 / 34):
+
+| 量的東西            | 修正前 | 修正後 |
+| ------------------- | ------ | ------ |
+| footer 按鈕離下緣   | 12px   | 46px   |
+| header 關閉鈕離上緣 | 13px   | 72px   |
+
+**兩種形態,安全區的答案不同,所以是兩組 class(`styles.css`)而不是一組:**
+
+- **置中型**(ExportDialog / FeedbackButton / OeImportDialog / StudyPlanDialog /
+  ChallengePanel / LecturePanel 的兩個)—— scrim 用 `.dialog-scrim` 整圈縮進安全區,
+  面板改 `max-h-full`。⚠️ **`max-h-[calc(100dvh-2rem)]` 一定要跟著改掉**:那個 2rem
+  是「scrim 的 `p-4`」的鏡像,padding 一長出一個 inset,面板就比 padding box 還高而
+  溢出去 —— 安全區白讓了,而畫面上看起來跟沒改一樣。`max-h-full` 是跟著 padding box
+  走的,padding 變它自己就縮。
+- **滿版型**(<sm 的 ExplanationPeek / SearchExpandDialog / SubmitExamDialog)——
+  sheet 刻意貼著上下緣(`exam-result-peek.test.mjs` 有一條釘著「手機上要滿版」),
+  所以縮的是 header / footer **自己的內距**(`.dialog-sheet-top` /
+  `.dialog-sheet-bottom`),底色仍然鋪滿整個畫面。≥sm 這幾個變成置中卡片、離視窗邊緣
+  還有 `sm:p-4`,再讓一次就是重複計算,所以有 media query 把它調回 `0.75rem`。
+
+**`vh` 在這裡一律是錯的。** ChallengePanel 的 `max-h-[90vh]` 與 LecturePanel 的
+`max-h-[85vh]` 是同一個誤會:iOS Safari 的 `100vh` 是**大視窗**(把收起來的網址列也
+算進去),比看得見的還高,所以「留了 10%」未必真的留得住。全站其他地方一律 dvh。
+
+順帶修掉一個跟瀏海無關的:LecturePanel 那個 OpenEvidence prompt 對話框**連
+max-height 都沒有**,textarea 是 `resize-y` —— 一拉高,「送出」直接跑到視窗外。
+
+⚠️ **驗證只能靜態掃**(`lib/mobileChrome.test.ts`)—— 一般瀏覽器裡 inset 是 0,帶不帶
+`env()` 算出來一模一樣,Playwright 兩個引擎也都不模擬 inset。同 #137 全螢幕筆記卡
+那條。掃描器自己帶對照組(**至少要掃到 9 個對話框**),否則元件搬家之後它會退化成
+恆真的綠燈。停用驗證做過:把任一個 `dialog-scrim` 改回 `p-4`,那條就紅。
+
 ### 捲動時收起頂端/底部列: `--header-h` 從此有兩個角色
 
 `.chrome-hidden` 掛在 `<html>` 上,判定在 `lib/autoHideChrome.ts`(純函式,

@@ -538,12 +538,12 @@ function FileChallengeModal({
 	// modal renders behind the sticky header on wide screens (issue #10).
 	return createPortal(
 		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dialog-scrim"
 			onMouseDown={(e) => {
 				if (e.target === e.currentTarget) onCancel();
 			}}
 		>
-			<div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-xl max-w-2xl w-full p-5 sm:p-6 max-h-[90vh] overflow-y-auto">
+			<div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-xl max-w-2xl w-full p-5 sm:p-6 max-h-full overflow-y-auto">
 				<h3 className="font-serif text-lg text-ink-900 dark:text-ink-100 mb-3">
 					發起答案挑戰
 				</h3>
