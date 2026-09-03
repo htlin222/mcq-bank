@@ -115,7 +115,7 @@
  {
   "dx_id": "aml_m2",
   "canonical_long": "acute myeloid leukemia, M2 (acute myeloblastic leukemia with maturation)",
-  "canonical_abbrev": "AML",
+  "canonical_abbrev": "AML M2",
   "topic": "myeloid",
   "qtype": "disease",
   "terms": [
@@ -287,7 +287,7 @@
  {
   "dx_id": "aml_m6",
   "canonical_long": "Acute Myeloid Leukemia, M6 (Erythroleukemia)",
-  "canonical_abbrev": "AML",
+  "canonical_abbrev": "AML M6",
   "topic": "myeloid",
   "qtype": "disease",
   "terms": [
@@ -331,7 +331,7 @@
  {
   "dx_id": "aml_m7",
   "canonical_long": "acute myeloid leukemia, M7 (with leukoerythroblastosis)",
-  "canonical_abbrev": "AML",
+  "canonical_abbrev": "AML M7",
   "topic": "myeloid",
   "qtype": "disease",
   "terms": [
@@ -1227,7 +1227,7 @@
  {
   "dx_id": "dysplastic_pmn",
   "canonical_long": "Dysplastic PMN (MDS)",
-  "canonical_abbrev": "MDS",
+  "canonical_abbrev": null,
   "topic": "myeloid",
   "qtype": "cell",
   "terms": [
@@ -1642,11 +1642,6 @@
     "text": "hypersegmented neutrophil",
     "tier": "full",
     "form": "long"
-   },
-   {
-    "text": "PMN",
-    "tier": "full",
-    "form": "abbrev"
    },
    {
     "text": "hyperseg",
@@ -2299,7 +2294,7 @@
  },
  {
   "dx_id": "mds",
-  "canonical_long": "Myelodysplastic Syndrome (or Erythroid Hyperplasia)",
+  "canonical_long": "Myelodysplastic syndrome",
   "canonical_abbrev": "MDS",
   "topic": "myeloid",
   "qtype": "disease",
@@ -2870,7 +2865,7 @@
    },
    {
     "text": "B12 deficiency anemia",
-    "tier": "lay",
+    "tier": "full",
     "form": "long"
    },
    {
