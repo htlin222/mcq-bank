@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { fetchAllYears } from "../lib/yearsApi";
 import { Link } from "react-router-dom";
 import { X as XIcon } from "lucide-react";
 import { api } from "../lib/api";
@@ -36,7 +37,7 @@ export function WrongQuestions() {
 	const [peek, setPeek] = useState<{ id: string; title: string } | null>(null);
 
 	useEffect(() => {
-		api.get<Year[]>("/api/questions/_meta/years").then(setYears);
+		fetchAllYears().then(setYears);
 		api.get<Tag[]>("/api/questions/_meta/tags").then(setAllTags);
 	}, []);
 

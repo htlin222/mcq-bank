@@ -1,4 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { HIDDEN_YEAR_NOTE, isHiddenYear } from "../lib/years";
+import { useSecretTap } from "../hooks/useSecretTap";
+import { fetchYears } from "../lib/yearsApi";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
 	Pause,
@@ -112,10 +115,14 @@ function ExamStart() {
 	// Unfinished exam session, synced across devices; cleared on submit
 	// (the tracker in App.tsx drops it when the result page is reached).
 	const [resume, setResume] = useState<LastPath | null>(null);
+	const reloadYears = useCallback(() => {
+		fetchYears().then(setYears);
+	}, []);
+	const secret = useSecretTap(reloadYears);
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		api.get<YearMeta[]>("/api/questions/_meta/years").then(setYears);
+		reloadYears();
 		let cancelled = false;
 		loadSectionPath("exam").then((v) => {
 			if (!cancelled) setResume(v);
@@ -166,9 +173,17 @@ function ExamStart() {
 
 	return (
 		<div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
-			<h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2">
+			{/* 標題連點 7 下 → 顯示/隱藏不完整年份(見 hooks/useSecretTap.ts)。
+			    解鎖是全站的,在複習模式那頁點開這裡也看得到。 */}
+			<h1
+				className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2 select-none"
+				onClick={secret.onClick}
+			>
 				全真作答
 			</h1>
+			{secret.message && (
+				<p className="text-ink-400 dark:text-ink-500 text-xs mb-2">{secret.message}</p>
+			)}
 			<p className="text-ink-500 dark:text-ink-400 text-sm mb-6">
 				{totalCount > 0 ? `${totalCount} 分鐘模擬考` : "選擇科別"} ·
 				可中途暫停離開、稍後續答 · 完賽看分數與錯題回顧
@@ -247,8 +262,15 @@ function ExamStart() {
 								)}
 							</div>
 							<div className="text-xs text-ink-500 dark:text-ink-400 mt-1">
-								{totalCount} 題
+								{/* 不完整的年份要看它自己的題數 —— totalCount 是「勾選的科別
+								    在完整年份有幾題」,對 103 會多報一倍以上。 */}
+								{isHiddenYear(y.year) ? y.count : totalCount} 題
 							</div>
+							{isHiddenYear(y.year) && (
+								<div className="mt-1 text-[10px] text-ink-400 dark:text-ink-500 leading-snug">
+									{HIDDEN_YEAR_NOTE[y.year]}
+								</div>
+							)}
 							{starting === y.year && (
 								<div className="text-[11px] text-accent mt-2">準備中…</div>
 							)}

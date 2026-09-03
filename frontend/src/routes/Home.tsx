@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetchYears } from "../lib/yearsApi";
 import { Link } from "react-router-dom";
 import {
 	Bookmark,
@@ -62,7 +63,7 @@ export function Home() {
 	const [planOpen, setPlanOpen] = useState(false);
 
 	useEffect(() => {
-		api.get<YearMeta[]>("/api/questions/_meta/years").then(setYears);
+		fetchYears().then(setYears);
 		api
 			.get<Stats>("/api/review/stats")
 			.then(setStats)
