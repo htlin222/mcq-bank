@@ -40,9 +40,9 @@
     "1399"
   ],
   "aml_unspecified": [
-    "64272",
-    "64269",
-    "64267"
+    "63911",
+    "63907",
+    "63908"
   ],
   "apl": [
     "63188",
@@ -243,7 +243,9 @@
     "2864",
     "2862"
   ],
-  "leukoerythroblastosis": [],
+  "leukoerythroblastosis": [
+    "62750"
+  ],
   "lgl_lymphocytosis": [
     "63261",
     "63260",
@@ -357,7 +359,10 @@
     "63696",
     "61019"
   ],
-  "paraprotein": [],
+  "paraprotein": [
+    "63784",
+    "63785"
+  ],
   "pernicious_anemia": [
     "1546",
     "1547",
@@ -371,9 +376,9 @@
     "1708"
   ],
   "platelet_aggregates": [
-    "66495",
-    "66493",
-    "66494"
+    "60929",
+    "3745",
+    "17753"
   ],
   "pll": [
     "4066",
@@ -402,7 +407,9 @@
     "66044",
     "64505"
   ],
-  "promyelocyte_post_atra": [],
+  "promyelocyte_post_atra": [
+    "60690"
+  ],
   "pronormoblast": [
     "60296",
     "65287",
