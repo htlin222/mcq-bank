@@ -25,6 +25,21 @@ const TIER_ORDER: Tier[] = ['full', 'half', 'lay'];
 const TIER_SCORE: Record<Tier, number> = { full: 1, half: 0.5, lay: 0 };
 const FUZZY_MIN_LEN = 5;
 
+// 已知會被誤判成拼字錯的反義詞對 —— Levenshtein ≤1 但臨床意義相反。
+// 不是要窮舉所有可能,只擋已知會撞到的:microcytic/macrocytic 差一個字元
+// 但一個是小球性、一個是大球性貧血,答錯字母不是「拼錯」是「答錯」。
+const DANGEROUS_PAIRS: [string, string][] = [
+  ['microcytic', 'macrocytic'],
+  ['microcyte', 'macrocyte'],
+  ['hypochromic', 'hyperchromic'],
+  ['hypocellular', 'hypercellular'],
+  ['hypoplastic', 'hyperplastic'],
+];
+
+function isDangerousPair(a: string, b: string): boolean {
+  return DANGEROUS_PAIRS.some(([x, y]) => (a === x && b === y) || (a === y && b === x));
+}
+
 export function normalizeTerm(s: string): string {
   return s
     .normalize('NFD')
@@ -60,7 +75,11 @@ function matchWords(typed: string[], expected: string[]): SpellingError[] | null
   const errs: SpellingError[] = [];
   for (let i = 0; i < typed.length; i++) {
     if (typed[i] === expected[i]) continue;
-    if (expected[i].length >= FUZZY_MIN_LEN && levenshtein(typed[i], expected[i]) <= 1) {
+    if (
+      expected[i].length >= FUZZY_MIN_LEN &&
+      levenshtein(typed[i], expected[i]) <= 1 &&
+      !isDangerousPair(typed[i], expected[i])
+    ) {
       errs.push({ typed: typed[i], expected: expected[i] });
       continue;
     }

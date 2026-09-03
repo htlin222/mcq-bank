@@ -78,3 +78,19 @@ test('格子數不硬閘 —— 3 格只填第一格但填對整個答案', () =
 test('空白作答是 miss,不是任何一層', () => {
   assert.equal(gradeSmear(['', '  '], DACRO).tier, 'miss');
 });
+
+test('⚠️ 危險反義詞不吃拼字容錯 —— macrocytic 不准判成 microcytic', () => {
+  const terms: AcceptedTerm[] = [{ text: 'microcytic anemia', tier: 'full' }];
+  assert.equal(gradeSmear(['macrocytic anemia'], terms).tier, 'miss');
+});
+
+test('危險反義詞清單不影響其他合法拼字容錯', () => {
+  // 確認這個修法沒有連坐傷到其他正常的拼字容錯案例
+  const g = gradeSmear(['dacrocyt'], DACRO);
+  assert.equal(g.score, 1);
+});
+
+test('危險反義詞清單涵蓋 -cyte 同源詞(microcyte/macrocyte)', () => {
+  const terms: AcceptedTerm[] = [{ text: 'microcyte', tier: 'full' }];
+  assert.equal(gradeSmear(['macrocyte'], terms).tier, 'miss');
+});
