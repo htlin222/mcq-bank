@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { HIDDEN_YEAR_NOTE, isHiddenYear } from '../lib/years';
+import { useSecretTap } from '../hooks/useSecretTap';
+import { fetchYears } from '../lib/yearsApi';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import {
@@ -29,6 +32,10 @@ type Stats = {
 
 export function ReviewIndex() {
   const [years, setYears] = useState<YearMeta[]>([]);
+  const reloadYears = useCallback(() => {
+    fetchYears().then(setYears);
+  }, []);
+  const secret = useSecretTap(reloadYears);
   const [stats, setStats] = useState<Stats | null>(null);
   // 跨年份到期佇列摘要 — CTA 與各年度的「N 張到期」小 badge 共用同一份。
   const [due, setDue] = useState<DueSummary | null>(null);
@@ -38,7 +45,7 @@ export function ReviewIndex() {
   const { me } = useMe();
 
   useEffect(() => {
-    api.get<YearMeta[]>('/api/questions/_meta/years').then(setYears);
+    reloadYears();
     api.get<Stats>('/api/review/stats').then(setStats).catch(() => setStats(null));
     api.get<DueSummary>('/api/review/due').then(setDue).catch(() => setDue(null));
     let cancelled = false;
@@ -77,7 +84,17 @@ export function ReviewIndex() {
 
   return (
     <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2">複習模式</h1>
+      {/* 標題連點 7 下 → 顯示/隱藏不完整年份(見 hooks/useSecretTap.ts)。
+          select-none:連點時不要把標題選起來,那在手機上會跳出選字工具列。 */}
+      <h1
+        className="font-serif text-3xl text-ink-900 dark:text-ink-100 mb-2 select-none"
+        onClick={secret.onClick}
+      >
+        複習模式
+      </h1>
+      {secret.message && (
+        <p className="text-ink-400 dark:text-ink-500 text-xs mb-2">{secret.message}</p>
+      )}
       <p className="text-ink-500 dark:text-ink-400 text-sm mb-8">
         一題一答 · 可協作編輯詳解 · 留言討論
       </p>
@@ -165,12 +182,25 @@ export function ReviewIndex() {
                   )}
                 </div>
                 <div className="text-xs text-ink-500 dark:text-ink-400">{y.count} 題</div>
+                {isHiddenYear(y.year) && (
+                  <span className="text-[10px] px-1.5 py-0.5 border border-ink-300 dark:border-ink-600 text-ink-500 dark:text-ink-400 rounded">
+                    不完整
+                  </span>
+                )}
                 {(dueByYear.get(y.year) ?? 0) > 0 && (
                   <div className="ml-auto text-[11px] text-accent">
                     {dueByYear.get(y.year)} 張到期
                   </div>
                 )}
               </div>
+
+              {/* 解鎖後才看得到的年份要講清楚為什麼被藏起來 —— 少了這一行,
+                  使用者看到的只是一個題數比較少的年份,會以為那年真的只考 42 題。 */}
+              {isHiddenYear(y.year) && (
+                <div className="mt-1 text-[10px] text-ink-400 dark:text-ink-500 leading-snug">
+                  {HIDDEN_YEAR_NOTE[y.year]}
+                </div>
+              )}
 
               {/* Progress bar — % of questions in this year ever attempted */}
               {/* eink:軌道補黑框,否則 0% 時整條被洗白、看不見 */}

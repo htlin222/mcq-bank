@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { fetchYears } from "../lib/yearsApi";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { GROUPS } from "../lib/groups";
@@ -97,8 +98,7 @@ export function CustomTest() {
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		api
-			.get<YearMeta[]>("/api/questions/_meta/years")
+		fetchYears()
 			.then(setYearMeta)
 			.catch(() => {});
 		api
