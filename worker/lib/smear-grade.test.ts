@@ -94,3 +94,15 @@ test('危險反義詞清單涵蓋 -cyte 同源詞(microcyte/macrocyte)', () => {
   const terms: AcceptedTerm[] = [{ text: 'microcyte', tier: 'full' }];
   assert.equal(gradeSmear(['macrocyte'], terms).tier, 'miss');
 });
+
+test('⚠️ osteoblast/osteoclast 是題庫裡實際存在的相反細胞,不准互相容錯', () => {
+  // 造骨 vs 蝕骨,兩者在 dx.json 各自獨立成題(Test-4-ANS.pdf n=35 / n=51)
+  assert.equal(gradeSmear(['osteoclast'], [{ text: 'Osteoblast', tier: 'full' }]).tier, 'miss');
+  assert.equal(gradeSmear(['osteoblast'], [{ text: 'Osteoclast', tier: 'full' }]).tier, 'miss');
+});
+
+test('⚠️ AMMoL/CMMoL 剛好卡在 FUZZY_MIN_LEN=5 邊界,長度閘門救不了它', () => {
+  // AMMoL(急性)與 CMMoL(慢性)骨髓單核球性白血病,縮寫恰好都是 5 字元
+  assert.equal(gradeSmear(['CMMoL'], [{ text: 'AMMoL', tier: 'full' }]).tier, 'miss');
+  assert.equal(gradeSmear(['AMMoL'], [{ text: 'CMMoL', tier: 'full' }]).tier, 'miss');
+});

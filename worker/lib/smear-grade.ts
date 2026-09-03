@@ -28,12 +28,19 @@ const FUZZY_MIN_LEN = 5;
 // 已知會被誤判成拼字錯的反義詞對 —— Levenshtein ≤1 但臨床意義相反。
 // 不是要窮舉所有可能,只擋已知會撞到的:microcytic/macrocytic 差一個字元
 // 但一個是小球性、一個是大球性貧血,答錯字母不是「拼錯」是「答錯」。
+//
+// osteoblast/osteoclast 與 AMMoL/CMMoL 是從 scripts/smear/data/dx.json 實際
+// 題庫裡逐字掃出來的 —— 前者是造骨/蝕骨兩種相反功能的細胞(dx_id: osteoblast
+// / osteoclast,各自獨立成題),後者是急性/慢性骨髓單核球性白血病的縮寫
+// (AMMoL 恰好 5 字元,卡在 FUZZY_MIN_LEN 的邊界上,長度閘門救不了它)。
 const DANGEROUS_PAIRS: [string, string][] = [
   ['microcytic', 'macrocytic'],
   ['microcyte', 'macrocyte'],
   ['hypochromic', 'hyperchromic'],
   ['hypocellular', 'hypercellular'],
   ['hypoplastic', 'hyperplastic'],
+  ['osteoblast', 'osteoclast'],
+  ['ammol', 'cmmol'],
 ];
 
 function isDangerousPair(a: string, b: string): boolean {
