@@ -1,0 +1,1711 @@
+[
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 1,
+  "raw": "AMoL",
+  "main": "AMoL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 2,
+  "raw": "MM",
+  "main": "MM",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 3,
+  "raw": "Pronormoblast (proerythroblast)",
+  "main": "Pronormoblast",
+  "alts": [
+   "proerythroblast"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 4,
+  "raw": "Polychromatophilic normoblast",
+  "main": "Polychromatophilic normoblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 5,
+  "raw": "Eosinophilic myelocyte",
+  "main": "Eosinophilic myelocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 6,
+  "raw": "Blast",
+  "main": "Blast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 7,
+  "raw": "Promyelocyte",
+  "main": "Promyelocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 8,
+  "raw": "Pro-megakaryocyte",
+  "main": "Pro-megakaryocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 9,
+  "raw": "Plasmoblast (Plasma cell 半對)",
+  "main": "Plasmoblast",
+  "alts": [],
+  "half": [
+   "Plasma cell"
+  ]
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 10,
+  "raw": "Monocyte",
+  "main": "Monocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 11,
+  "raw": "MM",
+  "main": "MM",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 12,
+  "raw": "Lymphoma (with BM involvement)",
+  "main": "Lymphoma",
+  "alts": [
+   "with BM involvement"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 13,
+  "raw": "Mitosis",
+  "main": "Mitosis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 14,
+  "raw": "Nucleated RBCs",
+  "main": "Nucleated RBCs",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 15,
+  "raw": "Promonocyte",
+  "main": "Promonocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 16,
+  "raw": "Pseudo pelger-huet anomaly",
+  "main": "Pseudo pelger-huet anomaly",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 17,
+  "raw": "Döhle body (toxic granulation)",
+  "main": "Döhle body",
+  "alts": [
+   "toxic granulation"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 18,
+  "raw": "MDS",
+  "main": "MDS",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 19,
+  "raw": "Eosinophil",
+  "main": "Eosinophil",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 20,
+  "raw": "Necrobiosis (cell necrosis)",
+  "main": "Necrobiosis",
+  "alts": [
+   "cell necrosis"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 21,
+  "raw": "AML",
+  "main": "AML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 22,
+  "raw": "Paraprotein",
+  "main": "Paraprotein",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 23,
+  "raw": "HLH",
+  "main": "HLH",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 24,
+  "raw": "Macrophage",
+  "main": "Macrophage",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 25,
+  "raw": "Niemann-Pick disease (Histocyte)",
+  "main": "Niemann-Pick disease",
+  "alts": [
+   "Histocyte"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 26,
+  "raw": "(Infectious) Mononucleosis",
+  "main": "Mononucleosis",
+  "alts": [
+   "Infectious"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 27,
+  "raw": "ALL (or lymphoblastic lymphoma)",
+  "main": "ALL",
+  "alts": [
+   "lymphoblastic lymphoma"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 28,
+  "raw": "Mantle cell lymphoma",
+  "main": "Mantle cell lymphoma",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 29,
+  "raw": "APML (APL)",
+  "main": "APML",
+  "alts": [
+   "APL"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 30,
+  "raw": "LBL (Lymphoma)",
+  "main": "LBL",
+  "alts": [
+   "Lymphoma"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 31,
+  "raw": "ATLL",
+  "main": "ATLL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 32,
+  "raw": "WM (LPL)",
+  "main": "WM",
+  "alts": [
+   "LPL"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 33,
+  "raw": "CML",
+  "main": "CML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 34,
+  "raw": "APML (AML 半對)",
+  "main": "APML",
+  "alts": [],
+  "half": [
+   "AML"
+  ]
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 35,
+  "raw": "MDS",
+  "main": "MDS",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 36,
+  "raw": "CML acute blast phase",
+  "main": "CML acute blast phase",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 37,
+  "raw": "Multinucleated erythroblast (or MDS)",
+  "main": "Multinucleated erythroblast",
+  "alts": [
+   "MDS"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 38,
+  "raw": "Leukoerythroblastosis (Hemolysis 半對)",
+  "main": "Leukoerythroblastosis",
+  "alts": [],
+  "half": [
+   "Hemolysis"
+  ]
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 39,
+  "raw": "Hypersegmented PMN",
+  "main": "Hypersegmented PMN",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 40,
+  "raw": "Pernicious (or Megaloblastic) anemia",
+  "main": "Pernicious anemia",
+  "alts": [
+   "Megaloblastic"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 41,
+  "raw": "AML",
+  "main": "AML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 42,
+  "raw": "MAHA (Hemolysis, DIC)",
+  "main": "MAHA",
+  "alts": [
+   "Hemolysis",
+   "DIC"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 43,
+  "raw": "AML, M4",
+  "main": "AML, M4",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 44,
+  "raw": "Prolymphocytic leukemia (Lymphoma 半對)",
+  "main": "Prolymphocytic leukemia",
+  "alts": [],
+  "half": [
+   "Lymphoma"
+  ]
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 45,
+  "raw": "Dysplastic Megakaryocyte",
+  "main": "Dysplastic Megakaryocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 46,
+  "raw": "Basophilic stipping (or Led poisoning)",
+  "main": "Basophilic stipping",
+  "alts": [
+   "Led poisoning"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 47,
+  "raw": "Cold Agglutination",
+  "main": "Cold Agglutination",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 48,
+  "raw": "Thalassemia",
+  "main": "Thalassemia",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 49,
+  "raw": "Howell-Jolly bodies",
+  "main": "Howell-Jolly bodies",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 50,
+  "raw": "Pappenheimer bodies",
+  "main": "Pappenheimer bodies",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 51,
+  "raw": "Malaria",
+  "main": "Malaria",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-1-ANS.pdf",
+  "n": 52,
+  "raw": "Cancer nests / Metastatic cancer",
+  "main": "Cancer nests / Metastatic cancer",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 1,
+  "raw": "Bernard Soulier sx (large platelet)",
+  "main": "Bernard Soulier sx",
+  "alts": [
+   "large platelet"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 2,
+  "raw": "May Hegglin sx",
+  "main": "May Hegglin sx",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 3,
+  "raw": "Giant platelet",
+  "main": "Giant platelet",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 4,
+  "raw": "Bite cell G6PD (Heinz body)",
+  "main": "Bite cell G6PD",
+  "alts": [
+   "Heinz body"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 5,
+  "raw": "Rouleau formation",
+  "main": "Rouleau formation",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 6,
+  "raw": "IDA",
+  "main": "IDA",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 7,
+  "raw": "Thalassemia major",
+  "main": "Thalassemia major",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 8,
+  "raw": "Nucleated RBC",
+  "main": "Nucleated RBC",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 9,
+  "raw": "Teardrop RBC",
+  "main": "Teardrop RBC",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 10,
+  "raw": "Atypical lymphocyte",
+  "main": "Atypical lymphocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 11,
+  "raw": "CML",
+  "main": "CML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 12,
+  "raw": "ET",
+  "main": "ET",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 13,
+  "raw": "Lymphoma cell",
+  "main": "Lymphoma cell",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 14,
+  "raw": "Ring sideroblast",
+  "main": "Ring sideroblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 15,
+  "raw": "Basophilic stippling (Lead poisoning)",
+  "main": "Basophilic stippling",
+  "alts": [
+   "Lead poisoning"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 16,
+  "raw": "macrophage",
+  "main": "macrophage",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 17,
+  "raw": "Hypersegmented PMN",
+  "main": "Hypersegmented PMN",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 18,
+  "raw": "metastatic cancer",
+  "main": "metastatic cancer",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 19,
+  "raw": "APML, M3",
+  "main": "APML, M3",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 20,
+  "raw": "Histiocyte",
+  "main": "Histiocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 21,
+  "raw": "AMoL (monoblast)",
+  "main": "AMoL",
+  "alts": [
+   "monoblast"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 22,
+  "raw": "AML",
+  "main": "AML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 23,
+  "raw": "Burr cell (uremia)",
+  "main": "Burr cell",
+  "alts": [
+   "uremia"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 24,
+  "raw": "Cabot Ring",
+  "main": "Cabot Ring",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 25,
+  "raw": "cold hemagglutination",
+  "main": "cold hemagglutination",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 26,
+  "raw": "Eosinophil",
+  "main": "Eosinophil",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 27,
+  "raw": "polychromasia",
+  "main": "polychromasia",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 28,
+  "raw": "dwarf megakaryocyte",
+  "main": "dwarf megakaryocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 29,
+  "raw": "atypical lymphocyte",
+  "main": "atypical lymphocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 30,
+  "raw": "megakaryocyte",
+  "main": "megakaryocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 31,
+  "raw": "small lymphocyte",
+  "main": "small lymphocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 32,
+  "raw": "smudge cell",
+  "main": "smudge cell",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 33,
+  "raw": "monocyte",
+  "main": "monocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 34,
+  "raw": "Basophil",
+  "main": "Basophil",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 35,
+  "raw": "lymphoblast",
+  "main": "lymphoblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 36,
+  "raw": "Hypolobulated PMN (hypogranular PMN)",
+  "main": "Hypolobulated PMN",
+  "alts": [
+   "hypogranular PMN"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 37,
+  "raw": "AML, myeloblast",
+  "main": "AML, myeloblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 38,
+  "raw": "Toxic granule",
+  "main": "Toxic granule",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 39,
+  "raw": "LGL lymphocytosis",
+  "main": "LGL lymphocytosis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 40,
+  "raw": "Lymphoma involve",
+  "main": "Lymphoma involve",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 41,
+  "raw": "AML, M2",
+  "main": "AML, M2",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 42,
+  "raw": "RAEB, MDS",
+  "main": "RAEB, MDS",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 43,
+  "raw": "metastatic ca",
+  "main": "metastatic ca",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 44,
+  "raw": "LGL",
+  "main": "LGL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 45,
+  "raw": "promyelocyte s/p ATRA",
+  "main": "promyelocyte s/p ATRA",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 46,
+  "raw": "AMoL",
+  "main": "AMoL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 47,
+  "raw": "Hemophagocytosis",
+  "main": "Hemophagocytosis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 48,
+  "raw": "mast cell",
+  "main": "mast cell",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 49,
+  "raw": "Iron overload",
+  "main": "Iron overload",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-2-ANS.pdf",
+  "n": 50,
+  "raw": "malaria",
+  "main": "malaria",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 1,
+  "raw": "IM (atypical lymphocyte)",
+  "main": "IM",
+  "alts": [
+   "atypical lymphocyte"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 2,
+  "raw": "AML, M3",
+  "main": "AML, M3",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 3,
+  "raw": "AML",
+  "main": "AML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 4,
+  "raw": "Leukoerythroblastosis (AML, M7)",
+  "main": "Leukoerythroblastosis",
+  "alts": [
+   "AML",
+   "M7"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 5,
+  "raw": "ALL",
+  "main": "ALL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 6,
+  "raw": "MDS (or AML M6)",
+  "main": "MDS",
+  "alts": [
+   "AML M6"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 7,
+  "raw": "AML M6, (Arrow : Pronormoblast)",
+  "main": "AML M6",
+  "alts": [
+   "Arrow : Pronormoblast"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 8,
+  "raw": "PLL",
+  "main": "PLL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 9,
+  "raw": "Monocytes",
+  "main": "Monocytes",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 10,
+  "raw": "Lymphocytes (Sezary cell)",
+  "main": "Lymphocytes",
+  "alts": [
+   "Sezary cell"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 11,
+  "raw": "Thalassemias, hemolysis (MAHA)",
+  "main": "Thalassemias, hemolysis",
+  "alts": [
+   "MAHA"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 12,
+  "raw": "Large granular lymphocytes",
+  "main": "Large granular lymphocytes",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 13,
+  "raw": "hair cell leukemia",
+  "main": "hair cell leukemia",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 14,
+  "raw": "plasmacytoid lymphocyte",
+  "main": "plasmacytoid lymphocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 15,
+  "raw": "mantle cell lymphoma",
+  "main": "mantle cell lymphoma",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 16,
+  "raw": "Burkitt lymphoma (or high grade B)",
+  "main": "Burkitt lymphoma",
+  "alts": [
+   "high grade B"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 17,
+  "raw": "MZL",
+  "main": "MZL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 18,
+  "raw": "A = lymphocytes, CLL ; B = monocytes, mononucleosis (IM)",
+  "main": "A = lymphocytes, CLL ; B = monocytes, mononucleosis",
+  "alts": [
+   "IM"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 19,
+  "raw": "Atypical lymphocytes",
+  "main": "Atypical lymphocytes",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 20,
+  "raw": "ATLL",
+  "main": "ATLL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 21,
+  "raw": "CML",
+  "main": "CML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 22,
+  "raw": "Basophil",
+  "main": "Basophil",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 23,
+  "raw": "Promyelocyte",
+  "main": "Promyelocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 24,
+  "raw": "Blast",
+  "main": "Blast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 25,
+  "raw": "CML blast phase",
+  "main": "CML blast phase",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 26,
+  "raw": "Pseudo-pelger huet anomaly",
+  "main": "Pseudo-pelger huet anomaly",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 27,
+  "raw": "Dwarf mega.",
+  "main": "Dwarf mega.",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 28,
+  "raw": "Proerythroblast",
+  "main": "Proerythroblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 29,
+  "raw": "Multinucleated Proerythroblast",
+  "main": "Multinucleated Proerythroblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 30,
+  "raw": "Pernicious anemia (Howell jolle body) (giant band)",
+  "main": "Pernicious anemia",
+  "alts": [
+   "Howell jolle body",
+   "giant band"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 31,
+  "raw": "Giant platelet",
+  "main": "Giant platelet",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 32,
+  "raw": "Mitosis",
+  "main": "Mitosis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 33,
+  "raw": "Blast",
+  "main": "Blast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 34,
+  "raw": "Dysplastic MGKs",
+  "main": "Dysplastic MGKs",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 35,
+  "raw": "hypoplastic (or hypocellular) MDS",
+  "main": "hypoplastic MDS",
+  "alts": [
+   "hypocellular"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 36,
+  "raw": "CMMoL",
+  "main": "CMMoL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 37,
+  "raw": "AML, M2",
+  "main": "AML, M2",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 38,
+  "raw": "APL",
+  "main": "APL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 39,
+  "raw": "Promonocyte",
+  "main": "Promonocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 40,
+  "raw": "AML, M4",
+  "main": "AML, M4",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 41,
+  "raw": "AML. M5",
+  "main": "AML. M5",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 42,
+  "raw": "Eosinophil",
+  "main": "Eosinophil",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 43,
+  "raw": "MDS (or leukoerythroblastosis)",
+  "main": "MDS",
+  "alts": [
+   "leukoerythroblastosis"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 44,
+  "raw": "Candidiasis",
+  "main": "Candidiasis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 45,
+  "raw": "IDA",
+  "main": "IDA",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 46,
+  "raw": "Acanthocytosis",
+  "main": "Acanthocytosis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 47,
+  "raw": "Pernicious anemia",
+  "main": "Pernicious anemia",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 48,
+  "raw": "Histocytes (or Hemophagocytosis)",
+  "main": "Histocytes",
+  "alts": [
+   "Hemophagocytosis"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 49,
+  "raw": "thalassemia",
+  "main": "thalassemia",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-3-ANS.pdf",
+  "n": 50,
+  "raw": "MM",
+  "main": "MM",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 1,
+  "raw": "promyelocyte",
+  "main": "promyelocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 2,
+  "raw": "Target cell",
+  "main": "Target cell",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 3,
+  "raw": "ALL-L3 (or Burkitts)",
+  "main": "ALL-L3",
+  "alts": [
+   "Burkitts"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 4,
+  "raw": "ATLL",
+  "main": "ATLL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 5,
+  "raw": "Lymphoma",
+  "main": "Lymphoma",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 6,
+  "raw": "cold agglutination",
+  "main": "cold agglutination",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 7,
+  "raw": "Toxic granule",
+  "main": "Toxic granule",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 8,
+  "raw": "Hereditary spherocytosis",
+  "main": "Hereditary spherocytosis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 9,
+  "raw": "aggregates (or sheet of platelet)",
+  "main": "aggregates",
+  "alts": [
+   "sheet of platelet"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 10,
+  "raw": "polychromatophilic Normoblast",
+  "main": "polychromatophilic Normoblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 11,
+  "raw": "polychromasia (or Reticulocyte)",
+  "main": "polychromasia",
+  "alts": [
+   "Reticulocyte"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 12,
+  "raw": "monocyte",
+  "main": "monocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 13,
+  "raw": "Pronormoblast",
+  "main": "Pronormoblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 14,
+  "raw": "macrophage",
+  "main": "macrophage",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 15,
+  "raw": "mitosis",
+  "main": "mitosis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 16,
+  "raw": "prolymphocyte",
+  "main": "prolymphocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 17,
+  "raw": "plasmacytoid lymphocyte",
+  "main": "plasmacytoid lymphocyte",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 18,
+  "raw": "pronormoblast",
+  "main": "pronormoblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 19,
+  "raw": "Dysplastic PMN (or MDS)",
+  "main": "Dysplastic PMN",
+  "alts": [
+   "MDS"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 20,
+  "raw": "AMMoL",
+  "main": "AMMoL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 21,
+  "raw": "Hypersegmented PMN",
+  "main": "Hypersegmented PMN",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 22,
+  "raw": "Toxic granule",
+  "main": "Toxic granule",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 23,
+  "raw": "Howell jolly body",
+  "main": "Howell jolly body",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 24,
+  "raw": "Burr cell",
+  "main": "Burr cell",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 25,
+  "raw": "ALL",
+  "main": "ALL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 26,
+  "raw": "AML",
+  "main": "AML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 27,
+  "raw": "AMoL",
+  "main": "AMoL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 28,
+  "raw": "MDS (or Erythroid Hyperplasia)",
+  "main": "MDS",
+  "alts": [
+   "Erythroid Hyperplasia"
+  ],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 29,
+  "raw": "AML, M6",
+  "main": "AML, M6",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 30,
+  "raw": "mantle lymphoma",
+  "main": "mantle lymphoma",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 31,
+  "raw": "Hairy cell leukemia",
+  "main": "Hairy cell leukemia",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 32,
+  "raw": "LGL lymphocytosis",
+  "main": "LGL lymphocytosis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 33,
+  "raw": "Pernicious anemia",
+  "main": "Pernicious anemia",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 34,
+  "raw": "Pure Red cell aplasia",
+  "main": "Pure Red cell aplasia",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 35,
+  "raw": "Osteoblast",
+  "main": "Osteoblast",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 36,
+  "raw": "Malaria",
+  "main": "Malaria",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 37,
+  "raw": "Candidiasis, fungal infection",
+  "main": "Candidiasis, fungal infection",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 38,
+  "raw": "Döhle body",
+  "main": "Döhle body",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 39,
+  "raw": "May-Hegglin anomaly",
+  "main": "May-Hegglin anomaly",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 40,
+  "raw": "IDA",
+  "main": "IDA",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 41,
+  "raw": "Gaucher's disease (or Histiocyte(",
+  "main": "Gaucher's disease (or Histiocyte(",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 42,
+  "raw": "AMoL",
+  "main": "AMoL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 43,
+  "raw": "metastatic cancer",
+  "main": "metastatic cancer",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 44,
+  "raw": "APML",
+  "main": "APML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 45,
+  "raw": "Niemann pick",
+  "main": "Niemann pick",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 46,
+  "raw": "HEmophagocytosis",
+  "main": "HEmophagocytosis",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 47,
+  "raw": "IM",
+  "main": "IM",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 48,
+  "raw": "APL",
+  "main": "APL",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 49,
+  "raw": "CML",
+  "main": "CML",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 50,
+  "raw": "Lymphoma",
+  "main": "Lymphoma",
+  "alts": [],
+  "half": []
+ },
+ {
+  "key": "Test-4-ANS.pdf",
+  "n": 51,
+  "raw": "Osteoclast",
+  "main": "Osteoclast",
+  "alts": [],
+  "half": []
+ }
+]
