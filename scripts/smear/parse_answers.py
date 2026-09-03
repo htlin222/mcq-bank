@@ -10,9 +10,11 @@
       AML, M4                → 括號外,是同一個答案的一部分
 """
 import re
+import sys
 
 HALF_MARK = "半對"
 LINE_RE = re.compile(r"^\s*(\d+)\s*[.、]\s*(.+?)\s*$")
+OR_PREFIX_RE = re.compile(r"^\s*or\s+", re.IGNORECASE)
 
 DECK_MAP = {
     "Test-1-ANS.pdf": "pre-test-A-2026.pdf",
@@ -30,6 +32,8 @@ def parse_answer_key(text: str) -> list[dict]:
             continue
         n, raw = int(m.group(1)), m.group(2).strip()
         main, alts, half = _split(raw)
+        if raw.count("(") != raw.count(")"):
+            print(f"⚠️  unbalanced parens in row {n}: {raw!r}", file=sys.stderr)
         rows.append({"n": n, "raw": raw, "main": main, "alts": alts, "half": half})
     return rows
 
@@ -41,6 +45,7 @@ def _split(raw: str) -> tuple[str, list[str], list[str]]:
     def take(m: re.Match) -> str:
         inner = m.group(1).strip()
         for part in [p.strip() for p in inner.split(",") if p.strip()]:
+            part = OR_PREFIX_RE.sub("", part).strip()
             if HALF_MARK in part:
                 cleaned = part.replace(HALF_MARK, "").strip()
                 if cleaned:
