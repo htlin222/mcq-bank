@@ -134,6 +134,86 @@ const ROUTES = [
     // 兩個字串都只存在於對話框裡(頁面上原本沒有),所以不會恆真。
     expectAfter: ['仍要交卷', '回去作答'],
   },
+  {
+    path: '/smear/s/e2e-1',
+    name: '抹片練習 → 作答後的判定(四層 tier badge,只在這個瞬間存在)',
+    // GradeReveal 的四層(✓ full / ◐ half / ~ lay / ✗ miss)全部只在「作答後」
+    // 才上畫面 —— 同 /q/:id 那條「emerald/rose 只有揭曉時才存在」的理由,不做
+    // 這步互動,這一整組 e-ink 語意就從沒被掃過。fixture(smear_sessions_e2e-1_
+    // answer.json)刻意回 half tier + 拼字錯誤 + 三層 acceptedTerms,一次掃到
+    // badge 的填色(full 用 bg-accent 撈回黑)、外框(half 實線 / lay 虛線)、
+    // 拼字提醒的琥珀色框都在同一次掃描裡。
+    async interact(page) {
+      await page.getByPlaceholder('輸入診斷或細胞名稱…').fill('pronromoblast');
+      await page.getByRole('button', { name: '提交答案' }).click();
+      await page.waitForSelector('[data-testid="grade-reveal"]', { timeout: 10_000 });
+      await page.waitForTimeout(300);
+    },
+    // 「正解」「拼字提醒」都只存在於判定結果裡,頁面上原本沒有,不會恆真。
+    expectAfter: ['正解', '拼字提醒'],
+  },
+  {
+    path: '/smear/s/e2e-4',
+    name: '抹片練習 → 未命中判定(miss 徽章的玫瑰色系,e2e-1 從沒掃過)',
+    // e2e-1 的 grade.tier 是 half,acceptedTerms 雖然橫跨 full/half/lay 三層
+    // (chipCls 跟對應 badgeCls 同色系),但 miss **不會出現在 acceptedTerms
+    // 裡**(TERM_TIER_ORDER 只有 full/half/lay,miss 是型別上不可能的
+    // AcceptedTerm.tier)—— 於是 GradeReveal 的玫瑰色系(border-rose-600 /
+    // text-rose-700,miss 專屬)在 e2e-1 那支測試裡完全沒被畫出來過。這支補上
+    // 那唯一還沒掃過的顏色家族,四層 tier 的視覺處理才算真的全部掃完一輪。
+    async interact(page) {
+      await page.getByPlaceholder('輸入診斷或細胞名稱…').fill('totally unrelated answer');
+      await page.getByRole('button', { name: '提交答案' }).click();
+      await page.waitForSelector('[data-testid="grade-reveal"]', { timeout: 10_000 });
+      await page.waitForTimeout(300);
+    },
+    // 「未命中」只存在於判定結果裡,頁面上原本沒有,不會恆真。
+    expectAfter: ['未命中'],
+  },
+  {
+    path: '/smear/dx/dacrocyte',
+    name: '抹片診斷詳情 → 提報 + 投票(虛線 accent 徽章、投票鈕按下的實心玫瑰色,兩者都只在互動後才存在)',
+    // GradeReveal 的 TIER_META 只在「作答結果」裡出現過三種既有配色(填色/實線
+    // /虛線),這裡是**同一份 TIER_META 之外**的新組合:提報中的徽章是
+    // `border-dashed border-accent text-accent`(虛線 + accent,不是 GradeReveal
+    // 的虛線 ink-400)。按下「反對」之後投票鈕變成 `bg-rose-600 text-white` 實心 ——
+    // GradeReveal 的 miss 只用 rose 當外框,從沒有實心玫瑰色被畫出來過。
+    // fixture(smear_dx_dacrocyte_terms.json / smear_terms_dacrocyte-open-1_
+    // votes.json)把提報者設成別人,好讓投票鈕真的渲染出來(對自己的提報不能投票)。
+    async interact(page) {
+      await page
+        .getByPlaceholder('輸入診斷或細胞名稱的另一種寫法…')
+        .fill('e-ink-test-term');
+      await page.getByRole('button', { name: '送出提報' }).click();
+      await page.waitForTimeout(500);
+      await page.getByRole('button', { name: /反對/ }).click();
+      await page.waitForTimeout(300);
+    },
+    // 「投票中」「反對」都只在提報成功後才出現,頁面上原本沒有,不會恆真。
+    expectAfter: ['投票中', '反對'],
+  },
+  {
+    path: '/smear/s/e2e-result/result',
+    name: '抹片成績頁(主題分類進度條,同 PacingCard 的 bg-accent 填色 + eink:border 軌道,但是新元件的第一次掃描)',
+    // GradeReveal 的 tier badge 已經在上面兩條掃過(填色/實線/虛線/玫瑰色系),
+    // 這裡真正沒被掃過的是**主題分類的進度條**——沿用 PacingCard 本週目標那條的
+    // 視覺語彙(填色 bg-accent 會被中和層撈回實心黑,軌道補 eink:border-black
+    // 避免 0% 時被洗白到看不見),但這是它在 `/smear` 這個功能底下第一次出現。
+    // 三題資料刻意讓 rbc 主題是 0%(dacrocyte 判定 miss)——0% 的軌道最容易在
+    // 中和層失手時整條消失,不是只測有內容的那幾條。
+    // 不需要 interact:成績頁一載入就會呼叫 finish + GET /sessions/:id 並直接
+    // 畫出主題分類,不像判定結果只在互動後才出現。
+    expectAfter: ['主題分類', '骨髓性', '紅血球系'],
+  },
+  {
+    path: '/smear?tab=history',
+    name: '抹片作答記錄(D4:「未完成」標籤 + 複習/全真模式 badge,從沒被掃過的分頁)',
+    // 這個分頁在 D4 的 smoke/eink 都沒被掛上路由,只加了 fixture ——
+    // 加新分頁時要問的是「這一頁有沒有哪一塊從來沒被掃過」(CLAUDE.md
+    // 歷屆考題面板那節的教訓),而 fixture 裡本來就混著已完成/未完成、
+    // 複習/全真四種組合,不需要另外注入資料就能一次掃到。
+    expectAfter: ['未完成', '全真模式', '複習模式'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是

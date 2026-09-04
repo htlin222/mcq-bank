@@ -66,6 +66,10 @@ import { Bookmarks } from "./routes/Bookmarks";
 import { Search } from "./routes/Search";
 import { Challenges } from "./routes/Challenges";
 import Videos from "./routes/Videos";
+import { Smear } from "./routes/Smear";
+import { SmearSession } from "./routes/SmearSession";
+import { SmearResult } from "./routes/SmearResult";
+import { SmearDx } from "./routes/SmearDx";
 
 // Lazy — keeps EmbedPDF's pdfium-wasm bundle off every other route.
 const Lectures = lazy(() => import("./routes/Lectures"));
@@ -196,7 +200,14 @@ export default function App() {
 					    而舊版分別在 640 / 768 / 1024 就放出來 —— 每個斷點**當下那一刻**
 					    都是最擠的,於是 640、768 這兩個寬度必定溢出(320 則是連
 					    品牌 + 工具列都塞不下)。底部列因此一路撐到 md,640–767 這段
-					    由它負責導覽,上面那條就只剩品牌 + 工具列。 */}
+					    由它負責導覽,上面那條就只剩品牌 + 工具列。
+
+					    「抹片」是第 9 個項目,加進最寬那一階(xl,和講義/影片/答案挑戰
+					    同一批冒出來)而不是另開一個 2xl 階 —— 8 項只需要 ~936px 卻用了
+					    1280px 的斷點,留了 ~344px 餘裕,遠大於再加一個中文兩字標籤所需
+					    的寬度。frontend/e2e/overflow.test.mjs 繞著 1279/1280 兩側取樣,
+					    9 項 + 更多鈕消失後的版面在 1280 仍不溢出(該支已更新並跑過)。
+					    往後再加項目,先看這階還有沒有餘裕,餘裕吃完才需要開 2xl。 */}
 					<nav className="hidden md:flex items-center gap-1 ml-6 text-sm shrink-0">
 						<NavItem to="/" end>
 							首頁
@@ -212,6 +223,8 @@ export default function App() {
 						    下拉收起來的那一階都得在列上補一顆。 */}
 						<NavItem to="/videos" className="hidden xl:block">影片</NavItem>
 						<NavItem to="/challenges" className="hidden xl:block">答案挑戰</NavItem>
+						{/* 第 9 項,理由見上面的斷點階梯註解。 */}
+						<NavItem to="/smear" className="hidden xl:block">抹片</NavItem>
 						<NavMore />
 					</nav>
 
@@ -294,6 +307,10 @@ export default function App() {
 					/>
 					<Route path="/videos" element={<Videos />} />
 					<Route path="/videos/:slug" element={<Videos />} />
+					<Route path="/smear" element={<Smear />} />
+					<Route path="/smear/dx/:id" element={<SmearDx />} />
+					<Route path="/smear/s/:id" element={<SmearSession />} />
+					<Route path="/smear/s/:id/result" element={<SmearResult />} />
 					<Route path="/profile" element={<Profile />} />
 					{/* 2048 休息小遊戲 —— 低調入口在個人頁,不進導覽列 */}
 					<Route path="/play" element={<Play />} />
@@ -421,6 +438,7 @@ function NavMore() {
 					<NavLink to="/lectures" className={itemCls}>講義</NavLink>
 					<NavLink to="/videos" className={itemCls}>影片</NavLink>
 					<NavLink to="/challenges" className={itemCls}>答案挑戰</NavLink>
+					<NavLink to="/smear" className={itemCls}>抹片</NavLink>
 				</div>
 			)}
 		</div>

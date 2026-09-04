@@ -163,6 +163,13 @@ export function isCacheableImageResponse(
 //                          幾秒內反映出來」—— 心跳、解析進度、暫存區內容全都
 //                          是活的狀態。快取一份「12 秒前」會讓精靈變成謊話,
 //                          使用者會對著一個永遠不動的畫面等下去。
+//   /api/smear/*           抹片練習(session 進度、成績、錯題本、詞條投票)
+//                          全部是可變的個人狀態,包含 /meta 這種看起來唯讀
+//                          的聚合統計 —— 它的內容跟著 smear_dx 的匯入進度
+//                          變,快取拿不到什麼好處卻會讓「剛加的診斷,篩選
+//                          比例卻凍住不動」這種漂移悄悄發生。見
+//                          sw-guards.test.ts 的「抹片練習的所有端點都不能
+//                          被快取」。
 //   anything non-GET       handled by method check at the call site
 const CACHEABLE_API: RegExp[] = [
   /^\/api\/questions(\?|$)/, // list + filters

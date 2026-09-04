@@ -1,0 +1,14 @@
+{
+	"tier": "half",
+	"score": 0.5,
+	"matched": "pronromoblast",
+	"canonical": "Pronormoblast",
+	"spellingErrors": [{ "typed": "pronromoblast", "expected": "pronormoblast" }],
+	"acceptedTerms": [
+		{ "text": "Pronormoblast", "tier": "full" },
+		{ "text": "proerythroblast", "tier": "full" },
+		{ "text": "rubriblast", "tier": "full" },
+		{ "text": "early normoblast", "tier": "half" },
+		{ "text": "red cell precursor", "tier": "lay" }
+	]
+}

@@ -1,0 +1,51 @@
+{
+	"id": "e2e-result",
+	"mode": "review",
+	"config": { "n": 3, "form": "any", "topics": ["myeloid", "rbc"], "sources": ["exam", "ash"] },
+	"started_at": 1700003000000,
+	"finished_at": 1700003600000,
+	"questions": [
+		{
+			"id": "exam-t1-005",
+			"dx_id": "auer_rod",
+			"source": "exam",
+			"image_key_view": "smear/exam/pre-test-A-2026-005-view.webp",
+			"image_key_full": "smear/exam/pre-test-A-2026-005-full.webp",
+			"prompt": "What cell?",
+			"image_note": null,
+			"topic": "myeloid",
+			"qtype": "cell",
+			"answered": true,
+			"my_tier": "full",
+			"my_score": 1
+		},
+		{
+			"id": "exam-t1-003",
+			"dx_id": "pronormoblast",
+			"source": "exam",
+			"image_key_view": "smear/exam/pre-test-A-2026-003-view.webp",
+			"image_key_full": "smear/exam/pre-test-A-2026-003-full.webp",
+			"prompt": "What cell?",
+			"image_note": null,
+			"topic": "myeloid",
+			"qtype": "cell",
+			"answered": true,
+			"my_tier": "half",
+			"my_score": 0.5
+		},
+		{
+			"id": "ash-dacrocyte-1",
+			"dx_id": "dacrocyte",
+			"source": "ash",
+			"image_key_view": "smear/ash/dacrocyte-1-view.webp",
+			"image_key_full": "smear/ash/dacrocyte-1-full.webp",
+			"prompt": null,
+			"image_note": null,
+			"topic": "rbc",
+			"qtype": "cell",
+			"answered": true,
+			"my_tier": "miss",
+			"my_score": 0
+		}
+	]
+}

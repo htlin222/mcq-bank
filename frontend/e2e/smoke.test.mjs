@@ -76,6 +76,55 @@ const ROUTES = [
     // debounce + fetch 都回來才畫得出來 —— 中途卸載沒收乾淨就會在這裡炸。
     expectText: '801 筆',
   },
+  {
+    path: '/smear/s/e2e-1',
+    name: '抹片練習作答頁(圖片 lightbox portal + 單一自由輸入框)',
+    // 這頁掛的是別處沒有的型態:點擊縮圖才掛載的全螢幕 lightbox portal
+    // (SmearImage),以及只送一個元素陣列給 /answer 的自由輸入框
+    // (AnswerInput)。「點擊放大」是縮圖疊字,證明 SmearImage 真的掛起來了。
+    expectText: '點擊放大',
+  },
+  {
+    path: '/smear/dx/dacrocyte',
+    name: '抹片診斷詳情(StaticContent 詳解 + 圖片格線 + 提報表單)',
+    // 這頁掛的是別處沒有的型態:GET /api/smear/dx/:id 一次餵出詳解 JSON、
+    // 已接受寫法、圖片清單與相關診斷四種資料,渲染路徑跟 /smear/s/:id 完全
+    // 不同(唯讀 StaticContent,不是 AnswerInput/GradeReveal)。斷言
+    // 「dacryocyte」而不是標題:標題是同步可得的 URL 參數渲染,光有它不能
+    // 證明 GET 回來的 terms/note/questions 真的餵進元件樹了。
+    expectText: 'dacryocyte',
+  },
+  {
+    path: '/smear?tab=search',
+    name: '抹片搜尋分頁(獨立索引,debounce 空狀態)',
+    // 掛的是別處沒有的型態:race-safe debounce(同 LectureSearchBox 的形狀)
+    // 但打的是完全獨立的 /api/smear/search,不是 MCQ 的 /api/search。空查詢
+    // 不發請求,直接斷言提示文字,證明這個分頁真的掛起來而不是停在佔位文字。
+    expectText: '輸入關鍵字開始搜尋診斷',
+  },
+  {
+    path: '/smear/s/e2e-result/result',
+    name: '抹片成績頁(D4:依序打 finish + GET /sessions/:id 再用 question_id 併起來)',
+    // 掛的是別處沒有的型態:兩支既有端點依序打完再用 question_id 手動 join
+    // (finish 給判定、GET /sessions/:id 給圖片),不是單一端點一次到位。
+    // 斷言主題分類的標籤,證明 finish 的 breakdown 真的被分組畫出來,而不是
+    // 卡在「載入中…」—— 那正是兩支請求沒接對時最容易出現的樣子。
+    expectText: '主題分類',
+  },
+  {
+    path: '/smear?tab=history',
+    name: '抹片作答記錄(D4:HistoryTab —— 未完成的全真模式不揭曉分數)',
+    // 掛的是別處沒有的型態:同一支列表混著「已完成/未完成」與「複習/全真」
+    // 四種組合,而未完成那一列刻意不畫分數區塊(見 Smear.tsx 的 HistoryRow
+    // 註解)。斷言「未完成」而不只是標題,證明清單真的抓回 fixture 裡那筆
+    // finished_at=null 的全真模式,而不是卡在「載入中…」。
+    expectText: '未完成',
+  },
+  {
+    path: '/smear?tab=wrong',
+    name: '抹片錯題本(D4:WrongTab —— 按診斷聚合、worst-first)',
+    expectText: '次答錯',
+  },
 ];
 
 // fixture 是從真實 API 抓下來的，而這個 repo 是公開的 —— 第一版就差點把 18 位
