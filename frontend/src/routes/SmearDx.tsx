@@ -334,58 +334,65 @@ function ProposalRow({
 				: { label: "投票中", cls: "border border-dashed border-accent text-accent" };
 
 	return (
-		<div className="flex flex-wrap items-center gap-2 rounded border border-ink-100 dark:border-ink-700 px-2.5 py-2 text-xs">
-			<span className={"px-2 py-0.5 rounded max-w-full break-words " + statusMeta.cls}>
-				{term.text} <span className="opacity-70">({FORM_LABEL[term.form]})</span>
-			</span>
-			<span className="text-ink-400 dark:text-ink-500">{statusMeta.label}</span>
-			{term.status === "open" && !isMine && (
-				<div className="flex items-center gap-1.5 ml-auto">
-					<button
-						type="button"
-						disabled={busy}
-						onClick={() => onVote(true)}
-						aria-pressed={myVote === true}
-						className={
-							"inline-flex items-center gap-1 px-2 py-1 rounded border disabled:opacity-40 " +
-							(myVote === true
-								? "border-accent bg-accent text-white"
-								: "border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-accent hover:text-accent")
-						}
-					>
-						<ThumbsUp size={12} /> 同意
-					</button>
-					<button
-						type="button"
-						disabled={busy}
-						onClick={() => onVote(false)}
-						aria-pressed={myVote === false}
-						className={
-							"inline-flex items-center gap-1 px-2 py-1 rounded border disabled:opacity-40 " +
-							(myVote === false
-								? "border-rose-600 bg-rose-600 text-white dark:border-rose-400 dark:bg-rose-500"
-								: "border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-rose-600 hover:text-rose-600")
-						}
-					>
-						<ThumbsDown size={12} /> 反對
-					</button>
-					{myVote !== undefined && (
+		<div className="rounded border border-ink-100 dark:border-ink-700 px-2.5 py-2 text-xs">
+			<div className="flex flex-wrap items-center gap-2">
+				<span className={"px-2 py-0.5 rounded max-w-full break-words " + statusMeta.cls}>
+					{term.text} <span className="opacity-70">({FORM_LABEL[term.form]})</span>
+				</span>
+				<span className="text-ink-400 dark:text-ink-500">{statusMeta.label}</span>
+				{term.status === "open" && !isMine && (
+					<div className="flex items-center gap-1.5 ml-auto">
 						<button
 							type="button"
 							disabled={busy}
-							onClick={onRetract}
-							title="收回我的票"
-							className="inline-flex items-center gap-1 px-1.5 py-1 rounded text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 disabled:opacity-40"
+							onClick={() => onVote(true)}
+							aria-pressed={myVote === true}
+							className={
+								"inline-flex items-center gap-1 px-2 py-1 rounded border disabled:opacity-40 " +
+								(myVote === true
+									? "border-accent bg-accent text-white"
+									: "border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-accent hover:text-accent")
+							}
 						>
-							<Undo2 size={12} />
+							<ThumbsUp size={12} /> 同意
 						</button>
-					)}
-				</div>
-			)}
-			{term.status === "open" && isMine && (
-				<span className="text-ink-400 dark:text-ink-500 ml-auto">
-					這是你的提報,等其他人投票
-				</span>
+						<button
+							type="button"
+							disabled={busy}
+							onClick={() => onVote(false)}
+							aria-pressed={myVote === false}
+							className={
+								"inline-flex items-center gap-1 px-2 py-1 rounded border disabled:opacity-40 " +
+								(myVote === false
+									? "border-rose-600 bg-rose-600 text-white dark:border-rose-400 dark:bg-rose-500"
+									: "border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-rose-600 hover:text-rose-600")
+							}
+						>
+							<ThumbsDown size={12} /> 反對
+						</button>
+						{myVote !== undefined && (
+							<button
+								type="button"
+								disabled={busy}
+								onClick={onRetract}
+								title="收回我的票"
+								className="inline-flex items-center gap-1 px-1.5 py-1 rounded text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 disabled:opacity-40"
+							>
+								<Undo2 size={12} />
+							</button>
+						)}
+					</div>
+				)}
+				{term.status === "open" && isMine && (
+					<span className="text-ink-400 dark:text-ink-500 ml-auto">
+						這是你的提報,等其他人投票
+					</span>
+				)}
+			</div>
+			{term.rationale && (
+				<p className="mt-1.5 text-ink-500 dark:text-ink-400 break-words">
+					{term.rationale}
+				</p>
 			)}
 		</div>
 	);
