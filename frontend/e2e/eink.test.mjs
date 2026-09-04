@@ -134,6 +134,24 @@ const ROUTES = [
     // 兩個字串都只存在於對話框裡(頁面上原本沒有),所以不會恆真。
     expectAfter: ['仍要交卷', '回去作答'],
   },
+  {
+    path: '/smear/s/e2e-1',
+    name: '抹片練習 → 作答後的判定(四層 tier badge,只在這個瞬間存在)',
+    // GradeReveal 的四層(✓ full / ◐ half / ~ lay / ✗ miss)全部只在「作答後」
+    // 才上畫面 —— 同 /q/:id 那條「emerald/rose 只有揭曉時才存在」的理由,不做
+    // 這步互動,這一整組 e-ink 語意就從沒被掃過。fixture(smear_sessions_e2e-1_
+    // answer.json)刻意回 half tier + 拼字錯誤 + 三層 acceptedTerms,一次掃到
+    // badge 的填色(full 用 bg-accent 撈回黑)、外框(half 實線 / lay 虛線)、
+    // 拼字提醒的琥珀色框都在同一次掃描裡。
+    async interact(page) {
+      await page.getByPlaceholder('輸入診斷或細胞名稱…').fill('pronromoblast');
+      await page.getByRole('button', { name: '提交答案' }).click();
+      await page.waitForSelector('[data-testid="grade-reveal"]', { timeout: 10_000 });
+      await page.waitForTimeout(300);
+    },
+    // 「正解」「拼字提醒」都只存在於判定結果裡,頁面上原本沒有,不會恆真。
+    expectAfter: ['正解', '拼字提醒'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是

@@ -6,6 +6,7 @@ import { ApiError } from "../../lib/api";
 import {
 	fetchSmearMeta,
 	createSmearSession,
+	SMEAR_TOPIC_LABELS,
 	type SmearMeta,
 	type SmearMode,
 	type SmearForm,
@@ -14,16 +15,9 @@ import {
 // 開始抹片練習/全真的設定對話框 —— 同 ExportDialog 的「置中型」對話框結構
 // (`.dialog-scrim` + `max-h-full` 的內層卡片,不是 `.dialog-sheet-*` 那組滿版
 // sheet;見 CLAUDE.md「對話框的安全區」那節的分類)。不要用 vh 單位,原因同上。
-
-const TOPIC_LABELS: Record<string, string> = {
-	myeloid: "骨髓性",
-	lymphoid: "淋巴性",
-	normal_reactive: "正常 / 反應性",
-	rbc: "紅血球系",
-	platelet: "血小板 / 巨核系",
-	infection: "感染相關",
-	other: "其他",
-};
+//
+// 主題標籤搬進 smearApi.ts 的 SMEAR_TOPIC_LABELS —— SmearSession.tsx 的提示
+// 功能也要用同一份,各寫一份的話加新主題會有一邊忘記改。
 
 const SOURCE_LABELS: Record<string, string> = {
 	exam: "歷屆考題",
@@ -264,7 +258,7 @@ export function StartDialog({
 												onChange={() => toggleTopic(t)}
 											/>
 											<span className="text-ink-700 dark:text-ink-200">
-												{TOPIC_LABELS[t] ?? t}{" "}
+												{SMEAR_TOPIC_LABELS[t] ?? t}{" "}
 												<span className="text-ink-400 dark:text-ink-500 text-xs">
 													{pct}%
 												</span>

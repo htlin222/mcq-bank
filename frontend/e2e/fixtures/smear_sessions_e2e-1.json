@@ -1,0 +1,33 @@
+{
+	"id": "e2e-1",
+	"mode": "review",
+	"config": { "n": 2, "form": "any", "topics": ["myeloid"], "sources": ["exam"] },
+	"started_at": 1700000000000,
+	"finished_at": null,
+	"questions": [
+		{
+			"id": "exam-t1-003",
+			"dx_id": "pronormoblast",
+			"source": "exam",
+			"image_key_view": "smear/exam/pre-test-A-2026-003-view.webp",
+			"image_key_full": "smear/exam/pre-test-A-2026-003-full.webp",
+			"prompt": "What cell?",
+			"image_note": null,
+			"topic": "myeloid",
+			"qtype": "cell",
+			"answered": false
+		},
+		{
+			"id": "exam-t1-004",
+			"dx_id": "polychromatophilic_normoblast",
+			"source": "exam",
+			"image_key_view": "smear/exam/pre-test-A-2026-004-view.webp",
+			"image_key_full": "smear/exam/pre-test-A-2026-004-full.webp",
+			"prompt": "What cell?",
+			"image_note": null,
+			"topic": "myeloid",
+			"qtype": "cell",
+			"answered": false
+		}
+	]
+}

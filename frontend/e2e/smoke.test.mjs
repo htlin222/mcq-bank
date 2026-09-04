@@ -76,6 +76,14 @@ const ROUTES = [
     // debounce + fetch 都回來才畫得出來 —— 中途卸載沒收乾淨就會在這裡炸。
     expectText: '801 筆',
   },
+  {
+    path: '/smear/s/e2e-1',
+    name: '抹片練習作答頁(圖片 lightbox portal + 單一自由輸入框)',
+    // 這頁掛的是別處沒有的型態:點擊縮圖才掛載的全螢幕 lightbox portal
+    // (SmearImage),以及只送一個元素陣列給 /answer 的自由輸入框
+    // (AnswerInput)。「點擊放大」是縮圖疊字,證明 SmearImage 真的掛起來了。
+    expectText: '點擊放大',
+  },
 ];
 
 // fixture 是從真實 API 抓下來的，而這個 repo 是公開的 —— 第一版就差點把 18 位

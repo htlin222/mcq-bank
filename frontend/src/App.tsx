@@ -68,6 +68,7 @@ import { Search } from "./routes/Search";
 import { Challenges } from "./routes/Challenges";
 import Videos from "./routes/Videos";
 import { Smear } from "./routes/Smear";
+import { SmearSession } from "./routes/SmearSession";
 
 // Lazy — keeps EmbedPDF's pdfium-wasm bundle off every other route.
 const Lectures = lazy(() => import("./routes/Lectures"));
@@ -306,9 +307,10 @@ export default function App() {
 					<Route path="/videos" element={<Videos />} />
 					<Route path="/videos/:slug" element={<Videos />} />
 					<Route path="/smear" element={<Smear />} />
-					{/* 練習頁的真內容留給後續任務 —— 這裡只確保 StartDialog 送出後
-					    導到的路徑有東西可以掛,不會 404。 */}
-					<Route path="/smear/s/:id" element={<SmearSessionPlaceholder />} />
+					<Route path="/smear/s/:id" element={<SmearSession />} />
+					{/* 成績/檢討頁留給後續任務 —— 這裡只確保 finish() 之後導到的路徑
+					    有東西可以掛,不會 404。 */}
+					<Route path="/smear/s/:id/result" element={<SmearResultPlaceholder />} />
 					<Route path="/profile" element={<Profile />} />
 					{/* 2048 休息小遊戲 —— 低調入口在個人頁,不進導覽列 */}
 					<Route path="/play" element={<Play />} />
@@ -495,14 +497,14 @@ function LastPathTracker() {
 	return null;
 }
 
-// StartDialog 送出後導到這裡 —— 真正的作答畫面留給後續任務。先確保這條路徑
+// finish() 之後導到這裡 —— 真正的成績/檢討畫面留給後續任務。先確保這條路徑
 // 有東西可以掛(不 404),且能讀出 session id 供之後接上真內容時參考。
-function SmearSessionPlaceholder() {
+function SmearResultPlaceholder() {
 	const { id } = useParams<{ id: string }>();
 	return (
 		<div className="max-w-md mx-auto px-4 py-20 text-center">
 			<p className="text-ink-500 dark:text-ink-400">
-				Session {id} — 練習頁尚未實作
+				Session {id} — 成績頁尚未實作
 			</p>
 			<Link
 				to="/smear"
