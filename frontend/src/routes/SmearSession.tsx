@@ -309,6 +309,7 @@ export function SmearSession() {
 					key={current.id}
 					submitting={submitting}
 					topicHint={SMEAR_TOPIC_LABELS[current.topic] ?? current.topic}
+					mode={session.mode}
 					onSubmit={(value, hintUsed) => void handleSubmit(current, value, hintUsed)}
 				/>
 			) : currentResult.kind === "grade" ? (
