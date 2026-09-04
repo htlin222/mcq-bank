@@ -47,6 +47,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "Acanthocytes are erythrocytes studded with a variable number of irregularly spaced, unevenly sized spicules of varying length and width, producing an asymmetric, spiny surface contour distinct from the short, uniform spicules of an echinocyte."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "形狀:"
       },
       {
@@ -231,6 +249,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "Basophilic stippling consists of numerous fine-to-coarse, dark blue-purple granules (aggregated ribosomal RNA) diffusely scattered throughout the cytoplasm of an otherwise normally shaped erythrocyte, ranging from finely punctate stippling to coarse, discrete granules classically associated with lead poisoning."
       }
      ]
     },
@@ -442,6 +478,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "A bite cell shows a single smooth, semicircular concavity removed from one margin of the erythrocyte, as if a bite had been taken out of it, resulting from splenic macrophage pitting of a Heinz body-laden portion of membrane during an oxidative hemolytic episode."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "形狀:"
       },
       {
@@ -626,6 +680,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "A Cabot ring appears as a thin, threadlike, purple-red loop- or figure-eight-shaped structure within an otherwise normal-appearing mature erythrocyte, thought to represent a residual mitotic spindle remnant or nuclear envelope fragment."
       }
      ]
     },
@@ -824,6 +896,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "A codocyte (target cell) shows a bull's-eye appearance, with a central dot of condensed hemoglobin surrounded by a pale ring and an outer rim of peripheral hemoglobin, reflecting a relative excess of membrane surface area to cell volume."
       }
      ]
     },
@@ -1036,6 +1126,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "A dacrocyte is an erythrocyte with one rounded pole and the opposite pole drawn out into a single elongated point, giving a teardrop or pear shape, classically seen admixed with nucleated red cells and left-shifted myeloid forms in a leukoerythroblastic smear."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "形狀:"
       },
       {
@@ -1222,6 +1330,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "An echinocyte displays numerous short, blunt spicules of uniform length and even spacing distributed symmetrically over the entire cell surface, producing a regular, sea-urchin-like or sunburst contour, in contrast to the irregular, unevenly spaced spicules of an acanthocyte."
       }
      ]
     },
@@ -1432,6 +1558,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "A Howell-Jolly body is a single (occasionally two), small, round, densely basophilic dark purple-black nuclear DNA remnant within an otherwise normal mature erythrocyte, reflecting loss of the spleen's normal pitting function."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "形狀:"
       },
       {
@@ -1618,6 +1762,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "A multinucleated erythroblast contains two or more discrete, separate nuclear lobes—rather than a single, merely lobulated nucleus—within one erythroid precursor, occasionally joined by a thin cytoplasmic bridge reflecting incomplete cytokinesis, a hallmark of dyserythropoiesis."
       }
      ]
     },
@@ -1831,6 +1993,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "A nucleated red blood cell (normoblast) is an erythroid precursor with a round, regular nucleus showing densely condensed, checkerboard-like chromatin and no visible nucleolus, set within hemoglobinized cytoplasm whose orange-pink tinge distinguishes it from the agranular, sky-blue cytoplasm of a small lymphocyte."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小:"
       },
       {
@@ -2018,6 +2198,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "Pappenheimer bodies are a small number of coarse, dark purple-blue cytoplasmic granules clustered near the periphery of the erythrocyte, representing iron-laden mitochondria/siderosomes that stain positive with Prussian blue iron stain."
       }
      ]
     },
@@ -2230,6 +2428,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "Polychromatophilic erythrocytes are slightly larger cells with a diffuse gray-blue to lilac tinge rather than the normal orange-red hue of a mature red cell, reflecting residual ribosomal RNA in these newly released reticulocytes, without any discrete granules."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "形狀:"
       },
       {
@@ -2415,6 +2631,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫):"
+      },
+      {
+       "type": "text",
+       "text": "On routine Wright-Giemsa stain a ring sideroblast is indistinguishable from a normal erythroid precursor, with a regular nuclear contour and stage-appropriate chromatin; only Prussian blue iron staining reveals a ring of at least five blue-black iron granules encircling at least one-third of the nuclear circumference."
       }
      ]
     },
@@ -2622,6 +2856,24 @@
      "content": [
       {
        "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Rouleau formation is recognized by erythrocytes stacked in a linear, coin-like array of uniform orientation, each individual cell retaining its normal biconcave contour, reflecting reduced surface zeta potential from elevated plasma proteins such as immunoglobulin or fibrinogen."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
        "text": "形狀：",
        "marks": [
         {
@@ -2821,6 +3073,24 @@
      "content": [
       {
        "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The peripheral smear shows red blood cells clumped into irregular, non-linear agglutinates of variable size, often with accompanying polychromasia and occasional spherocytes, a pattern that resolves on rewarming the specimen to 37°C."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
        "text": "哪一群細胞異常：",
        "marks": [
         {
@@ -2982,6 +3252,24 @@
      "content": [
       {
        "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The smear shows numerous small, densely hyperchromic spherocytes lacking central pallor, admixed with polychromatophilic cells reflecting a compensatory reticulocytosis."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
        "text": "哪一群細胞異常：",
        "marks": [
         {
@@ -3135,6 +3423,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The smear shows microcytic, hypochromic red blood cells with markedly widened central pallor, pronounced anisopoikilocytosis, and occasional pencil-shaped (elongated) cells."
       }
      ]
     },
@@ -3306,6 +3612,24 @@
      "content": [
       {
        "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Prussian blue (Perls’) stain of the bone marrow shows markedly increased hemosiderin within macrophages, and the peripheral smear may show Pappenheimer bodies (iron-containing inclusions) within circulating red blood cells."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
        "text": "哪一群細胞異常：",
        "marks": [
         {
@@ -3460,6 +3784,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The peripheral smear shows numerous schistocytes—triangular, helmet-shaped, or otherwise irregularly fragmented red blood cells with sharp angular borders—often accompanied by thrombocytopenia and polychromasia."
       }
      ]
     },
@@ -3631,6 +3973,24 @@
      "content": [
       {
        "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The peripheral smear shows oval macrocytes and hypersegmented neutrophils (nuclei with six or more lobes), while the bone marrow shows megaloblastic maturation with giant band forms and nuclear-cytoplasmic asynchrony."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
        "text": "哪一群細胞異常：",
        "marks": [
         {
@@ -3792,6 +4152,24 @@
      "content": [
       {
        "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Bone marrow examination shows near-complete absence of erythroid precursors at all stages, with normal myeloid and megakaryocytic cellularity, and the peripheral smear shows a normocytic, normochromic anemia with markedly reduced or absent polychromasia."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
        "text": "哪一群細胞異常：",
        "marks": [
         {
@@ -3945,6 +4323,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The smear shows microcytic, hypochromic red blood cells with relatively uniform sizing, numerous target cells, occasional teardrop cells, and basophilic stippling."
       }
      ]
     },
@@ -4117,6 +4513,24 @@
      "content": [
       {
        "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The smear shows severe microcytic, hypochromic red blood cells with marked anisopoikilocytosis, numerous target cells, teardrop cells, and circulating nucleated red blood cells reflecting extramedullary hematopoiesis."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
        "text": "哪一群細胞異常：",
        "marks": [
         {
@@ -4271,6 +4685,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The smear shows a thalassemic background of hypochromic red cells and target cells admixed with sharply angulated, helmet-shaped schistocytes, a combination that requires correlating platelet count and hemolytic markers to distinguish chronic thalassemic poikilocytosis from a superimposed acute microangiopathic process."
       }
      ]
     },
@@ -4434,6 +4866,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A large cell with a very high nuclear-to-cytoplasmic ratio, finely dispersed (open) chromatin, and one to several prominent nucleoli, surrounded by a thin rim of scant to moderately basophilic, agranular or sparsely granular cytoplasm that may contain Auer rods."
       }
      ]
     },
@@ -4634,6 +5084,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A discrete, well-demarcated, sky-blue to gray-blue oval or elongated cytoplasmic inclusion located near the periphery of an otherwise mature segmented or band neutrophil, representing an aggregate of residual rough endoplasmic reticulum."
       }
      ]
     },
@@ -4846,6 +5314,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A megakaryocyte with abnormal nuclear lobation—either multiple widely separated, non-fused round nuclei or a single non-lobated nucleus—sometimes accompanied by markedly reduced overall cell size, as in the micromegakaryocyte variant, rather than the single large, contiguous multilobated nucleus of a normal megakaryocyte."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -5032,6 +5518,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A mature neutrophil with reduced nuclear lobation (bilobed or non-segmented, pseudo-Pelger-Huët-like) and markedly decreased or absent specific cytoplasmic granules, giving the cytoplasm an unusually clear, hypogranular appearance."
       }
      ]
     },
@@ -5244,6 +5748,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A medium-sized myeloid precursor with a round, eccentrically placed, non-segmented nucleus and finely dispersed chromatin, whose cytoplasm is packed with coarse, uniformly sized, refractile orange-red specific granules admixed with residual basophilic cytoplasm."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -5428,6 +5950,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A mature neutrophil with six or more discrete nuclear lobes joined by thin chromatin strands, frequently accompanied by an overall increase in cell size (giant band or metamyelocyte forms) but otherwise normal cytoplasmic granulation."
       }
      ]
     },
@@ -5639,6 +6179,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A mature neutrophil with markedly reduced nuclear lobation—typically one or two lobes forming a dumbbell, peanut, or round/band shape—despite condensed, mature-appearing chromatin, often accompanied by decreased cytoplasmic granularity."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -5824,6 +6382,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A medium-to-large cell with a moderately high nuclear-to-cytoplasmic ratio and a folded, indented, or convoluted (brain-like) nucleus bearing a faint or single inconspicuous nucleolus, with gray-blue cytoplasm containing fine, unevenly distributed azurophilic granules and occasional vacuoles."
       }
      ]
     },
@@ -6037,6 +6613,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A large myeloid precursor with a round to oval, eccentrically placed nucleus and a single prominent nucleolus, its cytoplasm packed with numerous coarse, deep reddish-purple to violet-black primary (azurophilic) granules that often spare a paler perinuclear Golgi zone (hof)."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -6224,6 +6818,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A post-differentiation promyelocyte with a lobulated, bilobed, or butterfly-shaped nucleus and markedly diminished, pale, unevenly distributed cytoplasmic granules, representing an intermediate morphology between the hypergranular leukemic promyelocyte and a mature neutrophil."
       }
      ]
     },
@@ -6436,6 +7048,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A mature neutrophil with an acquired reduction in nuclear segmentation—typically a bilobed, dumbbell/pince-nez, or peanut-shaped nucleus, or a single round nucleus—with condensed, mature chromatin and variable cytoplasmic granularity, occurring alongside normally segmented neutrophils on the same smear."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -6622,6 +7252,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A mature, normally segmented neutrophil whose cytoplasm contains coarse, densely packed, deeply basophilic (dark purple-black) primary granules, often accompanied by increased cytoplasmic basophilia, vacuolation, and Döhle bodies."
       }
      ]
     },
@@ -6832,6 +7480,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The blast count reaches the diagnostic threshold for acute leukemia (≥20% of marrow nucleated cells), yet full granulocytic maturation is preserved, with promyelocytes, myelocytes, and mature neutrophils forming a continuum alongside the blasts; scattered blasts contain Auer rods, and dysplastic eosinophil precursors or neutrophils with prominent nucleoli may accompany t(8;21)-associated cases."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -6983,6 +7649,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Blasts and precursors of both the granulocytic and monocytic lineages co-exist in substantial proportions, spanning myeloblasts/promyelocytes through myelocytes and mature neutrophils alongside monoblasts, promonocytes, and monocytes; an abnormal eosinophil component with coarse, basophilic-tinged granules (M4Eo) may be seen in inv(16)-associated cases."
       }
      ]
     },
@@ -7159,6 +7843,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Large monoblasts with abundant deeply basophilic cytoplasm, round nuclei, finely dispersed chromatin, and one or two prominent nucleoli predominate in M5a, while promonocytes with folded, convoluted nuclei and fine azurophilic cytoplasmic granules predominate in M5b; granulocytic elements are essentially absent in both."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -7309,6 +8011,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Erythroid precursors comprising at least half of all nucleated marrow cells show marked dyserythropoiesis with megaloblastoid change, nuclear budding, and multinucleation, accompanying a myeloblast population that reaches at least 20% of the non-erythroid cells."
       }
      ]
     },
@@ -7486,6 +8206,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Blasts are medium to large with agranular or sparsely granular basophilic cytoplasm and irregular cytoplasmic blebs or pseudopod-like projections, often accompanied by dysplastic micromegakaryocytes and marrow fibrosis that produces a dry tap on aspiration."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -7637,6 +8375,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Large blasts with a high nuclear-to-cytoplasmic ratio, finely dispersed chromatin, and one or more prominent nucleoli replace normal marrow elements, and the presence of Auer rods within the cytoplasm confirms myeloid lineage."
       }
      ]
     },
@@ -7816,6 +8572,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Abnormal hypergranular promyelocytes with bilobed or reniform nuclei and cytoplasm packed with coarse azurophilic granules predominate, and bundles of multiple Auer rods within a single cell (“faggot cells”) are the hallmark finding; the microgranular variant instead shows scant or absent granules with folded nuclei that can mimic a monocytic leukemia."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -7967,6 +8741,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A full maturation spectrum of granulocytic precursors is present, from occasional blasts and promyelocytes through a prominent myelocyte bulge to bands and segmented neutrophils, typically accompanied by absolute basophilia and eosinophilia."
       }
      ]
     },
@@ -8144,6 +8936,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Myeloblasts — or, in roughly one-third of cases, lymphoblasts — comprise ≥20% of marrow or peripheral blood cells, morphologically indistinguishable from de novo acute leukemia, but set against a residual background of full granulocytic maturation and basophilia carried over from the antecedent chronic phase."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -8307,6 +9117,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Peripheral blood shows a sustained absolute monocytosis with monocytes and promonocytes at varying stages of maturation, frequently accompanied by dysplastic neutrophils with hypogranular cytoplasm and hyposegmented nuclei, and sometimes ring sideroblasts, while blasts remain below 20%."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -8456,6 +9284,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Numerous large, hyperlobulated (“staghorn”) megakaryocytes are increased in the marrow, and the peripheral blood shows a markedly elevated platelet count with giant platelets, without granulocytic left shift or significant dysplasia."
       }
      ]
     },
@@ -8632,6 +9478,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A markedly hypocellular marrow for the patient's age nonetheless contains dysplastic elements — hypogranular or hyposegmented neutrophils, ring sideroblasts, and small hypolobated megakaryocytes — distinguishing it from the sparsely cellular but otherwise unremarkable marrow of aplastic anemia."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -8780,6 +9644,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Immature granulocytic precursors (myelocytes to metamyelocytes) and nucleated red blood cells appear together in the peripheral blood, typically accompanied by teardrop-shaped red cells (dacrocytes), reflecting disruption or displacement of normal marrow architecture."
       }
      ]
     },
@@ -8944,6 +9826,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Marrow elements show dysplastic morphology — ring sideroblasts, hypogranular or hyposegmented neutrophils, and small hypolobated megakaryocytes — in a marrow that is often normo- to hypercellular despite cytopenias in the peripheral blood, with blasts remaining below 20%."
       }
      ]
     },
@@ -9123,6 +10023,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Erythroid precursors dominate the marrow with marked dyserythropoietic features, and the myeloblast percentage calculated among the non-erythroid cells sits at the critical threshold that separates myelodysplastic syndrome from acute erythroid leukemia (AML M6)."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -9286,6 +10204,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Marrow blasts are increased beyond the level seen in lower-risk MDS — 5–9% for RAEB-1 or 10–19% for RAEB-2 — accompanying dysplastic changes in one or more lineages, without yet reaching the 20% threshold that would define acute leukemia."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -9436,6 +10372,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A large lymphocyte with abundant pale blue-gray cytoplasm containing several coarse azurophilic granules, a low nuclear-to-cytoplasmic ratio, and a round nucleus with condensed chromatin and no visible nucleolus."
       }
      ]
     },
@@ -9648,6 +10602,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A blast cell of variable size with a high nuclear-to-cytoplasmic ratio, fine and evenly dispersed (\"stippled\") chromatin, one or two inconspicuous nucleoli, and scant agranular cytoplasm without Auer rods."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -9834,6 +10806,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A medium-to-large lymphoid cell with an irregular, often clefted or convoluted nuclear outline, coarse and unevenly clumped chromatin, a variably conspicuous nucleolus, and a moderate rim of basophilic cytoplasm."
       }
      ]
     },
@@ -10047,6 +11037,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A large lymphoid cell with deeply basophilic cytoplasm, a round to slightly eccentric nucleus with dispersed chromatin, and a single prominent nucleolus, often with a discernible perinuclear hof."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -10245,6 +11253,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A medium-sized lymphoid cell with an eccentric round nucleus showing coarse, lymphocyte-like chromatin that has not yet condensed into a clock-face pattern, moderate basophilic cytoplasm, and a perinuclear hof, but no distinct nucleolus."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -10430,6 +11456,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A medium-to-large lymphoid cell, roughly 1.5 to 2 times the size of a mature small lymphocyte, with moderately condensed chromatin and a single, strikingly prominent central nucleolus."
       }
      ]
     },
@@ -10642,6 +11686,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A lymphocyte with a markedly convoluted, cerebriform nuclear outline and condensed chromatin, a high nuclear-to-cytoplasmic ratio, and only a thin rim of basophilic cytoplasm."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -10828,6 +11890,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A degenerated, ruptured lymphocyte that appears as a diffusely smeared, poorly defined mass of loosely dispersed chromatin without an intact nuclear membrane or discernible cytoplasm — an artifact of slide preparation rather than a true cell."
       }
      ]
     },
@@ -11039,6 +12119,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The bone marrow and/or peripheral blood are replaced by sheets of lymphoblasts with a high nuclear-to-cytoplasmic ratio, finely dispersed chromatin, inconspicuous nucleoli, and scant agranular basophilic cytoplasm lacking Auer rods."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -11189,6 +12287,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The marrow and peripheral blood show a monomorphic population of medium-sized blast cells with deeply basophilic, vacuolated cytoplasm and multiple nucleoli, admixed with tingible-body macrophages producing a classic “starry sky” pattern."
       }
      ]
     },
@@ -11366,6 +12482,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Peripheral blood shows pleomorphic mature T lymphocytes with markedly polylobated, flower-shaped nuclei (“flower cells”) exhibiting multiple sharply demarcated nuclear lobes."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -11529,6 +12663,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Marrow or touch preparations show a monomorphic infiltrate of medium-sized lymphoid cells with deeply basophilic, vacuolated cytoplasm and multiple nucleoli, interspersed with pale tingible-body macrophages creating a “starry sky” appearance."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -11678,6 +12830,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Panel A shows a monomorphic population of small, mature-appearing lymphocytes with coarsely clumped (“soccer-ball”) chromatin and scant cytoplasm, accompanied by numerous smudge cells. Panel B shows pleomorphic, enlarged atypical lymphocytes with abundant deeply basophilic cytoplasm that molds around adjacent erythrocytes and irregular nuclear contours, varying markedly in size and shape from cell to cell."
       }
      ]
     },
@@ -11909,6 +13079,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Peripheral blood or marrow shows small-to-medium lymphoid cells with abundant pale blue cytoplasm bearing fine, hair-like circumferential projections and round-to-oval nuclei with smooth chromatin lacking nucleoli."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -12077,6 +13265,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Tissue or marrow sections show sheets of medium-sized lymphoblasts with a high nuclear-to-cytoplasmic ratio, finely dispersed chromatin, inconspicuous nucleoli, and scant basophilic cytoplasm, morphologically indistinguishable from the blasts of acute lymphoblastic leukemia."
       }
      ]
     },
@@ -12272,6 +13478,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Peripheral blood shows an increased population of large lymphocytes with abundant pale cytoplasm containing coarse azurophilic granules and round, mildly indented nuclei with condensed chromatin."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -12440,6 +13664,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Marrow aspirate or biopsy shows an infiltrate of atypical lymphoid cells—ranging from small mature-appearing lymphocytes to larger blastic forms depending on subtype—arranged in interstitial, nodular, or paratrabecular aggregates that efface the normal hematopoietic architecture."
       }
      ]
     },
@@ -12637,6 +13879,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Peripheral blood or marrow shows a monomorphic population of small-to-medium lymphocytes with irregular, cleaved (“notched”) nuclear contours, condensed chromatin, inconspicuous nucleoli, and scant cytoplasm."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -12806,6 +14066,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Marrow aspirate shows sheets of atypical plasma cells with eccentrically placed nuclei, clumped “clock-face” chromatin, deeply basophilic cytoplasm, and a prominent perinuclear hof (Golgi zone), with the peripheral smear often showing rouleaux formation."
       }
      ]
     },
@@ -13000,6 +14278,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Peripheral blood or marrow shows small-to-medium lymphocytes with round-to-irregular nuclei and relatively abundant pale (“monocytoid”) cytoplasm, occasionally bearing short villous projections confined to one pole of the cell."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -13168,6 +14464,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Peripheral blood shows a predominance of medium-to-large lymphoid cells (prolymphocytes) with moderately condensed chromatin, a single prominent nucleolus, and a moderate rim of basophilic cytoplasm."
       }
      ]
     },
@@ -13362,6 +14676,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Marrow shows an infiltrate of lymphoplasmacytic cells with morphology intermediate between small lymphocytes and plasma cells—condensed chromatin, an eccentric nucleus, and a perinuclear hof—often accompanied by increased mast cells and rouleaux formation on the peripheral smear."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -13530,6 +14862,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "This is a markedly undersized megakaryocyte with a single round to bilobed, non-multilobulated nucleus and condensed chromatin, scant basophilic cytoplasm, and a correspondingly higher nuclear-to-cytoplasmic ratio than a normal megakaryocyte."
       }
      ]
     },
@@ -13760,6 +15110,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "This is a markedly enlarged platelet, often approaching or exceeding the diameter of an adjacent red blood cell, with a discoid to slightly irregular shape and generally preserved granularity, occurring singly rather than in clumps."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "形狀："
       },
       {
@@ -13964,6 +15332,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "This is the largest hematopoietic cell in the marrow, with a single large, highly multilobulated nucleus formed by endomitosis, coarse condensed chromatin, no visible nucleoli, and abundant granular pink-staining cytoplasm, often with peripheral proplatelet formation."
       }
      ]
     },
@@ -14194,6 +15580,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Platelets are seen clumped together in tight, irregular clusters or sheets rather than dispersed singly, typically concentrated near the feathered edge of the smear or adjacent to fibrin strands."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "形狀："
       },
       {
@@ -14411,6 +15815,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "This is a large cell, smaller than a mature megakaryocyte, with a nucleus just beginning to indent or lobulate, moderately condensed chromatin, an occasional residual nucleolus, and basophilic cytoplasm containing early azurophilic granules but no peripheral proplatelet budding."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -14610,6 +16032,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The peripheral smear shows scattered giant platelets, often approaching or exceeding the size of red blood cells, together with mild-to-moderate thrombocytopenia; bone marrow megakaryocyte number and morphology are typically normal."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一個血液成分異常："
       },
       {
@@ -14759,6 +16199,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The smear shows giant platelets with mild-to-moderate thrombocytopenia, together with pale blue-gray, Döhle-body-like cytoplasmic inclusions within neutrophils that represent aggregated myosin rather than a reactive process."
       }
      ]
     },
@@ -14922,6 +16380,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A large, morphologically heterogeneous lymphocyte with abundant deeply basophilic cytoplasm that molds around adjacent erythrocytes, coarse but evenly clumped (non-blastic) chromatin, and an inconspicuous or absent nucleolus."
       }
      ]
     },
@@ -15134,6 +16610,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A mature granulocyte whose bilobed or segmented nucleus is often partially obscured by numerous coarse, unevenly distributed, deeply basophilic (purple-black) cytoplasmic granules."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -15320,6 +16814,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A mature granulocyte with a bilobed, “spectacle-shaped” nucleus and cytoplasm packed with large, uniform, refractile, orange-red granules that do not obscure the nuclear outline."
       }
      ]
     },
@@ -15531,6 +17043,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A large cell with a small, round, centrally placed nucleus that is typically obscured by densely and uniformly packed, small-to-medium metachromatic (violet) cytoplasmic granules filling the cytoplasm."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -15715,6 +17245,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A cell caught in metaphase or anaphase, showing condensed, deeply basophilic chromosome clumps without an intact nuclear membrane, arranged either as a compact metaphase plate or as two separating masses of chromosomes."
       }
      ]
     },
@@ -15913,6 +17461,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "The largest mature circulating leukocyte, with an irregularly folded, indented, or horseshoe-shaped nucleus showing lacy, “brain-like” chromatin, and abundant blue-gray, ground-glass cytoplasm containing fine dust-like azurophilic granules and small vacuoles."
       }
      ]
     },
@@ -16125,6 +17691,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A large, plasma-cell-like mononuclear cell with an eccentric round nucleus, a clear perinuclear hof (Golgi zone), and deeply basophilic cytoplasm, typically found clustered along bone spicule fragments."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -16309,6 +17893,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A very large multinucleated cell in which numerous discrete, separate round-to-oval nuclei—each with its own nucleolus—are scattered throughout abundant granular, eosinophilic-to-amphophilic cytoplasm."
       }
      ]
     },
@@ -16520,6 +18122,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A medium-sized erythroid precursor with a small, round, centrally placed nucleus showing coarse, condensed “checkerboard” chromatin and no visible nucleolus, set in cytoplasm with a mixed blue-gray to lilac (“polychromatophilic”) tinge reflecting residual ribosomal RNA admixed with newly synthesized hemoglobin."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -16705,6 +18325,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A large erythroid precursor with a high N:C ratio, a round nucleus showing finely stippled, open chromatin and one to two prominent nucleoli, and a thin rim of intensely basophilic cytoplasm that often shows an irregular, blebbed contour and a perinuclear pale (Golgi) zone."
       }
      ]
     },
@@ -16904,6 +18542,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述(考卷上可以這樣寫)："
+      },
+      {
+       "type": "text",
+       "text": "A small mature lymphocyte with a very high N:C ratio, a round nucleus with coarse, densely clumped chromatin and no visible nucleolus, surrounded by a thin rim of scant, agranular, pale blue cytoplasm."
       }
      ]
     },
@@ -17144,6 +18800,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Blood or marrow smears may show oval budding yeast forms (blastoconidia, 3–5 μm) with or without elongated pseudohyphae, staining pale blue-violet with Wright-Giemsa and often located within neutrophil cytoplasm, indicating phagocytosis."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -17292,6 +18966,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Peripheral smear shows numerous large, morphologically heterogeneous reactive lymphocytes (atypical lymphocytes/Downey cells) with abundant deeply basophilic cytoplasm that scallops around adjacent erythrocytes, an irregularly indented or folded nucleus, and coarse but not blastic chromatin."
       }
      ]
     },
@@ -17496,6 +19188,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Intraerythrocytic parasite forms are seen on Giemsa-stained smear — delicate ring forms with a thin cytoplasmic loop and one or two chromatin dots, maturing trophozoites containing golden-brown malaria pigment, multinucleated schizonts, or crescentic/banana-shaped gametocytes characteristic of P. falciparum — sometimes accompanied by host red cell changes such as Schüffner's dots or Maurer's clefts."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一種細胞被寄生："
       },
       {
@@ -17654,6 +19364,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A large macrophage with abundant cytoplasm containing intact, recognizable ingested erythrocytes, leukocytes, and/or platelets (or their precursors), the nucleus often eccentrically displaced by the phagocytosed material."
       }
      ]
     },
@@ -17871,6 +19599,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "A large cell, often exceeding 20 μm, with abundant pale blue-gray, sometimes vacuolated cytoplasm that may contain ingested debris or pigment, a low nuclear-to-cytoplasmic ratio, and an eccentric, round to reniform nucleus with loosely stippled chromatin and an inconspicuous nucleolus."
       }
      ]
     },
@@ -18112,6 +19858,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Degenerating and dying cells appear as shrunken, structureless debris with pyknotic, karyorrhectic, or karyolytic nuclear remnants and indistinct, often homogeneously eosinophilic cytoplasmic outlines, rather than as a discrete, viable cell population."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "大小："
       },
       {
@@ -18306,6 +20070,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "The background of the blood smear shows amorphous, faintly eosinophilic-to-lilac, cloud-like or granular proteinaceous material diffusely admixed among the red cells, often accompanied by prominent rouleaux formation of the erythrocytes."
       }
      ]
     },
@@ -18526,6 +20308,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Bone marrow smears show large macrophages (Gaucher cells, 20–100 μm) with abundant fibrillary, crinkled cytoplasm resembling crumpled tissue paper or wrinkled silk, and a small, eccentrically placed nucleus, reflecting undigested glucocerebroside accumulated within lysosomes."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪個細胞是儲積細胞："
       },
       {
@@ -18694,6 +20494,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Bone marrow aspirate smears may show activated macrophages actively engulfing intact erythrocytes, leukocytes, platelets, and hematopoietic precursor cells (hemophagocytosis), often set against a background of cytopenias, although this morphologic finding is neither sensitive nor specific for the syndrome."
       }
      ]
     },
@@ -18887,6 +20705,24 @@
          "type": "bold"
         }
        ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Bone marrow smears show cohesive clusters or nests of large, markedly pleomorphic non-hematopoietic cells with high nuclear-to-cytoplasmic ratios, coarse irregular chromatin, and prominent nucleoli, standing out sharply against the background of normal hematopoietic elements."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
        "text": "哪一群細胞異常："
       },
       {
@@ -19055,6 +20891,24 @@
       {
        "type": "text",
        "text": "怎麼認"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ],
+       "text": "英文形態描述（考卷上可以這樣寫）："
+      },
+      {
+       "type": "text",
+       "text": "Bone marrow smears show large macrophages (Niemann-Pick cells) with diffuse, uniformly sized small cytoplasmic vacuoles imparting a foamy or soap-bubble appearance, and a small, eccentric nucleus, reflecting lysosomal accumulation of sphingomyelin."
       }
      ]
     },
