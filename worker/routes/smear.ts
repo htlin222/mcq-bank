@@ -149,6 +149,9 @@ smearRoutes.get("/meta", async (c) => {
 // ---------------------------------------------------------------------------
 smearRoutes.post("/sessions", async (c) => {
 	const email = c.var.email;
+	// ⚠️ `form` 只是原樣存進 config_json 給前端顯示當初選了什麼,不影響抽題或
+	// 判定 —— gradeSmear() 沒有 form 篩選,pickSmearSet() 也不吃這個參數。
+	// 想要「只考長名詞」之類的功能,得先幫兩個純函式加上 form 篩選再接上來。
 	const body = await c.req
 		.json<{
 			mode?: string;
