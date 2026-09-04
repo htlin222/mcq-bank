@@ -182,6 +182,26 @@ test("scheduling and answer state are never cacheable", () => {
 	assert.equal(isCacheableApiPath("/api/bookmarks"), false);
 });
 
+test("抹片練習的所有端點都不能被快取 —— 可變的個人進度/投票狀態", () => {
+	// 每一支都會在使用者答題、投票或提報之後立刻改變,快取住的症狀跟
+	// CLAUDE.md 講的 /api/free-notes、/api/play、/api/backup 一樣:存完
+	// (或答完)重新整理,看到的還是舊的一份,而且無聲。
+	//
+	// /api/smear/meta 特別容易被誤判成「可以快取」—— 它看起來是唯讀的聚合
+	// 統計,不是某個使用者的私人狀態。但它的內容會隨 smear_dx 增減而變
+	// (dxCount、topicWeights),算起來也很便宜,快取拿不到明顯的好處卻要
+	// 承擔「加了新診斷,主題篩選的比例卻凍住不動」這種風險 —— 所以現在跟
+	// 其餘端點一樣不快取,測試釘住這個決定,不是漏加。
+	assert.equal(isCacheableApiPath("/api/smear/meta"), false);
+	assert.equal(isCacheableApiPath("/api/smear/sessions"), false);
+	assert.equal(isCacheableApiPath("/api/smear/sessions/abc123"), false);
+	assert.equal(isCacheableApiPath("/api/smear/wrong"), false);
+	// smear_terms 可以被社群投票從 open 變成 accepted(Task C2)——快取住
+	// 這支的症狀是「剛通過的詞條 / 剛編輯的筆記,重整還是看不到」。
+	assert.equal(isCacheableApiPath("/api/smear/dx/dacrocyte"), false);
+	assert.equal(isCacheableApiPath("/api/smear/search?q=cml"), false);
+});
+
 test("the allowlist is closed — unknown endpoints default to no cache", () => {
 	assert.equal(isCacheableApiPath("/api/some-future-endpoint"), false);
 	assert.equal(isCacheableApiPath("/api/questions/114-001/challenges"), false);
