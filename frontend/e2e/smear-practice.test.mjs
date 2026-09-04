@@ -479,6 +479,54 @@ test('複習模式:作答判定、俗名 tier 跟 miss 不同、提示只揭曉�
 });
 
 // ---------------------------------------------------------------------------
+// 測試 1b —— 複習模式:「直接看答案」提交空答案、走同一條 miss 揭曉路徑,
+// 且不管輸入框裡打了什麼都送空字串。
+// ---------------------------------------------------------------------------
+test('複習模式:「直接看答案」送出空答案、顯示 miss 判定與正解,且忽略半途打的字', async (t) => {
+	if (guard(t)) return;
+	const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' });
+	const questions = [question('rev2-q1', DX.apl)];
+	const { calls } = installSmearBackend(ctx, { mode: 'review', questions, sessionId: 'rev2-sess' });
+
+	try {
+		const page = await ctx.newPage();
+		await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
+
+		await page.getByRole('button', { name: '複習模式' }).click();
+		await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
+		await page.getByLabel('題數').fill('5');
+		await page.getByRole('button', { name: '開始練習' }).click();
+		await page.waitForURL('**/smear/s/rev2-sess', { timeout: 20_000 });
+
+		const input = page.getByPlaceholder('輸入診斷或細胞名稱…');
+		const reveal = page.locator('[data-testid="grade-reveal"]');
+		const revealBtn = page.getByRole('button', { name: '不會嗎？直接看答案' });
+
+		await input.waitFor();
+		// 半途打了兩個字又改變主意 —— 點「直接看答案」不該把這兩個字送出去。
+		await input.fill('AM');
+		await revealBtn.click();
+		await reveal.waitFor();
+
+		assert.equal(calls.answer.length, 1);
+		assert.deepEqual(calls.answer[0].boxes, [''], '不管輸入框打了什麼,送出去的一律是空字串');
+		assert.equal(
+			calls.answer[0].hintUsed,
+			'reveal_answer',
+			'hintUsed 要記成 reveal_answer,跟一般提交/分類提示分得開',
+		);
+
+		const text = await reveal.innerText();
+		assert.match(text, /未命中/, '直接看答案應該走 miss tier 的揭曉畫面');
+		assert.match(text, /\+0 分/, 'miss 是 0 分');
+		assert.match(text, /正解[:：]/, '就算是 miss,正解也要照樣顯示');
+		assert.match(text, /acute promyelocytic leukemia/, '正解文字要是這題真正的診斷全名');
+	} finally {
+		await ctx.close();
+	}
+});
+
+// ---------------------------------------------------------------------------
 // 測試 2 —— 全真模式:交卷前全程不揭曉,交卷後才看得到完整判定
 // ---------------------------------------------------------------------------
 test('全真模式:交卷前頁面上找不到任何一個正解字串,交卷後逐題檢討才揭曉', async (t) => {
@@ -538,6 +586,21 @@ test('全真模式:交卷前頁面上找不到任何一個正解字串,交卷後
 
     await input.waitFor();
     await assertNoLeakage(page, '一開始(尚未作答第一題)');
+
+    // 「直接看答案」是複習模式限定 —— 全真模式要整個不在 DOM 裡,不是被
+    // CSS 藏起來(devtools 打開來檢查也應該找不到)。role 查詢先確認一次,
+    // 再直接掃全頁 innerHTML 找按鈕文字本身,涵蓋「掛在 DOM 但 display:none」
+    // 這種 role 查詢可能漏掉的情況。
+    assert.equal(
+      await page.getByRole('button', { name: '不會嗎？直接看答案' }).count(),
+      0,
+      '全真模式不該有「直接看答案」按鈕(role 查詢)',
+    );
+    const examHtml = await page.content();
+    assert.ok(
+      !examHtml.includes('不會嗎'),
+      '全真模式的「直接看答案」按鈕要整個不在 DOM 裡,不是用 CSS 藏起來',
+    );
 
     // Q1
     await input.fill('acute promyelocytic leukemia');
@@ -683,3 +746,51 @@ test('390px:複習模式從開始練習到成績頁,每個關鍵步驟都不會�
     await ctx.close();
   }
 });
+
+// ---------------------------------------------------------------------------
+// 測試 3b —— 390px 與 320px:「直接看答案」不撐寬版面,而且觸控熱區
+// 高度夠(這個功能一路的慣例是「有內距的按鈕,不是沒有觸控邊界的行內文字」)。
+// ---------------------------------------------------------------------------
+for (const width of [390, 320]) {
+	test(`${width}px:「直接看答案」不溢出、觸控熱區夠大、點下去走 miss 揭曉`, async (t) => {
+		if (guard(t)) return;
+		const ctx = await browser.newContext({ viewport: { width, height: 844 }, serviceWorkers: 'block' });
+		const questions = [question(`reveal-mob-q1-${width}`, DX.apl)];
+		installSmearBackend(ctx, { mode: 'review', questions, sessionId: `reveal-mob-${width}` });
+
+		try {
+			const page = await ctx.newPage();
+			await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
+
+			await page.getByRole('button', { name: '複習模式' }).click();
+			await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
+			await page.getByLabel('題數').fill('5');
+			await page.getByRole('button', { name: '開始練習' }).click();
+			await page.waitForURL(`**/smear/s/reveal-mob-${width}`, { timeout: 20_000 });
+
+			const revealBtn = page.getByRole('button', { name: '不會嗎？直接看答案' });
+			await revealBtn.waitFor();
+			assertNoOverflow(await overflow(page), `${width}px:作答頁(含「直接看答案」)`);
+
+			// 觸控熱區:CLAUDE.md 反覆講的「padded, not a tiny inline text link
+			// with no touch margin」—— 量實際渲染高度,而不是只看有沒有 padding
+			// class(class 名對不代表真的套用了)。
+			const box = await revealBtn.boundingBox();
+			assert.ok(box, '按鈕要能量到 bounding box(代表真的可見、可點)');
+			assert.ok(
+				box.height >= 40,
+				`${width}px:「直接看答案」的觸控熱區太小(高 ${box.height}px),不該是沒有內距的行內文字`,
+			);
+
+			await revealBtn.click();
+			const reveal = page.locator('[data-testid="grade-reveal"]');
+			await reveal.waitFor();
+			assertNoOverflow(await overflow(page), `${width}px:判定畫面(直接看答案 → miss)`);
+			const text = await reveal.innerText();
+			assert.match(text, /未命中/, `${width}px:直接看答案應該顯示 miss 判定`);
+			assert.match(text, /acute promyelocytic leukemia/, `${width}px:仍然要顯示正解`);
+		} finally {
+			await ctx.close();
+		}
+	});
+}
