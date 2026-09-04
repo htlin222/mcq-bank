@@ -102,7 +102,10 @@ export function GradeReveal({ grade }: { grade: SmearGradeDisplay }) {
 			)}
 
 			{grade.canonical && (
-				<p className="text-sm text-ink-700 dark:text-ink-200">
+				// break-words —— canonical / acceptedTerms 都是題庫的自由文字欄位,不保證
+				// 有空白或連字號可斷行(同 CLAUDE.md「min-w-0 + break-words 兩個一起才擋
+				// 得住 DEK::NUP214」那條:融合基因這類命名法完全可能沒有天然斷行點)。
+				<p className="text-sm text-ink-700 dark:text-ink-200 break-words">
 					正解:
 					<span className="font-medium text-ink-900 dark:text-ink-100">
 						{grade.canonical}
@@ -119,7 +122,8 @@ export function GradeReveal({ grade }: { grade: SmearGradeDisplay }) {
 								<span
 									key={tier + t.text}
 									className={
-										"px-2 py-0.5 rounded text-[11px] " + TIER_META[tier].chipCls
+										"px-2 py-0.5 rounded text-[11px] max-w-full break-words " +
+										TIER_META[tier].chipCls
 									}
 								>
 									<span aria-hidden="true">{TIER_META[tier].icon}</span> {t.text}

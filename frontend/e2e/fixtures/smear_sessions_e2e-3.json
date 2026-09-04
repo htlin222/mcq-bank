@@ -1,0 +1,21 @@
+{
+	"id": "e2e-3",
+	"mode": "review",
+	"config": { "n": 1, "form": "any", "topics": ["myeloid"], "sources": ["exam"] },
+	"started_at": 1700000000000,
+	"finished_at": null,
+	"questions": [
+		{
+			"id": "exam-t1-longname",
+			"dx_id": "longname_dx",
+			"source": "exam",
+			"image_key_view": "smear/exam/pre-test-A-2026-003-view.webp",
+			"image_key_full": "smear/exam/pre-test-A-2026-003-full.webp",
+			"prompt": "What is this?",
+			"image_note": "supercalifragilisticexpialidocioussupercalifragilisticexpialidociousimagenotewithnobreakpoints",
+			"topic": "myeloid",
+			"qtype": "cell",
+			"answered": false
+		}
+	]
+}

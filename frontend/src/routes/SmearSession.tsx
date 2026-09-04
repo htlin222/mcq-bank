@@ -293,7 +293,11 @@ export function SmearSession() {
 			/>
 
 			{current.image_note && (
-				<p className="text-xs text-ink-500 dark:text-ink-400 mt-2">{current.image_note}</p>
+				// break-words —— image_note 是自由文字,不保證有空白可斷行(同 CLAUDE.md
+				// 「min-w-0 + break-words 兩個一起才擋得住 DEK::NUP214」那條的教訓)。
+				<p className="text-xs text-ink-500 dark:text-ink-400 mt-2 break-words">
+					{current.image_note}
+				</p>
 			)}
 
 			<p className="text-base text-ink-900 dark:text-ink-100 font-medium mt-4 mb-3">
