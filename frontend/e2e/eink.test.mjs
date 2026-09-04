@@ -170,6 +170,28 @@ const ROUTES = [
     // 「未命中」只存在於判定結果裡,頁面上原本沒有,不會恆真。
     expectAfter: ['未命中'],
   },
+  {
+    path: '/smear/dx/dacrocyte',
+    name: '抹片診斷詳情 → 提報 + 投票(虛線 accent 徽章、投票鈕按下的實心玫瑰色,兩者都只在互動後才存在)',
+    // GradeReveal 的 TIER_META 只在「作答結果」裡出現過三種既有配色(填色/實線
+    // /虛線),這裡是**同一份 TIER_META 之外**的新組合:提報中的徽章是
+    // `border-dashed border-accent text-accent`(虛線 + accent,不是 GradeReveal
+    // 的虛線 ink-400)。按下「反對」之後投票鈕變成 `bg-rose-600 text-white` 實心 ——
+    // GradeReveal 的 miss 只用 rose 當外框,從沒有實心玫瑰色被畫出來過。
+    // fixture(smear_dx_dacrocyte_terms.json / smear_terms_dacrocyte-open-1_
+    // votes.json)把提報者設成別人,好讓投票鈕真的渲染出來(對自己的提報不能投票)。
+    async interact(page) {
+      await page
+        .getByPlaceholder('輸入診斷或細胞名稱的另一種寫法…')
+        .fill('e-ink-test-term');
+      await page.getByRole('button', { name: '送出提報' }).click();
+      await page.waitForTimeout(500);
+      await page.getByRole('button', { name: /反對/ }).click();
+      await page.waitForTimeout(300);
+    },
+    // 「投票中」「反對」都只在提報成功後才出現,頁面上原本沒有,不會恆真。
+    expectAfter: ['投票中', '反對'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是

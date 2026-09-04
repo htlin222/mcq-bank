@@ -26,7 +26,10 @@ export interface SmearGradeDisplay {
 	acceptedTerms?: SmearAcceptedTerm[];
 }
 
-const TIER_META: Record<
+// 匯出給 SmearDx.tsx 的「已接受寫法」清單與提報中 term 的徽章共用 —— 同一份
+// e-ink 安全視覺語彙(icon 承載語意、顏色只是加強)不要抄第二份,抄出來的
+// 第二份遲早會跟這裡走散(CLAUDE.md 反覆講的「兩份實作」那條)。
+export const TIER_META: Record<
 	SmearTier | "miss",
 	{ icon: string; label: string; badgeCls: string; chipCls: string }
 > = {
@@ -62,7 +65,7 @@ const TIER_META: Record<
 	},
 };
 
-const TERM_TIER_ORDER: SmearTier[] = ["full", "half", "lay"];
+export const TERM_TIER_ORDER: SmearTier[] = ["full", "half", "lay"];
 
 export function GradeReveal({ grade }: { grade: SmearGradeDisplay }) {
 	const meta = TIER_META[grade.tier];

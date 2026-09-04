@@ -30,6 +30,12 @@ export const SMEAR_TOPIC_LABELS: Record<string, string> = {
 	other: "其他",
 };
 
+// qtype 標籤,同上 —— dx 詳情頁與搜尋結果都要顯示,集中一份避免漂移。
+export const SMEAR_QTYPE_LABELS: Record<string, string> = {
+	cell: "細胞辨識",
+	disease: "疾病診斷",
+};
+
 export interface SmearSessionStart {
 	id: string;
 	// Opaque `#idx` tokens in exam mode until reveal — see worker/routes/smear.ts
@@ -174,4 +180,122 @@ export interface SmearFinishResult {
 
 export function finishSmearSession(sessionId: string): Promise<SmearFinishResult> {
 	return api.post<SmearFinishResult>(`/api/smear/sessions/${sessionId}/finish`);
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/smear/dx/:id —— 診斷詳情(D5)
+//
+// `note.content_json` 是原樣字串(同 /api/questions/:id 的 explanation 慣例),
+// 呼叫端自己 JSON.parse() 再餵給 StaticContent。`terms` 只含 status='accepted'
+// 的列 —— 提報中的詞不會出現在這裡,提報成功後由呼叫端把回應裡的 term 加進
+// 本地 state 顯示,見 SmearDx.tsx。
+// ---------------------------------------------------------------------------
+export interface SmearDxNote {
+	dx_id: string;
+	content_json: string;
+	related_dx_ids: string | null;
+	version: number;
+	updated_by: string | null;
+	updated_at: number;
+}
+
+export interface SmearAcceptedTermFull {
+	id: string;
+	text: string;
+	tier: SmearTier;
+	form: "long" | "abbrev";
+}
+
+export interface SmearDxQuestionImage {
+	id: string;
+	source: string;
+	source_ref: string | null;
+	source_url: string | null;
+	attribution: string | null;
+	image_key_view: string;
+	image_key_full: string;
+	prompt: string | null;
+	image_note: string | null;
+}
+
+export interface SmearRelatedDx {
+	dx_id: string;
+	canonical_long: string;
+}
+
+export interface SmearDxDetail {
+	id: string;
+	canonical_long: string;
+	canonical_abbrev: string | null;
+	topic: string;
+	qtype: string;
+	created_at: number;
+	note: SmearDxNote | null;
+	terms: SmearAcceptedTermFull[];
+	questions: SmearDxQuestionImage[];
+	related: SmearRelatedDx[];
+}
+
+export function fetchSmearDx(id: string): Promise<SmearDxDetail> {
+	return api.get<SmearDxDetail>(`/api/smear/dx/${id}`);
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/smear/search?q= —— 獨立索引(D6),語法規則同 lib/fts-query.ts
+// ---------------------------------------------------------------------------
+export interface SmearSearchHit {
+	dx_id: string;
+	canonical_long: string;
+	topic: string;
+	qtype: string;
+}
+
+export function searchSmear(q: string): Promise<{ items: SmearSearchHit[]; q: string }> {
+	return api.get(`/api/smear/search?q=${encodeURIComponent(q)}`);
+}
+
+// ---------------------------------------------------------------------------
+// 提報/投票(C2)—— POST /api/smear/dx/:id/terms、
+// POST|DELETE /api/smear/terms/:tid/votes
+// ---------------------------------------------------------------------------
+export type SmearProposalStatus = "open" | "accepted" | "rejected";
+
+export interface SmearProposedTerm {
+	id: string;
+	dx_id: string;
+	text: string;
+	norm: string;
+	tier: SmearTier;
+	form: "long" | "abbrev";
+	status: SmearProposalStatus;
+	rationale: string | null;
+	proposed_by: string | null;
+	created_at: number;
+	resolved_at: number | null;
+}
+
+export function proposeSmearTerm(
+	dxId: string,
+	body: { text: string; tier: SmearTier; form: "long" | "abbrev"; rationale?: string },
+): Promise<{ term: SmearProposedTerm }> {
+	return api.post(`/api/smear/dx/${dxId}/terms`, body);
+}
+
+export interface SmearVoteTally {
+	agree: number;
+	disagree: number;
+}
+
+export interface SmearVoteResponse {
+	term: SmearProposedTerm;
+	tally: SmearVoteTally;
+	justResolved: boolean;
+}
+
+export function voteSmearTerm(termId: string, agree: boolean): Promise<SmearVoteResponse> {
+	return api.post(`/api/smear/terms/${termId}/votes`, { agree });
+}
+
+export function retractSmearTermVote(termId: string): Promise<SmearVoteResponse> {
+	return api.del(`/api/smear/terms/${termId}/votes`);
 }

@@ -84,6 +84,24 @@ const ROUTES = [
     // (AnswerInput)。「點擊放大」是縮圖疊字,證明 SmearImage 真的掛起來了。
     expectText: '點擊放大',
   },
+  {
+    path: '/smear/dx/dacrocyte',
+    name: '抹片診斷詳情(StaticContent 詳解 + 圖片格線 + 提報表單)',
+    // 這頁掛的是別處沒有的型態:GET /api/smear/dx/:id 一次餵出詳解 JSON、
+    // 已接受寫法、圖片清單與相關診斷四種資料,渲染路徑跟 /smear/s/:id 完全
+    // 不同(唯讀 StaticContent,不是 AnswerInput/GradeReveal)。斷言
+    // 「dacryocyte」而不是標題:標題是同步可得的 URL 參數渲染,光有它不能
+    // 證明 GET 回來的 terms/note/questions 真的餵進元件樹了。
+    expectText: 'dacryocyte',
+  },
+  {
+    path: '/smear?tab=search',
+    name: '抹片搜尋分頁(獨立索引,debounce 空狀態)',
+    // 掛的是別處沒有的型態:race-safe debounce(同 LectureSearchBox 的形狀)
+    // 但打的是完全獨立的 /api/smear/search,不是 MCQ 的 /api/search。空查詢
+    // 不發請求,直接斷言提示文字,證明這個分頁真的掛起來而不是停在佔位文字。
+    expectText: '輸入關鍵字開始搜尋診斷',
+  },
 ];
 
 // fixture 是從真實 API 抓下來的，而這個 repo 是公開的 —— 第一版就差點把 18 位

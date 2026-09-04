@@ -69,6 +69,7 @@ import { Challenges } from "./routes/Challenges";
 import Videos from "./routes/Videos";
 import { Smear } from "./routes/Smear";
 import { SmearSession } from "./routes/SmearSession";
+import { SmearDx } from "./routes/SmearDx";
 
 // Lazy — keeps EmbedPDF's pdfium-wasm bundle off every other route.
 const Lectures = lazy(() => import("./routes/Lectures"));
@@ -307,6 +308,7 @@ export default function App() {
 					<Route path="/videos" element={<Videos />} />
 					<Route path="/videos/:slug" element={<Videos />} />
 					<Route path="/smear" element={<Smear />} />
+					<Route path="/smear/dx/:id" element={<SmearDx />} />
 					<Route path="/smear/s/:id" element={<SmearSession />} />
 					{/* 成績/檢討頁留給後續任務 —— 這裡只確保 finish() 之後導到的路徑
 					    有東西可以掛,不會 404。 */}
