@@ -36,6 +36,13 @@ export const SMEAR_QTYPE_LABELS: Record<string, string> = {
 	disease: "疾病診斷",
 };
 
+// 模式標籤,同上 —— SmearSession/StartDialog 原本各自寫一份三元運算,D4 的
+// 結果頁 + 作答記錄再各加一份就是第三、第四份,集中在這裡供之後的呼叫端沿用。
+export const SMEAR_MODE_LABELS: Record<SmearMode, string> = {
+	review: "複習模式",
+	exam: "全真模式",
+};
+
 export interface SmearSessionStart {
 	id: string;
 	// Opaque `#idx` tokens in exam mode until reveal — see worker/routes/smear.ts
@@ -298,4 +305,41 @@ export function voteSmearTerm(termId: string, agree: boolean): Promise<SmearVote
 
 export function retractSmearTermVote(termId: string): Promise<SmearVoteResponse> {
 	return api.del(`/api/smear/terms/${termId}/votes`);
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/smear/sessions —— 作答記錄(D4)
+//
+// ⚠️ `finished_at`/`score`/`max_score` 是 `null` 表示這場全真模式還沒交卷 ——
+// 見 worker/routes/smear.ts 的說明,那是刻意的安全模型(判定要到 /finish 才
+// 揭曉)。呼叫端一律用 `finished_at == null` 判斷「要不要顯示成績」,不要用
+// `score == null`(0 分是合法的已完成成績,不能拿它當「未完成」的判準)。
+// ---------------------------------------------------------------------------
+export interface SmearHistoryItem {
+	id: string;
+	mode: SmearMode;
+	started_at: number;
+	finished_at: number | null;
+	score: number | null;
+	max_score: number | null;
+	question_count: number;
+}
+
+export function fetchSmearSessions(): Promise<{ items: SmearHistoryItem[] }> {
+	return api.get("/api/smear/sessions");
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/smear/wrong —— 錯題本(D4),按診斷聚合、worst-first
+// ---------------------------------------------------------------------------
+export interface SmearWrongItem {
+	dx_id: string;
+	canonical_long: string;
+	topic: string;
+	wrong_count: number;
+	last_wrong_at: number | null;
+}
+
+export function fetchSmearWrong(): Promise<{ items: SmearWrongItem[] }> {
+	return api.get("/api/smear/wrong");
 }

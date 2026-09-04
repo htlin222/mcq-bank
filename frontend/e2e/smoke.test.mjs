@@ -102,6 +102,15 @@ const ROUTES = [
     // 不發請求,直接斷言提示文字,證明這個分頁真的掛起來而不是停在佔位文字。
     expectText: '輸入關鍵字開始搜尋診斷',
   },
+  {
+    path: '/smear/s/e2e-result/result',
+    name: '抹片成績頁(D4:依序打 finish + GET /sessions/:id 再用 question_id 併起來)',
+    // 掛的是別處沒有的型態:兩支既有端點依序打完再用 question_id 手動 join
+    // (finish 給判定、GET /sessions/:id 給圖片),不是單一端點一次到位。
+    // 斷言主題分類的標籤,證明 finish 的 breakdown 真的被分組畫出來,而不是
+    // 卡在「載入中…」—— 那正是兩支請求沒接對時最容易出現的樣子。
+    expectText: '主題分類',
+  },
 ];
 
 // fixture 是從真實 API 抓下來的，而這個 repo 是公開的 —— 第一版就差點把 18 位

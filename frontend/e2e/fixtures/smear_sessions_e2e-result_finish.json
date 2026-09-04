@@ -1,0 +1,39 @@
+{
+	"score": 1.5,
+	"max_score": 3,
+	"spelling_ok": 1,
+	"lay_count": 0,
+	"question_count": 3,
+	"breakdown": [
+		{
+			"question_id": "exam-t1-005",
+			"dx_id": "auer_rod",
+			"canonical_long": "Auer Rod",
+			"topic": "myeloid",
+			"typed": ["auer rod"],
+			"tier": "full",
+			"score": 1,
+			"spelling_errors": []
+		},
+		{
+			"question_id": "exam-t1-003",
+			"dx_id": "pronormoblast",
+			"canonical_long": "Pronormoblast",
+			"topic": "myeloid",
+			"typed": ["pronromoblast"],
+			"tier": "half",
+			"score": 0.5,
+			"spelling_errors": [{ "typed": "pronromoblast", "expected": "pronormoblast" }]
+		},
+		{
+			"question_id": "ash-dacrocyte-1",
+			"dx_id": "dacrocyte",
+			"canonical_long": "Dacrocyte",
+			"topic": "rbc",
+			"typed": ["poikilocyte"],
+			"tier": "miss",
+			"score": 0,
+			"spelling_errors": []
+		}
+	]
+}

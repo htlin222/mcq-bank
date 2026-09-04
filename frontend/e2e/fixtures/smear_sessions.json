@@ -1,0 +1,31 @@
+{
+	"items": [
+		{
+			"id": "e2e-result",
+			"mode": "review",
+			"started_at": 1700003000000,
+			"finished_at": 1700003600000,
+			"score": 2,
+			"max_score": 3,
+			"question_count": 3
+		},
+		{
+			"id": "e2e-2",
+			"mode": "exam",
+			"started_at": 1700002000000,
+			"finished_at": null,
+			"score": null,
+			"max_score": null,
+			"question_count": 2
+		},
+		{
+			"id": "e2e-1",
+			"mode": "review",
+			"started_at": 1700000000000,
+			"finished_at": 1700000600000,
+			"score": 1,
+			"max_score": 2,
+			"question_count": 2
+		}
+	]
+}

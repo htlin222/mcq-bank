@@ -192,6 +192,19 @@ const ROUTES = [
     // 「投票中」「反對」都只在提報成功後才出現,頁面上原本沒有,不會恆真。
     expectAfter: ['投票中', '反對'],
   },
+  {
+    path: '/smear/s/e2e-result/result',
+    name: '抹片成績頁(主題分類進度條,同 PacingCard 的 bg-accent 填色 + eink:border 軌道,但是新元件的第一次掃描)',
+    // GradeReveal 的 tier badge 已經在上面兩條掃過(填色/實線/虛線/玫瑰色系),
+    // 這裡真正沒被掃過的是**主題分類的進度條**——沿用 PacingCard 本週目標那條的
+    // 視覺語彙(填色 bg-accent 會被中和層撈回實心黑,軌道補 eink:border-black
+    // 避免 0% 時被洗白到看不見),但這是它在 `/smear` 這個功能底下第一次出現。
+    // 三題資料刻意讓 rbc 主題是 0%(dacrocyte 判定 miss)——0% 的軌道最容易在
+    // 中和層失手時整條消失,不是只測有內容的那幾條。
+    // 不需要 interact:成績頁一載入就會呼叫 finish + GET /sessions/:id 並直接
+    // 畫出主題分類,不像判定結果只在互動後才出現。
+    expectAfter: ['主題分類', '骨髓性', '紅血球系'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是

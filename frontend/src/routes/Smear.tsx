@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Loader2, Search as SearchIcon } from "lucide-react";
+import { ApiError } from "../lib/api";
 import { KeepAlive } from "../components/KeepAlive";
 import { StartDialog } from "../components/smear/StartDialog";
 import {
 	searchSmear,
+	fetchSmearSessions,
+	fetchSmearWrong,
 	SMEAR_TOPIC_LABELS,
 	SMEAR_QTYPE_LABELS,
+	SMEAR_MODE_LABELS,
 	type SmearMode,
 	type SmearSearchHit,
+	type SmearHistoryItem,
+	type SmearWrongItem,
 } from "../lib/smearApi";
 
 // /smear —— 4 個分頁,同 /lectures 的 `?tab=` 慣例(可分享、可加書籤、返回時
@@ -64,10 +70,10 @@ export function Smear() {
 					<PracticeTab />
 				</KeepAlive>
 				<KeepAlive active={tab === "history"}>
-					<Placeholder text="作答記錄即將推出。" />
+					<HistoryTab />
 				</KeepAlive>
 				<KeepAlive active={tab === "wrong"}>
-					<Placeholder text="錯題本即將推出。" />
+					<WrongTab />
 				</KeepAlive>
 				<KeepAlive active={tab === "search"}>
 					<SearchTab />
@@ -166,11 +172,188 @@ function ModeCard({
 	);
 }
 
-function Placeholder({ text }: { text: string }) {
+// ── 作答記錄分頁(D4)───────────────────────────────────────────────────
+function HistoryTab() {
+	const [items, setItems] = useState<SmearHistoryItem[] | null>(null);
+	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+		fetchSmearSessions()
+			.then((r) => {
+				if (!cancelled) setItems(r.items);
+			})
+			.catch((e) => {
+				if (cancelled) return;
+				setItems([]);
+				setError(e instanceof ApiError ? `讀取失敗 (${e.status})` : String(e));
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	if (error) {
+		return <p className="text-accent text-sm text-center py-10">讀取失敗:{error}</p>;
+	}
+	if (items === null) {
+		return (
+			<p className="inline-flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500 py-10">
+				<Loader2 size={15} className="animate-spin" /> 載入中…
+			</p>
+		);
+	}
+	if (items.length === 0) {
+		return (
+			<p className="text-sm text-ink-400 dark:text-ink-500 text-center py-10">
+				還沒有作答紀錄,先去練習分頁開始第一場吧。
+			</p>
+		);
+	}
+
 	return (
-		<div className="text-center py-16 text-ink-400 dark:text-ink-500 text-sm">
-			{text}
-		</div>
+		<ul className="space-y-2">
+			{items.map((it) => (
+				<HistoryRow key={it.id} item={it} />
+			))}
+		</ul>
+	);
+}
+
+// ⚠️ 未完成的全真模式一律不顯示分數 —— 即使是 0 分或看起來中性的進度也不行。
+// 判準是 `finished_at == null`,不是 `score == null`:0 分是合法的已完成成績,
+// 拿它當「未完成」的判準會反過來把已交卷但考差的那場誤判成還在作答中。這是
+// worker/routes/smear.ts 的安全模型延伸到這一頁的地方 —— 未交卷的全真模式,
+// 判定要到 /finish 才揭曉,這裡不能替它先洩漏出一個分數(哪怕是 0)。
+function HistoryRow({ item }: { item: SmearHistoryItem }) {
+	const finished = item.finished_at != null;
+	const pct =
+		finished && item.max_score && item.max_score > 0
+			? Math.round(((item.score ?? 0) / item.max_score) * 100)
+			: null;
+
+	return (
+		<li>
+			<Link
+				to={finished ? `/smear/s/${item.id}/result` : `/smear/s/${item.id}`}
+				className="flex items-center justify-between gap-3 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg px-4 py-3 hover:border-accent transition"
+			>
+				<div className="min-w-0">
+					<div className="flex items-center gap-2 flex-wrap">
+						<span
+							className={
+								"px-2 py-0.5 rounded-full text-[11px] border " +
+								(item.mode === "review"
+									? "border-accent text-accent"
+									: "border-ink-400 dark:border-ink-500 text-ink-600 dark:text-ink-300")
+							}
+						>
+							{SMEAR_MODE_LABELS[item.mode]}
+						</span>
+						<span className="text-xs text-ink-400 dark:text-ink-500">
+							{new Date(item.started_at).toLocaleString("zh-TW")}
+						</span>
+					</div>
+					<p className="text-sm text-ink-600 dark:text-ink-300 mt-1">
+						{item.question_count} 題
+						{!finished && (
+							<span className="ml-2 text-accent">未完成 · 點擊繼續作答</span>
+						)}
+					</p>
+				</div>
+				{finished && (
+					<div className="shrink-0 text-right">
+						<div className="font-mono text-lg text-ink-900 dark:text-ink-100 tabular-nums">
+							{item.score}
+							<span className="text-ink-400 dark:text-ink-500 text-sm">
+								/{item.max_score}
+							</span>
+						</div>
+						{pct !== null && (
+							<div className="text-xs text-ink-400 dark:text-ink-500">{pct}%</div>
+						)}
+					</div>
+				)}
+			</Link>
+		</li>
+	);
+}
+
+// ── 錯題本分頁(D4)─────────────────────────────────────────────────────
+function WrongTab() {
+	const [items, setItems] = useState<SmearWrongItem[] | null>(null);
+	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+		fetchSmearWrong()
+			.then((r) => {
+				if (!cancelled) setItems(r.items);
+			})
+			.catch((e) => {
+				if (cancelled) return;
+				setItems([]);
+				setError(e instanceof ApiError ? `讀取失敗 (${e.status})` : String(e));
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	if (error) {
+		return <p className="text-accent text-sm text-center py-10">讀取失敗:{error}</p>;
+	}
+	if (items === null) {
+		return (
+			<p className="inline-flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500 py-10">
+				<Loader2 size={15} className="animate-spin" /> 載入中…
+			</p>
+		);
+	}
+	if (items.length === 0) {
+		return (
+			<p className="text-sm text-ink-400 dark:text-ink-500 text-center py-10">
+				目前沒有需要加強的診斷,繼續保持!
+			</p>
+		);
+	}
+
+	return (
+		<ul className="space-y-2">
+			{items.map((it) => (
+				<li key={it.dx_id}>
+					<Link
+						to={`/smear/dx/${it.dx_id}`}
+						className="flex items-center justify-between gap-3 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg px-4 py-3 hover:border-accent transition"
+					>
+						<div className="min-w-0">
+							<p className="text-ink-900 dark:text-ink-100 break-words">
+								{it.canonical_long}
+							</p>
+							<div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+								<span className="text-[11px] px-1.5 py-0.5 rounded bg-ink-100 dark:bg-ink-700 text-ink-600 dark:text-ink-300">
+									{SMEAR_TOPIC_LABELS[it.topic] ?? it.topic}
+								</span>
+								{it.last_wrong_at && (
+									<span className="text-[11px] text-ink-400 dark:text-ink-500">
+										最近一次:
+										{new Date(it.last_wrong_at).toLocaleDateString("zh-TW")}
+									</span>
+								)}
+							</div>
+						</div>
+						<div className="shrink-0 text-right">
+							<div className="font-mono text-base text-ink-900 dark:text-ink-100 tabular-nums">
+								{it.wrong_count}
+							</div>
+							<div className="text-[11px] text-ink-400 dark:text-ink-500">
+								次答錯
+							</div>
+						</div>
+					</Link>
+				</li>
+			))}
+		</ul>
 	);
 }
 
