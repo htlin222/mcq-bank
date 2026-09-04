@@ -22,6 +22,7 @@
     "db:seed:remote": "wrangler d1 execute $(node scripts/lib/cfg.mjs project.d1_db) --remote --file=migrations/0004_hema_sample.sql",
     "r2:create": "wrangler r2 bucket create $(node scripts/lib/cfg.mjs project.r2_bucket)",
     "import:lectures": "node --experimental-strip-types scripts/import-lectures.ts",
+    "smear:import": "node --experimental-strip-types scripts/smear/import.ts",
     "anki:build": "uv run --with genanki scripts/build-anki.py",
     "anki:build:mine": "uv run --with genanki scripts/build-anki.py --merge-basic",
     "seed:lecture-notes": "node --experimental-strip-types scripts/seed-lecture-notes.ts",

@@ -1,0 +1,3697 @@
+[
+ {
+  "dx_id": "acanthocytosis",
+  "canonical_long": "acanthocytosis",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "acanthocytosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "acanthocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "spur cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 46
+   }
+  ]
+ },
+ {
+  "dx_id": "all",
+  "canonical_long": "acute lymphoblastic leukemia",
+  "canonical_abbrev": "ALL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "ALL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute lymphoblastic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "lymphoblastic lymphoma",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 27
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 5
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 25
+   }
+  ]
+ },
+ {
+  "dx_id": "all_l3",
+  "canonical_long": "acute lymphoblastic leukemia, L3 (Burkitt-type)",
+  "canonical_abbrev": "ALL-L3",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "ALL-L3",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "ALL, L3",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute lymphoblastic leukemia, L3",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Burkitt leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Burkitt lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Burkitts",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 3
+   }
+  ]
+ },
+ {
+  "dx_id": "aml_m2",
+  "canonical_long": "acute myeloid leukemia, M2 (acute myeloblastic leukemia with maturation)",
+  "canonical_abbrev": "AML M2",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "AML, M2",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute myeloid leukemia, M2",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AML-M2",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute myeloblastic leukemia with maturation",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 41
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 37
+   }
+  ]
+ },
+ {
+  "dx_id": "aml_m4",
+  "canonical_long": "acute myeloid leukemia, M4 (acute myelomonocytic leukemia, AMMoL)",
+  "canonical_abbrev": "AML M4",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "AML, M4",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "Acute myeloid leukemia, M4",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Acute myelomonocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AMML",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "AML-M4",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "AMMoL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "AML M4",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 43
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 40
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 20
+   }
+  ]
+ },
+ {
+  "dx_id": "aml_m5",
+  "canonical_long": "acute myeloid leukemia, M5 (acute monocytic leukemia, AMoL)",
+  "canonical_abbrev": "AML M5",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "AMoL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute monocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AML, M5",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Monoblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "acute myeloid leukemia, M5",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AML. M5",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "AML-M5",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "AML M5",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 1
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 21
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 46
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 41
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 27
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 42
+   }
+  ]
+ },
+ {
+  "dx_id": "aml_m6",
+  "canonical_long": "Acute Myeloid Leukemia, M6 (Erythroleukemia)",
+  "canonical_abbrev": "AML M6",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "AML M6",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute myeloid leukemia, M6",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "erythroleukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AML, M6",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "acute erythroid leukemia",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 7
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 29
+   }
+  ]
+ },
+ {
+  "dx_id": "aml_m7",
+  "canonical_long": "acute myeloid leukemia, M7 (with leukoerythroblastosis)",
+  "canonical_abbrev": "AML M7",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "AML, M7",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute myeloid leukemia, M7",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "acute megakaryoblastic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "leukoerythroblastosis",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 4
+   }
+  ]
+ },
+ {
+  "dx_id": "aml_unspecified",
+  "canonical_long": "acute myeloid leukemia",
+  "canonical_abbrev": "AML",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "AML",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute myeloid leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Acute myelogenous leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AML, myeloblast",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute myeloid leukemia, myeloblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "myeloblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "blast cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 21
+   },
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 41
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 22
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 37
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 3
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 26
+   }
+  ]
+ },
+ {
+  "dx_id": "apl",
+  "canonical_long": "acute promyelocytic leukemia",
+  "canonical_abbrev": "APL",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "APML",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "APL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute promyelocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AML",
+    "tier": "half",
+    "form": "abbrev"
+   },
+   {
+    "text": "APML, M3",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "AML, M3",
+    "tier": "full",
+    "form": "abbrev"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 29
+   },
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 34
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 19
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 2
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 38
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 44
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 48
+   }
+  ]
+ },
+ {
+  "dx_id": "atll",
+  "canonical_long": "adult T-cell leukemia/lymphoma",
+  "canonical_abbrev": "ATLL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "ATLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "adult T-cell leukemia/lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "adult T-cell leukemia",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 31
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 20
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 4
+   }
+  ]
+ },
+ {
+  "dx_id": "atypical_lymphocyte",
+  "canonical_long": "Atypical lymphocyte",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Atypical lymphocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Reactive lymphocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Downey cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Atypical lymphocytes",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 10
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 29
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 19
+   }
+  ]
+ },
+ {
+  "dx_id": "basophil",
+  "canonical_long": "basophil",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Basophil",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 34
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 22
+   }
+  ]
+ },
+ {
+  "dx_id": "basophilic_stippling",
+  "canonical_long": "Basophilic stippling",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Basophilic stippling",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Basophilic stipping",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Lead poisoning",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "stippled RBC",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 46
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 15
+   }
+  ]
+ },
+ {
+  "dx_id": "bernard_soulier_syndrome",
+  "canonical_long": "Bernard-Soulier syndrome",
+  "canonical_abbrev": "BSS",
+  "topic": "platelet",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Bernard-Soulier syndrome",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "BSS",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "Giant platelet",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "large platelet",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 1
+   }
+  ]
+ },
+ {
+  "dx_id": "bite_cell",
+  "canonical_long": "Bite cell (G6PD deficiency)",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Bite cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "G6PD deficiency",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "G6PD",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "Heinz body",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 4
+   }
+  ]
+ },
+ {
+  "dx_id": "blast",
+  "canonical_long": "blast",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Blast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "blast cell",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 6
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 24
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 33
+   }
+  ]
+ },
+ {
+  "dx_id": "burkitt_lymphoma",
+  "canonical_long": "Burkitt lymphoma",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Burkitt lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "high grade B-cell lymphoma",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 16
+   }
+  ]
+ },
+ {
+  "dx_id": "cabot_ring",
+  "canonical_long": "Cabot ring",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Cabot ring",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Cabot ring body",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 24
+   }
+  ]
+ },
+ {
+  "dx_id": "candidiasis",
+  "canonical_long": "Candidiasis (fungal infection)",
+  "canonical_abbrev": null,
+  "topic": "infection",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "candidiasis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Candida infection",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "yeast infection",
+    "tier": "lay",
+    "form": "long"
+   },
+   {
+    "text": "Candidiasis, fungal infection",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "fungal infection",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 44
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 37
+   }
+  ]
+ },
+ {
+  "dx_id": "cll_and_infectious_mononucleosis",
+  "canonical_long": "A: CLL (lymphocytes); B: infectious mononucleosis (monocytes)",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "CLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "chronic lymphocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "IM",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "infectious mononucleosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "mononucleosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "mono",
+    "tier": "lay",
+    "form": "abbrev"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 18
+   }
+  ]
+ },
+ {
+  "dx_id": "cml",
+  "canonical_long": "chronic myeloid leukemia",
+  "canonical_abbrev": "CML",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "CML",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "chronic myeloid leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Chronic myelogenous leukemia",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 33
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 11
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 21
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 49
+   }
+  ]
+ },
+ {
+  "dx_id": "cml_blast_phase",
+  "canonical_long": "chronic myeloid leukemia in blast phase",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "CML acute blast phase",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "chronic myeloid leukemia in blast phase",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "CML blast crisis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "CML blast phase",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "chronic myeloid leukemia, blast phase",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "blast crisis",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 36
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 25
+   }
+  ]
+ },
+ {
+  "dx_id": "cmmol",
+  "canonical_long": "chronic myelomonocytic leukemia",
+  "canonical_abbrev": "CMMoL",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "CMMoL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "chronic myelomonocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "CMML",
+    "tier": "full",
+    "form": "abbrev"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 36
+   }
+  ]
+ },
+ {
+  "dx_id": "codocyte",
+  "canonical_long": "codocyte",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "codocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "target cell",
+    "tier": "lay",
+    "form": "long"
+   },
+   {
+    "text": "Mexican hat cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 2
+   }
+  ]
+ },
+ {
+  "dx_id": "cold_agglutination",
+  "canonical_long": "Cold agglutination (cold agglutinin disease)",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Cold agglutination",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Cold hemagglutination",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Cold agglutinin disease",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "erythrocyte agglutination",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "RBC clumping",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 47
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 25
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 6
+   }
+  ]
+ },
+ {
+  "dx_id": "dacrocyte",
+  "canonical_long": "Dacrocyte",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "dacrocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "dacryocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "teardrop cell",
+    "tier": "lay",
+    "form": "long"
+   },
+   {
+    "text": "tear drop",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 9
+   }
+  ]
+ },
+ {
+  "dx_id": "dohle_body",
+  "canonical_long": "Döhle body",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Döhle body",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "toxic granulation",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Dohle body",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 17
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 38
+   }
+  ]
+ },
+ {
+  "dx_id": "dwarf_megakaryocyte",
+  "canonical_long": "Dwarf megakaryocyte",
+  "canonical_abbrev": null,
+  "topic": "platelet",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Dwarf megakaryocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Micromegakaryocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "dwarf mega.",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 28
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 27
+   }
+  ]
+ },
+ {
+  "dx_id": "dysplastic_megakaryocyte",
+  "canonical_long": "Dysplastic megakaryocyte",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Dysplastic megakaryocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Megakaryocyte dysplasia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Dysplastic MGKs",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 45
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 34
+   }
+  ]
+ },
+ {
+  "dx_id": "dysplastic_pmn",
+  "canonical_long": "Dysplastic PMN (MDS)",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Dysplastic PMN",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "dysplastic neutrophil",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "MDS",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "myelodysplastic syndrome",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 19
+   }
+  ]
+ },
+ {
+  "dx_id": "echinocyte",
+  "canonical_long": "Echinocyte",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Echinocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Crenated RBC",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Burr cell",
+    "tier": "lay",
+    "form": "long"
+   },
+   {
+    "text": "Uremia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "crenated cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 23
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 24
+   }
+  ]
+ },
+ {
+  "dx_id": "eosinophil",
+  "canonical_long": "eosinophil",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Eosinophil",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Eos",
+    "tier": "lay",
+    "form": "abbrev"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 19
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 26
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 42
+   }
+  ]
+ },
+ {
+  "dx_id": "eosinophilic_myelocyte",
+  "canonical_long": "eosinophilic myelocyte",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Eosinophilic myelocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 5
+   }
+  ]
+ },
+ {
+  "dx_id": "et",
+  "canonical_long": "Essential thrombocythemia",
+  "canonical_abbrev": "ET",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "ET",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "Essential thrombocythemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Essential thrombocytosis",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 12
+   }
+  ]
+ },
+ {
+  "dx_id": "gaucher_disease",
+  "canonical_long": "Gaucher's disease",
+  "canonical_abbrev": null,
+  "topic": "other",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Gaucher's disease",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Gaucher disease",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "histiocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 41
+   }
+  ]
+ },
+ {
+  "dx_id": "giant_platelet",
+  "canonical_long": "Giant platelet",
+  "canonical_abbrev": null,
+  "topic": "platelet",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Giant platelet",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Macrothrombocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 3
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 31
+   }
+  ]
+ },
+ {
+  "dx_id": "hairy_cell_leukemia",
+  "canonical_long": "hairy cell leukemia",
+  "canonical_abbrev": "HCL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "hair cell leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hairy cell leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "HCL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "hairy cell",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 13
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 31
+   }
+  ]
+ },
+ {
+  "dx_id": "hemophagocytosis",
+  "canonical_long": "hemophagocytosis",
+  "canonical_abbrev": null,
+  "topic": "other",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Hemophagocytosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hemophagocytic histiocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "histiocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "macrophage",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 47
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 48
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 46
+   }
+  ]
+ },
+ {
+  "dx_id": "hereditary_spherocytosis",
+  "canonical_long": "hereditary spherocytosis",
+  "canonical_abbrev": "HS",
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "hereditary spherocytosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "HS",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "spherocytosis",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 8
+   }
+  ]
+ },
+ {
+  "dx_id": "hlh",
+  "canonical_long": "hemophagocytic lymphohistiocytosis",
+  "canonical_abbrev": "HLH",
+  "topic": "other",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "HLH",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "hemophagocytic lymphohistiocytosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hemophagocytosis",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 23
+   }
+  ]
+ },
+ {
+  "dx_id": "howell_jolly_body",
+  "canonical_long": "Howell-Jolly bodies",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Howell-Jolly bodies",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "HJ bodies",
+    "tier": "lay",
+    "form": "abbrev"
+   },
+   {
+    "text": "Howell jolly body",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Howell-Jolly body",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 49
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 23
+   }
+  ]
+ },
+ {
+  "dx_id": "hypersegmented_pmn",
+  "canonical_long": "hypersegmented neutrophil",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Hypersegmented PMN",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hypersegmented neutrophil",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hyperseg",
+    "tier": "lay",
+    "form": "abbrev"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 39
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 17
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 21
+   }
+  ]
+ },
+ {
+  "dx_id": "hypolobulated_pmn",
+  "canonical_long": "hypolobulated PMN",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Hypolobulated PMN",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hypogranular PMN",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hyposegmented PMN",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "pseudo-Pelger-Huët anomaly",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 36
+   }
+  ]
+ },
+ {
+  "dx_id": "hypoplastic_mds",
+  "canonical_long": "hypoplastic myelodysplastic syndrome",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "hypoplastic MDS",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hypocellular MDS",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hypoplastic myelodysplastic syndrome",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hypocellular myelodysplastic syndrome",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 35
+   }
+  ]
+ },
+ {
+  "dx_id": "ida",
+  "canonical_long": "Iron deficiency anemia",
+  "canonical_abbrev": "IDA",
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "IDA",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "Iron deficiency anemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "iron-poor blood",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 6
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 45
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 40
+   }
+  ]
+ },
+ {
+  "dx_id": "infectious_mononucleosis",
+  "canonical_long": "infectious mononucleosis",
+  "canonical_abbrev": "IM",
+  "topic": "infection",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Mononucleosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "infectious mononucleosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "IM",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "mono",
+    "tier": "lay",
+    "form": "long"
+   },
+   {
+    "text": "atypical lymphocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Downey cell",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 26
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 1
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 47
+   }
+  ]
+ },
+ {
+  "dx_id": "iron_overload",
+  "canonical_long": "iron overload",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Iron overload",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hemosiderosis",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 49
+   }
+  ]
+ },
+ {
+  "dx_id": "large_granular_lymphocyte",
+  "canonical_long": "large granular lymphocyte",
+  "canonical_abbrev": "LGL",
+  "topic": "lymphoid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "LGL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "large granular lymphocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Large granular lymphocytes",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 44
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 12
+   }
+  ]
+ },
+ {
+  "dx_id": "lbl",
+  "canonical_long": "lymphoblastic lymphoma",
+  "canonical_abbrev": "LBL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "LBL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "lymphoblastic lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Lymphoma",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 30
+   }
+  ]
+ },
+ {
+  "dx_id": "leukoerythroblastosis",
+  "canonical_long": "leukoerythroblastosis",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Leukoerythroblastosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "leukoerythroblastic reaction",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Hemolysis",
+    "tier": "half",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 38
+   }
+  ]
+ },
+ {
+  "dx_id": "lgl_lymphocytosis",
+  "canonical_long": "Large Granular Lymphocyte Lymphocytosis",
+  "canonical_abbrev": "LGL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "LGL lymphocytosis",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "large granular lymphocytosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "LGL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "large granular lymphocyte lymphocytosis",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 39
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 32
+   }
+  ]
+ },
+ {
+  "dx_id": "lymphoblast",
+  "canonical_long": "lymphoblast",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "lymphoblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "blast cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 35
+   }
+  ]
+ },
+ {
+  "dx_id": "lymphoma",
+  "canonical_long": "lymphoma",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "lymph node cancer",
+    "tier": "lay",
+    "form": "long"
+   },
+   {
+    "text": "Lymphoma involve",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "lymphoma involvement",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "lymphoma cells",
+    "tier": "lay",
+    "form": "long"
+   },
+   {
+    "text": "malignant lymphoma",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 12
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 40
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 5
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 50
+   }
+  ]
+ },
+ {
+  "dx_id": "lymphoma_cell",
+  "canonical_long": "Lymphoma cell",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Lymphoma cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Malignant lymphocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 13
+   }
+  ]
+ },
+ {
+  "dx_id": "macrophage",
+  "canonical_long": "macrophage",
+  "canonical_abbrev": null,
+  "topic": "other",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Macrophage",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "histiocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "scavenger cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 24
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 16
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 20
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 14
+   }
+  ]
+ },
+ {
+  "dx_id": "maha",
+  "canonical_long": "Microangiopathic hemolytic anemia",
+  "canonical_abbrev": "MAHA",
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "MAHA",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "Microangiopathic hemolytic anemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Hemolysis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "DIC",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "Disseminated intravascular coagulation",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 42
+   }
+  ]
+ },
+ {
+  "dx_id": "malaria",
+  "canonical_long": "Malaria",
+  "canonical_abbrev": null,
+  "topic": "infection",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Malaria",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Plasmodium infection",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 51
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 50
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 36
+   }
+  ]
+ },
+ {
+  "dx_id": "mantle_cell_lymphoma",
+  "canonical_long": "mantle cell lymphoma",
+  "canonical_abbrev": "MCL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Mantle cell lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "MCL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "mantle lymphoma",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 28
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 15
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 30
+   }
+  ]
+ },
+ {
+  "dx_id": "mast_cell",
+  "canonical_long": "mast cell",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "mast cell",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 48
+   }
+  ]
+ },
+ {
+  "dx_id": "may_hegglin_anomaly",
+  "canonical_long": "May-Hegglin anomaly",
+  "canonical_abbrev": null,
+  "topic": "platelet",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "May-Hegglin anomaly",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "May-Hegglin syndrome",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 2
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 39
+   }
+  ]
+ },
+ {
+  "dx_id": "mds",
+  "canonical_long": "Myelodysplastic syndrome",
+  "canonical_abbrev": "MDS",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "MDS",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "myelodysplastic syndrome",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "leukoerythroblastosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "leukoerythroblastic reaction",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Erythroid Hyperplasia",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 18
+   },
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 35
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 43
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 28
+   }
+  ]
+ },
+ {
+  "dx_id": "mds_or_aml_m6",
+  "canonical_long": "myelodysplastic syndrome (or AML, M6)",
+  "canonical_abbrev": "MDS",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "MDS",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "myelodysplastic syndrome",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AML M6",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "acute myeloid leukemia, M6",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "preleukemia",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 6
+   }
+  ]
+ },
+ {
+  "dx_id": "megakaryocyte",
+  "canonical_long": "Megakaryocyte",
+  "canonical_abbrev": null,
+  "topic": "platelet",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Megakaryocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "mega",
+    "tier": "lay",
+    "form": "abbrev"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 30
+   }
+  ]
+ },
+ {
+  "dx_id": "metastatic_cancer",
+  "canonical_long": "metastatic cancer (metastatic carcinoma / cancer nests)",
+  "canonical_abbrev": null,
+  "topic": "other",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Metastatic cancer",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Cancer nests",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Metastatic carcinoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "metastatic ca",
+    "tier": "lay",
+    "form": "abbrev"
+   },
+   {
+    "text": "spread of cancer",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 52
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 18
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 43
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 43
+   }
+  ]
+ },
+ {
+  "dx_id": "mitosis",
+  "canonical_long": "mitosis",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Mitosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "mitotic figure",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "dividing cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 13
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 32
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 15
+   }
+  ]
+ },
+ {
+  "dx_id": "mm",
+  "canonical_long": "multiple myeloma",
+  "canonical_abbrev": "MM",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "MM",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "multiple myeloma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "plasma cell myeloma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "bone marrow cancer",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 2
+   },
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 11
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 50
+   }
+  ]
+ },
+ {
+  "dx_id": "monocyte",
+  "canonical_long": "monocyte",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Monocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Monocytes",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 10
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 33
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 9
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 12
+   }
+  ]
+ },
+ {
+  "dx_id": "multinucleated_erythroblast",
+  "canonical_long": "multinucleated erythroblast (multinucleated proerythroblast)",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Multinucleated erythroblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "MDS",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "multinucleated proerythroblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "multinucleated pronormoblast",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 37
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 29
+   }
+  ]
+ },
+ {
+  "dx_id": "mzl",
+  "canonical_long": "marginal zone lymphoma",
+  "canonical_abbrev": "MZL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "MZL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "marginal zone lymphoma",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 17
+   }
+  ]
+ },
+ {
+  "dx_id": "necrobiosis",
+  "canonical_long": "necrobiosis",
+  "canonical_abbrev": null,
+  "topic": "other",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Necrobiosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "cell necrosis",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 20
+   }
+  ]
+ },
+ {
+  "dx_id": "niemann_pick_disease",
+  "canonical_long": "Niemann-Pick disease",
+  "canonical_abbrev": null,
+  "topic": "other",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Niemann-Pick disease",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Histiocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Niemann-Pick cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Niemann pick",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 25
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 45
+   }
+  ]
+ },
+ {
+  "dx_id": "nucleated_rbc",
+  "canonical_long": "nucleated red blood cell",
+  "canonical_abbrev": "NRBC",
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Nucleated RBCs",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "nucleated red blood cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "NRBC",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "normoblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "immature red blood cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 14
+   },
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 8
+   }
+  ]
+ },
+ {
+  "dx_id": "osteoblast",
+  "canonical_long": "Osteoblast",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Osteoblast",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 35
+   }
+  ]
+ },
+ {
+  "dx_id": "osteoclast",
+  "canonical_long": "Osteoclast",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Osteoclast",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 51
+   }
+  ]
+ },
+ {
+  "dx_id": "pappenheimer_body",
+  "canonical_long": "Pappenheimer bodies",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Pappenheimer bodies",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Siderotic granules",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 50
+   }
+  ]
+ },
+ {
+  "dx_id": "paraprotein",
+  "canonical_long": "paraprotein",
+  "canonical_abbrev": null,
+  "topic": "other",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Paraprotein",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "M protein",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "abnormal protein",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 22
+   }
+  ]
+ },
+ {
+  "dx_id": "pernicious_anemia",
+  "canonical_long": "pernicious anemia (with Howell-Jolly bodies and giant band form)",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Pernicious anemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Megaloblastic anemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "B12 deficiency anemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Howell-Jolly body",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "giant band",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "vitamin B12 deficiency anemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "pernicious anaemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "B12 anemia",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 40
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 30
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 47
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 33
+   }
+  ]
+ },
+ {
+  "dx_id": "plasmablast",
+  "canonical_long": "plasmablast",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Plasmoblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "plasmablast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Plasma cell",
+    "tier": "half",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 9
+   }
+  ]
+ },
+ {
+  "dx_id": "plasmacytoid_lymphocyte",
+  "canonical_long": "plasmacytoid lymphocyte",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "plasmacytoid lymphocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 14
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 17
+   }
+  ]
+ },
+ {
+  "dx_id": "platelet_aggregates",
+  "canonical_long": "platelet aggregates",
+  "canonical_abbrev": null,
+  "topic": "platelet",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "platelet aggregates",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "sheet of platelets",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "platelet clumping",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "platelet clumps",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 9
+   }
+  ]
+ },
+ {
+  "dx_id": "pll",
+  "canonical_long": "Prolymphocytic leukemia",
+  "canonical_abbrev": "PLL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Prolymphocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "PLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "Lymphoma",
+    "tier": "half",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 44
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 8
+   }
+  ]
+ },
+ {
+  "dx_id": "polychromasia",
+  "canonical_long": "Polychromasia",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Polychromasia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Polychromatophilia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Reticulocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 27
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 11
+   }
+  ]
+ },
+ {
+  "dx_id": "polychromatophilic_normoblast",
+  "canonical_long": "polychromatophilic normoblast",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Polychromatophilic normoblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "polychromatophilic erythroblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "polychromatic normoblast",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 4
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 10
+   }
+  ]
+ },
+ {
+  "dx_id": "prolymphocyte",
+  "canonical_long": "prolymphocyte",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "prolymphocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 16
+   }
+  ]
+ },
+ {
+  "dx_id": "promegakaryocyte",
+  "canonical_long": "promegakaryocyte",
+  "canonical_abbrev": null,
+  "topic": "platelet",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Pro-megakaryocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "promegakaryocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "megakaryoblast",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 8
+   }
+  ]
+ },
+ {
+  "dx_id": "promonocyte",
+  "canonical_long": "promonocyte",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Promonocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 15
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 39
+   }
+  ]
+ },
+ {
+  "dx_id": "promyelocyte",
+  "canonical_long": "promyelocyte",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Promyelocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "progranulocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 7
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 23
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 1
+   }
+  ]
+ },
+ {
+  "dx_id": "promyelocyte_post_atra",
+  "canonical_long": "promyelocyte, post-ATRA therapy",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "promyelocyte s/p ATRA",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "post-ATRA promyelocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "differentiating promyelocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 45
+   }
+  ]
+ },
+ {
+  "dx_id": "pronormoblast",
+  "canonical_long": "pronormoblast (proerythroblast)",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Pronormoblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "proerythroblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "rubriblast",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 3
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 28
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 13
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 18
+   }
+  ]
+ },
+ {
+  "dx_id": "pseudo_pelger_huet_anomaly",
+  "canonical_long": "pseudo Pelger-Huët anomaly",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Pseudo pelger-huet anomaly",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "pseudo Pelger-Huët anomaly",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "acquired Pelger-Huët anomaly",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "pseudo-Pelger-Huët anomaly",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "pseudo-Pelger-Huet anomaly",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 16
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 26
+   }
+  ]
+ },
+ {
+  "dx_id": "pure_red_cell_aplasia",
+  "canonical_long": "Pure Red Cell Aplasia",
+  "canonical_abbrev": "PRCA",
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Pure Red cell aplasia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "PRCA",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "red cell aplasia",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 34
+   }
+  ]
+ },
+ {
+  "dx_id": "raeb_mds",
+  "canonical_long": "refractory anemia with excess blasts (myelodysplastic syndrome)",
+  "canonical_abbrev": "RAEB",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "RAEB",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "refractory anemia with excess blasts",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "MDS",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "myelodysplastic syndrome",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "preleukemia",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 42
+   }
+  ]
+ },
+ {
+  "dx_id": "ring_sideroblast",
+  "canonical_long": "Ring sideroblast",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Ring sideroblast",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Ringed sideroblast",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 14
+   }
+  ]
+ },
+ {
+  "dx_id": "rouleau_formation",
+  "canonical_long": "Rouleau formation",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Rouleau formation",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Rouleaux formation",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 5
+   }
+  ]
+ },
+ {
+  "dx_id": "sezary_cell",
+  "canonical_long": "Sezary cell",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Sezary cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Sezary syndrome cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "lymphocytes",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 10
+   }
+  ]
+ },
+ {
+  "dx_id": "small_lymphocyte",
+  "canonical_long": "small lymphocyte",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "small lymphocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 31
+   }
+  ]
+ },
+ {
+  "dx_id": "smudge_cell",
+  "canonical_long": "smudge cell",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "smudge cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "basket cell",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 32
+   }
+  ]
+ },
+ {
+  "dx_id": "thalassemia",
+  "canonical_long": "Thalassemia",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Thalassemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Thal",
+    "tier": "lay",
+    "form": "abbrev"
+   },
+   {
+    "text": "thalassaemia",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 48
+   },
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 49
+   }
+  ]
+ },
+ {
+  "dx_id": "thalassemia_major",
+  "canonical_long": "Thalassemia major",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Thalassemia major",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Cooley's anemia",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 7
+   }
+  ]
+ },
+ {
+  "dx_id": "thalassemia_or_maha",
+  "canonical_long": "thalassemia / hemolysis (microangiopathic hemolytic anemia, MAHA)",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Thalassemias, hemolysis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "thalassemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hemolysis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "MAHA",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "microangiopathic hemolytic anemia",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-3-ANS.pdf",
+    "n": 11
+   }
+  ]
+ },
+ {
+  "dx_id": "toxic_granule",
+  "canonical_long": "toxic granule (toxic granulation)",
+  "canonical_abbrev": null,
+  "topic": "myeloid",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Toxic granule",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "toxic granulation",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "toxic granules",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-2-ANS.pdf",
+    "n": 38
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 7
+   },
+   {
+    "key": "Test-4-ANS.pdf",
+    "n": 22
+   }
+  ]
+ },
+ {
+  "dx_id": "wm",
+  "canonical_long": "Waldenström macroglobulinemia",
+  "canonical_abbrev": "WM",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "WM",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "Waldenström macroglobulinemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "LPL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "lymphoplasmacytic lymphoma",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": [
+   {
+    "key": "Test-1-ANS.pdf",
+    "n": 32
+   }
+  ]
+ }
+]
