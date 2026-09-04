@@ -74,6 +74,36 @@ async function computeTopicWeights(
 }
 
 /**
+ * ⚠️ `smear_questions.id` 對 ASH 來源的題目直接內嵌了 dx slug(例如
+ * 'ash-hairy_cell_leukemia-63662'),不是 migration 註解講的 'ash-66486' 那種
+ * 純數字格式 —— 實際匯入的 274 筆(全部 ash 來源、佔題庫 57%)都是這樣,
+ * Phase A 的資料跟 schema 註解對不上。
+ *
+ * POST /sessions 與 GET /sessions/:id 都會把 id 原樣送回前端,而全真模式的
+ * 判定要到 /finish 才能揭曉:原樣送出這個 id,等於用 id 字串本身把答案洩漏
+ * 出去,完全繞過下面 my_tier/my_score 那道閘 —— 使用者一開考就知道一半以上
+ * 的題目答案,不必回答任何一題。對尚未揭曉的題目一律回傳「陣列裡第幾個」的
+ * 不透明代號,揭曉之後(複習模式全程 / 全真模式 finish 之後)才回真正的 id。
+ */
+function clientQuestionId(revealed: boolean, realId: string, idx: number): string {
+	return revealed ? realId : `#${idx}`;
+}
+
+/** clientQuestionId 的反函式 —— 把使用者送回來的 questionId 解回陣列位置。
+ *  複習模式(或已 finish 的全真模式)client 手上是真正的 id,直接比對得到;
+ *  全真模式 finish 之前 client 只有上面那個 `#idx` 代號,要另外解析。 */
+function resolveQuestionIdx(raw: string, questionIds: string[]): number {
+	const direct = questionIds.indexOf(raw);
+	if (direct >= 0) return direct;
+	const m = /^#(\d+)$/.exec(raw);
+	if (m) {
+		const i = Number(m[1]);
+		if (i >= 0 && i < questionIds.length) return i;
+	}
+	return -1;
+}
+
+/**
  * 依 question_ids 的順序組出「不含答案」的題目資訊 map。GET /sessions/:id
  * 與 POST /finish 的檢討 breakdown 都要用同一份 join,不各寫一次 —— 抄漏的
  * 症狀是兩處看到的 topic / canonical 對不起來。
@@ -196,7 +226,13 @@ smearRoutes.post("/sessions", async (c) => {
 		.bind(sessionId, email, mode, JSON.stringify(body), JSON.stringify(pickedIds), now)
 		.run();
 
-	return c.json({ id: sessionId, question_ids: pickedIds });
+	// review 模式全程揭曉;全真模式要到 /finish 才揭曉 —— 剛開考就不能把
+	// (可能內嵌 dx 的)真正 id 送出去,見 clientQuestionId 上方註解。
+	const revealed = mode === "review";
+	return c.json({
+		id: sessionId,
+		question_ids: pickedIds.map((id, i) => clientQuestionId(revealed, id, i)),
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -279,15 +315,18 @@ smearRoutes.get("/sessions/:id", async (c) => {
 	// reload 這支端點就能看到對錯,等於繞過「判定要到 /finish 才給」那條硬規則。
 	// review 模式在 /answer 當下就已經把完整判定回給 client 了,這裡再帶一次
 	// 只是讓 reload 恢復進度,不算多揭露什麼。
+	//
+	// ⚠️ 同一道閘也要蓋住 `id` 與 `dx_id` 本身 —— 見 clientQuestionId 上方註解,
+	// ASH 來源的 id 直接內嵌 dx slug,原樣送出等於用 id 洩漏答案。
 	const revealGrade = session.mode === "review" || !!session.finished_at;
 	const questions = questionIds
-		.map((qid) => {
+		.map((qid, i) => {
 			const q = qMap.get(qid);
 			if (!q) return null;
 			const a = aMap.get(qid);
 			return {
-				id: q.id,
-				dx_id: q.dx_id,
+				id: clientQuestionId(revealGrade, q.id, i),
+				dx_id: revealGrade ? q.dx_id : undefined,
 				source: q.source,
 				image_key_view: q.image_key_view,
 				image_key_full: q.image_key_full,
@@ -357,17 +396,22 @@ smearRoutes.post("/sessions/:id/answer", async (c) => {
 	} catch {
 		questionIds = [];
 	}
-	const idx = questionIds.indexOf(body.questionId);
+	// body.questionId may be the real smear_questions.id (review mode, or an
+	// already-revealed exam session) or the opaque `#idx` token handed out by
+	// GET/POST /sessions while exam-mode grading is still withheld — see
+	// clientQuestionId/resolveQuestionIdx above.
+	const idx = resolveQuestionIdx(body.questionId, questionIds);
 	if (idx < 0) {
 		return c.json({ error: "question is not part of this session" }, 400);
 	}
+	const realQuestionId = questionIds[idx];
 
 	const q = await c.env.DB.prepare(
 		`SELECT sq.dx_id, sd.canonical_long
        FROM smear_questions sq JOIN smear_dx sd ON sd.id = sq.dx_id
        WHERE sq.id = ?`,
 	)
-		.bind(body.questionId)
+		.bind(realQuestionId)
 		.first<{ dx_id: string; canonical_long: string }>();
 	if (!q) return c.json({ error: "question not found" }, 404);
 
@@ -399,7 +443,7 @@ smearRoutes.post("/sessions/:id/answer", async (c) => {
 	)
 		.bind(
 			sid,
-			body.questionId,
+			realQuestionId,
 			idx,
 			JSON.stringify(body.boxes),
 			grade.tier,
@@ -552,6 +596,11 @@ smearRoutes.post("/sessions/:id/finish", async (c) => {
 // 「錯」的判準是 tier != 'full'(half/lay/miss 都算)——設計的框架是「還沒
 // 完全拿下的診斷」,不是只算完全猜錯的那種。wrong_count 數的是作答事件
 // (跨所有場次),不是去重過的題目數 —— 同一診斷答錯愈多次,愈該排在前面。
+//
+// ⚠️ 一定要排掉「還沒 finish 的全真模式」session —— 這張表帶著 canonical_long
+// (診斷全名),而全真模式的判定要到 /finish 才能揭曉。少了這個條件,使用者在
+// 考試中途只要答錯一題,馬上打這支端點就能看到正解,完全繞過 GET /sessions/:id
+// 那道 my_tier/my_score 閘。
 // ---------------------------------------------------------------------------
 smearRoutes.get("/wrong", async (c) => {
 	const email = c.var.email;
@@ -563,6 +612,7 @@ smearRoutes.get("/wrong", async (c) => {
        JOIN smear_questions sq ON sq.id = sa.question_id
        JOIN smear_dx sd ON sd.id = sq.dx_id
       WHERE sa.tier IS NOT NULL AND sa.tier != 'full'
+        AND (ss.mode = 'review' OR ss.finished_at IS NOT NULL)
       GROUP BY sd.id
       ORDER BY wrong_count DESC, last_wrong_at DESC`,
 	)
