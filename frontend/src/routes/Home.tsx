@@ -8,6 +8,7 @@ import {
 	CalendarDays,
 	Scale,
 	CalendarPlus,
+	Microscope,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { config } from "../config";
@@ -364,6 +365,15 @@ export function Home() {
 					className="inline-flex items-center gap-1.5 text-accent hover:text-accent-dark"
 				>
 					<AlertTriangle size={14} /> 錯題回顧
+				</Link>
+				{/* 抹片練習不在導覽階梯的 md/lg 兩階(只在 xl 才冒出來,見 App.tsx
+				    的斷點註解),手機(<md)完全看不到那條導覽 —— 這裡是手機使用者
+				    唯一的入口,同 講義/錯題/答案挑戰 已經靠這排 quick links 撐著。 */}
+				<Link
+					to="/smear"
+					className="inline-flex items-center gap-1.5 text-accent hover:text-accent-dark"
+				>
+					<Microscope size={14} /> 抹片練習
 				</Link>
 				<Link
 					to="/exam-history"
