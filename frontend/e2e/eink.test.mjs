@@ -152,6 +152,24 @@ const ROUTES = [
     // 「正解」「拼字提醒」都只存在於判定結果裡,頁面上原本沒有,不會恆真。
     expectAfter: ['正解', '拼字提醒'],
   },
+  {
+    path: '/smear/s/e2e-4',
+    name: '抹片練習 → 未命中判定(miss 徽章的玫瑰色系,e2e-1 從沒掃過)',
+    // e2e-1 的 grade.tier 是 half,acceptedTerms 雖然橫跨 full/half/lay 三層
+    // (chipCls 跟對應 badgeCls 同色系),但 miss **不會出現在 acceptedTerms
+    // 裡**(TERM_TIER_ORDER 只有 full/half/lay,miss 是型別上不可能的
+    // AcceptedTerm.tier)—— 於是 GradeReveal 的玫瑰色系(border-rose-600 /
+    // text-rose-700,miss 專屬)在 e2e-1 那支測試裡完全沒被畫出來過。這支補上
+    // 那唯一還沒掃過的顏色家族,四層 tier 的視覺處理才算真的全部掃完一輪。
+    async interact(page) {
+      await page.getByPlaceholder('輸入診斷或細胞名稱…').fill('totally unrelated answer');
+      await page.getByRole('button', { name: '提交答案' }).click();
+      await page.waitForSelector('[data-testid="grade-reveal"]', { timeout: 10_000 });
+      await page.waitForTimeout(300);
+    },
+    // 「未命中」只存在於判定結果裡,頁面上原本沒有,不會恆真。
+    expectAfter: ['未命中'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是

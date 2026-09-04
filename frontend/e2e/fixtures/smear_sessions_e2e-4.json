@@ -1,0 +1,21 @@
+{
+	"id": "e2e-4",
+	"mode": "review",
+	"config": { "n": 1, "form": "any", "topics": ["myeloid"], "sources": ["exam"] },
+	"started_at": 1700000000000,
+	"finished_at": null,
+	"questions": [
+		{
+			"id": "exam-t1-005",
+			"dx_id": "auer_rod",
+			"source": "exam",
+			"image_key_view": "smear/exam/pre-test-A-2026-005-view.webp",
+			"image_key_full": "smear/exam/pre-test-A-2026-005-full.webp",
+			"prompt": "What cell?",
+			"image_note": null,
+			"topic": "myeloid",
+			"qtype": "cell",
+			"answered": false
+		}
+	]
+}
