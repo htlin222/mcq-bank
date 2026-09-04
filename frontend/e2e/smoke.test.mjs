@@ -111,6 +111,20 @@ const ROUTES = [
     // 卡在「載入中…」—— 那正是兩支請求沒接對時最容易出現的樣子。
     expectText: '主題分類',
   },
+  {
+    path: '/smear?tab=history',
+    name: '抹片作答記錄(D4:HistoryTab —— 未完成的全真模式不揭曉分數)',
+    // 掛的是別處沒有的型態:同一支列表混著「已完成/未完成」與「複習/全真」
+    // 四種組合,而未完成那一列刻意不畫分數區塊(見 Smear.tsx 的 HistoryRow
+    // 註解)。斷言「未完成」而不只是標題,證明清單真的抓回 fixture 裡那筆
+    // finished_at=null 的全真模式,而不是卡在「載入中…」。
+    expectText: '未完成',
+  },
+  {
+    path: '/smear?tab=wrong',
+    name: '抹片錯題本(D4:WrongTab —— 按診斷聚合、worst-first)',
+    expectText: '次答錯',
+  },
 ];
 
 // fixture 是從真實 API 抓下來的，而這個 repo 是公開的 —— 第一版就差點把 18 位

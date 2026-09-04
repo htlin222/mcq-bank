@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ApiError } from "../lib/api";
 import {
@@ -41,6 +41,20 @@ import { TIER_META } from "../components/smear/GradeReveal";
 // session 是唯讀的(worker 端 `if (!session.finished_at)` 才重算),所以
 // 再打一次不會改變分數 —— 兩條入口因此可以共用同一個元件,不必分成
 // 「剛交卷用這個」「歷史用那個」兩份幾乎一樣的畫面。
+//
+// ⚠️ **但不能因此無條件呼叫 finish。** 這支路由不是只能透過「作答頁按交卷」
+// 或「歷史頁點已完成的那一列」進來 —— 使用者可以直接把網址列改成
+// `/smear/s/<id>/result`(或沿用剛才作答頁的網址手動加 `/result`)。worker
+// 端的 `/finish` 對 `!session.finished_at` 的 session 是**無條件**重算 +
+// 寫入 `finished_at` 的(見 worker/routes/smear.ts),沒有「題目都答完了嗎」
+// 這道閘 —— 而 `/answer` 對已 finish 的 session 一律回 400。實測過:全真
+// 模式 5 題只答 2 題就直接打這支路由,會把另外 3 題(使用者根本沒看過的
+// 圖)當成 miss 算進成績並把 canonical_long/dx_id 一次揭曉,而且**回不去**
+// 補答那 3 題 —— 完全繞過作答頁 `handleEarlyFinish()` 那個「還有 N 題未
+// 作答,確定要交卷嗎」的確認對話框。複習模式雖然沒有洩漏疑慮(每題本來就
+// 全程揭曉),一樣會把使用者鎖在剩下的題目外面。所以這裡先讀一次 session,
+// 只有「已經 finished」或「題目全部答完」才真的呼叫 finish;否則導回作答頁,
+// 讓使用者透過既有的確認流程決定要不要提前交卷。
 
 type BreakdownWithQuestion = SmearFinishBreakdownRow & {
 	question?: SmearSessionQuestion;
@@ -53,6 +67,7 @@ function fmtTyped(typed: unknown[]): string {
 
 export function SmearResult() {
 	const { id } = useParams<{ id: string }>();
+	const navigate = useNavigate();
 
 	const [finish, setFinish] = useState<SmearFinishResult | null>(null);
 	const [session, setSession] = useState<SmearSessionDetail | null>(null);
@@ -68,11 +83,24 @@ export function SmearResult() {
 
 		(async () => {
 			try {
+				// 先讀一次 session 判斷「這場真的該收尾了嗎」—— 見檔頭說明,不能對
+				// 還在作答中的 session 無條件呼叫 finish。
+				const sess0 = await fetchSmearSession(id);
+				if (cancelled) return;
+				const allAnswered =
+					sess0.questions.length > 0 && sess0.questions.every((q) => q.answered);
+				if (!sess0.finished_at && !allAnswered) {
+					// 還沒交卷、也還沒答完 —— 導回作答頁,讓使用者透過那裡既有的
+					// 「提前交卷」確認對話框決定,而不是被這支路由靜靜代為交卷。
+					navigate(`/smear/s/${id}`, { replace: true });
+					return;
+				}
 				// 順序很重要 —— 見檔頭說明,finish 必須先完成寫入,GET /sessions/:id
-				// 才有機會讀到已揭曉的資料。
+				// 才有機會讀到已揭曉的資料。若 sess0 本來就已經 finished,revealGrade
+				// 早就打開了,直接沿用即可,不必再多打一次。
 				const fin = await finishSmearSession(id);
 				if (cancelled) return;
-				const sess = await fetchSmearSession(id);
+				const sess = sess0.finished_at ? sess0 : await fetchSmearSession(id);
 				if (cancelled) return;
 				setFinish(fin);
 				setSession(sess);
@@ -91,7 +119,7 @@ export function SmearResult() {
 		return () => {
 			cancelled = true;
 		};
-	}, [id]);
+	}, [id, navigate]);
 
 	const questionMap = useMemo(() => {
 		const map = new Map<string, SmearSessionQuestion>();
