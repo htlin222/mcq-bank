@@ -5,6 +5,7 @@ import { uuid } from "../lib/db";
 import { gradeSmear, type AcceptedTerm } from "../lib/smear-grade";
 import { pickSmearSet, type PoolItem } from "../lib/smear-pick";
 import { ftsQuery } from "../lib/fts-query";
+import { chunkParams, D1_MAX_PARAMS } from "../lib/sql-params";
 
 export const smearRoutes = new Hono<AppContext>();
 
@@ -114,18 +115,25 @@ async function loadSessionQuestions(
 ): Promise<Map<string, SessionQuestionInfo>> {
 	const map = new Map<string, SessionQuestionInfo>();
 	if (questionIds.length === 0) return map;
-	const placeholders = questionIds.map(() => "?").join(",");
-	const { results } = await db
-		.prepare(
-			`SELECT sq.id, sq.dx_id, sq.source, sq.image_key_view, sq.image_key_full,
+	// ⚠️ 一場全真模式最多可以有 200 題(見 POST /sessions 的 Math.min(200, nRaw)),
+	// 而 D1 對單一陳述式綁的參數數量有上限(worker/lib/sql-params.ts 的
+	// D1_MAX_PARAMS,同一個坑 export.ts 已經踩過一次)。原本一次性
+	// `IN (?,?,...×200)` 在 200 題的場次會直接 500(D1_ERROR: too many SQL
+	// variables),而且只有大場次才會踩到 —— 小規模手測完全看不出來。
+	for (const part of chunkParams(questionIds, D1_MAX_PARAMS)) {
+		const placeholders = part.map(() => "?").join(",");
+		const { results } = await db
+			.prepare(
+				`SELECT sq.id, sq.dx_id, sq.source, sq.image_key_view, sq.image_key_full,
               sq.prompt, sq.image_note, sd.topic, sd.qtype, sd.canonical_long
        FROM smear_questions sq
        JOIN smear_dx sd ON sd.id = sq.dx_id
        WHERE sq.id IN (${placeholders})`,
-		)
-		.bind(...questionIds)
-		.all<SessionQuestionInfo>();
-	for (const r of results ?? []) map.set(r.id, r);
+			)
+			.bind(...part)
+			.all<SessionQuestionInfo>();
+		for (const r of results ?? []) map.set(r.id, r);
+	}
 	return map;
 }
 
