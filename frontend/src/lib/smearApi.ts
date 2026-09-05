@@ -343,3 +343,103 @@ export interface SmearWrongItem {
 export function fetchSmearWrong(): Promise<{ items: SmearWrongItem[] }> {
 	return api.get("/api/smear/wrong");
 }
+
+// ---------------------------------------------------------------------------
+// 收藏 —— POST|DELETE /api/smear/dx/:id/bookmark、GET /api/smear/bookmarks
+//
+// GET /api/smear/dx/:id 不回 `bookmarked` 欄位(worker/routes/smear.ts 沒有這個
+// 需求),所以「這個 dx 有沒有被我收藏」是用 GET /bookmarks 的清單反查 ——
+// 見 SmearDx.tsx。這是前端獨有的判斷方式,不是後端漏欄位。
+// ---------------------------------------------------------------------------
+export interface SmearBookmarkItem {
+	dx_id: string;
+	created_at: number;
+	canonical_long: string;
+	canonical_abbrev: string | null;
+	topic: string;
+	qtype: string;
+}
+
+export function fetchSmearBookmarks(): Promise<{ items: SmearBookmarkItem[] }> {
+	return api.get("/api/smear/bookmarks");
+}
+
+export function bookmarkSmearDx(dxId: string): Promise<{ ok: true; bookmarked: true }> {
+	return api.post(`/api/smear/dx/${dxId}/bookmark`);
+}
+
+export function unbookmarkSmearDx(dxId: string): Promise<{ ok: true; bookmarked: false }> {
+	return api.del(`/api/smear/dx/${dxId}/bookmark`);
+}
+
+// ---------------------------------------------------------------------------
+// 個人筆記 —— GET|POST /api/smear/dx/:id/notes、PUT|DELETE /api/smear/notes/:id
+//
+// `content_json` 原樣以字串來回(同 explanation/comments 的慣例),呼叫端自己
+// JSON.parse() 餵給 StaticContent / RichEditor。
+// ---------------------------------------------------------------------------
+export interface SmearNote {
+	id: string;
+	dx_id: string;
+	content_json: string;
+	sort_order: number;
+	created_at: number;
+	updated_at: number;
+}
+
+export function fetchSmearNotes(dxId: string): Promise<{ items: SmearNote[] }> {
+	return api.get(`/api/smear/dx/${dxId}/notes`);
+}
+
+export function createSmearNote(
+	dxId: string,
+	contentJson: unknown,
+): Promise<SmearNote> {
+	return api.post(`/api/smear/dx/${dxId}/notes`, { content_json: contentJson });
+}
+
+export function updateSmearNote(
+	noteId: string,
+	contentJson: unknown,
+): Promise<{ ok: true }> {
+	return api.put(`/api/smear/notes/${noteId}`, { content_json: contentJson });
+}
+
+export function deleteSmearNote(noteId: string): Promise<{ ok: true }> {
+	return api.del(`/api/smear/notes/${noteId}`);
+}
+
+// ---------------------------------------------------------------------------
+// 討論 —— GET|POST /api/smear/dx/:id/comments、DELETE /api/smear/comments/:id
+//
+// 扁平清單(同 comments.ts 的既有慣例),呼叫端自己用 parent_id 建樹 ——
+// 見 components/smear/SmearCommentThread.tsx。v1 沒有 @mention/helpful 投票,
+// 也沒有編輯,只有發表/回覆/刪除(作者本人或 admin)。
+// ---------------------------------------------------------------------------
+export interface SmearComment {
+	id: string;
+	dx_id: string;
+	parent_id: string | null;
+	author_email: string;
+	content_json: string;
+	created_at: number;
+	updated_at: number;
+	deleted_at: number | null;
+	display_name: string | null;
+	avatar_key: string | null;
+}
+
+export function fetchSmearComments(dxId: string): Promise<SmearComment[]> {
+	return api.get(`/api/smear/dx/${dxId}/comments`);
+}
+
+export function postSmearComment(
+	dxId: string,
+	body: { content_json: unknown; parent_id?: string },
+): Promise<SmearComment> {
+	return api.post(`/api/smear/dx/${dxId}/comments`, body);
+}
+
+export function deleteSmearComment(commentId: string): Promise<{ ok: true }> {
+	return api.del(`/api/smear/comments/${commentId}`);
+}

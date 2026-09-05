@@ -14,6 +14,7 @@ import {
 import { SmearImage } from "../components/smear/SmearImage";
 import { AnswerInput } from "../components/smear/AnswerInput";
 import { GradeReveal, type SmearGradeDisplay } from "../components/smear/GradeReveal";
+import { SmearDxPanel } from "../components/smear/SmearDxPanel";
 
 // /smear/s/:id —— 作答頁。手機是這個功能最主要的使用情境(CLAUDE.md
 // 「MOBILE IS THE PRIORITY」),版面刻意單欄堆疊到所有寬度(圖 → 提示 →
@@ -313,7 +314,22 @@ export function SmearSession() {
 					onSubmit={(value, hintUsed) => void handleSubmit(current, value, hintUsed)}
 				/>
 			) : currentResult.kind === "grade" ? (
-				<GradeReveal grade={currentResult.display} />
+				<>
+					<GradeReveal grade={currentResult.display} />
+					{/* 只有複習模式的「已揭曉」判定會走到這裡（`currentResult.kind ===
+					    'grade'` 只在 session.mode === 'review' 時才會被設成這個值，見上面
+					    handleSubmit / reload 的初始化邏輯）—— 全真模式全程只會拿到
+					    'exam-ack'，這個分支永遠碰不到，`current.dx_id` 在那個模式下也
+					    確實沒有被伺服器揭曉過（worker/routes/smear.ts 的 revealGrade
+					    閘）。這裡仍然多寫一次 `session.mode === "review"` 明確判斷，
+					    不只依賴 kind 是不是剛好對——兩道閘疊起來，以後改動
+					    handleSubmit 的邏輯也不會意外把成績模式的正解洩漏到這裡。 */}
+					{session.mode === "review" && current.dx_id && (
+						<div className="mt-6 pt-6 border-t border-ink-100 dark:border-ink-700">
+							<SmearDxPanel dxId={current.dx_id} />
+						</div>
+					)}
+				</>
 			) : (
 				<ExamAnswerAck />
 			)}
