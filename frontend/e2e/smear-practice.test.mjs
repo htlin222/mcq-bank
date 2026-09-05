@@ -523,10 +523,15 @@ test('看選項提示:輸入框換成單選清單,選正解會判對,可以改�
     await mcButton.waitFor();
     await mcButton.click();
 
-    // 輸入框應該不見了,單選清單取而代之。
-    assert.equal(await input.count(), 0, '選項模式下,原本的輸入框應該不在 DOM 裡');
+    // 「看選項」到選項清單真的出現之間有 loading 狀態,輸入框在那段時間
+    // 還在 DOM 裡(AnswerInput.tsx 只在 mc.status === 'loaded' 才換成單選
+    // 清單)。先等正解選項真的出現,再斷言輸入框消失 —— 否則這條斷言會
+    // 競態:mock 回應稍有延遲就會在輸入框還沒被換掉時跑到。
     const correctOption = page.getByRole('radio', { name: DX.apl.canonical_long });
     await correctOption.waitFor();
+
+    // 選項清單真的出現之後,原本的輸入框應該已經被換掉了。
+    assert.equal(await input.count(), 0, '選項模式下,原本的輸入框應該不在 DOM 裡');
 
     // 改回輸入 —— 驗證退路真的有效。
     await page.getByRole('button', { name: '改用輸入' }).click();
