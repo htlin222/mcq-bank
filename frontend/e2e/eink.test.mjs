@@ -264,6 +264,13 @@ const ROUTES = [
     expectAfter: ['骨髓性', '紅血球系', '個待加強', '正確率'],
   },
   {
+    path: '/smear/exam',
+    name: '全真模式落地頁(入口對稱新增的路由,`/smear/review` 的鏡像,靜態頁面不需要 fixture)',
+    // SmearExam.tsx 不打任何 API——純靜態文案 + 一顆開 StartDialog 的按鈕,
+    // 跟 /smear/review 一樣是這支測試沒掃過的路由,加進來才不會讓「入口對稱」
+    // 這個新頁面一次都沒被 e-ink 掃過。
+  },
+  {
     path: '/smear?tab=submit',
     name: '抹片投稿 → 待審核佇列(建議 dx 的虛線 accent 徽章 + 核准/退件按鈕,全新分頁+全新元件第一次被掃到)',
     // 「投稿」是第六個分頁,SubmitTab 預設落在「我的投稿」子分頁(表單 +

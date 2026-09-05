@@ -85,9 +85,15 @@
 診斷的題庫裡,格數會洩漏答案字數)。中間空了一大段:主題分類太籠統,直接看答案又
 太重。
 
-「看選項」補的正是這一段,同時也是 Layer 3(作答互動層落差)最小可行解:一旦
-打字題也有一條「切換成選擇題作答」的正式退路,就不需要另外幫自由輸入框做手把
-方案——沿用筆試 `QuestionCard` 現成的選項/送出/手把互動元件即可。
+「看選項」補的正是這一段,同時也是 Layer 3(作答互動層落差)最小可行解。前端
+這顆按鈕按下去,`AnswerInput.tsx` 的自由輸入框**整個換成**單選清單(不是並存),
+選了再按送出——跟輸入框共用同一顆「提交答案」按鈕。**刻意不重用 `QuestionCard`
+的選項元件**:那個元件綁死 MCQ 題目的資料形狀(收藏/信心/管理員編輯),硬套會
+把兩個不同的資料模型綁在一起,改成視覺語彙一致的獨立小元件。原生
+`<input type="radio">` 同 `name` 群組本身就有方向鍵移動 + Enter/Space 選取的
+鍵盤互動,**不需要接上全站的手把系統就有基本的鍵盤操作**——真正的手把(十字鍵/
+面鍵)整合是更大的一塊工程(那一套綁定分散在 `QuestionCard`/`Question.tsx` 兩層,
+且需要新的情境判斷),這裡刻意留給下一輪。
 
 只在複習模式出現,跟現有兩個提示並列(不是新模式;全真模式維持「無提示」)。
 
@@ -125,9 +131,13 @@ body: { questionId: string }
 ### 互動
 
 按下「看選項」後,`AnswerInput` 的自由輸入框**整個換成**單選清單(不是並存)——
-沿用 `QuestionCard` 既有的選項/送出/手把互動,選中一個、按送出(或面鍵確認),
-送出的字串就是選到的 `canonical_long`,走現有 `submitSmearAnswer`,
-`hintUsed: 'mc_choice'`。
+獨立的小元件,不重用 `QuestionCard`,理由見上面 Layer 3 定位那段。選中一個、
+按下與輸入框共用的同一顆「提交答案」按鈕,送出的字串來自
+`pickCorrectOptionLabel()`(`worker/lib/smear-mcq.ts`)——從 `smear_terms` 挑一個
+能通過 `gradeSmear()` 判成 full 的完整詞形,**不是** `canonical_long` 本身:
+`canonical_long` 常帶括號補充,`gradeSmear()` 只認 `smear_terms` 裡登記的詞,
+字數不一致時原封不動塞 `canonical_long` 會讓使用者選到「顯示的正解」卻被判成
+miss。走現有 `submitSmearAnswer`,`hintUsed: 'mc_choice'`。
 
 ### 計分與誠實帳
 
@@ -154,7 +164,7 @@ body: { questionId: string }
 | 層 | 守什麼 |
 | --- | --- |
 | 純函式 | `pickMcqDistractors()`:同 topic 優先、缺額回填其他 topic、正解一定在洗牌後的 5 個裡、不重複 |
-| e2e | 進入 `/smear/exam` 直接看到設定表單(不是跳出彈窗);「看選項」按下後輸入框消失、選項清單出現;選中後送出算全對;手把在選項模式下可以選取/確認(沿用既有 `QuestionCard` 手把測試的斷言方式) |
+| e2e | 進入 `/smear/exam` 直接看到設定表單(不是跳出彈窗);「看選項」按下後輸入框消失、選項清單出現;選中後送出算全對(手把整合已延後到下一輪,見上面 Layer 3 定位那段,不在本輪 e2e 覆蓋範圍) |
 | 既有防線 | `/smear/exam` 加進 `eink.test.mjs`、`overflow.test.mjs` 的路由表(底部導覽入口性質改變,可能動到導覽階梯量測) |
 
 ## Non-goals
