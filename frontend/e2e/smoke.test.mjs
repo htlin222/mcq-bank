@@ -126,6 +126,14 @@ const ROUTES = [
     expectText: '次答錯',
   },
   {
+    path: '/smear/review',
+    name: '複習模式選擇主題(獨立頁,新的 /api/smear/topic-stats 端點)',
+    // 掛的是別處沒有的型態:同一頁三支端點(meta/wrong/topic-stats)各自
+    // 獨立失敗都不該讓整頁空白 —— 斷言主題名稱,證明 meta.topics 真的餵進
+    // 卡片清單,而不是卡在「載入中…」。
+    expectText: '骨髓性',
+  },
+  {
     path: '/smear?tab=submit',
     name: '抹片投稿(表單 + 個人投稿紀錄,admin 子分頁另有 eink.test.mjs 涵蓋)',
     // 掛的是別處沒有的型態:multipart 表單(圖片挑選 + 預覽)疊在一支既有清單

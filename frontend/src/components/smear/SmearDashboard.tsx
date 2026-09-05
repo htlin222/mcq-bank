@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
 	AlertTriangle,
 	BookOpen,
@@ -15,7 +15,6 @@ import {
 	fetchSmearSessions,
 	fetchSmearWrong,
 	SMEAR_TOPIC_LABELS,
-	type SmearMode,
 	type SmearHistoryItem,
 	type SmearWrongItem,
 } from "../../lib/smearApi";
@@ -30,9 +29,13 @@ import {
 // 反過來的情況,是抹片**自己**的統計,跟筆試的數字完全不共用同一份查詢,
 // 兩邊各自的真相不會互相污染。
 export function SmearDashboard() {
+	const navigate = useNavigate();
 	const [sessions, setSessions] = useState<SmearHistoryItem[] | null>(null);
 	const [wrong, setWrong] = useState<SmearWrongItem[] | null>(null);
-	const [dialogMode, setDialogMode] = useState<SmearMode | null>(null);
+	// 「複習模式」導去 /smear/review 的主題式選擇頁,不再直接開對話框
+	// (見 SmearReview.tsx 檔頭的設計理由)。全真模式沒有對應頁面,維持
+	// 原地開對話框。
+	const [examDialogOpen, setExamDialogOpen] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -75,14 +78,17 @@ export function SmearDashboard() {
 			{/* 統計卡三格 —— 同首頁筆試 dashboard 的視覺語彙(StatBlock 那三格),
 			    但這裡的數字完全是抹片自己的。 */}
 			<section className="grid grid-cols-3 gap-3 sm:gap-4">
-				<DashStat label="完成場次" value={finished.length} />
+				{/* 標籤刻意跟原本筆試 dashboard 的 StatBlock 一樣短(2–3 字)—— 320px
+				    下三欄格線一格只有 ~90px,「整體正確率」「待加強診斷」這種
+				    5 字標籤會被迫斷成兩行斷在奇怪的地方(「整體正確/率」)。 */}
+				<DashStat label="場次" value={finished.length} />
 				<DashStat
-					label="整體正確率"
+					label="正確率"
 					value={accuracyPct !== null ? `${accuracyPct}%` : "—"}
 					sub={totalMax > 0 ? `${totalScore}/${totalMax}` : undefined}
 					accent
 				/>
-				<DashStat label="待加強診斷" value={wrong?.length ?? 0} />
+				<DashStat label="待加強" value={wrong?.length ?? 0} />
 			</section>
 
 			{/* 兩張大卡直接開練 —— 複用 Smear.tsx 的 ModeCard + StartDialog,
@@ -92,17 +98,17 @@ export function SmearDashboard() {
 					icon={<Microscope size={18} aria-hidden="true" />}
 					title="複習模式"
 					desc="看一張抹片,寫出診斷。每題作答後立刻看判定、可接受寫法與詳解 —— 適合平常累積。"
-					onClick={() => setDialogMode("review")}
+					onClick={() => navigate("/smear/review")}
 				/>
 				<ModeCard
 					icon={<Timer size={18} aria-hidden="true" />}
 					title="全真模式"
 					desc="連續作答,全程不揭曉正解;交卷後才看整體成績與逐題檢討 —— 適合考前自我測驗。"
-					onClick={() => setDialogMode("exam")}
+					onClick={() => setExamDialogOpen(true)}
 				/>
 			</section>
-			{dialogMode && (
-				<StartDialog initialMode={dialogMode} onClose={() => setDialogMode(null)} />
+			{examDialogOpen && (
+				<StartDialog initialMode="exam" onClose={() => setExamDialogOpen(false)} />
 			)}
 
 			{/* 錯題預覽 —— 只列前幾個,完整清單在 /smear?tab=wrong。 */}

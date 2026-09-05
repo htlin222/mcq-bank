@@ -645,6 +645,40 @@ smearRoutes.get("/wrong", async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// GET /api/smear/topic-stats —— 首頁「複習模式選擇主題」頁的整體正確率 +
+// 上次練習時間,按主題聚合。同 /wrong 的 join 路徑(smear_answers →
+// smear_questions → smear_dx),差別只在**不篩 tier**(這裡要的是整體
+// 表現,不是只看答錯的)、GROUP BY 換成 topic,並多算一個 MAX(answered_at)。
+//
+// 同樣要排掉未 finish 的全真模式(見 /wrong 的安全性註解)—— 少了這道
+// WHERE,考試中途答一題就能從這支端點反推出「這題我對還是錯」,繞過
+// GET /sessions/:id 的 revealGrade 閘。
+// ---------------------------------------------------------------------------
+smearRoutes.get("/topic-stats", async (c) => {
+	const email = c.var.email;
+	const { results } = await c.env.DB.prepare(
+		`SELECT sd.topic AS topic,
+            SUM(sa.score) AS score,
+            COUNT(*) AS attempts,
+            MAX(sa.answered_at) AS last_answered_at
+       FROM smear_answers sa
+       JOIN smear_sessions ss ON ss.id = sa.session_id AND ss.user_email = ?
+       JOIN smear_questions sq ON sq.id = sa.question_id
+       JOIN smear_dx sd ON sd.id = sq.dx_id
+      WHERE (ss.mode = 'review' OR ss.finished_at IS NOT NULL)
+      GROUP BY sd.topic`,
+	)
+		.bind(email)
+		.all<{
+			topic: string;
+			score: number;
+			attempts: number;
+			last_answered_at: number | null;
+		}>();
+	return c.json({ items: results ?? [] });
+});
+
+// ---------------------------------------------------------------------------
 // GET /api/smear/dx/:id —— 診斷詳情:詳解 + 所有圖 + accepted terms
 // ---------------------------------------------------------------------------
 smearRoutes.get("/dx/:id", async (c) => {

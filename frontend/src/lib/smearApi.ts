@@ -345,6 +345,23 @@ export function fetchSmearWrong(): Promise<{ items: SmearWrongItem[] }> {
 }
 
 // ---------------------------------------------------------------------------
+// GET /api/smear/topic-stats —— 按主題聚合的整體正確率 + 上次練習時間,
+// 供 /smear/review 的主題卡片使用。`score`/`attempts` 兩個數字自己算
+// 正確率(score/attempts),不在後端先算成 %——跟 SmearResult.tsx 的
+// topicStats 是同一種「回傳原始數字,顯示端自己算比例」的分工。
+// ---------------------------------------------------------------------------
+export interface SmearTopicStat {
+	topic: string;
+	score: number;
+	attempts: number;
+	last_answered_at: number | null;
+}
+
+export function fetchSmearTopicStats(): Promise<{ items: SmearTopicStat[] }> {
+	return api.get("/api/smear/topic-stats");
+}
+
+// ---------------------------------------------------------------------------
 // 收藏 —— POST|DELETE /api/smear/dx/:id/bookmark、GET /api/smear/bookmarks
 //
 // GET /api/smear/dx/:id 不回 `bookmarked` 欄位(worker/routes/smear.ts 沒有這個
