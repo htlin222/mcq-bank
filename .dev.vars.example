@@ -1,0 +1,19 @@
+# wrangler dev 把這份檔案載成 Worker 的 env。複製後使用:
+#   cp .dev.vars.example .dev.vars
+# .dev.vars 已在 .gitignore;這份 example 不含任何真實秘密。
+
+# 本機登入繞過:值是 localhost 時,worker/lib/auth.ts 接受 Vite proxy 注入的
+# X-Dev-Email(來自 config.toml [dev].dev_email)。改成別的值 = 所有 /api/* 401。
+CF_ACCESS_TEAM_DOMAIN=localhost
+CF_ACCESS_AUD=dev
+
+# 以下 HMAC 秘密本機任意非空字串即可;正式機用 `wrangler secret put <NAME>`。
+# MCQ_KEY_SECRET  — /mcq skill 的每人讀取金鑰(mcqk_)
+# BANK_KEY_SECRET — 新年份匯入的管理員寫入金鑰(bnkk_);沒設 → /api/bank-ingest 回 503
+MCQ_KEY_SECRET=dev-mcq-secret
+BANK_KEY_SECRET=dev-bank-secret
+
+# 選用。沒設時對應功能安靜降級(Telegram webhook 回 200 忽略、回饋按鈕隱藏)。
+# TG_BOT_TOKEN=
+# TG_WEBHOOK_SECRET=
+# GH_FEEDBACK_TOKEN=

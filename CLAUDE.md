@@ -1,181 +1,345 @@
 # CLAUDE.md
 
-This file gives future Claude sessions the context needed to work on this codebase effectively.
+專科考試共筆題庫(hema-2026)。React + Vite 前端在 Cloudflare Pages,Hono Worker
+在 `/api/*`,D1 / R2 / Workers AI / Durable Objects 全在免費額度內,登入交給
+Cloudflare Access(Zero Trust),**應用層沒有任何 auth 程式碼**。
 
-## When the user says "setup" or "deploy" on a fresh clone
+這份檔案分兩半:
 
-Treat this as a request for end-to-end guided onboarding. Walk the user
-through the steps below one at a time. Confirm prerequisites first, then
-ask before each step that modifies remote resources. **Don't batch — pause
-for the user's "ok / done / next" after each numbered block.** If a step
-fails, stop and debug; don't paper over with retries.
+| 區                                     | 讀的時機                                                    |
+| -------------------------------------- | ----------------------------------------------------------- |
+| **§0–§7 上手區**(本頁前段)             | 開機、設定、部署、動資料庫、跑測試 —— 每個 session 都會用到 |
+| **設計筆記**(`## Project Overview` 起) | 只在動到那個功能時讀對應那一節;每節標題就是它的主題         |
 
-### 0 — Sanity check (read silently, no need to print)
+---
 
-- `git rev-parse --show-toplevel` → confirms repo root
-- `which wrangler pnpm node python3` → all required
-- `node -v` ≥ 20, `python3 --version` ≥ 3.11 (for stdlib `tomllib`)
-- Look for existing `config.toml` / `wrangler.toml` / `.env` — if any
-  exist already, ask the user whether they want to reuse, edit, or
-  overwrite (`./scripts/setup.sh --force` overwrites all three).
+## §0 三十秒地圖
 
-### 1 — Interactive config
+| 層       | 技術                                                                         | 在哪                                         | 本機埠             |
+| -------- | ---------------------------------------------------------------------------- | -------------------------------------------- | ------------------ |
+| 前端     | React 18 · Vite · TailwindCSS · TipTap · PWA(`injectManifest`)               | `frontend/src/`                              | 5173               |
+| API      | Hono on Workers,`nodejs_compat`                                              | `worker/`                                    | 8787               |
+| 資料     | D1(SQLite)`migrations/`,R2 圖片與 PDF,3 個 SQLite DO(聊天、跨裝置狀態、2048) | `worker/{chat-room,user-state,play-2048}.ts` | `.wrangler/state/` |
+| 登入     | CF Access 注入 `Cf-Access-Jwt-Assertion`;本機用 `X-Dev-Email` 繞過           | `worker/lib/auth.ts`                         | —                  |
+| 腳本     | 匯入 / 部署 / 同步名單,全部從 `config.toml` 讀名字                           | `scripts/`                                   | —                  |
+| 資料管線 | 原始考題與批次 JSON(gitignored),`years/<民國年>/batches/*.json` → CSV → D1   | `years/`(本機才有)                           | —                  |
 
-Run `./scripts/setup.sh`. It prompts for:
+**Vite proxy 把 `/api`、`/img`、`/pdf` 轉到 8787 並注入 `X-Dev-Email`**(值來自
+`config.toml [dev].dev_email`),Worker 在 `CF_ACCESS_TEAM_DOMAIN === 'localhost'` 時
+接受它。這就是整個本機登入機制。
 
-- **Slug** — drives D1 db, R2 bucket, Worker, Pages project names. Must
-  be lowercase + hyphens. Stable: changing later means renaming CF resources.
-- **Public host** — e.g. `qa.example.com`. Must already exist as a zone
-  in the user's Cloudflare account, or be a `*.pages.dev` they'll switch to.
-- **Admin email** — granted in-app admin rights. Becomes `X-Dev-Email`
-  for local dev and the seed CF Access user.
-- **GitHub repo for feedback button** — set `GH_FEEDBACK_TOKEN` in `.env`
-  later (a PAT with `issues:write` on that repo).
-- **Exam date** — drives the homepage countdown; can be any future date.
+---
 
-After this step, `config.toml`, `wrangler.toml`, `.env` all exist (with
-`<REPLACE_ME_DB_ID>` placeholder that `deploy.sh` will fill in).
+## §1 環境檢查
 
-### 2 — Install deps + local verification
+### 1.1 工具
 
 ```bash
-pnpm install
-cd frontend && pnpm install && cd ..
+node -v            # ≥ 20(scripts 用 --experimental-strip-types 直接跑 .ts)
+pnpm -v            # 唯一的套件管理器;不要用 npm install
+python3 --version  # ≥ 3.11(scripts 用 stdlib tomllib 讀 config.toml)
+wrangler --version # ≥ 4;deploy 與所有 d1/r2 指令都靠它
+uv --version       # 只有 anki:build 與 bank-ingest skill 用到
+```
+
+### 1.2 四份 gitignored 的設定檔
+
+**沒有這四份,`pnpm dev` 起不來或登不進去。** 這是新 clone 最常卡住的地方。
+
+| 檔案            | 誰產生                                                                | 誰讀                                                                           | 沒有它的症狀                                                                            |
+| --------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `config.toml`   | `./scripts/setup.sh`(從 `config.example.toml`)                        | 所有 scripts、`frontend/vite.config.ts`(build 時注入 `__APP_CONFIG__`)         | vite 啟動就炸:`ENOENT config.toml`                                                      |
+| `wrangler.toml` | `setup.sh`(從 `wrangler.example.toml`);`deploy.sh` 回填 `database_id` | wrangler                                                                       | `wrangler dev` 找不到 bindings                                                          |
+| `.env`          | `setup.sh`(從 `.env.example`)                                         | `deploy.sh`、`sync-access.ts`、`setup-public-bypass.sh`、`backfill-vectors.ts` | 只影響部署類腳本,本機開發不需要                                                         |
+| `.dev.vars`     | **手動** `cp .dev.vars.example .dev.vars`(setup.sh 不管它)            | `wrangler dev` 當 Worker env                                                   | 所有 `/api/*` 回 `401 unauthenticated` —— 因為 `CF_ACCESS_TEAM_DOMAIN` 不是 `localhost` |
+
+一鍵檢查:
+
+```bash
+ls config.toml wrangler.toml .env .dev.vars            # 四份都要在
+grep -c REPLACE_ME wrangler.toml                        # 0 = database_id 已回填(本機 dev 不需要,remote 才需要)
+grep CF_ACCESS_TEAM_DOMAIN .dev.vars                    # 必須是 localhost
+node scripts/lib/cfg.mjs project.d1_db                  # 印得出 db 名 = config.toml 讀得到
+lsof -iTCP:8787 -sTCP:LISTEN                            # 有東西 = 埠被佔(見 1.3)
+```
+
+### 1.3 埠 8787 常被別的東西佔走
+
+本機「所有 API 都 500 / 404」多半不是程式問題,是 OpenEvidence MCP 的 relay daemon
+之類佔了 8787,wrangler 根本沒在聽。換埠時兩邊要一起換:
+
+```bash
+WORKER_PORT=8788 pnpm dev -- --port 8788      # 終端 A(vite 讀 WORKER_PORT 跟著轉)
+WORKER_PORT=8788 pnpm --dir frontend dev      # 終端 B
+```
+
+---
+
+## §2 本機啟動
+
+```bash
+pnpm install && pnpm --dir frontend install
+cp .dev.vars.example .dev.vars                 # 首次
+pnpm db:migrate:local                          # 建 schema + 範例題(0002 / 0004 的種子列)
+pnpm dev                                       # 終端 A:gen:bundles → wrangler dev :8787
+pnpm --dir frontend dev                        # 終端 B:vite :5173
+```
+
+啟動後的驗證,三條由外到內:
+
+```bash
+curl -s localhost:8787/api/health                                 # {"ok":true,...} — Worker 活著,不需 auth
+curl -s -H 'X-Dev-Email: you@example.com' localhost:8787/api/me   # 回 JSON 使用者 = dev 繞過生效
+open http://localhost:5173                                        # 首頁 dashboard、右上角有 dev_email 的頭像
+```
+
+**本機資料有兩種來源,選一種:**
+
+| 想要                   | 做法                                               | 備註                                                                                                                               |
+| ---------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 乾淨的範例             | `pnpm db:migrate:local`                            | 只有 0002 / 0004 那幾題範例(id 形如 `2024-001`、`100-001`),不是真題                                                                |
+| **跟 production 一樣** | `pnpm db:pull`                                     | 只讀 remote、只寫 local;需要 `.env` 的 token。FTS5 表讓整庫 export 失敗,所以它「從 migrations 重建 schema + 只灌 base table 資料」 |
+| 全部重來               | `rip -rf .wrangler/state && pnpm db:migrate:local` | 也會清掉本機 R2 與 DO 狀態                                                                                                         |
+
+常見故障:
+
+| 症狀                                            | 原因                                                   | 修                                                                     |
+| ----------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| 全部 `/api/*` 401                               | `.dev.vars` 沒有或 `CF_ACCESS_TEAM_DOMAIN ≠ localhost` | 見 §1.2                                                                |
+| 全部 `/api/*` 500/404,wrangler log 一片空白     | 8787 被佔                                              | 見 §1.3                                                                |
+| `/api/me/bank-skill` 或 `/mcq` 下載到舊版 skill | `worker/generated/` 沒重新產生                         | `pnpm gen:bundles`(`dev` 與 `predeploy` 會自動跑)                      |
+| 圖片 404                                        | 本機 R2 是空的                                         | 正常;`import-lectures.ts` / `smear:import` 不帶 `--remote` 會灌本機 R2 |
+| 改了 `config.toml` 前端沒變                     | vite 只在啟動時讀 proxy header                         | 重啟終端 B(其他值會 HMR)                                               |
+
+---
+
+## §3 設定模型:哪個值住哪裡
+
+**每個 per-fork 值只有一個真相來源,是 `config.toml`。** 其他檔案都是它的鏡射:
+
+```
+config.toml ──setup.sh──▶ wrangler.toml [vars]   (GROUPS / EXAM_DATE_ISO / AI_* / ADMIN_EMAILS)
+            ──setup.sh──▶ .env                    (ADMIN_EMAILS / PAGES_DOMAIN)
+            ──vite──────▶ __APP_CONFIG__          (brand / exam / home / groups / dev_email)
+            ──cfg.*─────▶ scripts                 (資源名稱、host)
+```
+
+| 讀取端       | 寫法                                                                        |
+| ------------ | --------------------------------------------------------------------------- |
+| shell        | `. "$(dirname "$0")/lib/cfg.sh"; v=$(cfg public.host)`                      |
+| Node / TS    | `import { cfg } from './lib/cfg.mjs'; cfg('project.d1_db')`                 |
+| Python       | `tomllib.load(open('config.toml','rb'))`                                    |
+| package.json | `$(node scripts/lib/cfg.mjs <key.path>)`                                    |
+| Worker       | **只讀 env bindings**(`wrangler.toml [vars]` / secrets);Worker 沒有檔案系統 |
+| 前端         | `__APP_CONFIG__`(`frontend/src/config.ts`)                                  |
+
+新增一個 per-fork 值的固定四步:`config.example.toml` 與 `config.toml` 都加 →
+Worker 要用就在 `setup.sh` 的鏡射清單與 `wrangler.example.toml [vars]` 都加 →
+`worker/types.ts` 的 `Env` 加型別(可選、給 fallback,讓沒設的 fork 也開得起來)→
+**更新 CI 的 `CONFIG_TOML` / `WRANGLER_TOML` secret**(見 §4.3)。
+
+### 3.1 Secrets(不進任何 toml)
+
+| Secret                                   | 用途                                                                     | 誰設                                                                       |
+| ---------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `CF_ACCESS_TEAM_DOMAIN`、`CF_ACCESS_AUD` | 驗 Access JWT                                                            | `sync-access.ts` 自動推(只在尚未設定時)                                    |
+| `MCQ_KEY_SECRET`                         | `/mcq` skill 的每人讀取金鑰(`mcqk_`)HMAC                                 | 手動 `wrangler secret put`                                                 |
+| `BANK_KEY_SECRET`                        | 新年份匯入的管理員寫入金鑰(`bnkk_`)HMAC;沒設 → `/api/bank-ingest` 回 503 | 手動                                                                       |
+| `GH_FEEDBACK_TOKEN`                      | 回饋按鈕開 GitHub issue;沒設 → 按鈕隱藏                                  | 手動                                                                       |
+| `TG_BOT_TOKEN`、`TG_WEBHOOK_SECRET`      | Telegram 出題機器人;沒設 → webhook 靜默 200                              | 手動(見 `docs/plans/2026-07-22-telegram-bot-design.md`)                    |
+| `CF_API_TOKEN`                           | Worker cron 每晚同步名單到 Access                                        | 手動;另需 `[vars]` 的 `CF_ACCOUNT_ID` / `ACCESS_APP_ID` / `ROSTER_CSV_URL` |
+
+本機一律放 `.dev.vars`,任何非空字串都行。列表以 `worker/types.ts` 的 `Env` 為準。
+
+---
+
+## §4 部署
+
+### 4.1 使用者說「setup」或「deploy」時(新 clone 的引導流程)
+
+逐段走,**每段停下來等使用者說 ok**;會動到遠端資源的步驟先問。失敗就停下來查,不要重試帶過。
+
+0. **靜默檢查**:§1.1 的版本、§1.2 的四份檔案。已有 `config.toml` / `wrangler.toml` / `.env` 時問要沿用還是 `./scripts/setup.sh --force` 重寫。
+1. **`./scripts/setup.sh`** —— 問 slug(小寫加連字號,**日後不能改**:它是 D1 / R2 / Worker / Pages 的名字)、public host(必須已是該 CF 帳號的 zone,或先用 `*.pages.dev`)、管理員 email(同時是 `dev_email` 與第一個 Access 使用者)、回饋 repo、考試日期。產出三份檔;`wrangler.toml` 裡的 `database_id` 還是 `<REPLACE_ME_DB_ID>`,`deploy.sh` 會填。
+2. **本機先跑起來**(§2)。**本機壞就不要往下部署。**
+3. **Cloudflare 前置(dashboard 手動)**:免費帳號;API token 的 scope 照 `.env.example` 註解;Zero Trust 在 one.dash.cloudflare.com 開通(免費方案,首次會要團隊子網域);自訂網域的 zone 要在 CF 上。
+4. **名單**:`ROSTER_CSV_URL` 是 Google Sheet 的「發佈到網路 → CSV」連結,**email 必須在第 4 欄**(`scripts/sync-access.ts` 讀 index 3)。首次可留空,只放 `config.toml` 的 `admin_emails`。
+5. **`./scripts/deploy.sh`** —— 建 D1(回填 id)→ `migrations apply --remote` → 建 R2 → 建 Vectorize(失敗不致命,相似題退回 BM25)→ `sync-access.ts` → `wrangler deploy` → build + `pages deploy`。冪等,可重跑。
+6. **Access**:`node --experimental-strip-types scripts/sync-access.ts` 建 Access app + policy、推兩個 secret、預先種 `users`。接著 `./scripts/setup-public-bypass.sh` 建 path-scoped bypass(landing、OG 圖、`/api/me` 探針、`/manifest.webmanifest`、`/sw.js`、`/icons/*`、`/api/mcq/*`、`/tg/*`)。**新增任何要公開的路徑都要進這份清單;`/api/admin/*` 永遠不准進。**
+7. **其餘 secrets**:§3.1 表裡標「手動」的,`wrangler secret put <NAME>`。
+8. **匯入題庫**(§5.4)。
+9. **冒煙測試**:開 `https://<host>/` → 登入收 OTP → 首頁有管理員徽章;再驗:寫一則詳解(鎖 + 存)、留言 @ 某人(通知徽章)、上傳圖片(`/img/<key>`)、開一場模擬考並交卷。任何一項失敗就是接下來要追的 bug。
+
+### 4.2 之後的日常部署
+
+**push 到 `main` 就部署**(`.github/workflows/deploy.yml`):`classify` 決定要不要動
+Pages / Worker,判準在 `scripts/lib/classify-deploy.sh`(有測試)。需要人工的只有三種檔:
+`migrations/**`、`wrangler.example.toml`、`config.example.toml` —— 那時 job **直接紅**,不是綠色的 skipped。
+
+| 改了                                                     | push 前要先做                                                                           |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `migrations/*.sql`                                       | `pnpm db:migrate:remote`(CI 不跑 migration)                                             |
+| `wrangler.example.toml`(新 binding / var / DO migration) | 同步主 checkout 的 `wrangler.toml`,**再** `gh secret set WRANGLER_TOML < wrangler.toml` |
+| `config.example.toml`                                    | 同上,`gh secret set CONFIG_TOML < config.toml`                                          |
+| `.claude/skills/**`                                      | `pnpm gen:bundles` 並 commit `worker/generated/`                                        |
+
+手動部署用 `./scripts/deploy.sh`,**只從主 checkout 的 `main` 跑**。從 worktree 跑,
+Pages 會靜靜上到 Preview(wrangler 用當前分支名推環境),線上變成「Worker 新、前端舊」。
+驗:`wrangler pages deployment list --project-name <project>` 最上面那列要是 `Production │ main`。
+
+### 4.3 部署的坑
+
+- **`Failed to fetch auth token: 400`** 不是 token 過期:`.env` 用的是舊名 `CF_API_TOKEN`,wrangler 認的是 `CLOUDFLARE_API_TOKEN`。`export CLOUDFLARE_API_TOKEN=$CF_API_TOKEN` 即可。
+- **`Cannot apply new-sqlite-class migration to class 'ChatRoom' … already depended on`** 的意思是 CI 那份 `WRANGLER_TOML` secret 缺了後面的 `[[migrations]]`(v2/v3),wrangler 從頭重放。本機重現不出來,因為本機那份是對的。
+- `wrangler d1 create` 說 already exists —— 正常,`deploy.sh` 會去 `d1 list` 撈 id。
+- Pages 自訂網域要幾分鐘生效;`*.pages.dev` 立刻可用。
+- 部署完瀏覽器還是舊版 —— 硬重載並比對 bundle hash 與 `frontend/dist/index.html`,再下結論說部署失敗。
+- 只加 Access 使用者不改 Sheet —— 會被 `predeploy` 的 `sync-access.ts` 蓋掉。名單的真相在 Sheet。
+
+---
+
+## §5 資料庫:D1 的日常操作
+
+### 5.1 兩個資料庫,一個旗標
+
+|               | local                    | remote(production) |
+| ------------- | ------------------------ | ------------------ |
+| 在哪          | `.wrangler/state/v3/d1/` | Cloudflare         |
+| wrangler 旗標 | `--local`                | `--remote`         |
+| 誰在用        | `pnpm dev`               | 20 個真人          |
+
+```bash
+DB=$(node scripts/lib/cfg.mjs project.d1_db)          # 名字從 config.toml 來,不要寫死
+wrangler d1 execute "$DB" --local  --command "SELECT COUNT(*) FROM questions"
+wrangler d1 execute "$DB" --remote --command "SELECT id, answer FROM questions WHERE id = '114-073'"
+wrangler d1 execute "$DB" --remote --file=fix.sql      # 多句 / 長 SQL
+wrangler d1 execute "$DB" --remote --json --command "..." # 機器讀;stdout 前面夾著人類文案,
+                                                          # 用 scripts/lib/wrangler-json.mjs 的 d1Rows() 剝
+```
+
+**`--remote` 的每一句 UPDATE / DELETE 都是對正式資料做的,先在 local 跑一次
+(`pnpm db:pull` 之後 local 就是 prod 的鏡像),看過受影響列數再上 remote。**
+
+### 5.2 常用查詢
+
+```sql
+-- 題庫概況
+SELECT year, "group", COUNT(*) FROM questions GROUP BY year, "group" ORDER BY year;
+-- 一題的全部:題目 + 詳解 + 標籤
+SELECT q.*, e.content_json, e.version, e.updated_by,
+       (SELECT group_concat(tag, ';') FROM question_tags WHERE question_id = q.id) AS tags
+FROM questions q LEFT JOIN explanations e ON e.question_id = q.id WHERE q.id = '114-001';
+-- 某人的作答歷史(attempts 是 source of truth;review_progress 只是快取)
+SELECT question_id, chosen, is_correct, source, datetime(created_at/1000,'unixepoch') AS at
+FROM attempts WHERE user_email = 'x@y.z' ORDER BY created_at DESC LIMIT 20;
+-- 答案改過的題
+SELECT * FROM answer_history ORDER BY changed_at DESC LIMIT 20;
+-- 已套用的 migration
+SELECT name FROM d1_migrations ORDER BY id;
+```
+
+### 5.3 寫入的規矩
+
+| 想改                         | 做法                                                                                      | 不要                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| 題目文字 / 選項錯字          | `fix-bank` skill(從回饋 issue 修)或 `UPDATE questions SET stem = ? WHERE id = ?`          | 重跑 `import-questions.ts` 全部年份 —— upsert 會把 `answer` 蓋回 CSV   |
+| **正解**                     | `verdict-by-oe` skill:查證 → 使用者核准 → 寫 `questions.answer` **並留 `answer_history`** | 直接 `UPDATE questions SET answer` 不留痕                              |
+| 詳解                         | 站上編輯(有鎖與版本);批次用 `seed-explanations.py`(markdown → TipTap JSON)                | 手寫 `content_json`;任何 HTML                                          |
+| 個人資料(筆記 / 進度 / 收藏) | 使用者自己在站上;管理員不碰                                                               | 用 SQL 幫人「修」進度 —— 那是 `attempts` 推導出來的,改快取會漂         |
+| 刪一題                       | `DELETE FROM questions WHERE id = ?`(FK `ON DELETE CASCADE` 帶走詳解、標籤、進度)         | 忘了 FTS:`questions_fts` 靠 trigger 同步,手動 `INSERT` 進 FTS 表會雙份 |
+
+Worker 程式碼裡的寫法固定是 `c.env.DB.prepare(sql).bind(...).first<T>() / .all<T>() / .run()`,
+多句要原子就 `c.env.DB.batch([...])`。**`.bind()` 是位置對應的,錯位不報錯**(見設計筆記
+「D1 的 bind 是位置對應的」);凡帶 `user_email = ?` 的查詢,綁的變數名字裡要有 `email`,
+`worker/lib/bind-order.ts` 的測試會掃。
+
+### 5.4 匯入(把資料灌進去)
+
+| 資料               | 指令                                                                                                      | 目標                                  | 注意                                                                                                                    |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 考題 CSV           | `node --experimental-strip-types scripts/import-questions.ts ./q.csv [--local]`                           | 預設 remote                           | 全批 pre-flight,一筆錯整批拒;欄位見檔頭。**新年份用網站的「＋ 加入新年份」(bank-ingest)**,它 INSERT-only 且拒絕既有年份 |
+| batches JSON → CSV | `node --experimental-strip-types scripts/batches-to-csv.ts --year 115 > y115.csv`                         | stdout                                | **一定帶 `--year`**,否則整份 CSV 會把社群修過的答案蓋回去                                                               |
+| 詳解(markdown)     | `python3 scripts/seed-explanations.py --local\|--remote`                                                  | `explanations.content_json`           | 讀 `years/<n>/batches/*.json` 的 `explanation_md`                                                                       |
+| 講義 PDF           | `pnpm import:lectures [--remote] [--pdf-dir ./pdf]`                                                       | R2 + `lecture_docs` / `lecture_pages` | 預設 local;PDF 在 gitignored 的 `pdf/`                                                                                  |
+| 教科書             | `node --experimental-strip-types scripts/import-textbook.ts --master <pdf> [--chapters 76,83] [--remote]` | 同上,`kind='textbook'`                | 先用 `--chapters` 小批試                                                                                                |
+| 抹片練習           | `pnpm smear:import [--remote]`                                                                            | R2 + `smear_*`                        | ⚠️ delete-then-insert **會清掉 `smear_sessions` / `smear_answers`**,對有真人資料的 remote 要先想清楚                    |
+| 向量索引           | `pnpm vectors:backfill [--dry-run]`                                                                       | Vectorize                             | 相似題 / 弱點地圖沒資料時先查這個有沒有跑過                                                                             |
+| Access 名單        | `pnpm sync-users`                                                                                         | CF Access policy + `users`            | 冪等                                                                                                                    |
+
+**「表建好了 ≠ 有資料」**:`lecture_page_questions`、Vectorize 都曾經是空的而沒人發現。
+上線一個「離線算好、存 join 表」的功能前,`SELECT COUNT(*)` 一次。
+
+### 5.5 Schema 變更
+
+```bash
+wrangler d1 migrations create "$DB" <snake_case_name>   # 產 migrations/00NN_<name>.sql
+# 編輯 → 先 local:
 pnpm db:migrate:local
-pnpm dev                                    # terminal A: wrangler dev
-(cd frontend && pnpm dev)                   # terminal B: vite
+# 通過本機驗證、merge 到 main 之後、push 前:
+pnpm db:migrate:remote
 ```
 
-Open `http://localhost:5173`. The Vite proxy injects `X-Dev-Email` and
-the Worker treats `CF_ACCESS_TEAM_DOMAIN === 'localhost'` as bypass. You
-should see the landing page, be able to log in as the dev_email, and
-land in the home dashboard. If anything is broken here, **don't proceed
-to deploy** — fix locally first.
+- **已套用的 migration 不准改**,開新的。
+- 欄位改名 / 改型別一律 **expand → 回填 → 切讀取 → contract**,四個 migration,不就地 rename。
+- `ALTER TABLE ADD COLUMN` 在 D1 沒有 `IF NOT EXISTS`;DO 的 constructor 裡要包 try/catch。
+- 加了新 DO class 要在 `wrangler.example.toml` 加 `[[migrations]] tag = "vN"`,並同步 §4.2 那兩個地方。
 
-### 3 — Cloudflare prerequisites (manual, in the dashboard)
-
-Before deploying, the user needs:
-
-- A **Cloudflare account** (free tier).
-- An **API token** with scopes listed in `.env.example` (Workers Scripts
-  Edit, D1 Edit, R2 Edit, Access Apps+Policies Edit, Pages Edit, Access
-  Organizations/IdP/Groups Read; Zone scopes: DNS Edit, Workers Routes Edit).
-- **Zero Trust** enabled at https://one.dash.cloudflare.com/ (free plan
-  is fine; first-time setup will ask for a team subdomain).
-- If using a custom domain (not `*.pages.dev`), the zone must be on CF.
-
-The user puts the token + account ID into `.env` (setup.sh did this if
-they answered the prompts).
-
-### 4 — Roster
-
-The deployment whitelists users via a Google Sheet CSV export
-(`ROSTER_CSV_URL` in `.env`). For initial deploy, the user can leave it
-blank — `admin_emails` from `config.toml` will be the sole allowlist.
-For a real cohort:
-
-- Make a sheet with an email column (currently expected at column
-  index 3 — see `scripts/sync-access.ts:194`; adjust there for a
-  different sheet shape).
-- File → Share → Publish to web → CSV → copy the link into `.env`.
-
-### 5 — First deploy
+### 5.6 R2 與 DO(不在 D1 裡的狀態)
 
 ```bash
-./scripts/deploy.sh
+R2=$(node scripts/lib/cfg.mjs project.r2_bucket)
+wrangler r2 object get "$R2/<key>" --file out.webp [--local]
+wrangler r2 object put "$R2/<key>" --file in.webp [--local]
 ```
 
-Creates the D1 database (and patches `database_id` into `wrangler.toml`),
-applies migrations, creates the R2 bucket, syncs the Access roster,
-deploys the Worker, builds + deploys the Pages frontend. Idempotent.
+bucket **永遠不公開**,一律走 `/img/:key`、`/pdf/:key` 的 Worker 代理。
+聊天訊息、「上次停在哪」、2048 存檔住在各自 DO 的 SQLite 裡,D1 查不到,也不在備份裡。
 
-If it stops with an error, read the context — usually a missing scope on
-the API token, a zone the account doesn't own, or a name collision.
-Don't suggest skipping steps.
+### 5.7 備份
 
-### 6 — Cloudflare Access setup
+- **個人**:站上「備份我的紀錄」在瀏覽器組 zip(`/api/backup/*`)。
+- **整庫**:`wrangler d1 export` 會被 FTS5 表擋死;用 `pnpm db:pull backup.sql` 順手留一份 base table dump。
+- 觀察 prod:`pnpm tail`(= `wrangler tail`)。錯誤細節只進 log 不回 client。
 
-```bash
-node --experimental-strip-types scripts/sync-access.ts
-```
+---
 
-Creates the CF Access Application at `PAGES_DOMAIN`, sets the policy
-include[] from merged `ADMIN_EMAILS` + roster, pushes
-`CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD` as Worker secrets, and seeds
-`users` rows so everyone shows up in @mention pickers before first login.
+## §6 測試與品質關卡
 
-Then `./scripts/setup-public-bypass.sh` creates path-scoped bypass apps
-for the landing page, OG image, favicon, SPA assets, and the auth probe
-— so the public can reach the landing without an Access prompt.
+| 指令                                               | 涵蓋                                                                                 | 何時跑                                                                                 |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `pnpm typecheck` + `pnpm --dir frontend typecheck` | tsc(**repo 沒有 eslint / biome,tsc 是唯一靜態檢查**)                                 | 每次改完                                                                               |
+| `pnpm test`                                        | 純函式:`worker/**/*.test.ts`、`frontend/src/lib`、`frontend/src/chat`、`scripts/lib` | 每次改完。**CI 不跑它**,本機自己負責                                                   |
+| `pnpm test:webkit`                                 | build 前端 → WebKit(iPhone)e2e 全套,打 `frontend/e2e/fixtures/` 的樁                 | 動到 React / TipTap / 版面 / SW。理由見「Frontend changes must be verified on WebKit」 |
+| CI(`deploy.yml`)                                   | 只跑 `smoke` + `nav-prefetch` 兩支 e2e,`E2E_REQUIRE=1`                               | push main 自動                                                                         |
 
-### 7 — Import questions
+e2e 不接真 Worker:`frontend/e2e/server.mjs` 回 `fixtures/<path 把 / 換成 _>.json`,沒有 fixture
+的端點回 `{}` 並在結尾列出。**新路由 = 新 fixture**:`wrangler dev` 下打真端點存回應。
+確認一支新測試會紅時**不要** `pnpm build >/dev/null 2>&1`,建置失敗會被吞掉、測試跑在舊 bundle 上。
 
-The user provides a CSV (see `scripts/sample-questions.csv` for format).
+開 PR 前的固定順序:`/simplify` → `/code-review` → 本節三個指令全綠。
 
-```bash
-node --experimental-strip-types scripts/import-questions.ts ./questions.csv
-```
+---
 
-Pre-flight validates year range / group constraints / unique IDs before
-any insert — a single failure aborts the whole batch.
+## §7 加東西的固定套路
 
-### 8 — Smoke test
+| 要加                      | 步驟                                                                                               | 常漏的                                                                                                        |
+| ------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| API endpoint              | `worker/routes/<area>.ts` → `worker/index.ts` 註冊(**在 `authMiddleware` 之後**)→ 用 `c.var.email` | 更長的前綴要先註冊(Hono 依序比對);可快取的 GET 才進 `sw-guards.ts` 的 `CACHEABLE_API`,可變 / 私人狀態一律不進 |
+| 公開路徑(不登入可達)      | 註冊在 `authMiddleware` **之前** + 自帶驗證 + 加進 `setup-public-bypass.sh` 並重跑                 | 漏 bypass 的症狀是 302 到登入頁,`fetch` 看起來像 200                                                          |
+| 前端路由                  | `frontend/src/App.tsx` + `frontend/e2e/fixtures/` + 視情況進 `smoke.test.mjs` 的 `ROUTES`          | 有 portal 對話框的頁,e-ink 掃描要另開路由把它打開                                                             |
+| D1 表 / 欄位              | §5.5                                                                                               | 讀取端 `ORDER BY` 要全序;`user_email` 要釘                                                                    |
+| TipTap extension          | `frontend/src/lib/tiptap-extensions.ts`(可編輯與唯讀共用)                                          | `lib/staticDoc.ts` 的靜態渲染器要認得新節點,否則留言裡那段會消失                                              |
+| Workers AI 呼叫           | 模型名只從 `worker/lib/ai-models.ts` 拿(`TEXT_MODEL` / `EMBED_MODEL`)                              | 免費額度 10K neurons/天;不要在 debounce 存檔路徑上呼叫                                                        |
+| per-fork 設定值           | §3                                                                                                 | CI 的兩個 toml secret                                                                                         |
+| skill(`.claude/skills/*`) | 改完 `pnpm gen:bundles`,commit `worker/generated/`                                                 | 算 worker 變更,CI 會警告不同步                                                                                |
 
-Have the user open `https://<their host>/`, click "登入" / "Sign in",
-receive an email OTP from CF Access, and confirm they land in the
-in-app home dashboard with the admin badge. Also verify:
+---
 
-- Creating an explanation on a question (lock + save flow)
-- Posting a comment with an @mention (notification badge)
-- Uploading an image (R2 + `/img/<key>` proxy)
-- Starting a mock exam and submitting
+## 設計筆記(以下)
 
-If any of those fail, that's the bug to chase before declaring done.
-
-### Common gotchas (mention if the user hits them)
-
-- `wrangler d1 create` fails with "already exists" — fine, deploy.sh
-  handles this; it greps `wrangler d1 list` for the ID.
-- Pages domain not resolving — Pages takes a few minutes after first
-  deploy; user can use the `*.pages.dev` URL immediately.
-- Access "block" page on local dev — `.dev.vars` must have
-  `CF_ACCESS_TEAM_DOMAIN=localhost` to enable the bypass.
-- `pnpm db:migrate:local` errors about missing `database_id` — fine for
-  local (uses `.wrangler/state/`); only `--remote` needs it.
-- **Running `deploy.sh` from a git worktree silently ships the frontend
-  to a Pages _Preview_, not production.** `wrangler pages deploy` derives
-  the environment from the current git branch name, and a worktree is
-  never on `main`. The Worker deploys normally (it isn't branch-aware),
-  so the result is a live "new Worker + old frontend" split that looks
-  like a caching problem. Either deploy from the main checkout on `main`,
-  or append `--branch main` to the Pages step. Verify with
-  `wrangler pages deployment list --project-name <project>` — the top row
-  must say `Production │ main`.
-- Freshly deployed frontend not taking effect in the browser — the tab
-  can hold a cached `index.html`. A plain reload may reuse it; hard-reload
-  (ignore cache) and confirm the served bundle hash matches
-  `frontend/dist/index.html` before concluding the deploy failed.
-
-## Configuration model (for any code that touches resource names)
-
-Per-fork values live in `config.toml` (gitignored; the tracked template
-is `config.example.toml`). All scripts read from there — never hard-code
-a slug, database name, bucket name, host, or admin email.
-
-- **Shell scripts:** `. "$(dirname "$0")/lib/cfg.sh"; v=$(cfg public.host)`
-- **Node / TS scripts:** `import { cfg } from './lib/cfg.mjs'; const v = cfg('project.d1_db')`
-- **Python scripts:** `import tomllib; CFG = tomllib.load(open('config.toml','rb'))`
-- **package.json scripts:** `$(node scripts/lib/cfg.mjs <key.path>)`
-- **Worker code:** reads from env bindings declared in `wrangler.toml [vars]`
-  (e.g. `ADMIN_EMAILS`, `GH_FEEDBACK_REPO`). Never reads `config.toml` —
-  the worker has no FS access at runtime.
-- **Frontend code:** values come from `__APP_CONFIG__` (injected by
-  `frontend/vite.config.ts` at build time from `config.toml`).
-
-When adding a new per-fork value: add it to `[project]` (or another
-relevant section) in **both** `config.toml` and `config.example.toml`,
-then read it via the appropriate helper. Don't add a second source of
-truth.
+每一節記的是**為什麼這樣做、以及踩過什麼**,不是 API 說明。動到哪個功能就讀哪一節;
+標題列在 `grep -n '^### ' CLAUDE.md`。`docs/LESSONS.md` 是同一批教訓的抽象版,
+`docs/plans/` 是各功能的設計文件。
 
 ## Project Overview
 
@@ -1828,39 +1992,7 @@ qa-system/
 
 ## Common Tasks
 
-### Add a new API endpoint
-
-1. Create handler in `worker/routes/<area>.ts`
-2. Register in `worker/index.ts`
-3. Always extract user via `c.var.email` (set by auth middleware)
-4. Use `c.env.DB` (D1) and `c.env.R2` (R2) bindings
-
-### Add a TipTap extension
-
-1. Add to `frontend/src/lib/tiptap-extensions.ts`
-2. Both editable and read-only editors share this list
-3. If the extension stores data in nodes (e.g., custom embeds), make sure server-side render/parse handles it
-
-### Add a D1 migration
-
-```bash
-wrangler d1 migrations create qa-db <name>
-# Edit the generated file
-wrangler d1 migrations apply qa-db --local    # test locally first
-wrangler d1 migrations apply qa-db --remote   # then prod
-```
-
-**Never edit applied migrations** — create a new one.
-
-### Run AI inference
-
-`c.env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [...] })`
-
-Free tier is 10K neurons/day. Heavy use:
-
-- Cache aggressively (KV namespace exists for this)
-- Move to async pattern (queue → process)
-- Or upgrade to Workers Paid ($5/mo)
+新 endpoint / migration / TipTap extension / AI 呼叫的步驟都在上手區的 **§7 加東西的固定套路**與 **§5.5 Schema 變更**;這裡不再重複一份會漂的版本。
 
 ## Things To Avoid
 
@@ -2042,11 +2174,8 @@ Playwright 兩個引擎都用 `setDeviceMetricsOverride` 把版面視窗釘死,m
 
 ## Testing & Debugging
 
-- Local D1 lives at `.wrangler/state/v3/d1/`
-- Wipe local DB: `rm -rf .wrangler/state`
-- View D1 contents: `wrangler d1 execute qa-db --local --command "SELECT * FROM questions LIMIT 5"`
-- Wrangler tail prod logs: `wrangler tail`
-- Pages logs: dashboard → Pages → project → Functions tab
+指令、e2e fixture 的規則、D1 查詢與 `wrangler tail` 都在上手區 **§5–§6**。下面只留那些
+「為什麼要這樣測」的理由。
 
 ### Frontend changes must be verified on WebKit, not just Chromium
 
