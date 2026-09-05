@@ -38,18 +38,36 @@
           --accent: #cb6845;
         }
       }
-      * { box-sizing: border-box; }
-      html { scroll-behavior: smooth; }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
       body {
         margin: 0;
         background: var(--bg);
         color: var(--fg);
-        font: 16px/1.75 "Inter", "Noto Sans TC", system-ui, -apple-system, sans-serif;
+        font:
+          16px/1.75 "Inter",
+          "Noto Sans TC",
+          system-ui,
+          -apple-system,
+          sans-serif;
         -webkit-font-smoothing: antialiased;
       }
-      .wrap { max-width: 62rem; margin: 0 auto; padding: 0 1.25rem; }
-      a { color: var(--accent); text-decoration: none; }
-      a:hover { text-decoration: underline; }
+      .wrap {
+        max-width: 62rem;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
 
       header.hero {
         padding: 4.5rem 0 3rem;
@@ -74,7 +92,11 @@
         max-width: 46rem;
         margin: 0 0 1.75rem;
       }
-      .cta { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+      .cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
       .btn {
         display: inline-block;
         padding: 0.6rem 1.1rem;
@@ -82,24 +104,59 @@
         border-radius: 3px;
         font-size: 0.94rem;
       }
-      .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-      .btn.primary:hover { background: var(--accent-dark); text-decoration: none; }
-      .btn.ghost:hover { background: var(--card); text-decoration: none; }
+      .btn.primary {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+      .btn.primary:hover {
+        background: var(--accent-dark);
+        text-decoration: none;
+      }
+      .btn.ghost:hover {
+        background: var(--card);
+        text-decoration: none;
+      }
 
-      section { padding: 3.25rem 0; border-bottom: 1px solid var(--line); }
-      section:last-of-type { border-bottom: 0; }
+      section {
+        padding: 3.25rem 0;
+        border-bottom: 1px solid var(--line);
+      }
+      section:last-of-type {
+        border-bottom: 0;
+      }
       h2 {
         font-size: clamp(1.3rem, 2.6vw, 1.65rem);
         margin: 0 0 0.5rem;
         letter-spacing: -0.01em;
       }
-      .sub { color: var(--muted); margin: 0 0 1.75rem; max-width: 46rem; }
-      h3 { font-size: 1.02rem; margin: 0 0 0.35rem; }
-      p { margin: 0 0 1rem; }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 1.75rem;
+        max-width: 46rem;
+      }
+      h3 {
+        font-size: 1.02rem;
+        margin: 0 0 0.35rem;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
 
-      .grid { display: grid; gap: 1rem; }
-      @media (min-width: 40rem) { .grid.two { grid-template-columns: 1fr 1fr; } }
-      @media (min-width: 56rem) { .grid.three { grid-template-columns: repeat(3, 1fr); } }
+      .grid {
+        display: grid;
+        gap: 1rem;
+      }
+      @media (min-width: 40rem) {
+        .grid.two {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (min-width: 56rem) {
+        .grid.three {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
 
       .card {
         background: var(--card);
@@ -107,7 +164,11 @@
         border-radius: 4px;
         padding: 1.15rem 1.25rem;
       }
-      .card p { margin: 0; color: var(--muted); font-size: 0.94rem; }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.94rem;
+      }
 
       table {
         width: 100%;
@@ -116,14 +177,21 @@
         display: block;
         overflow-x: auto;
       }
-      th, td {
+      th,
+      td {
         border: 1px solid var(--line);
         padding: 0.6rem 0.7rem;
         text-align: left;
         vertical-align: top;
       }
-      th { background: var(--paper); font-weight: 600; white-space: nowrap; }
-      td code, p code, li code {
+      th {
+        background: var(--paper);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      td code,
+      p code,
+      li code {
         background: var(--paper);
         border: 1px solid var(--line);
         border-radius: 3px;
@@ -132,13 +200,25 @@
         font-size: 0.88em;
       }
 
-      .evidence { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.9rem; }
+      .evidence {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 0.9rem;
+      }
       .evidence li {
         border-left: 3px solid var(--accent);
         padding: 0.15rem 0 0.15rem 1rem;
       }
-      .evidence .term { font-weight: 600; }
-      .evidence .en { color: var(--muted); font-weight: 400; font-size: 0.9em; }
+      .evidence .term {
+        font-weight: 600;
+      }
+      .evidence .en {
+        color: var(--muted);
+        font-weight: 400;
+        font-size: 0.9em;
+      }
       .evidence .maps {
         display: block;
         margin-top: 0.2rem;
@@ -146,9 +226,19 @@
         color: var(--muted);
       }
 
-      figure { margin: 0 0 1.25rem; }
-      figure svg { width: 100%; height: auto; display: block; }
-      figcaption { font-size: 0.86rem; color: var(--muted); margin-top: 0.5rem; }
+      figure {
+        margin: 0 0 1.25rem;
+      }
+      figure svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      figcaption {
+        font-size: 0.86rem;
+        color: var(--muted);
+        margin-top: 0.5rem;
+      }
 
       .note {
         background: var(--paper);
@@ -158,10 +248,75 @@
         padding: 0.9rem 1.1rem;
         font-size: 0.93rem;
       }
-      .note strong { color: var(--fg); }
+      .note strong {
+        color: var(--fg);
+      }
 
-      ul.plain { padding-left: 1.15rem; }
-      ul.plain li { margin-bottom: 0.4rem; }
+      ul.plain {
+        padding-left: 1.15rem;
+      }
+      ul.plain li {
+        margin-bottom: 0.4rem;
+      }
+
+      .gallery {
+        display: grid;
+        gap: 1.25rem 1rem;
+      }
+      @media (min-width: 40rem) {
+        .gallery {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .gallery figure,
+      .phones figure {
+        margin: 0;
+      }
+      .gallery img,
+      .phones img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--card);
+      }
+      .gallery a,
+      .phones a {
+        display: block;
+      }
+      .gallery figcaption,
+      .phones figcaption {
+        font-size: 0.86rem;
+        color: var(--muted);
+        margin-top: 0.45rem;
+      }
+      .gallery figcaption strong,
+      .phones figcaption strong {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      .phones {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      @media (min-width: 40rem) {
+        .phones {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (min-width: 56rem) {
+        .phones {
+          grid-template-columns: repeat(6, 1fr);
+        }
+      }
+      .fine {
+        font-size: 0.86rem;
+        color: var(--muted);
+        margin-top: 1rem;
+      }
 
       footer {
         padding: 2.5rem 0 3.5rem;
@@ -169,7 +324,10 @@
         font-size: 0.9rem;
         border-top: 1px solid var(--line);
       }
-      footer a { color: var(--muted); text-decoration: underline; }
+      footer a {
+        color: var(--muted);
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -179,17 +337,237 @@
         <h1>把一群人分頭讀過的東西，留在題目旁邊</h1>
         <p class="lede">
           專科醫師考試的共筆題庫系統。每一題底下是全組人共同維護的詳解與討論，
-          搭配全真模擬與間隔複習。功能不是照「題庫網站該有什麼」列出來的，
-          而是照<strong>已被反覆驗證的學習機制</strong>挑的。
-          整套跑在 Cloudflare 免費額度，而且<strong>不綁任何專科</strong>。
+          搭配全真模擬、間隔複習，以及把診斷<strong>拼寫出來</strong>的抹片填空練習。功能不是照「題庫網站該有什麼」列出來的，
+          而是照<strong>已被反覆驗證的學習機制</strong>挑的。 整套跑在
+          Cloudflare 免費額度，而且<strong>不綁任何專科</strong>。
         </p>
         <div class="cta">
-          <a class="btn primary" href="https://github.com/htlin222/mcq-bank">原始碼</a>
-          <a class="btn ghost" href="https://github.com/htlin222/mcq-bank/wiki">開發 Wiki</a>
+          <a class="btn primary" href="https://github.com/htlin222/mcq-bank"
+            >原始碼</a
+          >
+          <a class="btn ghost" href="https://github.com/htlin222/mcq-bank/wiki"
+            >開發 Wiki</a
+          >
           <a class="btn ghost" href="manual.html">使用手冊</a>
+          <a class="btn ghost" href="#screens">看畫面</a>
         </div>
       </div>
     </header>
+
+    <section id="screens">
+      <div class="wrap">
+        <h2>長什麼樣子</h2>
+        <p class="sub">
+          下面每一張都是<strong>真的把元件渲染出來拍的</strong>：正式建置的前端
+          + 一組假成員、假作答紀錄的 fixture 資料，用 Playwright 在 Chromium
+          裡截圖（<code>pnpm docs:screenshots</code>）。
+          畫面跟正式站一字不差，只有資料是假的 ——
+          抹片圖是示意圖，不是真的血液抹片。
+        </p>
+        <div class="gallery">
+          <figure>
+            <a href="screenshots/home-smear.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/home-smear.webp"
+                alt="首頁：考試倒數、抹片與筆試兩個分頁、複習與全真模式入口"
+            /></a>
+            <figcaption>
+              <strong>首頁。</strong
+              >倒數與讀書計畫在最上面；主力學習模式（抹片／筆試）由設定檔決定，不改程式。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/question-revealed.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/question-revealed.webp"
+                alt="題目頁：左側題目卡已作答並顯示選項分布，右側共筆詳解"
+            /></a>
+            <figcaption>
+              <strong>題目頁。</strong
+              >左作答、右共筆詳解。選項分布與全體用時只在作答之後出現；詳解預設被防劇透遮罩蓋著。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/smear-graded.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/smear-graded.webp"
+                alt="抹片練習作答後的判定：部分正確、拼字提醒、可接受的寫法"
+            /></a>
+            <figcaption>
+              <strong>抹片練習。</strong
+              >填空不是選擇。四層判定（全對／半對／俗名／錯），拼字錯不扣分但會指出來。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/smear-result.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/smear-result.webp"
+                alt="抹片成績頁：分數、拼字正確率、主題分類長條、只針對答錯主題再練"
+            /></a>
+            <figcaption>
+              <strong>抹片成績頁。</strong
+              >按主題拆開，一鍵只練答錯的那幾個主題；拼字正確率與俗名次數各自一行。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/exam-running.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/exam-running.webp"
+                alt="全真作答中：計時列、題卡、標記、題號跳轉"
+            /></a>
+            <figcaption>
+              <strong>全真作答。</strong
+              >整年計時、可標記待檢查、可暫停續答；交卷前把未答與標記題攤開來確認。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/exam-result.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/exam-result.webp"
+                alt="模擬考成績頁：分數、配速、登記進複習進度、逐題檢討"
+            /></a>
+            <figcaption>
+              <strong>成績頁。</strong
+              >配速、逐題用時、把這次考對的題目登記進複習進度；每一列可展開選項或直接看詳解。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/due.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/due.webp"
+                alt="今日複習：FSRS 到期佇列與卡片"
+            /></a>
+            <figcaption>
+              <strong>今日複習。</strong>FSRS
+              排程的到期佇列，跨年份交錯；每日新卡有上限。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/study-plan.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/study-plan.webp"
+                alt="讀書計畫產生器：對話式問卷、排不完的差額與三個調整方向"
+            /></a>
+            <figcaption>
+              <strong>讀書計畫產生器。</strong>七題問卷 →
+              逐日計畫。排不完就明講差幾題，並給三個一鍵重算的方向。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/lecture-reader.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/lecture-reader.webp"
+                alt="講義閱讀器：縮圖側欄、工具列、頁面筆記面板"
+            /></a>
+            <figcaption>
+              <strong>講義閱讀器。</strong>PDF 線上讀，縮圖／書籤
+              rail、畫記、頁面錨定筆記、全文搜尋、這一頁對到的歷屆考題。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/weakness-map.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/weakness-map.webp"
+                alt="弱點概念地圖：把答錯的題目依語意分群"
+            /></a>
+            <figcaption>
+              <strong>弱點概念地圖。</strong
+              >把答錯的題目分群，找出反覆栽跟頭的主題，再用交錯練習各個擊破。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/question-eink.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/question-eink.webp"
+                alt="電子紙模式：純黑白 1-bit 的題目頁"
+            /></a>
+            <figcaption>
+              <strong>電子紙模式。</strong>整層 CSS 覆寫成純黑白
+              1-bit，語意改靠線型與填充而不是顏色，給 e-ink 閱讀器用。
+            </figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/question-dark.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/question-dark.webp"
+                alt="深色模式的題目頁"
+            /></a>
+            <figcaption>
+              <strong>深色模式。</strong>亮／暗／電子紙／跟隨系統，四態切換。
+            </figcaption>
+          </figure>
+        </div>
+        <div class="phones">
+          <figure>
+            <a href="screenshots/m-home.webp"
+              ><img loading="lazy" src="screenshots/m-home.webp" alt="手機首頁"
+            /></a>
+            <figcaption>手機首頁與底部導覽</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/m-question.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/m-question.webp"
+                alt="手機題目頁"
+            /></a>
+            <figcaption>題目頁改成分頁，不堆疊</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/m-smear-session.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/m-smear-session.webp"
+                alt="手機抹片作答頁"
+            /></a>
+            <figcaption>抹片作答（手機優先）</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/m-smear-graded.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/m-smear-graded.webp"
+                alt="手機抹片判定：俗名不給分但講出正解"
+            /></a>
+            <figcaption>俗名不給分，但講出正解</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/m-exam-running.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/m-exam-running.webp"
+                alt="手機全真作答"
+            /></a>
+            <figcaption>全真作答</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/m-due.webp"
+              ><img
+                loading="lazy"
+                src="screenshots/m-due.webp"
+                alt="手機今日複習"
+            /></a>
+            <figcaption>今日複習</figcaption>
+          </figure>
+        </div>
+        <p class="fine">
+          更多畫面（開場設定、交卷確認、診斷詳情、搜尋、個人資料…）在
+          <a href="manual.html">使用手冊</a>裡逐章對照。
+        </p>
+      </div>
+    </section>
 
     <section>
       <div class="wrap">
@@ -233,15 +611,21 @@
         </p>
         <ul class="evidence">
           <li>
-            <span class="term">測驗效應 <span class="en">testing effect / retrieval practice</span></span>
+            <span class="term"
+              >測驗效應
+              <span class="en">testing effect / retrieval practice</span></span
+            >
             主動把答案<em>提取</em>出來，比重複閱讀更能形成持久記憶。
             「考試」在這裡不是評量手段，是學習手段本身。
             <span class="maps">
-              → 複習模式一次只給一題、先作答才揭曉；每日到期佇列；Telegram 每日推題
+              → 複習模式一次只給一題、先作答才揭曉；每日到期佇列；Telegram
+              每日推題
             </span>
           </li>
           <li>
-            <span class="term">間隔效應 <span class="en">spacing effect</span></span>
+            <span class="term"
+              >間隔效應 <span class="en">spacing effect</span></span
+            >
             同樣的總時數，分散在多天的效果遠優於集中在一天。
             間隔要隨著記憶強度拉長。
             <span class="maps">
@@ -249,7 +633,9 @@
             </span>
           </li>
           <li>
-            <span class="term">交錯練習 <span class="en">interleaving</span></span>
+            <span class="term"
+              >交錯練習 <span class="en">interleaving</span></span
+            >
             混合不同主題的題目，比一次只練一個主題更能訓練「判斷這題在問什麼」。
             block 練習會讓人靠題型慣性作答。
             <span class="maps">
@@ -257,21 +643,31 @@
             </span>
           </li>
           <li>
-            <span class="term">合意困難 <span class="en">desirable difficulties</span></span>
+            <span class="term"
+              >合意困難 <span class="en">desirable difficulties</span></span
+            >
             讓提取變難一點（但仍做得到），學習效果反而更好。看得見答案的複習太輕鬆。
             <span class="maps">
-              → 防劇透遮罩（詳解預設不顯示）、自動挖空 cloze（把關鍵詞蓋起來再讀）
+              → 防劇透遮罩（詳解預設不顯示）、自動挖空
+              cloze（把關鍵詞蓋起來再讀）
             </span>
           </li>
           <li>
-            <span class="term">生成效應 <span class="en">generation effect</span></span>
+            <span class="term"
+              >生成效應 <span class="en">generation effect</span></span
+            >
             自己產出的內容比讀來的記得牢。寫給別人看的解釋，會逼出自己沒想清楚的地方。
             <span class="maps">
-              → 共筆詳解（wiki 式協作、版本歷史）、討論串與 @提及、答案挑戰與投票
+              → 共筆詳解（wiki 式協作、版本歷史）、討論串與
+              @提及、答案挑戰與投票； 抹片練習是<strong>填空</strong>不是選擇 ——
+              認得出 dacrocyte 跟寫得出 dacrocyte 是兩件事，考卷要的是後者
             </span>
           </li>
           <li>
-            <span class="term">後設認知校準 <span class="en">metacognitive calibration</span></span>
+            <span class="term"
+              >後設認知校準
+              <span class="en">metacognitive calibration</span></span
+            >
             「以為自己會」與「真的會」之間的落差，是考前最貴的盲點。
             要縮小它，得先讓它可被觀測。
             <span class="maps">
@@ -279,18 +675,23 @@
             </span>
           </li>
           <li>
-            <span class="term">即時回饋 <span class="en">immediate feedback</span></span>
+            <span class="term"
+              >即時回饋 <span class="en">immediate feedback</span></span
+            >
             答完立刻知道對錯，錯誤才不會被鞏固。回饋延遲愈久，效益衰減愈快。
             <span class="maps">
               → 送出當下就揭曉（正解本來就在 client 手上，不等網路來回）
             </span>
           </li>
           <li>
-            <span class="term">分散式規劃 <span class="en">distributed practice</span></span>
+            <span class="term"
+              >分散式規劃 <span class="en">distributed practice</span></span
+            >
             考前才發現讀不完，通常不是不夠努力，是一開始就沒算過。
             <span class="maps">
               → 讀書計畫產生器：依剩餘天數、每日可用時間、輪次算出逐日題數；
-              <strong>排不完就明講排不完</strong>，並給出三個可一鍵重算的調整方向
+              <strong>排不完就明講排不完</strong
+              >，並給出三個可一鍵重算的調整方向
             </span>
           </li>
         </ul>
@@ -298,7 +699,8 @@
           <span class="note" style="display: block">
             <strong>刻意不做的：</strong>排行榜、連續天數徽章、積分。
             外在誘因會排擠掉本來就存在的內在動機，而準備專科考試的人不缺動機。
-            這裡唯一的「遊戲化」是一個跟刷題<strong>完全零耦合</strong>的 2048 —— 休息就讓它只是休息。
+            這裡唯一的「遊戲化」是一個跟刷題<strong>完全零耦合</strong>的 2048
+            —— 休息就讓它只是休息。
           </span>
         </p>
       </div>
@@ -310,16 +712,31 @@
         <p class="sub">兩種主要讀法，加上圍繞它們的協作與排程。</p>
         <table>
           <thead>
-            <tr><th>模組</th><th>做什麼</th></tr>
+            <tr>
+              <th>模組</th>
+              <th>做什麼</th>
+            </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>複習模式</strong></td>
-              <td>單題練習，作答後即時揭曉。底下是協作 wiki 詳解（rich text + 圖片）、討論串、個人筆記（一題可多則）、螢光畫記（跨裝置同步）</td>
+              <td>
+                單題練習，作答後即時揭曉。底下是協作 wiki 詳解（rich text +
+                圖片）、討論串、個人筆記（一題可多則）、螢光畫記（跨裝置同步）
+              </td>
             </tr>
             <tr>
               <td><strong>全真作答</strong></td>
-              <td>整年份計時模擬，可中途離開再續作。交卷後成績、錯題回顧、標記題複查</td>
+              <td>
+                整年份計時模擬，可中途離開再續作。交卷後成績、錯題回顧、標記題複查
+              </td>
+            </tr>
+            <tr>
+              <td><strong>抹片練習</strong></td>
+              <td>
+                看圖填診斷。複習模式逐題揭曉、全真模式計時交卷；四層判定（全對／半對／俗名／錯）+
+                拼字提醒；成績按主題拆開、錯題按診斷聚合；診斷詳情頁有共筆詳解、可接受寫法清單與「這個寫法也該算對」提報投票；成員可投稿圖片由管理員審核
+              </td>
             </tr>
             <tr>
               <td><strong>間隔複習</strong></td>
@@ -327,23 +744,39 @@
             </tr>
             <tr>
               <td><strong>共筆與討論</strong></td>
-              <td>詳解採悲觀鎖 + 版本歷史；討論串支援 @提及與 in-app 通知；答案挑戰可對官方答案提異議、投票升級</td>
+              <td>
+                詳解採悲觀鎖 + 版本歷史；討論串支援 @提及與 in-app
+                通知；答案挑戰可對官方答案提異議、投票升級
+              </td>
             </tr>
             <tr>
               <td><strong>讀書計畫</strong></td>
-              <td>對話式問卷 → 逐日計畫表（可列印 HTML）+ 可匯入行事曆的 <code>.ics</code></td>
+              <td>
+                對話式問卷 → 逐日計畫表（可列印 HTML）+ 可匯入行事曆的
+                <code>.ics</code>
+              </td>
             </tr>
             <tr>
               <td><strong>學習分析</strong></td>
-              <td>信心校準曲線、弱點地圖（語意分群，索引未涵蓋時退回主題分群）、活動 heatmap、逐次作答 CSV 匯出</td>
+              <td>
+                信心校準曲線、弱點地圖（語意分群，索引未涵蓋時退回主題分群）、活動
+                heatmap、逐次作答 CSV 匯出
+              </td>
             </tr>
             <tr>
               <td><strong>閱讀輔助</strong></td>
-              <td>講義 PDF 線上閱讀器（畫記、便利貼、頁面錨定筆記、全文搜尋）、教科書選字引用、依主題策展的教學影片</td>
+              <td>
+                講義 PDF
+                線上閱讀器（畫記、便利貼、頁面錨定筆記、全文搜尋）、教科書選字引用、依主題策展的教學影片
+              </td>
             </tr>
             <tr>
               <td><strong>觸達</strong></td>
-              <td>PWA 離線閱讀、Telegram 每日推題機器人、聊天大廳、<strong>電子紙模式</strong>（純黑白 1-bit，給 e-ink 閱讀器）、手把操作</td>
+              <td>
+                PWA 離線閱讀、Telegram
+                每日推題機器人、聊天大廳、<strong>電子紙模式</strong>（純黑白
+                1-bit，給 e-ink 閱讀器）、手把操作
+              </td>
             </tr>
           </tbody>
         </table>
@@ -358,8 +791,9 @@
           但沒有任何一行程式碼知道那件事。
         </p>
         <p>
-          所有跟專科有關的東西 —— 名稱、網域、管理者、考試日期、年份範圍、分類標籤 ——
-          全部集中在一個 gitignore 的 <code>config.toml</code>。程式碼讀它，不讀硬編碼的字串。
+          所有跟專科有關的東西 ——
+          名稱、網域、管理者、考試日期、年份範圍、分類標籤 —— 全部集中在一個
+          gitignore 的 <code>config.toml</code>。程式碼讀它，不讀硬編碼的字串。
           分類（「內科」「共同」之類）是<strong>資料</strong>不是列舉型別，
           所以換一個專科只要換一份題庫 CSV 和一份設定。
         </p>
@@ -380,9 +814,18 @@
           </div>
         </div>
         <p class="note" style="margin-top: 1.25rem">
-          <strong>設計上的判準：</strong>任何「只有血液腫瘤科需要」的東西都不寫進核心。
+          <strong>設計上的判準：</strong
+          >任何「只有血液腫瘤科需要」的東西都不寫進核心。
           會不會判斷紅血球形態、要不要背染色體轉位，那是題庫的事；
           系統只負責讓題庫被有效率地讀進腦子裡。
+        </p>
+        <p class="note" style="margin-top: 0.75rem">
+          <strong>唯一的例外是抹片練習</strong
+          >，它確實是為血液抹片判讀而生的。所以它被做成一個
+          <strong>完全獨立</strong>的模組：自己的題庫、作答紀錄、搜尋索引，跟
+          MCQ 題庫零耦合； 首頁要以它為主還是以筆試為主，只是
+          <code>config.toml</code> 裡一個值 （<code>[home] primary_mode</code
+          >）。別的專科 fork 不啟用它，其餘一切照舊。
         </p>
       </div>
     </section>
@@ -391,29 +834,67 @@
       <div class="wrap">
         <h2>架構</h2>
         <p class="sub">
-          全站在 Cloudflare 免費額度內，20 人規模長期零成本。沒有伺服器要顧，也沒有密碼要存。
+          全站在 Cloudflare 免費額度內，20
+          人規模長期零成本。沒有伺服器要顧，也沒有密碼要存。
         </p>
         <figure>
-          <svg viewBox="0 0 760 300" role="img" aria-label="架構圖:Cloudflare Access 在前,Pages 與 Worker 在中,D1/R2/AI 在後">
+          <svg
+            viewBox="0 0 760 300"
+            role="img"
+            aria-label="架構圖:Cloudflare Access 在前,Pages 與 Worker 在中,D1/R2/AI 在後"
+          >
             <defs>
               <style>
-                .bx { fill: none; stroke: currentColor; stroke-width: 1.2; }
-                .lbl { font: 600 13px "Inter", "Noto Sans TC", system-ui, sans-serif; fill: currentColor; }
-                .sm { font: 11px "Inter", "Noto Sans TC", system-ui, sans-serif; fill: currentColor; opacity: .72; }
-                .ln { stroke: currentColor; stroke-width: 1.2; fill: none; opacity: .55; }
-                .acc { stroke: #a8442a; }
+                .bx {
+                  fill: none;
+                  stroke: currentColor;
+                  stroke-width: 1.2;
+                }
+                .lbl {
+                  font:
+                    600 13px "Inter",
+                    "Noto Sans TC",
+                    system-ui,
+                    sans-serif;
+                  fill: currentColor;
+                }
+                .sm {
+                  font:
+                    11px "Inter",
+                    "Noto Sans TC",
+                    system-ui,
+                    sans-serif;
+                  fill: currentColor;
+                  opacity: 0.72;
+                }
+                .ln {
+                  stroke: currentColor;
+                  stroke-width: 1.2;
+                  fill: none;
+                  opacity: 0.55;
+                }
+                .acc {
+                  stroke: #a8442a;
+                }
               </style>
             </defs>
             <rect class="bx acc" x="20" y="16" width="720" height="52" rx="4" />
-            <text class="lbl" x="36" y="38">Cloudflare Access（Zero Trust）</text>
-            <text class="sm" x="36" y="56">Email OTP 白名單 · 驗過身分才把簽章 JWT 交給後面 · 應用層沒有任何密碼邏輯</text>
+            <text class="lbl" x="36" y="38">
+              Cloudflare Access（Zero Trust）
+            </text>
+            <text class="sm" x="36" y="56">
+              Email OTP 白名單 · 驗過身分才把簽章 JWT 交給後面 ·
+              應用層沒有任何密碼邏輯
+            </text>
 
             <line class="ln" x1="220" y1="68" x2="220" y2="104" />
             <line class="ln" x1="540" y1="68" x2="540" y2="104" />
 
             <rect class="bx" x="20" y="104" width="340" height="70" rx="4" />
             <text class="lbl" x="36" y="128">Pages — 前端</text>
-            <text class="sm" x="36" y="147">React 18 · TypeScript · TailwindCSS</text>
+            <text class="sm" x="36" y="147">
+              React 18 · TypeScript · TailwindCSS
+            </text>
             <text class="sm" x="36" y="163">TipTap 編輯器 · PWA 離線閱讀</text>
 
             <rect class="bx" x="400" y="104" width="340" height="70" rx="4" />
@@ -422,8 +903,16 @@
             <text class="sm" x="416" y="163">/api/* 與 /img/*</text>
 
             <line class="ln" x1="360" y1="139" x2="400" y2="139" />
-            <polygon points="400,139 392,135 392,143" fill="currentColor" opacity=".55" />
-            <polygon points="360,139 368,135 368,143" fill="currentColor" opacity=".55" />
+            <polygon
+              points="400,139 392,135 392,143"
+              fill="currentColor"
+              opacity=".55"
+            />
+            <polygon
+              points="360,139 368,135 368,143"
+              fill="currentColor"
+              opacity=".55"
+            />
 
             <line class="ln" x1="570" y1="174" x2="570" y2="210" />
 
@@ -444,15 +933,30 @@
             <line class="ln" x1="452" y1="196" x2="688" y2="196" />
           </svg>
           <figcaption>
-            身分驗證整層外包給 Access —— repo 裡沒有註冊、沒有密碼重設、沒有 session 表。
-            這不是省事，是把最容易寫錯的那部分移出應用層。
+            身分驗證整層外包給 Access —— repo 裡沒有註冊、沒有密碼重設、沒有
+            session 表。 這不是省事，是把最容易寫錯的那部分移出應用層。
           </figcaption>
         </figure>
         <ul class="plain">
-          <li><strong>詳解存 TipTap JSON，不存 HTML。</strong>渲染走同一組 extension，XSS 風險為零</li>
-          <li><strong>共筆用悲觀鎖，不是 CRDT。</strong>20 人 1000 題的規模下，即時共編是過度設計；升級路徑保留（Durable Object + Yjs），schema 不必改</li>
-          <li><strong>R2 不公開，走 Worker 代理。</strong>否則圖片 URL 等於繞過 Zero Trust</li>
-          <li><strong>PWA 只離線讀，不離線寫。</strong>沒有 outbox、沒有背景同步 —— 寫入衝突的複雜度不值得</li>
+          <li>
+            <strong>詳解存 TipTap JSON，不存 HTML。</strong>渲染走同一組
+            extension，XSS 風險為零
+          </li>
+          <li>
+            <strong>共筆用悲觀鎖，不是 CRDT。</strong>20 人 1000
+            題的規模下，即時共編是過度設計；升級路徑保留（Durable Object +
+            Yjs），schema 不必改
+          </li>
+          <li>
+            <strong>R2 不公開，走 Worker 代理。</strong>否則圖片 URL 等於繞過
+            Zero Trust
+          </li>
+          <li>
+            <strong>PWA 離線讀，寫入只放行一種。</strong
+            >共筆、留言這類協作寫入沒有離線路徑；唯一的例外是作答（一人一筆、帶
+            idempotency
+            key，沒有衝突要解），離線時排進佇列、回線補送。進年份頁時會在背景把那一年拓進快取
+          </li>
         </ul>
       </div>
     </section>
@@ -461,22 +965,56 @@
       <div class="wrap">
         <h2>自己開一個</h2>
         <p class="sub">
-          需要一個 Cloudflare 帳號（免費）和一份題庫 CSV。所有 per-fork 的識別字串都在
+          需要一個 Cloudflare 帳號（免費）和一份題庫 CSV。所有 per-fork
+          的識別字串都在
           <code>config.toml</code>。
         </p>
         <table>
-          <thead><tr><th>步驟</th><th>指令</th></tr></thead>
+          <thead>
+            <tr>
+              <th>步驟</th>
+              <th>指令</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>互動式設定</td><td><code>./scripts/setup.sh</code></td></tr>
-            <tr><td>本機驗證</td><td><code>pnpm dev</code> + <code>pnpm --dir frontend dev</code></td></tr>
-            <tr><td>部署</td><td><code>./scripts/deploy.sh</code></td></tr>
-            <tr><td>白名單</td><td><code>node --experimental-strip-types scripts/sync-access.ts</code></td></tr>
-            <tr><td>匯入題庫</td><td><code>node --experimental-strip-types scripts/import-questions.ts ./questions.csv</code></td></tr>
+            <tr>
+              <td>互動式設定</td>
+              <td><code>./scripts/setup.sh</code></td>
+            </tr>
+            <tr>
+              <td>本機驗證</td>
+              <td>
+                <code>pnpm dev</code> + <code>pnpm --dir frontend dev</code>
+              </td>
+            </tr>
+            <tr>
+              <td>部署</td>
+              <td><code>./scripts/deploy.sh</code></td>
+            </tr>
+            <tr>
+              <td>白名單</td>
+              <td>
+                <code
+                  >node --experimental-strip-types scripts/sync-access.ts</code
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>匯入題庫</td>
+              <td>
+                <code
+                  >node --experimental-strip-types scripts/import-questions.ts
+                  ./questions.csv</code
+                >
+              </td>
+            </tr>
           </tbody>
         </table>
         <p style="margin-top: 1.25rem">
-          完整步驟見 <a href="https://github.com/htlin222/mcq-bank#forking-this-codebase">README 的 Forking 章節</a>；
-          踩過的坑與架構決策整理在
+          完整步驟見
+          <a href="https://github.com/htlin222/mcq-bank#forking-this-codebase"
+            >README 的 Forking 章節</a
+          >； 踩過的坑與架構決策整理在
           <a href="https://github.com/htlin222/mcq-bank/wiki">Wiki</a>。
         </p>
       </div>
@@ -485,14 +1023,16 @@
     <footer>
       <div class="wrap">
         <p>
-          <a href="https://github.com/htlin222/mcq-bank">github.com/htlin222/mcq-bank</a>
+          <a href="https://github.com/htlin222/mcq-bank"
+            >github.com/htlin222/mcq-bank</a
+          >
           ·
           <a href="https://github.com/htlin222/mcq-bank/wiki">Wiki</a>
           ·
           <a href="manual.html">使用手冊</a>
         </p>
         <p style="margin: 0">
-          此頁介紹的是<strong>系統</strong>，不是題庫內容。
+          此頁介紹的是<strong>系統</strong>，不是題庫內容。截圖裡的成員、作答紀錄與抹片圖全是假資料。
           題目與詳解屬於各自的部署，不隨程式碼散布。
         </p>
       </div>
