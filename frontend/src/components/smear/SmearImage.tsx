@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { Check, Copy, X } from "lucide-react";
+import { copyImageToClipboard, supportsClipboardImageWrite } from "../../lib/copyImage";
 
 /**
  * 抹片影像:預設顯示 `view` 尺寸(長邊 1600),點擊放大成全螢幕檢視
@@ -42,6 +43,9 @@ export function SmearImage({
 				<span className="absolute bottom-2 right-2 text-xs text-white bg-black/60 px-2 py-0.5 rounded pointer-events-none">
 					點擊放大
 				</span>
+				{/* 獨立於放大鈕之外的 sibling,不是巢狀在它裡面 —— 點下去不會觸發放大,
+				    不需要 stopPropagation。放在左上角,跟右下角的「點擊放大」提示錯開。 */}
+				<CopyImageButton url={`/img/${viewKey}`} className="absolute top-2 left-2" />
 			</div>
 			{zoomed &&
 				createPortal(
@@ -53,6 +57,86 @@ export function SmearImage({
 					document.body,
 				)}
 		</>
+	);
+}
+
+/**
+ * 複製圖片到剪貼簿的按鈕 —— 縮圖卡與全螢幕檢視共用同一顆(見檔頭 SmearImage
+ * 的說明:兩個呼叫端都要有這個功能,寫一份就好)。
+ *
+ * 三種狀態:idle(Copy 圖示)→ done(打勾,1.5 秒後revert,同
+ * QuestionCard.tsx「複製為 Markdown」的節奏)/ error(顯示一句提示,3 秒後
+ * revert)。**不支援時直接在同一個手勢裡開新分頁**,不要等非同步的
+ * write() 失敗才嘗試開分頁 —— 那個 window.open 已經脫離使用者手勢的呼叫堆疊,
+ * 大多數瀏覽器的彈出視窗攔截會擋下來。
+ */
+function CopyImageButton({
+	url,
+	className = "",
+}: {
+	url: string;
+	className?: string;
+}) {
+	const [state, setState] = useState<"idle" | "done" | "error">("idle");
+	const timer = useRef<number | null>(null);
+
+	useEffect(() => {
+		return () => {
+			if (timer.current !== null) window.clearTimeout(timer.current);
+		};
+	}, []);
+
+	function resetAfter(ms: number, s: "idle") {
+		if (timer.current !== null) window.clearTimeout(timer.current);
+		timer.current = window.setTimeout(() => setState(s), ms);
+	}
+
+	function handleClick(e: React.MouseEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (!supportsClipboardImageWrite()) {
+			// 仍在使用者手勢的呼叫堆疊裡,同步開新分頁 —— 讓使用者自己長按/右鍵
+			// 另存,不會被彈出視窗攔截擋下來。
+			window.open(url, "_blank", "noopener");
+			return;
+		}
+		// copyImageToClipboard 內部不 await 就呼叫 clipboard.write(),這裡的
+		// .then 只是接結果、不影響它是不是同步呼叫的。
+		copyImageToClipboard(url).then(
+			() => {
+				setState("done");
+				resetAfter(1500, "idle");
+			},
+			() => {
+				setState("error");
+				resetAfter(3000, "idle");
+			},
+		);
+	}
+
+	return (
+		<div className={`relative ${className}`}>
+			<button
+				type="button"
+				onClick={handleClick}
+				aria-label={state === "done" ? "圖片已複製" : "複製圖片"}
+				title={state === "done" ? "已複製" : "複製圖片"}
+				data-testid="copy-image-button"
+				className={
+					"flex items-center justify-center w-10 h-10 rounded-full transition " +
+					(state === "done"
+						? "bg-emerald-600 text-white"
+						: "bg-black/60 text-white hover:bg-black/80")
+				}
+			>
+				{state === "done" ? <Check size={17} /> : <Copy size={16} />}
+			</button>
+			{state === "error" && (
+				<p className="absolute left-0 top-full mt-1 w-48 text-[11px] leading-snug text-white bg-black/80 rounded px-2 py-1.5 z-10 break-words">
+					此瀏覽器不支援複製圖片,請長按或右鍵圖片另存。
+				</p>
+			)}
+		</div>
 	);
 }
 
@@ -78,7 +162,8 @@ function FullScreenImage({
 		// 關閉鈕走一般文件流(不是絕對定位)—— 絕對定位的偏移是量到容器的
 		// **padding box 外緣**,會直接蓋過 `.dialog-scrim` 讓出來的安全區留白。
 		<div className="fixed inset-0 z-50 bg-black/95 dialog-scrim flex flex-col">
-			<div className="flex justify-end shrink-0 mb-2">
+			<div className="flex justify-between items-center shrink-0 mb-2">
+				<CopyImageButton url={src} />
 				<button
 					type="button"
 					onClick={onClose}

@@ -193,6 +193,42 @@ const ROUTES = [
     expectAfter: ['投票中', '反對'],
   },
   {
+    path: '/smear/dx/dacrocyte',
+    name: '抹片診斷詳情 → SmearDxPanel 分頁列 + 討論分頁(已有一則回覆,新元件第一次被掃到)',
+    // /smear/dx/:id 從單欄頁面拆成「頭部 + SmearDxPanel」之後,分頁列本身
+    // (bg-accent 選中態 / 未選中的 bg-white 邊框)以及討論串(留言輸入框收合態
+    // 的灰字提示、Avatar 頭像框、巢狀回覆的 `border-l-2`)都是全新的視覺組合,
+    // 從沒被這支測試掃過。fixture(smear_dx_dacrocyte_comments.json)刻意帶一則
+    // 根留言 + 一則回覆,不用實際發文互動去湊出這個狀態 —— POST 的回應在這支
+    // 測試的假伺服器上沒有 fixture,湊出來的內容會是空殼,反而測不到真的討論串
+    // 長什麼樣子。
+    async interact(page) {
+      await page.getByRole('tab', { name: '討論' }).click();
+      await page.waitForTimeout(300);
+    },
+    // 根留言與回覆的內文都只存在於這個 fixture 裡,不會恆真。
+    expectAfter: ['這張圖的淚滴細胞很典型', '這個很難認'],
+  },
+  {
+    path: '/smear/s/e2e-1',
+    name: '抹片練習作答頁 → 判定後內嵌的 SmearDxPanel(複習模式專屬的新內嵌區塊)',
+    // Task 3 把 SmearDxPanel 嵌進複習模式的判定結果底下 —— 這是它在 GradeReveal
+    // 之外第一次出現的地方,而且是「同一頁的下半段還有另一組分頁列」這個新組合
+    // (GradeReveal 的 tier badge 在上面兩條已經掃過,這裡真正沒掃過的是它下面
+    // 那圈新的分頁列 + 詳解內容)。fixture 的 dx_id 是 pronormoblast
+    // (smear_dx_pronormoblast.json),note 內文刻意帶進 expectAfter 判準。
+    async interact(page) {
+      await page.getByPlaceholder('輸入診斷或細胞名稱…').fill('Pronormoblast');
+      await page.getByRole('button', { name: '提交答案' }).click();
+      await page.waitForSelector('[data-testid="grade-reveal"]', { timeout: 10_000 });
+      await page.getByRole('tab', { name: '詳解' }).waitFor({ timeout: 10_000 });
+      await page.waitForTimeout(300);
+    },
+    // 「紅血球系最早期」只存在於 pronormoblast 的詳解 fixture 裡,頁面上原本
+    // 沒有,不會恆真。
+    expectAfter: ['紅血球系最早期'],
+  },
+  {
     path: '/smear/s/e2e-result/result',
     name: '抹片成績頁(主題分類進度條,同 PacingCard 的 bg-accent 填色 + eink:border 軌道,但是新元件的第一次掃描)',
     // GradeReveal 的 tier badge 已經在上面兩條掃過(填色/實線/虛線/玫瑰色系),

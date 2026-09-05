@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Loader2, Search as SearchIcon } from "lucide-react";
+import { Bookmark, Loader2, Search as SearchIcon } from "lucide-react";
 import { ApiError } from "../lib/api";
 import { KeepAlive } from "../components/KeepAlive";
 import { StartDialog } from "../components/smear/StartDialog";
@@ -8,6 +8,8 @@ import {
 	searchSmear,
 	fetchSmearSessions,
 	fetchSmearWrong,
+	fetchSmearBookmarks,
+	unbookmarkSmearDx,
 	SMEAR_TOPIC_LABELS,
 	SMEAR_QTYPE_LABELS,
 	SMEAR_MODE_LABELS,
@@ -15,23 +17,27 @@ import {
 	type SmearSearchHit,
 	type SmearHistoryItem,
 	type SmearWrongItem,
+	type SmearBookmarkItem,
 } from "../lib/smearApi";
 
-// /smear —— 4 個分頁,同 /lectures 的 `?tab=` 慣例(可分享、可加書籤、返回時
-// 回到原本的分頁)。這一支只有「練習」分頁有真內容,其餘三個是最小佔位,留給
-// 之後的任務填。分頁內容一律 KeepAlive 包住(同 /q/:id),切分頁不重掛、不
-// 丟失捲動位置或表單狀態 —— 即使目前佔位分頁還沒有值得保留的狀態,先接上這個
-// 慣例,之後補內容時不必回頭改接線方式。
+// /smear —— 5 個分頁,同 /lectures 的 `?tab=` 慣例(可分享、可加書籤、返回時
+// 回到原本的分頁)。分頁內容一律 KeepAlive 包住(同 /q/:id),切分頁不重掛、不
+// 丟失捲動位置或表單狀態。
+//
+// 「已收藏」獨立成第五個分頁,不是折進既有四個裡 —— 它跟練習/作答記錄/錯題本
+// 是四個不同的問題(「我想再看哪些診斷」vs.「怎麼開始一場練習」/「我考得
+// 怎樣」/「我哪裡不熟」),折進任何一個都會讓那個分頁同時回答兩個問題。
 
-type SmearTab = "practice" | "history" | "wrong" | "search";
+type SmearTab = "practice" | "history" | "wrong" | "search" | "bookmark";
 
-const TABS: SmearTab[] = ["practice", "history", "wrong", "search"];
+const TABS: SmearTab[] = ["practice", "history", "wrong", "search", "bookmark"];
 
 const TAB_TITLE: Record<SmearTab, string> = {
 	practice: "練習",
 	history: "作答記錄",
 	wrong: "錯題本",
 	search: "搜尋",
+	bookmark: "已收藏",
 };
 
 function isSmearTab(v: string | null): v is SmearTab {
@@ -77,6 +83,9 @@ export function Smear() {
 				</KeepAlive>
 				<KeepAlive active={tab === "search"}>
 					<SearchTab />
+				</KeepAlive>
+				<KeepAlive active={tab === "bookmark"}>
+					<BookmarkTab />
 				</KeepAlive>
 			</div>
 		</div>
@@ -464,5 +473,106 @@ function SearchTab() {
 				)}
 			</div>
 		</div>
+	);
+}
+
+// ── 已收藏分頁 ── GET /api/smear/bookmarks，worst-first 沒有意義（這裡沒有
+// 「答錯次數」這種排序依據），沿用後端本來就給的 created_at DESC（最近收藏
+// 的排前面）。
+function BookmarkTab() {
+	const [items, setItems] = useState<SmearBookmarkItem[] | null>(null);
+	const [error, setError] = useState<string | null>(null);
+	// 移除中的 dx_id 集合 —— 樂觀從清單拿掉，失敗放回去。
+	const [removing, setRemoving] = useState<Record<string, boolean>>({});
+
+	useEffect(() => {
+		let cancelled = false;
+		fetchSmearBookmarks()
+			.then((r) => {
+				if (!cancelled) setItems(r.items);
+			})
+			.catch((e) => {
+				if (cancelled) return;
+				setItems([]);
+				setError(e instanceof ApiError ? `讀取失敗 (${e.status})` : String(e));
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	async function remove(dxId: string) {
+		setRemoving((r) => ({ ...r, [dxId]: true }));
+		const prev = items;
+		setItems((cur) => (cur ?? []).filter((it) => it.dx_id !== dxId));
+		try {
+			await unbookmarkSmearDx(dxId);
+		} catch {
+			setItems(prev);
+		} finally {
+			setRemoving((r) => {
+				const next = { ...r };
+				delete next[dxId];
+				return next;
+			});
+		}
+	}
+
+	if (error) {
+		return <p className="text-accent text-sm text-center py-10">讀取失敗：{error}</p>;
+	}
+	if (items === null) {
+		return (
+			<p className="inline-flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500 py-10">
+				<Loader2 size={15} className="animate-spin" /> 載入中…
+			</p>
+		);
+	}
+	if (items.length === 0) {
+		return (
+			<p className="text-sm text-ink-400 dark:text-ink-500 text-center py-10">
+				還沒有收藏任何診斷 —— 在診斷詳情頁點右上角的書籤圖示就能收藏。
+			</p>
+		);
+	}
+
+	return (
+		<ul className="space-y-2">
+			{items.map((it) => (
+				<li
+					key={it.dx_id}
+					className="relative flex items-center gap-3 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg pl-4 pr-2 py-3 hover:border-accent transition"
+				>
+					<Link to={`/smear/dx/${it.dx_id}`} className="min-w-0 flex-1">
+						<p className="text-ink-900 dark:text-ink-100 break-words">
+							{it.canonical_long}
+							{it.canonical_abbrev && (
+								<span className="ml-1.5 text-ink-500 dark:text-ink-400">
+									({it.canonical_abbrev})
+								</span>
+							)}
+						</p>
+						<div className="flex flex-wrap gap-1.5 mt-1.5">
+							<span className="text-[11px] px-1.5 py-0.5 rounded bg-ink-100 dark:bg-ink-700 text-ink-600 dark:text-ink-300">
+								{SMEAR_TOPIC_LABELS[it.topic] ?? it.topic}
+							</span>
+							<span className="text-[11px] px-1.5 py-0.5 rounded bg-ink-100 dark:bg-ink-700 text-ink-600 dark:text-ink-300">
+								{SMEAR_QTYPE_LABELS[it.qtype] ?? it.qtype}
+							</span>
+						</div>
+					</Link>
+					<button
+						type="button"
+						onClick={() => remove(it.dx_id)}
+						disabled={!!removing[it.dx_id]}
+						aria-label={`取消收藏 ${it.canonical_long}`}
+						title="取消收藏"
+						className="shrink-0 p-2 rounded text-accent hover:bg-ink-100 dark:hover:bg-ink-700 disabled:opacity-40 transition"
+					>
+						<Bookmark size={18} fill="currentColor" />
+					</button>
+				</li>
+			))}
+		</ul>
 	);
 }
