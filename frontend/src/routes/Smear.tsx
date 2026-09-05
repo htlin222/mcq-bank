@@ -21,7 +21,7 @@ import {
 	type SmearBookmarkItem,
 } from "../lib/smearApi";
 
-// /smear —— 5 個分頁,同 /lectures 的 `?tab=` 慣例(可分享、可加書籤、返回時
+// /smear —— 6 個分頁,同 /lectures 的 `?tab=` 慣例(可分享、可加書籤、返回時
 // 回到原本的分頁)。分頁內容一律 KeepAlive 包住(同 /q/:id),切分頁不重掛、不
 // 丟失捲動位置或表單狀態。
 //
