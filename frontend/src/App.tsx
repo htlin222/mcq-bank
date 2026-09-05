@@ -80,7 +80,7 @@ const FreeNote = lazy(() => import("./routes/FreeNote"));
 export default function App() {
 	const { me, loading } = useMe();
 	const navigate = useNavigate();
-	const { pathname } = useLocation();
+	const { pathname, search } = useLocation();
 
 	// 捲動時收起頂端/底部列(#136)。opt-out 的判準在 lib/autoHideChrome.ts ——
 	// 掛鉤本身還會再擋 md 以上與 prefers-reduced-motion。
@@ -340,10 +340,48 @@ export default function App() {
 			    差的那一塊剛好會蓋住頁尾。 */}
 			<nav className="app-chrome app-chrome-bottom md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-ink-800 border-t border-ink-200 dark:border-ink-700 grid grid-cols-5 z-20 safe-bottom">
 				<BottomItem to="/" Icon={HomeIcon} label="首頁" end />
-				<BottomItem to="/review" Icon={BookOpen} label="複習" />
-				<BottomItem to="/exam" Icon={PenLine} label="全真" />
-				<BottomItem to="/search" Icon={SearchIcon} label="搜尋" />
-				<BottomItem to="/bookmarks" Icon={Bookmark} label="收藏" />
+				{config.home.primary_mode === "smear" ? (
+					<>
+						{/* 主力是抹片時,這四顆改指向 /smear 的對應分頁 —— 見
+						    config.toml [home] primary_mode 的說明,以及
+						    Smear.tsx PracticeTab 的 `?start=` 處理。「複習」
+						    「全真」兩顆終點其實是同一個分頁(裡面兩張模式卡
+						    並排,不是兩個獨立畫面),只是開場對話框預選的模式
+						    不同,所以在練習分頁上這兩顆會一起亮 —— 不是壞掉,
+						    是這兩個入口本來就通到同一個地方。 */}
+						<BottomItem
+							to="/smear?tab=practice&start=review"
+							Icon={BookOpen}
+							label="複習"
+							active={pathname === "/smear" && smearTabParam(search) !== "search" && smearTabParam(search) !== "bookmark"}
+						/>
+						<BottomItem
+							to="/smear?tab=practice&start=exam"
+							Icon={PenLine}
+							label="全真"
+							active={pathname === "/smear" && smearTabParam(search) !== "search" && smearTabParam(search) !== "bookmark"}
+						/>
+						<BottomItem
+							to="/smear?tab=search"
+							Icon={SearchIcon}
+							label="搜尋"
+							active={pathname === "/smear" && smearTabParam(search) === "search"}
+						/>
+						<BottomItem
+							to="/smear?tab=bookmark"
+							Icon={Bookmark}
+							label="收藏"
+							active={pathname === "/smear" && smearTabParam(search) === "bookmark"}
+						/>
+					</>
+				) : (
+					<>
+						<BottomItem to="/review" Icon={BookOpen} label="複習" />
+						<BottomItem to="/exam" Icon={PenLine} label="全真" />
+						<BottomItem to="/search" Icon={SearchIcon} label="搜尋" />
+						<BottomItem to="/bookmarks" Icon={Bookmark} label="收藏" />
+					</>
+				)}
 			</nav>
 		</div>
 		</AnnotationRegistryProvider>
@@ -445,16 +483,28 @@ function NavMore() {
 	);
 }
 
+// `?tab=` 讀取集中在這裡 —— BottomNav 的抹片分支要問好幾次「現在是哪個分頁」。
+function smearTabParam(search: string): string {
+	return new URLSearchParams(search).get("tab") ?? "practice";
+}
+
 function BottomItem({
 	to,
 	Icon,
 	label,
 	end,
+	active,
 }: {
 	to: string;
 	Icon: LucideIcon;
 	label: string;
 	end?: boolean;
+	// NavLink 的 isActive 只比對 pathname,不管 query string —— 抹片分支底下
+	// 「複習/全真/搜尋/收藏」四顆全部指向同一個 /smear pathname,只靠 ?tab=
+	// 分道,所以需要呼叫端自己算 active 傳進來覆蓋掉 NavLink 的預設判斷。
+	// 省略時沿用 NavLink 原本的 pathname 比對(筆試分支的四顆各自是獨立路徑,
+	// 不需要覆蓋)。
+	active?: boolean;
 }) {
 	return (
 		<NavLink
@@ -462,7 +512,7 @@ function BottomItem({
 			end={end}
 			className={({ isActive }) =>
 				`flex flex-col items-center justify-center h-14 text-[11px] gap-0.5 ${
-					isActive ? "text-accent" : "text-ink-500 dark:text-ink-400"
+					(active ?? isActive) ? "text-accent" : "text-ink-500 dark:text-ink-400"
 				}`
 			}
 		>

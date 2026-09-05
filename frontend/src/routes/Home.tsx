@@ -1,33 +1,14 @@
 import { useEffect, useState } from "react";
-import { fetchYears } from "../lib/yearsApi";
-import { Link } from "react-router-dom";
-import {
-	Bookmark,
-	History,
-	AlertTriangle,
-	CalendarDays,
-	Scale,
-	CalendarPlus,
-	Microscope,
-} from "lucide-react";
-import { api } from "../lib/api";
+import { useSearchParams } from "react-router-dom";
+import { CalendarDays, CalendarPlus } from "lucide-react";
 import { config } from "../config";
 import { loadLastPath, describePath } from "../lib/lastPath";
 import { ResumeChip } from "../components/ResumeChip";
 import { useMe } from "../hooks/useMe";
-import { ActivityHeatmap } from "../components/ActivityHeatmap";
-import { PacingCard } from "../components/PacingCard";
 import { StudyPlanDialog } from "../components/StudyPlanDialog";
-import { GROUPS, TOTAL_EXAM_COUNT } from "../lib/groups";
-import { formatDueAt, type DueSummary } from "../lib/due";
-
-type YearMeta = { year: number; count: number };
-type Stats = {
-	questions_attempted: number;
-	total_correct: number;
-	total_attempts: number;
-	by_year: { year: number; seen: number; correct: number }[];
-};
+import { KeepAlive } from "../components/KeepAlive";
+import { WrittenExamDashboard } from "../components/home/WrittenExamDashboard";
+import { SmearDashboard } from "../components/smear/SmearDashboard";
 
 // Exam start time — configured in /config.toml [exam].
 const EXAM_DATE = new Date(config.exam.date_iso);
@@ -50,12 +31,48 @@ function countdownTo(target: Date): Countdown {
 	return { days, hours, minutes, seconds, total_ms };
 }
 
+// ── 首頁分頁:「抹片」/「筆試」 ──────────────────────────────────────────
+//
+// 主力學習模式從筆試(MCQ 題庫)換成抹片練習之後,首頁分兩個分頁:原本整個
+// 首頁的內容搬進「筆試」分頁(WrittenExamDashboard,一行內容都沒變),新增
+// 「抹片」分頁當作新的主力落地頁(SmearDashboard)。
+//
+// **兩個分頁永遠都在,不因為主力換了誰就砍掉另一邊。** 下一屆考生可能還是
+// 筆試優先 —— 這正是 `config.toml [home] primary_mode` 存在的理由:它只決定
+// 「預設開哪一頁」+「手機底部導覽複習/全真/搜尋/收藏四顆指向哪邊」
+// (見 App.tsx 的 BottomNav),之後要整個換回筆試優先,改這一個值就好,不用
+// 動任何元件邏輯。
+//
+// **分頁列不分手機/桌機顯示與否 —— 兩種螢幕都看得到,且都可以自由切換。**
+// 差別只在預設打開哪一頁(`primary_mode`),不是「手機看不到另一邊」。
+//
+// **倒數卡是兩個分頁共用的東西,畫在分頁列之上,不重複畫兩次。** 它答的是
+// 「考試還剩幾天」,跟練哪個模式無關;而「今天到期複習」那個 FSRS CTA 是
+// 筆試 MCQ 題庫專屬的概念(抹片刻意不做 FSRS 排程,見 CLAUDE.md「抹片練習」
+// 那節),所以留在 WrittenExamDashboard 裡,不搬上來。
+type HomeTab = "exam" | "smear";
+const TAB_LABEL: Record<HomeTab, string> = { exam: "筆試", smear: "抹片" };
+
+function isHomeTab(v: string | null): v is HomeTab {
+	return v === "exam" || v === "smear";
+}
+
 export function Home() {
 	const { me } = useMe();
-	const [years, setYears] = useState<YearMeta[]>([]);
-	const [stats, setStats] = useState<Stats | null>(null);
-	// 跨年份到期佇列摘要 — 決定要不要顯示「今天 N 張」CTA。
-	const [due, setDue] = useState<DueSummary | null>(null);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const tabParam = searchParams.get("tab");
+	const tab: HomeTab = isHomeTab(tabParam) ? tabParam : config.home.primary_mode;
+
+	const setTab = (t: HomeTab) =>
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				next.set("tab", t);
+				return next;
+			},
+			{ replace: true },
+		);
+
 	const [countdown, setCountdown] = useState<Countdown>(() =>
 		countdownTo(EXAM_DATE),
 	);
@@ -64,15 +81,6 @@ export function Home() {
 	const [planOpen, setPlanOpen] = useState(false);
 
 	useEffect(() => {
-		fetchYears().then(setYears);
-		api
-			.get<Stats>("/api/review/stats")
-			.then(setStats)
-			.catch(() => setStats(null));
-		api
-			.get<DueSummary>("/api/review/due")
-			.then(setDue)
-			.catch(() => setDue(null));
 		// Tick once per second so the SS digits keep up. State updates are cheap
 		// here — only the countdown card depends on it.
 		const t = window.setInterval(
@@ -84,16 +92,6 @@ export function Home() {
 
 	const daysLeft = countdown.days;
 	const finished = countdown.total_ms <= 0;
-
-	const totalQuestions = years.reduce((s, y) => s + y.count, 0);
-	const seen = stats?.questions_attempted ?? 0;
-	const overallPct = totalQuestions
-		? Math.round((seen / totalQuestions) * 100)
-		: 0;
-	const correctPct =
-		stats && stats.total_attempts
-			? Math.round((stats.total_correct / stats.total_attempts) * 100)
-			: 0;
 
 	return (
 		<div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -123,7 +121,8 @@ export function Home() {
 				</section>
 			)}
 
-			{/* Countdown to exam — date and label come from /config.toml [exam]. */}
+			{/* Countdown to exam — date and label come from /config.toml [exam].
+			    共用區塊,不分分頁 —— 見上面的檔頭說明。 */}
 			<section className="mb-8">
 				<div className="bg-accent/5 dark:bg-accent/15 border border-accent/30 dark:border-accent/40 rounded-lg px-5 py-3 sm:px-6 flex items-baseline gap-x-3 gap-y-1 flex-wrap">
 					<CalendarDays
@@ -164,8 +163,8 @@ export function Home() {
 								· {config.exam.date_label}
 							</span>
 							{/* 靠 ml-auto 推到卡片右緣;self-center 讓它脫離 baseline ——
-                  跟左邊 text-3xl 的天數對 baseline 會明顯錯位。ghost 樣式:
-                  這張卡已經有 accent 底色,再放一顆實心鈕會打架。 */}
+                跟左邊 text-3xl 的天數對 baseline 會明顯錯位。ghost 樣式:
+                這張卡已經有 accent 底色,再放一顆實心鈕會打架。 */}
 							<button
 								type="button"
 								onClick={() => setPlanOpen(true)}
@@ -178,216 +177,34 @@ export function Home() {
 					)}
 				</div>
 				{planOpen && <StudyPlanDialog onClose={() => setPlanOpen(false)} />}
+			</section>
 
-				{/* 跨年份「今天該複習什麼」入口。0 張時只留一行低調文字,不搶版面。 */}
-				{due && due.due_total > 0 ? (
-					<Link
-						to="/due"
-						className="mt-3 flex items-center justify-between gap-3 flex-wrap rounded-lg border border-accent/30 bg-accent/5 dark:bg-accent/15 px-4 py-3 hover:border-accent transition"
+			<div className="mb-6 inline-flex rounded border border-ink-200 dark:border-ink-700 overflow-hidden" role="tablist" aria-label="首頁分頁">
+				{(["exam", "smear"] as const).map((t) => (
+					<button
+						key={t}
+						type="button"
+						role="tab"
+						aria-selected={tab === t}
+						onClick={() => setTab(t)}
+						className={
+							"px-4 py-1.5 text-sm transition " +
+							(tab === t
+								? "bg-accent text-white"
+								: "bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700")
+						}
 					>
-						<span className="text-ink-800 dark:text-ink-100">
-							今天{" "}
-							<span className="font-mono text-accent text-lg">
-								{due.due_total}
-							</span>{" "}
-							張到期
-						</span>
-						<span className="text-xs text-ink-500 dark:text-ink-400">
-							到期 {due.due_review} · 學習中 {due.learning} · 新卡{" "}
-							{due.new_remaining} →
-						</span>
-					</Link>
-				) : due ? (
-					<p className="mt-3 text-xs text-ink-400 dark:text-ink-500">
-						今天沒有到期卡片
-						{due.next_due_at ? ` · 下一張 ${formatDueAt(due.next_due_at)}` : ""}
-					</p>
-				) : null}
-			</section>
+						{TAB_LABEL[t]}
+					</button>
+				))}
+			</div>
 
-			{/* 讀書進度預估 — 把倒數與活動量接起來。天數用 API 的 days_left,
-          不是上面倒數卡的 countdown.days(ceil vs floor,會差一天)。 */}
-			<section className="mb-8">
-				<PacingCard />
-			</section>
-
-			{/* Activity heatmap + stats summary */}
-			<section className="mb-10 flex flex-col lg:flex-row gap-4 sm:gap-5 lg:items-stretch">
-				<div className="lg:shrink-0">
-					<ActivityHeatmap />
-				</div>
-				<div className="flex-1 grid grid-cols-3 lg:grid-cols-1 lg:grid-rows-3 gap-3 sm:gap-4">
-					<StatBlock label="總題數" value={totalQuestions} />
-					<StatBlock
-						label="已複習"
-						value={seen}
-						sub={`${overallPct}%`}
-						accent
-					/>
-					<StatBlock
-						label="準確率"
-						value={`${correctPct}%`}
-						sub={`${stats?.total_correct ?? 0}/${stats?.total_attempts ?? 0}`}
-					/>
-				</div>
-			</section>
-
-			{/* Mode cards */}
-			<section className="grid sm:grid-cols-3 gap-4 mb-10">
-				<Link
-					to="/review"
-					className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 shadow-paper hover:shadow-md hover:border-accent transition group"
-				>
-					<h2 className="font-serif text-xl text-ink-900 dark:text-ink-100 group-hover:text-accent transition">
-						複習模式
-					</h2>
-					<p className="text-sm text-ink-500 dark:text-ink-400 mt-2 leading-relaxed">
-						一題一答即時對照詳解,可協作編輯共筆、留言討論、提及他人。
-					</p>
-				</Link>
-				<Link
-					to="/exam"
-					className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 shadow-paper hover:shadow-md hover:border-accent transition group"
-				>
-					<h2 className="font-serif text-xl text-ink-900 dark:text-ink-100 group-hover:text-accent transition">
-						全真作答
-					</h2>
-					<p className="text-sm text-ink-500 dark:text-ink-400 mt-2 leading-relaxed">
-						按年度作答模擬考 (
-						{GROUPS.map((g) => `${g.count} ${g.label}`).join(" + ")},共{" "}
-						{TOTAL_EXAM_COUNT} 題),完賽看分數與錯題回顧。
-					</p>
-				</Link>
-				<Link
-					to="/lectures"
-					className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-6 shadow-paper hover:shadow-md hover:border-accent transition group"
-				>
-					<h2 className="font-serif text-xl text-ink-900 dark:text-ink-100 group-hover:text-accent transition">
-						複習班講義
-					</h2>
-					<p className="text-sm text-ink-500 dark:text-ink-400 mt-2 leading-relaxed">
-						線上閱讀講義 PDF,可螢光標記、頁面筆記 (支援 @114-001
-						引用題目)、選取文字 AI 解釋與截圖。
-					</p>
-				</Link>
-			</section>
-
-			{/* Year picker */}
-			<section className="mb-10">
-				<h2 className="font-serif text-xl text-ink-800 dark:text-ink-200 mb-4">
-					依年度 (民國)
-				</h2>
-				{years.length === 0 ? (
-					<p className="text-sm text-ink-400 dark:text-ink-500">
-						尚無題目。請使用 import-questions 匯入 CSV。
-					</p>
-				) : (
-					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
-						{years.map((y) => {
-							const s = stats?.by_year.find((x) => x.year === y.year);
-							const seen = s?.seen ?? 0;
-							const correct = s?.correct ?? 0;
-							const seenPct =
-								y.count > 0 ? Math.round((seen / y.count) * 100) : 0;
-							const accPct =
-								seen > 0 ? Math.round((correct / seen) * 100) : null;
-							return (
-								<Link
-									key={y.year}
-									to={`/year/${y.year}`}
-									className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg px-4 py-3 hover:border-accent hover:shadow-paper transition"
-								>
-									<div className="flex items-baseline gap-2">
-										<div className="font-serif text-2xl text-ink-900 dark:text-ink-100">
-											{y.year}
-											{y.year === 100 && (
-												<span className="ml-1 text-xs text-ink-400 dark:text-ink-500 align-middle">
-													(模擬)
-												</span>
-											)}
-										</div>
-										<div className="text-xs text-ink-500 dark:text-ink-400">
-											{y.count} 題
-										</div>
-									</div>
-
-									{/* eink:軌道補黑框,否則 0% 時整條被洗白、看不見 */}
-									<div className="mt-2 h-1.5 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden eink:border eink:border-black">
-										<div
-											className="h-full bg-accent transition-[width]"
-											style={{ width: `${Math.min(100, seenPct)}%` }}
-										/>
-									</div>
-
-									<div className="mt-1.5 flex items-center justify-between text-[11px]">
-										<span className="text-ink-500 dark:text-ink-400">
-											已複習{" "}
-											<span className="font-mono text-ink-700 dark:text-ink-200">
-												{seen}
-											</span>
-											<span className="text-ink-400 dark:text-ink-500">
-												/{y.count}
-											</span>
-										</span>
-										{accPct !== null && (
-											<span
-												className={
-													"font-mono " +
-													(accPct >= 70
-														? "text-emerald-700 dark:text-emerald-300"
-														: accPct >= 50
-															? "text-amber-700 dark:text-amber-300"
-															: "text-rose-700 dark:text-rose-300")
-												}
-												title="準確率 (本年最近一次作答)"
-											>
-												{accPct}%
-											</span>
-										)}
-									</div>
-								</Link>
-							);
-						})}
-					</div>
-				)}
-			</section>
-
-			{/* Quick links */}
-			<section className="flex gap-4 flex-wrap text-sm">
-				<Link
-					to="/bookmarks"
-					className="inline-flex items-center gap-1.5 text-accent hover:text-accent-dark"
-				>
-					<Bookmark size={14} /> 我的收藏
-				</Link>
-				<Link
-					to="/wrong"
-					className="inline-flex items-center gap-1.5 text-accent hover:text-accent-dark"
-				>
-					<AlertTriangle size={14} /> 錯題回顧
-				</Link>
-				{/* 抹片練習不在導覽階梯的 md/lg 兩階(只在 xl 才冒出來,見 App.tsx
-				    的斷點註解),手機(<md)完全看不到那條導覽 —— 這裡是手機使用者
-				    唯一的入口,同 講義/錯題/答案挑戰 已經靠這排 quick links 撐著。 */}
-				<Link
-					to="/smear"
-					className="inline-flex items-center gap-1.5 text-accent hover:text-accent-dark"
-				>
-					<Microscope size={14} /> 抹片練習
-				</Link>
-				<Link
-					to="/exam-history"
-					className="inline-flex items-center gap-1.5 text-accent hover:text-accent-dark"
-				>
-					<History size={14} /> 作答紀錄
-				</Link>
-				<Link
-					to="/challenges"
-					className="inline-flex items-center gap-1.5 text-accent hover:text-accent-dark"
-				>
-					<Scale size={14} /> 答案挑戰
-				</Link>
-			</section>
+			<KeepAlive active={tab === "exam"}>
+				<WrittenExamDashboard />
+			</KeepAlive>
+			<KeepAlive active={tab === "smear"}>
+				<SmearDashboard />
+			</KeepAlive>
 		</div>
 	);
 }
@@ -398,38 +215,4 @@ function greeting(): string {
 	if (h < 12) return "早安";
 	if (h < 18) return "午安";
 	return "晚安";
-}
-
-function StatBlock({
-	label,
-	value,
-	sub,
-	accent,
-}: {
-	label: string;
-	value: number | string;
-	sub?: string;
-	accent?: boolean;
-}) {
-	return (
-		<div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-4 sm:p-5 lg:px-6 lg:py-3 shadow-paper flex flex-col justify-center text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
-			<div className="text-xs text-ink-500 dark:text-ink-400 mb-1 lg:mb-0">
-				{label}
-			</div>
-			<div className="lg:text-right">
-				<div
-					className={`font-serif text-2xl sm:text-3xl ${accent ? "text-accent" : "text-ink-900 dark:text-ink-100"}`}
-				>
-					{value}
-					{/* 窄螢幕自成一行 —— 三欄格線下,值與 sub 併排會被擠出格子
-              (「507」「46%」黏成 50746%)。lg 起才回到同一行。 */}
-					{sub && (
-						<span className="block font-sans text-xs text-ink-400 dark:text-ink-500 lg:inline lg:ml-2">
-							{sub}
-						</span>
-					)}
-				</div>
-			</div>
-		</div>
-	);
 }

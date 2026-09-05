@@ -76,6 +76,13 @@ export function StartDialog({
 		fetchSmearMeta()
 			.then((m) => {
 				if (cancelled) return;
+				// 跨 API 邊界的資料要驗過形狀才能用 —— `m.topics` 不是陣列(壞掉的
+				// 回應、或測試環境沒接對 fixture)的話,後面的 `.filter`/`.map` 會
+				// 直接把整個對話框炸掉而不是顯示「讀取失敗」,那比慢一點更糟。
+				if (!Array.isArray(m.topics)) {
+					setMetaError("主題資料格式不正確");
+					return;
+				}
 				setMeta(m);
 				// initialTopics 只在有交集時採用 —— 題庫變動導致某個弱點主題消失時,
 				// 退回「預設全選」比開出一個一題都沒有的空篩選組合更安全。這個
@@ -153,7 +160,11 @@ export function StartDialog({
 				if (e.target === e.currentTarget) onClose();
 			}}
 		>
-			<div className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-lg overflow-hidden flex flex-col max-h-full">
+			<div
+				role="dialog"
+				aria-label="開始抹片練習"
+				className="bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg shadow-paper w-full max-w-lg overflow-hidden flex flex-col max-h-full"
+			>
 				<header className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-ink-100 dark:border-ink-700">
 					<h2 className="font-serif text-lg text-ink-900 dark:text-ink-100 inline-flex items-center gap-2">
 						<Microscope size={17} className="text-accent" />
