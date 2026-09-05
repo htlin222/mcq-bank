@@ -42,6 +42,7 @@ type AppConfig = {
     home_subtitle: string;
   };
   exam: { date_iso: string; date_label: string; countdown_label: string };
+  home: { primary_mode: 'smear' | 'exam' };
   public: { host: string; og_invite_line: string };
   storage: { theme_storage_key: string };
   telegram?: { bot_username: string };

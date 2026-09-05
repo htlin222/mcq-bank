@@ -43,7 +43,12 @@ const SKIP_TAGS = new Set([
 ]);
 
 const ROUTES = [
-  { path: '/', name: '首頁(倒數/進度條/熱力圖入口)' },
+  // 首頁主力換成抹片練習之後,`/` 預設落地在抹片 dashboard(見 config.toml
+  // [home] primary_mode)—— 原本的統計卡/進度條/熱力圖搬進「筆試」分頁,不
+  // 再是預設畫面,所以另外開一條路由才掃得到,不然這組 e-ink 語意會安靜地
+  // 沒人掃過。
+  { path: '/', name: '首頁(抹片 dashboard,預設分頁)' },
+  { path: '/?tab=exam', name: '首頁 → 筆試分頁(倒數/進度條/熱力圖入口)' },
   { path: '/year/113', name: '年度列表(分類 badge)' },
   { path: '/review', name: '複習首頁' },
   { path: '/videos', name: '影片庫(時長膠囊 bg-black/75)' },

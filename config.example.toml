@@ -50,6 +50,14 @@ date_iso = "2026-12-31T09:00:00+08:00"
 date_label = "2026 / 12 / 31 09:00"
 countdown_label = "Exam countdown"
 
+[home]
+# Which home-page tab is the default, and which study mode the mobile bottom
+# nav's 複習/全真/搜尋/收藏 items point to — "smear" or "exam". Both tabs are
+# always reachable regardless of this value; it only picks the default and
+# the bottom-nav targets. Flip it back to "exam" for a cohort where the
+# written exam (not smear/slide practice) is the priority again.
+primary_mode = "exam"
+
 [public]
 # Public host. Must match the Worker route patterns in wrangler.toml and
 # the Pages custom domain you configure in the CF dashboard.

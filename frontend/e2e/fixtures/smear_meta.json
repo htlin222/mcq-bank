@@ -1,0 +1,14 @@
+{
+	"dxCount": 103,
+	"topicWeights": {
+		"myeloid": 0.2,
+		"lymphoid": 0.2,
+		"normal_reactive": 0.15,
+		"rbc": 0.2,
+		"platelet": 0.1,
+		"infection": 0.1,
+		"other": 0.05
+	},
+	"sourceCounts": { "exam": 700, "ash": 274, "submission": 12 },
+	"topics": ["myeloid", "lymphoid", "normal_reactive", "rbc", "platelet", "infection", "other"]
+}
