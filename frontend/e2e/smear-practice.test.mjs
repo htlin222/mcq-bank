@@ -225,7 +225,7 @@ function installSmearBackend(ctx, { mode, questions, sessionId, leakExamAnswer =
   };
   const calls = { create: [], answer: [], answerResponses: [], finishCount: 0 };
 
-  const pathRe = new RegExp(`^/api/smear/sessions/${sessionId}(?:/(answer|finish))?$`);
+  const pathRe = new RegExp(`^/api/smear/sessions/${sessionId}(?:/(answer|finish|mc-options))?$`);
 
   ctx.route('**/api/smear/**', async (route) => {
     const req = route.request();
@@ -283,6 +283,17 @@ function installSmearBackend(ctx, { mode, questions, sessionId, leakExamAnswer =
           };
         }),
       });
+    }
+
+    if (sub === 'mc-options' && method === 'POST') {
+      if (state.mode !== 'review') return json({ error: 'forbidden' }, 403);
+      const body = JSON.parse(req.postData() || '{}');
+      const idx = resolveIdx(state.questions, body.questionId);
+      const q = state.questions[idx];
+      // 固定不洗牌 —— 測試只需要「正解確實在清單裡」跟「選了正解會判對」，
+      // 不需要驗證洗牌演算法本身(那是 worker/lib/smear-mcq.test.ts 的事)。
+      const distractors = ['Distractor A', 'Distractor B', 'Distractor C', 'Distractor D'];
+      return json({ options: [q.canonical_long, ...distractors] });
     }
 
     if (sub === 'answer' && method === 'POST') {
@@ -483,7 +494,98 @@ test('複習模式:作答判定、俗名 tier 跟 miss 不同、提示只揭曉�
 });
 
 // ---------------------------------------------------------------------------
-// 測試 1b —— 複習模式:「直接看答案」提交空答案、走同一條 miss 揭曉路徑,
+// 測試 1a —— 複習模式「看選項」提示:輸入框換成單選清單,選正解會判對,
+// 可以改回輸入
+// ---------------------------------------------------------------------------
+test('看選項提示:輸入框換成單選清單,選正解會判對,可以改回輸入', async (t) => {
+  if (guard(t)) return;
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
+  const questions = [question('mc-q1', DX.apl)];
+  installSmearBackend(ctx, { mode: 'review', questions, sessionId: 'mc-sess' });
+
+  try {
+    const page = await ctx.newPage();
+    await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
+
+    await page.getByRole('button', { name: '複習模式' }).click();
+    await page.waitForURL('**/smear/review', { timeout: 10_000 });
+    await page.getByRole('button', { name: '全部主題' }).click();
+    await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
+    await page.getByLabel('題數').fill('5');
+    await page.getByRole('button', { name: '開始練習' }).click();
+    await page.waitForURL('**/smear/s/mc-sess', { timeout: 20_000 });
+
+    const input = page.getByPlaceholder('輸入診斷或細胞名稱…');
+    await input.waitFor();
+
+    // 空掃防線:先確認「看選項」按鈕真的找得到,再點它。
+    const mcButton = page.getByRole('button', { name: '看選項' });
+    await mcButton.waitFor();
+    await mcButton.click();
+
+    // 輸入框應該不見了,單選清單取而代之。
+    assert.equal(await input.count(), 0, '選項模式下,原本的輸入框應該不在 DOM 裡');
+    const correctOption = page.getByRole('radio', { name: DX.apl.canonical_long });
+    await correctOption.waitFor();
+
+    // 改回輸入 —— 驗證退路真的有效。
+    await page.getByRole('button', { name: '改用輸入' }).click();
+    await input.waitFor();
+    assert.equal(
+      await page.getByRole('radio').count(),
+      0,
+      '改用輸入之後,選項清單應該整個消失',
+    );
+
+    // 再次觸發,這次真的選正解送出。
+    await mcButton.click();
+    await correctOption.waitFor();
+    await correctOption.check();
+    await page.getByRole('button', { name: '提交答案' }).click();
+
+    await page.locator('[data-testid="grade-reveal"]').waitFor();
+    await page.getByText('完全正確').first().waitFor();
+  } finally {
+    await ctx.close();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 測試 1b —— 全真模式不該有「看選項」按鈕(那個模式全程不揭曉判定,
+// 這支端點的回應本身就會讓正解文字出現在畫面上,見 worker/routes/smear.ts
+// mc-options 端點的檔頭註解)
+// ---------------------------------------------------------------------------
+test('全真模式不該有「看選項」按鈕(role 查詢 + DOM 掃描)', async (t) => {
+  if (guard(t)) return;
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
+  installSmearBackend(ctx, { mode: 'exam', questions: [question('mc-exam-q1', DX.apl)], sessionId: 'mc-exam-sess' });
+
+  try {
+    const page = await ctx.newPage();
+    await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: '全真模式' }).click();
+    await page.waitForURL('**/smear/exam', { timeout: 10_000 });
+    await page.getByRole('button', { name: '開始全真模式' }).click();
+    await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
+    await page.getByLabel('題數').fill('5');
+    await page.getByRole('button', { name: '開始練習' }).click();
+    await page.waitForURL('**/smear/s/mc-exam-sess', { timeout: 20_000 });
+    await page.getByPlaceholder('輸入診斷或細胞名稱…').waitFor();
+
+    assert.equal(
+      await page.getByRole('button', { name: '看選項' }).count(),
+      0,
+      '全真模式不該有「看選項」按鈕(role 查詢)',
+    );
+    const html = await page.content();
+    assert.ok(!html.includes('看選項'), '全真模式的「看選項」要整個不在 DOM 裡');
+  } finally {
+    await ctx.close();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 測試 1c —— 複習模式:「直接看答案」提交空答案、走同一條 miss 揭曉路徑,
 // 且不管輸入框裡打了什麼都送空字串。
 // ---------------------------------------------------------------------------
 test('複習模式:「直接看答案」送出空答案、顯示 miss 判定與正解,且忽略半途打的字', async (t) => {
