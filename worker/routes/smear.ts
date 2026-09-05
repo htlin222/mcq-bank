@@ -22,7 +22,11 @@ const TOPICS = [
 	"other",
 ];
 
-const SOURCES = ["exam", "ash", "po"];
+// 'submission' 是社群投稿經 admin 核准後寫進 smear_questions 的來源
+// (worker/routes/smear-community.ts 的 POST /submissions/:id/approve)。
+// 核准本身就是那道信任閘門 —— 通過之後跟 exam/ash 同等對待,包含在預設
+// 抽題來源裡,不必等一個「只有投稿」的額外篩選才會被抽到。
+const SOURCES = ["exam", "ash", "po", "submission"];
 
 type SmearSessionRow = {
 	id: string;
@@ -189,7 +193,9 @@ smearRoutes.post("/sessions", async (c) => {
 		Array.isArray(body.sources) &&
 		body.sources.filter((s) => SOURCES.includes(s)).length > 0
 			? body.sources.filter((s) => SOURCES.includes(s))
-			: ["exam", "ash"];
+			// 'po' 還沒有真正匯入的資料,留在預設之外;'submission' 已經是核准
+			// 過的活題目,理由同上面 SOURCES 常數的註解。
+			: ["exam", "ash", "submission"];
 
 	const sourcePlaceholders = sources.map(() => "?").join(",");
 	const topicPlaceholders = topics.map(() => "?").join(",");
