@@ -85,9 +85,7 @@ export function SmearReview() {
 
 	const topics = useMemo(() => {
 		if (!meta) return [];
-		return Object.keys(SMEAR_TOPIC_LABELS).filter((t) =>
-			meta.topics.includes(t),
-		);
+		return Object.keys(SMEAR_TOPIC_LABELS).filter((t) => meta.topics.includes(t));
 	}, [meta]);
 
 	return (
@@ -134,9 +132,7 @@ export function SmearReview() {
 					</button>
 
 					{topics.map((t) => {
-						const estCount = Math.round(
-							meta.dxCount * (meta.topicWeights[t] ?? 0),
-						);
+						const estCount = Math.round(meta.dxCount * (meta.topicWeights[t] ?? 0));
 						const wrongN = wrongByTopic.get(t) ?? 0;
 						const stat = statsByTopic.get(t);
 						const accPct =
@@ -179,9 +175,7 @@ export function SmearReview() {
 									{stat?.last_answered_at && (
 										<span>
 											上次{" "}
-											{new Date(stat.last_answered_at).toLocaleDateString(
-												"zh-TW",
-											)}
+											{new Date(stat.last_answered_at).toLocaleDateString("zh-TW")}
 										</span>
 									)}
 								</div>

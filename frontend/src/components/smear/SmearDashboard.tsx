@@ -62,8 +62,7 @@ export function SmearDashboard() {
 	);
 	const totalScore = finished.reduce((sum, s) => sum + (s.score ?? 0), 0);
 	const totalMax = finished.reduce((sum, s) => sum + (s.max_score ?? 0), 0);
-	const accuracyPct =
-		totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : null;
+	const accuracyPct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : null;
 
 	// worst-first 前 5 個,同 /smear?tab=wrong 的排序依據(worker 端已經
 	// worst-first 排好,這裡不重排)。
@@ -220,9 +219,7 @@ function DashStat({
 				{value}
 			</div>
 			{sub && (
-				<div className="text-xs text-ink-400 dark:text-ink-500 mt-0.5">
-					{sub}
-				</div>
+				<div className="text-xs text-ink-400 dark:text-ink-500 mt-0.5">{sub}</div>
 			)}
 		</div>
 	);

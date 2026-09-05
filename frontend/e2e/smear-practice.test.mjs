@@ -941,8 +941,9 @@ for (const width of [390, 320]) {
 // 兩個獨立入口各自都要防到,不是修一個就順便涵蓋另一個:
 //   - /smear/review(SmearReview.tsx)—— 「複習模式」現在導來這裡,主題卡
 //     片清單直接讀 meta.topics。
-//   - StartDialog.tsx —— 「全真模式」仍然直接開這顆對話框,它自己也獨立
-//     打一次 /api/smear/meta(不是從 SmearReview 收 props 沿用)。
+//   - /smear/exam(SmearExam.tsx)—— 「全真模式」現在導來這裡,按下「開始
+//     全真模式」才打開既有的 StartDialog,它自己也獨立打一次
+//     /api/smear/meta(不是從 SmearReview 收 props 沿用)。
 // ---------------------------------------------------------------------------
 test('複習模式選擇主題頁:/api/smear/meta 回應缺 topics 時顯示讀取失敗,不是整頁空白', async (t) => {
   if (guard(t)) return;
