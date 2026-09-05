@@ -4,7 +4,7 @@ import type { AppContext } from "../types";
 import { uuid } from "../lib/db";
 import { gradeSmear, type AcceptedTerm } from "../lib/smear-grade";
 import { pickSmearSet, type PoolItem } from "../lib/smear-pick";
-import { pickMcqOptions, type McqCandidate } from "../lib/smear-mcq";
+import { pickMcqOptions, pickCorrectOptionLabel, type McqCandidate } from "../lib/smear-mcq";
 import { ftsQuery } from "../lib/fts-query";
 import { chunkParams, D1_MAX_PARAMS } from "../lib/sql-params";
 
@@ -535,6 +535,17 @@ smearRoutes.post("/sessions/:id/mc-options", async (c) => {
 		.first<{ dx_id: string; canonical_long: string; topic: string }>();
 	if (!q) return c.json({ error: "question not found" }, 404);
 
+	// 正解選項的文字不能直接用 canonical_long —— 它常帶括號補充內容,字數跟
+	// smear_terms 裡登記的 full 級用詞不一致,而 gradeSmear() 只認 smear_terms。
+	// 改成直接查 full 級的詞當選項文字,保證使用者選到「顯示的正解」時能通過
+	// gradeSmear()。見 worker/lib/smear-mcq.ts 的 pickCorrectOptionLabel()。
+	const { results: correctTermRows } = await c.env.DB.prepare(
+		"SELECT text, tier, form FROM smear_terms WHERE dx_id = ? AND status = 'accepted'",
+	)
+		.bind(q.dx_id)
+		.all<{ text: string; tier: string; form: string }>();
+	const correctLabel = pickCorrectOptionLabel(correctTermRows ?? [], q.canonical_long);
+
 	const { results: poolRows } = await c.env.DB.prepare(
 		"SELECT id, canonical_long, topic FROM smear_dx WHERE id != ?",
 	)
@@ -548,7 +559,7 @@ smearRoutes.post("/sessions/:id/mc-options", async (c) => {
 	}));
 
 	const options = pickMcqOptions(
-		{ id: q.dx_id, topic: q.topic, label: q.canonical_long },
+		{ id: q.dx_id, topic: q.topic, label: correctLabel },
 		pool,
 		Math.random,
 	);

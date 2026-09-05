@@ -15,6 +15,33 @@ export interface McqCandidate {
   label: string;
 }
 
+export interface DxTermLike {
+  text: string;
+  tier: string;
+  form: string;
+}
+
+/**
+ * 「看選項」正解選項的顯示文字,必須挑一個**能通過 gradeSmear() 判成 full**
+ * 的字串 —— 不能直接用 smear_dx.canonical_long。
+ *
+ * `canonical_long` 是給人看的完整名稱,常帶括號補充(如
+ * "acute lymphoblastic leukemia, L3 (Burkitt-type)"),但 gradeSmear() 只比對
+ * smear_terms 裡登記的詞,不認 canonical_long 本身。字數不一致時,原封不動把
+ * canonical_long 塞進選項會讓使用者選到「顯示的正解」卻被判成 miss。
+ *
+ * 優先挑 full 級 + form='long'(比縮寫更適合當選項文字),其次任何 full 級,
+ * 最後才退回 canonical_long(理論上每個診斷都至少有一個 full 級詞,這一步只是
+ * 安全網)。
+ */
+export function pickCorrectOptionLabel(terms: DxTermLike[], canonicalLong: string): string {
+  const full = terms.filter((t) => t.tier === "full");
+  const long = full.find((t) => t.form === "long");
+  if (long) return long.text;
+  if (full.length > 0) return full[0].text;
+  return canonicalLong;
+}
+
 /**
  * 從 pool 裡挑 count 個干擾項(不含 correct 自己)。優先同 topic,不足則從
  * 其他 topic 回填。回傳的是 label(不是 id)——呼叫端只需要顯示用的文字。
