@@ -12,6 +12,13 @@ import { fisherYatesShuffle } from "./smear-pick.ts";
 export interface McqCandidate {
   id: string;
   topic: string;
+  /**
+   * smear_dx.qtype：'cell'（這是什麼細胞）或 'disease'（這是什麼疾病）。
+   * 同一個 topic 底下常常混著兩種（例如 myeloid 同時有骨髓芽細胞這種細胞
+   * 辨識題,也有 AML 這種疾病名題),干擾項分層要看 qtype 才不會把疾病名
+   * 混進細胞辨識題(一眼就能排除,削弱提示的鑑別力)。
+   */
+  qtype: string;
   label: string;
 }
 
@@ -43,8 +50,32 @@ export function pickCorrectOptionLabel(terms: DxTermLike[], canonicalLong: strin
 }
 
 /**
- * 從 pool 裡挑 count 個干擾項(不含 correct 自己)。優先同 topic,不足則從
- * 其他 topic 回填。回傳的是 label(不是 id)——呼叫端只需要顯示用的文字。
+ * 依序從每一層候選池裡湊到 count 個,前面的層洗牌後優先取,湊不滿才往下一層
+ * 借 —— 沿用 pickSmearSet() 的「優先嚴格匹配,不足才漸進放寬」精神。
+ */
+function pickFromTiers(
+  tiers: McqCandidate[][],
+  count: number,
+  rng: () => number,
+): McqCandidate[] {
+  const picked: McqCandidate[] = [];
+  for (const tier of tiers) {
+    const remaining = count - picked.length;
+    if (remaining <= 0) break;
+    picked.push(...fisherYatesShuffle(tier, rng).slice(0, remaining));
+  }
+  return picked;
+}
+
+/**
+ * 從 pool 裡挑 count 個干擾項(不含 correct 自己)。分三層,依序放寬:
+ *
+ *   1. 同 topic + 同 qtype  ——  最嚴格,同時是干擾項鑑別力最強的一層。
+ *   2. 同 topic + 任意 qtype ——  topic 不足時的第一層回填。
+ *   3. 任意 topic           ——  最後的安全網,同舊版的跨 topic 回填。
+ *
+ * 不足則逐層往下借,不靜默少於名額。回傳的是 label(不是 id)——呼叫端只
+ * 需要顯示用的文字。
  */
 export function pickMcqDistractors(
   correct: McqCandidate,
@@ -60,14 +91,15 @@ export function pickMcqDistractors(
   }
   const all = [...byId.values()];
 
-  const sameTopic = all.filter((i) => i.topic === correct.topic);
+  const sameTopicSameQtype = all.filter(
+    (i) => i.topic === correct.topic && i.qtype === correct.qtype,
+  );
+  const sameTopicOtherQtype = all.filter(
+    (i) => i.topic === correct.topic && i.qtype !== correct.qtype,
+  );
   const otherTopic = all.filter((i) => i.topic !== correct.topic);
 
-  const picked: McqCandidate[] = fisherYatesShuffle(sameTopic, rng).slice(0, count);
-  const remaining = count - picked.length;
-  if (remaining > 0) {
-    picked.push(...fisherYatesShuffle(otherTopic, rng).slice(0, remaining));
-  }
+  const picked = pickFromTiers([sameTopicSameQtype, sameTopicOtherQtype, otherTopic], count, rng);
 
   return picked.map((i) => i.label);
 }

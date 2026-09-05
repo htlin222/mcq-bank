@@ -527,12 +527,12 @@ smearRoutes.post("/sessions/:id/mc-options", async (c) => {
 	const realQuestionId = questionIds[idx];
 
 	const q = await c.env.DB.prepare(
-		`SELECT sq.dx_id, sd.canonical_long, sd.topic
+		`SELECT sq.dx_id, sd.canonical_long, sd.topic, sd.qtype
        FROM smear_questions sq JOIN smear_dx sd ON sd.id = sq.dx_id
        WHERE sq.id = ?`,
 	)
 		.bind(realQuestionId)
-		.first<{ dx_id: string; canonical_long: string; topic: string }>();
+		.first<{ dx_id: string; canonical_long: string; topic: string; qtype: string }>();
 	if (!q) return c.json({ error: "question not found" }, 404);
 
 	// 正解選項的文字不能直接用 canonical_long —— 它常帶括號補充內容,字數跟
@@ -547,19 +547,20 @@ smearRoutes.post("/sessions/:id/mc-options", async (c) => {
 	const correctLabel = pickCorrectOptionLabel(correctTermRows ?? [], q.canonical_long);
 
 	const { results: poolRows } = await c.env.DB.prepare(
-		"SELECT id, canonical_long, topic FROM smear_dx WHERE id != ?",
+		"SELECT id, canonical_long, topic, qtype FROM smear_dx WHERE id != ?",
 	)
 		.bind(q.dx_id)
-		.all<{ id: string; canonical_long: string; topic: string }>();
+		.all<{ id: string; canonical_long: string; topic: string; qtype: string }>();
 
 	const pool: McqCandidate[] = (poolRows ?? []).map((r) => ({
 		id: r.id,
 		topic: r.topic,
+		qtype: r.qtype,
 		label: r.canonical_long,
 	}));
 
 	const options = pickMcqOptions(
-		{ id: q.dx_id, topic: q.topic, label: correctLabel },
+		{ id: q.dx_id, topic: q.topic, qtype: q.qtype, label: correctLabel },
 		pool,
 		Math.random,
 	);

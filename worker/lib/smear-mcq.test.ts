@@ -13,7 +13,12 @@ import { gradeSmear, type AcceptedTerm } from './smear-grade.ts';
 
 const seq = (xs: number[]) => { let i = 0; return () => xs[i++ % xs.length]; };
 
-const cand = (id: string, topic: string, label = id): McqCandidate => ({ id, topic, label });
+const cand = (id: string, topic: string, label = id, qtype = 'x'): McqCandidate => ({
+  id,
+  topic,
+  qtype,
+  label,
+});
 
 test('同 topic 優先抽干擾項', () => {
   const correct = cand('dacrocyte', 'rbc', 'dacrocyte');
@@ -70,6 +75,55 @@ test('題庫小到湊不出 4 個干擾項時，回傳能湊到的數量，不�
   const correct = cand('only-dx', 'rbc', 'only-dx');
   const got = pickMcqDistractors(correct, [correct], 4, seq([0.1]));
   assert.equal(got.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// qtype 分層：同 topic 底下混著 cell / disease 兩種 qtype（例如 myeloid 同時
+// 有「這是什麼細胞」跟「這是什麼疾病」的診斷），干擾項要先挑同 topic 又同
+// qtype 的，不足才依序放寬到同 topic 任意 qtype、再到任意 topic。
+// ---------------------------------------------------------------------------
+
+test('qtype 分層：同 topic + 同 qtype 嚴格優先於同 topic + 不同 qtype', () => {
+  const correct = cand('blast', 'myeloid', 'blast', 'cell');
+  const pool = [
+    // 同 topic + 同 qtype：剛好 3 個，等於名額
+    cand('promyelocyte', 'myeloid', 'promyelocyte', 'cell'),
+    cand('myeloblast', 'myeloid', 'myeloblast', 'cell'),
+    cand('metamyelocyte', 'myeloid', 'metamyelocyte', 'cell'),
+    // 同 topic + 不同 qtype：疾病名，一個都不該被選中
+    cand('aml', 'myeloid', 'aml', 'disease'),
+    cand('cml', 'myeloid', 'cml', 'disease'),
+    cand('mds', 'myeloid', 'mds', 'disease'),
+  ];
+  const got = pickMcqDistractors(correct, pool, 3, seq([0.1, 0.2, 0.3, 0.4, 0.5, 0.6]));
+  assert.equal(got.length, 3);
+  assert.ok(got.includes('promyelocyte'));
+  assert.ok(got.includes('myeloblast'));
+  assert.ok(got.includes('metamyelocyte'));
+  assert.ok(!got.includes('aml'));
+  assert.ok(!got.includes('cml'));
+  assert.ok(!got.includes('mds'));
+});
+
+test('qtype 分層：同 topic + 同 qtype 池不足時，先回填同 topic 任意 qtype，再到其他 topic', () => {
+  const correct = cand('blast', 'myeloid', 'blast', 'cell');
+  const pool = [
+    // 同 topic + 同 qtype：只有 1 個
+    cand('myeloblast', 'myeloid', 'myeloblast', 'cell'),
+    // 同 topic + 不同 qtype：疾病名，缺額應該先從這裡補
+    cand('aml', 'myeloid', 'aml', 'disease'),
+    cand('cml', 'myeloid', 'cml', 'disease'),
+    // 其他 topic：只有在同 topic 池（不分 qtype）都用完才輪到這裡
+    cand('cll', 'lymphoid', 'cll', 'disease'),
+    cand('dacrocyte', 'rbc', 'dacrocyte', 'cell'),
+  ];
+  const got = pickMcqDistractors(correct, pool, 3, seq([0.1, 0.2, 0.3, 0.4, 0.5]));
+  assert.equal(got.length, 3);
+  assert.ok(got.includes('myeloblast'));
+  assert.ok(got.includes('aml'));
+  assert.ok(got.includes('cml'));
+  assert.ok(!got.includes('cll'));
+  assert.ok(!got.includes('dacrocyte'));
 });
 
 // ---------------------------------------------------------------------------
