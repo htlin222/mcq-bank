@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Bookmark, Loader2, Search as SearchIcon } from "lucide-react";
+import { Bookmark, Loader2, Microscope, Search as SearchIcon, Timer } from "lucide-react";
 import { ApiError } from "../lib/api";
 import { KeepAlive } from "../components/KeepAlive";
 import { StartDialog } from "../components/smear/StartDialog";
@@ -86,7 +87,7 @@ export function Smear() {
 
 			<div className="mt-6">
 				<KeepAlive active={tab === "practice"}>
-					<PracticeTab />
+					<PracticeTab onGotoWrong={() => setTab("wrong")} />
 				</KeepAlive>
 				<KeepAlive active={tab === "history"}>
 					<HistoryTab />
@@ -147,17 +148,52 @@ function TabBar({
 // 刻意全寬堆疊(不是 sm/md 才變兩欄的 grid)—— 手機是這個功能的主要使用情境
 // (CLAUDE.md「MOBILE IS THE PRIORITY」),卡片本身就是大按鈕,不需要為了桌機
 // 擠成兩欄後反而在手機上變窄。
-function PracticeTab() {
+function PracticeTab({ onGotoWrong }: { onGotoWrong: () => void }) {
 	const [dialogMode, setDialogMode] = useState<SmearMode | null>(null);
+	// 只用來決定「要不要顯示弱點提要」這一行 —— 錯題本分頁自己會再抓一次
+	// 完整清單,這裡刻意不共用 state,兩個分頁各自獨立才不會因為誰先掛載
+	// 而互相卡住彼此的載入時機。
+	const [wrongCount, setWrongCount] = useState<number | null>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+		fetchSmearWrong()
+			.then((r) => {
+				if (!cancelled) setWrongCount(r.items.length);
+			})
+			.catch(() => {
+				if (!cancelled) setWrongCount(null);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
 	return (
 		<div className="space-y-4">
+			{wrongCount !== null && wrongCount > 0 && (
+				// 累積動線的起點:練習分頁本身不會告訴你哪裡不熟,所以在這裡先
+				// 提一句,讓「去錯題本看看」成為一個隨手可以按的念頭,而不是要
+				// 使用者自己想到要去點分頁列。
+				<button
+					type="button"
+					onClick={onGotoWrong}
+					className="w-full flex items-center justify-between gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-3 text-sm text-amber-800 dark:text-amber-300 hover:border-amber-400 transition text-left"
+				>
+					<span>還有 {wrongCount} 個診斷答錯過,尚未抓穩</span>
+					<span className="text-xs underline underline-offset-2 shrink-0">
+						去錯題本看看
+					</span>
+				</button>
+			)}
 			<ModeCard
+				icon={<Microscope size={18} aria-hidden="true" />}
 				title="複習模式"
 				desc="看一張抹片,寫出診斷。每題作答後立刻看判定、可接受寫法與詳解 —— 適合平常累積。"
 				onClick={() => setDialogMode("review")}
 			/>
 			<ModeCard
+				icon={<Timer size={18} aria-hidden="true" />}
 				title="全真模式"
 				desc="連續作答,全程不揭曉正解;交卷後才看整體成績與逐題檢討 —— 適合考前自我測驗。"
 				onClick={() => setDialogMode("exam")}
@@ -173,10 +209,12 @@ function PracticeTab() {
 }
 
 function ModeCard({
+	icon,
 	title,
 	desc,
 	onClick,
 }: {
+	icon: ReactNode;
 	title: string;
 	desc: string;
 	onClick: () => void;
@@ -187,9 +225,12 @@ function ModeCard({
 			onClick={onClick}
 			className="w-full text-left bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg p-5 sm:p-6 shadow-paper hover:shadow-md hover:border-accent transition group"
 		>
-			<h2 className="font-serif text-xl text-ink-900 dark:text-ink-100 group-hover:text-accent transition">
-				{title}
-			</h2>
+			<div className="flex items-center gap-2">
+				<span className="text-accent">{icon}</span>
+				<h2 className="font-serif text-xl text-ink-900 dark:text-ink-100 group-hover:text-accent transition">
+					{title}
+				</h2>
+			</div>
 			<p className="text-sm text-ink-500 dark:text-ink-400 mt-2 leading-relaxed">
 				{desc}
 			</p>
@@ -308,6 +349,7 @@ function HistoryRow({ item }: { item: SmearHistoryItem }) {
 function WrongTab() {
 	const [items, setItems] = useState<SmearWrongItem[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [dialogOpen, setDialogOpen] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -324,6 +366,8 @@ function WrongTab() {
 			cancelled = true;
 		};
 	}, []);
+
+	const weakTopics = useMemo(() => [...new Set((items ?? []).map((it) => it.topic))], [items]);
 
 	if (error) {
 		return <p className="text-accent text-sm text-center py-10">讀取失敗:{error}</p>;
@@ -344,41 +388,59 @@ function WrongTab() {
 	}
 
 	return (
-		<ul className="space-y-2">
-			{items.map((it) => (
-				<li key={it.dx_id}>
-					<Link
-						to={`/smear/dx/${it.dx_id}`}
-						className="flex items-center justify-between gap-3 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg px-4 py-3 hover:border-accent transition"
-					>
-						<div className="min-w-0">
-							<p className="text-ink-900 dark:text-ink-100 break-words">
-								{it.canonical_long}
-							</p>
-							<div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-								<span className="text-[11px] px-1.5 py-0.5 rounded bg-ink-100 dark:bg-ink-700 text-ink-600 dark:text-ink-300">
-									{SMEAR_TOPIC_LABELS[it.topic] ?? it.topic}
-								</span>
-								{it.last_wrong_at && (
-									<span className="text-[11px] text-ink-400 dark:text-ink-500">
-										最近一次:
-										{new Date(it.last_wrong_at).toLocaleDateString("zh-TW")}
+		<>
+			{/* 錯題本只讓你看到「哪裡不熟」,這顆鈕把它接回一場真的能練的
+			    練習 —— 只勾這幾個主題,不必回練習分頁重新手動勾選。 */}
+			<button
+				type="button"
+				onClick={() => setDialogOpen(true)}
+				className="w-full mb-4 px-4 py-2.5 text-sm rounded-lg border border-dashed border-accent text-accent hover:bg-accent/5 transition"
+			>
+				針對這 {weakTopics.length} 個主題再練一次
+			</button>
+			<ul className="space-y-2">
+				{items.map((it) => (
+					<li key={it.dx_id}>
+						<Link
+							to={`/smear/dx/${it.dx_id}`}
+							className="flex items-center justify-between gap-3 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-lg px-4 py-3 hover:border-accent transition"
+						>
+							<div className="min-w-0">
+								<p className="text-ink-900 dark:text-ink-100 break-words">
+									{it.canonical_long}
+								</p>
+								<div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+									<span className="text-[11px] px-1.5 py-0.5 rounded bg-ink-100 dark:bg-ink-700 text-ink-600 dark:text-ink-300">
+										{SMEAR_TOPIC_LABELS[it.topic] ?? it.topic}
 									</span>
-								)}
+									{it.last_wrong_at && (
+										<span className="text-[11px] text-ink-400 dark:text-ink-500">
+											最近一次:
+											{new Date(it.last_wrong_at).toLocaleDateString("zh-TW")}
+										</span>
+									)}
+								</div>
 							</div>
-						</div>
-						<div className="shrink-0 text-right">
-							<div className="font-mono text-base text-ink-900 dark:text-ink-100 tabular-nums">
-								{it.wrong_count}
+							<div className="shrink-0 text-right">
+								<div className="font-mono text-base text-ink-900 dark:text-ink-100 tabular-nums">
+									{it.wrong_count}
+								</div>
+								<div className="text-[11px] text-ink-400 dark:text-ink-500">
+									次答錯
+								</div>
 							</div>
-							<div className="text-[11px] text-ink-400 dark:text-ink-500">
-								次答錯
-							</div>
-						</div>
-					</Link>
-				</li>
-			))}
-		</ul>
+						</Link>
+					</li>
+				))}
+			</ul>
+			{dialogOpen && (
+				<StartDialog
+					initialMode="review"
+					initialTopics={weakTopics}
+					onClose={() => setDialogOpen(false)}
+				/>
+			)}
+		</>
 	);
 }
 

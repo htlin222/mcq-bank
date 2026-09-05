@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, Loader2 } from "lucide-react";
 import { ApiError } from "../lib/api";
 import {
 	fetchSmearSession,
@@ -15,6 +15,7 @@ import { SmearImage } from "../components/smear/SmearImage";
 import { AnswerInput } from "../components/smear/AnswerInput";
 import { GradeReveal, type SmearGradeDisplay } from "../components/smear/GradeReveal";
 import { SmearDxPanel } from "../components/smear/SmearDxPanel";
+import { ReadingFramework } from "../components/smear/ReadingFramework";
 
 // /smear/s/:id —— 作答頁。手機是這個功能最主要的使用情境(CLAUDE.md
 // 「MOBILE IS THE PRIORITY」),版面刻意單欄堆疊到所有寬度(圖 → 提示 →
@@ -258,6 +259,22 @@ export function SmearSession() {
 				</div>
 			</div>
 
+			{/* 這場練習的整體進度 —— 純粹是「還剩多少」的視覺回饋,跟判定/分數
+			    無關,兩種模式都能安全顯示。 */}
+			<div
+				className="h-1 rounded-full bg-ink-100 dark:bg-ink-700 overflow-hidden mb-4 eink:border eink:border-black"
+				role="progressbar"
+				aria-valuemin={0}
+				aria-valuemax={total}
+				aria-valuenow={currentIdx + 1}
+				aria-label="作答進度"
+			>
+				<div
+					className="h-full bg-accent transition-all"
+					style={{ width: `${((currentIdx + 1) / total) * 100}%` }}
+				/>
+			</div>
+
 			{limitSec != null && remainingMs != null && (
 				// 停靠點是 `--chrome-top`,不是 0 —— 同 Exam.tsx 計時列的理由
 				// (CLAUDE.md「考試計時列」):header 是 fixed 且不透明,sticky
@@ -305,6 +322,12 @@ export function SmearSession() {
 				{current.prompt ?? (current.qtype === "cell" ? "這是什麼細胞?" : "這是什麼診斷?")}
 			</p>
 
+			{!currentResult && (
+				// 通用判讀骨架 —— 不揭曉任何診斷專屬資訊,兩種模式都能安全顯示,
+				// 見 ReadingFramework.tsx 檔頭。
+				<ReadingFramework qtype={current.qtype} topic={current.topic} />
+			)}
+
 			{!currentResult ? (
 				<AnswerInput
 					key={current.id}
@@ -326,6 +349,16 @@ export function SmearSession() {
 					    handleSubmit 的邏輯也不會意外把成績模式的正解洩漏到這裡。 */}
 					{session.mode === "review" && current.dx_id && (
 						<div className="mt-6 pt-6 border-t border-ink-100 dark:border-ink-700">
+							{currentResult.display.tier !== "full" && (
+								// 只在沒有全對時提醒 —— 全對的人不需要被推去讀詳解,那
+								// 只是雜訊。同 CLAUDE.md「錯了之後學不到東西」的整個
+								// 出發點:判定畫面本身不會教你哪裡搞混了,詳解裡的
+								// 「容易混淆的」段落與「相似」分頁才會。
+								<p className="mb-4 text-sm text-accent inline-flex items-center gap-1.5">
+									<ArrowDown size={14} aria-hidden="true" />
+									往下看「詳解」的容易混淆處,或切到「相似」分頁比較
+								</p>
+							)}
 							<SmearDxPanel dxId={current.dx_id} />
 						</div>
 					)}

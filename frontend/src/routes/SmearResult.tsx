@@ -72,7 +72,13 @@ export function SmearResult() {
 	const [finish, setFinish] = useState<SmearFinishResult | null>(null);
 	const [session, setSession] = useState<SmearSessionDetail | null>(null);
 	const [loadError, setLoadError] = useState<string | null>(null);
-	const [dialogMode, setDialogMode] = useState<SmearMode | null>(null);
+	// 「再練一次」沿用這場的模式;「只練答錯的主題」一律開複習模式(這是要
+	// 學會,不是要測驗)並帶入 weakTopics —— 兩顆按鈕因此共用同一個 dialog
+	// state,只是帶的設定不同,不必開兩個獨立的 StartDialog 實例。
+	const [dialogConfig, setDialogConfig] = useState<{ mode: SmearMode; topics?: string[] } | null>(
+		null,
+	);
+	const [resultFilter, setResultFilter] = useState<"all" | "weak">("all");
 
 	useEffect(() => {
 		if (!id) return;
@@ -127,14 +133,28 @@ export function SmearResult() {
 		return map;
 	}, [session]);
 
-	const rows: BreakdownWithQuestion[] = useMemo(
+	const rows: (BreakdownWithQuestion & { _idx: number })[] = useMemo(
 		() =>
-			(finish?.breakdown ?? []).map((row) => ({
+			(finish?.breakdown ?? []).map((row, i) => ({
 				...row,
 				question: questionMap.get(row.question_id),
+				_idx: i,
 			})),
 		[finish, questionMap],
 	);
+
+	// 不是全對的題目所屬的主題 —— 交卷後最直接的下一步不是「再考一次全部」,
+	// 是「只練我剛才卡住的那幾個主題」。同 CLAUDE.md「錯了之後學不到東西」:
+	// 逐題檢討只告訴你哪裡錯了,沒有直接給一條「回去練」的路。
+	const weakTopics = useMemo(() => {
+		const set = new Set<string>();
+		for (const row of finish?.breakdown ?? []) {
+			if (row.tier !== "full" && row.topic) set.add(row.topic);
+		}
+		return [...set];
+	}, [finish]);
+
+	const filteredRows = resultFilter === "all" ? rows : rows.filter((r) => r.tier !== "full");
 
 	// 成績頁按主題分類拆開 —— 分數回答的是「認不認得」,拼字正確率回答的是
 	// 「寫不寫得出來」,兩者刻意分開顯示,不折成一個數字(見上面成績卡)。
@@ -247,36 +267,93 @@ export function SmearResult() {
 				</div>
 			)}
 
-			{/* 再練一次 / 回列表 */}
-			<div className="flex flex-col sm:flex-row gap-3 mb-8">
-				<button
-					type="button"
-					onClick={() => setDialogMode(session.mode)}
-					className="flex-1 px-4 py-2.5 text-sm rounded-lg bg-accent text-white hover:bg-accent-dark transition"
-				>
-					再練一次
-				</button>
-				<Link
-					to="/smear?tab=history"
-					className="flex-1 text-center px-4 py-2.5 text-sm rounded-lg border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-accent hover:text-accent transition"
-				>
-					查看作答記錄
-				</Link>
+			{/* 再練一次 / 回列表 / 只練答錯的主題 */}
+			<div className="space-y-3 mb-8">
+				<div className="flex flex-col sm:flex-row gap-3">
+					<button
+						type="button"
+						onClick={() => setDialogConfig({ mode: session.mode })}
+						className="flex-1 px-4 py-2.5 text-sm rounded-lg bg-accent text-white hover:bg-accent-dark transition"
+					>
+						再練一次
+					</button>
+					<Link
+						to="/smear?tab=history"
+						className="flex-1 text-center px-4 py-2.5 text-sm rounded-lg border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-accent hover:text-accent transition"
+					>
+						查看作答記錄
+					</Link>
+				</div>
+				{weakTopics.length > 0 && (
+					<button
+						type="button"
+						onClick={() => setDialogConfig({ mode: "review", topics: weakTopics })}
+						className="w-full px-4 py-2 text-xs rounded-lg border border-dashed border-accent text-accent hover:bg-accent/5 transition"
+					>
+						只針對答錯的 {weakTopics.length} 個主題再練一次(複習模式)
+					</button>
+				)}
 			</div>
-			{dialogMode && (
-				<StartDialog initialMode={dialogMode} onClose={() => setDialogMode(null)} />
+			{dialogConfig && (
+				<StartDialog
+					initialMode={dialogConfig.mode}
+					initialTopics={dialogConfig.topics}
+					onClose={() => setDialogConfig(null)}
+				/>
 			)}
 
 			{/* 逐題檢討 */}
 			<section>
-				<h2 className="font-serif text-lg text-ink-900 dark:text-ink-100 mb-3">
-					逐題檢討
-				</h2>
-				<div className="space-y-3">
-					{rows.map((row, i) => (
-						<ResultRow key={row.question_id + i} row={row} index={i} />
-					))}
+				<div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+					<h2 className="font-serif text-lg text-ink-900 dark:text-ink-100">
+						逐題檢討
+					</h2>
+					<div
+						className="inline-flex rounded border border-ink-200 dark:border-ink-700 overflow-hidden text-xs"
+						role="tablist"
+						aria-label="逐題檢討篩選"
+					>
+						<button
+							type="button"
+							role="tab"
+							aria-selected={resultFilter === "all"}
+							onClick={() => setResultFilter("all")}
+							className={
+								"px-3 py-1.5 transition " +
+								(resultFilter === "all"
+									? "bg-accent text-white"
+									: "bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700")
+							}
+						>
+							全部 {rows.length}
+						</button>
+						<button
+							type="button"
+							role="tab"
+							aria-selected={resultFilter === "weak"}
+							onClick={() => setResultFilter("weak")}
+							className={
+								"px-3 py-1.5 transition " +
+								(resultFilter === "weak"
+									? "bg-accent text-white"
+									: "bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700")
+							}
+						>
+							待加強 {rows.filter((r) => r.tier !== "full").length}
+						</button>
+					</div>
 				</div>
+				{filteredRows.length === 0 ? (
+					<p className="text-sm text-ink-400 dark:text-ink-500 text-center py-6">
+						這個篩選沒有符合的題目。
+					</p>
+				) : (
+					<div className="space-y-3">
+						{filteredRows.map((row) => (
+							<ResultRow key={row.question_id + row._idx} row={row} index={row._idx} />
+						))}
+					</div>
+				)}
 			</section>
 		</div>
 	);
