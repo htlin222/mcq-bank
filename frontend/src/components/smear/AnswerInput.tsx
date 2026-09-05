@@ -119,9 +119,9 @@ export function AnswerInput({
 					    直接重用會把兩個完全不同的資料模型綁在一起。 */}
 					<fieldset className="space-y-2">
 						<legend className="sr-only">選一個診斷</legend>
-						{mc.options.map((opt) => (
+						{mc.options.map((opt, i) => (
 							<label
-								key={opt}
+								key={`${i}-${opt}`}
 								className={
 									"flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer transition " +
 									(mcChoice === opt
