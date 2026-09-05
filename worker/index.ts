@@ -38,6 +38,7 @@ import { stateRoutes } from './routes/state';
 import { playRoutes } from './routes/play';
 import { smearRoutes } from './routes/smear';
 import { smearTermsRoutes } from './routes/smear-terms';
+import { smearCommunityRoutes } from './routes/smear-community';
 import { exportRoutes } from './routes/export';
 import { studyPlanRoutes } from './routes/study-plan';
 import { attemptLogRoutes } from './routes/attempt-log';
@@ -143,6 +144,7 @@ app.route('/api/state', stateRoutes);
 app.route('/api/play', playRoutes);   // 2048 休息小遊戲
 app.route('/api/smear', smearRoutes); // 抹片練習
 app.route('/api/smear', smearTermsRoutes); // 「這個寫法也該算對」提報與投票 (C2)
+app.route('/api/smear', smearCommunityRoutes); // 收藏 / 個人筆記 / 討論 / 投稿
 app.route('/api/export', exportRoutes);
 app.route('/api/study-plan', studyPlanRoutes);  // 讀書計畫產生器
 app.route('/api/attempt-log', attemptLogRoutes); // 答題狀態分析:長表 CSV
