@@ -4,6 +4,7 @@ import { Bookmark, Loader2, Search as SearchIcon } from "lucide-react";
 import { ApiError } from "../lib/api";
 import { KeepAlive } from "../components/KeepAlive";
 import { StartDialog } from "../components/smear/StartDialog";
+import { SubmitTab } from "../components/smear/SubmitTab";
 import {
 	searchSmear,
 	fetchSmearSessions,
@@ -27,10 +28,21 @@ import {
 // 「已收藏」獨立成第五個分頁,不是折進既有四個裡 —— 它跟練習/作答記錄/錯題本
 // 是四個不同的問題(「我想再看哪些診斷」vs.「怎麼開始一場練習」/「我考得
 // 怎樣」/「我哪裡不熟」),折進任何一個都會讓那個分頁同時回答兩個問題。
+//
+// 第六個分頁「投稿」同理獨立:它跟「已收藏」一樣是一個新的問題(「我能不能
+// 把新的抹片加進題庫」),而且內含一個只有 admin 看得到的審核子分頁 ——
+// 詳見 components/smear/SubmitTab.tsx。
 
-type SmearTab = "practice" | "history" | "wrong" | "search" | "bookmark";
+type SmearTab = "practice" | "history" | "wrong" | "search" | "bookmark" | "submit";
 
-const TABS: SmearTab[] = ["practice", "history", "wrong", "search", "bookmark"];
+const TABS: SmearTab[] = [
+	"practice",
+	"history",
+	"wrong",
+	"search",
+	"bookmark",
+	"submit",
+];
 
 const TAB_TITLE: Record<SmearTab, string> = {
 	practice: "練習",
@@ -38,6 +50,7 @@ const TAB_TITLE: Record<SmearTab, string> = {
 	wrong: "錯題本",
 	search: "搜尋",
 	bookmark: "已收藏",
+	submit: "投稿",
 };
 
 function isSmearTab(v: string | null): v is SmearTab {
@@ -86,6 +99,9 @@ export function Smear() {
 				</KeepAlive>
 				<KeepAlive active={tab === "bookmark"}>
 					<BookmarkTab />
+				</KeepAlive>
+				<KeepAlive active={tab === "submit"}>
+					<SubmitTab />
 				</KeepAlive>
 			</div>
 		</div>

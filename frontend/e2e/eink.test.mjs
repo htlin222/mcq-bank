@@ -250,6 +250,23 @@ const ROUTES = [
     // 複習/全真四種組合,不需要另外注入資料就能一次掃到。
     expectAfter: ['未完成', '全真模式', '複習模式'],
   },
+  {
+    path: '/smear?tab=submit',
+    name: '抹片投稿 → 待審核佇列(建議 dx 的虛線 accent 徽章 + 核准/退件按鈕,全新分頁+全新元件第一次被掃到)',
+    // 「投稿」是第六個分頁,SubmitTab 預設落在「我的投稿」子分頁(表單 +
+    // 個人投稿的 pending/approved/rejected 三種狀態徽章 —— fixture 裡三種都有,
+    // 一次掃到 pending 的虛線灰框、approved 的 accent 實心填色、rejected 的
+    // 玫瑰色實線外框)。互動切到 admin-only 的「待審核」子分頁才會畫出
+    // AdminSubmissionQueue —— 那顆分頁鈕本身也是這支測試第一次看到的、
+    // me.json 的 is_admin:true 才會渲染的東西。
+    async interact(page) {
+      await page.getByRole('tab', { name: '待審核' }).click();
+      await page.waitForTimeout(300);
+    },
+    // 「系統猜測」只在有 suggestedDxId 的那個 fixture 項目上出現,頁面上原本
+    // 沒有,不會恆真;「核准」「退件」是這支測試第一次掃到的按鈕文字。
+    expectAfter: ['系統猜測', '核准', '退件'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是

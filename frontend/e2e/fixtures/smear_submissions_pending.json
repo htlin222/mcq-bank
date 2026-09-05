@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "id": "sub-e2e-pending-1",
+      "user_email": "student@example.com",
+      "image_key": "smear/submissions/e2e-1.jpg",
+      "proposed_answer": "dacrocyte",
+      "explanation_text": "淚滴細胞,常見於骨髓纖維化。",
+      "created_at": 1783000000000,
+      "suggestedDxId": "dacrocyte",
+      "suggestedCanonical": "Dacrocyte (teardrop cell)"
+    },
+    {
+      "id": "sub-e2e-pending-2",
+      "user_email": "another@example.com",
+      "image_key": "smear/submissions/e2e-2.jpg",
+      "proposed_answer": "a totally novel finding not in the bank",
+      "explanation_text": null,
+      "created_at": 1783100000000,
+      "suggestedDxId": null,
+      "suggestedCanonical": null
+    }
+  ]
+}

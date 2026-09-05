@@ -443,3 +443,82 @@ export function postSmearComment(
 export function deleteSmearComment(commentId: string): Promise<{ ok: true }> {
 	return api.del(`/api/smear/comments/${commentId}`);
 }
+
+// ---------------------------------------------------------------------------
+// 投稿 —— POST /api/smear/submissions(multipart)、GET .../mine、
+// GET .../pending(admin)、POST .../:id/approve|reject(admin)。見
+// worker/routes/smear-community.ts 檔尾那一段的設計說明:核准前對其他
+// 非本人/非 admin 使用者完全不可見,也不進任何抽題池。
+// ---------------------------------------------------------------------------
+export type SmearSubmissionStatus = "pending" | "approved" | "rejected";
+
+// `proposed_answer` 已被伺服器 SUBSTR 到 200 字(見 GET /submissions/mine),
+// 呼叫端不需要、也不應該再自己截一次。
+export interface SmearSubmissionMineItem {
+	id: string;
+	proposed_answer: string;
+	status: SmearSubmissionStatus;
+	created_at: number;
+	reviewed_at: number | null;
+	review_note: string | null;
+}
+
+export function fetchMySmearSubmissions(): Promise<{
+	items: SmearSubmissionMineItem[];
+}> {
+	return api.get("/api/smear/submissions/mine");
+}
+
+// `suggestedDxId`/`suggestedCanonical` 是伺服器用 normalizeTerm() 對現有
+// accepted 詞比對出來的建議,**永遠不會自動套用**——approve 一律要求呼叫端
+// 明確帶 dxId。null 代表沒有可信的比對,不是「還沒算完」。
+export interface SmearSubmissionPendingItem {
+	id: string;
+	user_email: string;
+	image_key: string;
+	proposed_answer: string;
+	explanation_text: string | null;
+	created_at: number;
+	suggestedDxId: string | null;
+	suggestedCanonical: string | null;
+}
+
+export function fetchPendingSmearSubmissions(): Promise<{
+	items: SmearSubmissionPendingItem[];
+}> {
+	return api.get("/api/smear/submissions/pending");
+}
+
+export interface SmearSubmissionAck {
+	id: string;
+	status: "pending";
+}
+
+// 圖片 + 建議答案(必填)+ 文字說明(選填)。走 multipart,同 worker/lib/
+// upload-validate.ts 的型別/大小限制 —— 呼叫端的檢查只是 UX,伺服器才是
+// 真正的邊界(見 SubmissionForm.tsx 的檔頭說明)。
+export function submitSmearSubmission(input: {
+	image: File;
+	proposedAnswer: string;
+	explanationText?: string;
+}): Promise<SmearSubmissionAck> {
+	const fd = new FormData();
+	fd.append("image", input.image);
+	fd.append("proposedAnswer", input.proposedAnswer);
+	if (input.explanationText) fd.append("explanationText", input.explanationText);
+	return api.postForm("/api/smear/submissions", fd);
+}
+
+export function approveSmearSubmission(
+	id: string,
+	dxId: string,
+): Promise<{ ok: true; questionId: string }> {
+	return api.post(`/api/smear/submissions/${id}/approve`, { dxId });
+}
+
+export function rejectSmearSubmission(
+	id: string,
+	reviewNote?: string,
+): Promise<{ ok: true }> {
+	return api.post(`/api/smear/submissions/${id}/reject`, { reviewNote });
+}

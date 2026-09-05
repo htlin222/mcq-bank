@@ -121,4 +121,9 @@ export const api = {
     fd.append('file', file);
     return request<T>('POST', path, fd, { isForm: true, idempotencyKey });
   },
+  // Like upload(), but for endpoints whose multipart body carries more than a
+  // single `file` field (e.g. /api/smear/submissions: image + proposedAnswer +
+  // explanationText) — the caller builds the FormData itself.
+  postForm: <T = any>(path: string, fd: FormData, idempotencyKey?: string) =>
+    request<T>('POST', path, fd, { isForm: true, idempotencyKey }),
 };

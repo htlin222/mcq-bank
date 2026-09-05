@@ -125,6 +125,14 @@ const ROUTES = [
     name: '抹片錯題本(D4:WrongTab —— 按診斷聚合、worst-first)',
     expectText: '次答錯',
   },
+  {
+    path: '/smear?tab=submit',
+    name: '抹片投稿(表單 + 個人投稿紀錄,admin 子分頁另有 eink.test.mjs 涵蓋)',
+    // 掛的是別處沒有的型態:multipart 表單(圖片挑選 + 預覽)疊在一支既有清單
+    // 上。斷言歷史清單裡的投稿答案文字,證明 GET /submissions/mine 真的餵進
+    // 元件樹,而不是卡在「載入中…」。
+    expectText: 'dacrocyte',
+  },
 ];
 
 // fixture 是從真實 API 抓下來的，而這個 repo 是公開的 —— 第一版就差點把 18 位
