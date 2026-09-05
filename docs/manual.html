@@ -2,6 +2,7 @@
 <html lang="zh-Hant-TW">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>血專衝衝衝 · 使用手冊</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -10,7 +11,7 @@
 :root{--ink-900:#1a1815;--ink-800:#2d2a25;--ink-700:#45413b;--ink-600:#5e5950;--ink-500:#807a6f;--ink-400:#a8a299;--ink-300:#c9c4bc;--ink-200:#e3dfd7;--ink-100:#efebe3;--ink-50:#faf8f3;--paper:#fdfaf3;--accent:#a04a1f;--accent-dark:#7a3614;--accent-soft:#f5e6d8;--emerald:#2f6e4a;--rose:#9b3030;--amber:#8a6313;--rule:#d8d2c5;}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;background:var(--paper);color:var(--ink-800);font-family:'Noto Sans TC',system-ui,sans-serif;font-size:11.5pt;line-height:1.7;}
-.page{max-width:760px;margin:0 auto;padding:0;}
+.page{max-width:760px;margin:0 auto;padding:0 16px;}
 h1,h2,h3,h4{font-family:'Noto Serif TC',Georgia,serif;color:var(--ink-900);font-weight:600;line-height:1.3;letter-spacing:-0.005em;}
 h1.cover{font-size:44pt;margin:0 0 8px;letter-spacing:-0.02em;}
 h1.chapter{font-size:24pt;margin:0 0 8px;padding-bottom:14px;border-bottom:1px solid var(--rule);page-break-before:always;}
@@ -39,9 +40,11 @@ code{font-family:'JetBrains Mono',monospace;font-size:0.88em;background:var(--in
 .tip .label{color:var(--emerald);}
 .warn .label{color:var(--rose);}
 .info .label{color:var(--amber);}
-.screen{margin:12px 0 14px;border:1px solid var(--rule);border-radius:6px;background:#fffdf6;font-family:'JetBrains Mono',monospace;font-size:8.5pt;line-height:1.5;color:var(--ink-700);overflow:hidden;page-break-inside:avoid;}
-.screen .bar{padding:5px 12px;border-bottom:1px solid var(--rule);background:var(--ink-100);color:var(--ink-600);font-size:8pt;letter-spacing:0.04em;}
-.screen pre{margin:0;padding:10px 14px;white-space:pre;font-family:inherit;overflow-x:auto;}
+figure.shot{margin:14px 0 18px;page-break-inside:avoid;}
+figure.shot img{display:block;width:100%;border:1px solid var(--rule);border-radius:6px;}
+figure.shot.phone{max-width:300px;}
+figure.shot figcaption{font-size:9.5pt;color:var(--ink-500);margin-top:6px;}
+.shots-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;}
 table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:10.5pt;page-break-inside:avoid;}
 th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule);vertical-align:top;}
 thead th{border-bottom:2px solid var(--ink-700);font-family:'Noto Serif TC',serif;font-weight:600;color:var(--ink-900);}
@@ -63,285 +66,421 @@ h2,h3,h4{page-break-after:avoid;}
 h1.chapter:first-of-type{page-break-before:auto;}
 </style></head><body><div class="page">
 
-<section class="cover-page"><div class="kicker">使用手冊 · USER MANUAL</div><h1 class="cover">血專衝衝衝</h1><p class="subtitle">2026 台灣血液腫瘤次專科考試 · 共筆詳解 · 全真模擬</p><p style="font-family:'Noto Serif TC',serif;font-size:11pt;line-height:1.85;color:var(--ink-700);max-width:540px;">本手冊帶你從第一次登入到上場考試前的最後一輪複習，逐章說明系統的所有功能。讀完後，你會知道如何在共筆詳解上協作、用全真作答模擬考場、追蹤錯題、與夥伴針對答案討論甚至發起挑戰。</p><dl class="cover-meta"><dt>適用對象</dt><dd>20 位內部研究院/學會成員</dd><dt>系統範圍</dt><dd>1000 題 · 民國 104–113 年 + 模擬卷</dd><dt>登入方式</dt><dd>Cloudflare Access OTP (email 一次性密碼)</dd><dt>裝置支援</dt><dd>桌機、平板、手機 (RWD)</dd><dt>最佳列印</dt><dd>A4 · 雙面 · 黑白可</dd></dl></section>
+<section class="cover-page"><div class="kicker">使用手冊 · USER MANUAL</div><h1 class="cover">血專衝衝衝</h1><p class="subtitle">2026 台灣血液腫瘤次專科考試 · 共筆詳解 · 全真模擬 · 抹片練習</p><p style="font-family:'Noto Serif TC',serif;font-size:11pt;line-height:1.85;color:var(--ink-700);max-width:540px;">本手冊從第一次登入講到考前最後一輪,逐章說明系統的每一項功能:筆試題庫的複習與全真模擬、間隔複習、血液抹片的填空練習、講義閱讀器、讀書計畫,以及離線與電子紙裝置上的使用方式。每一節都以「怎麼操作」為主,畫面截圖取自實際系統。</p><dl class="cover-meta"><dt>適用對象</dt><dd>20 位讀書會成員</dd><dt>筆試題庫</dt><dd>1100 題 · 民國 104–114 年(103 年僅收 42 題,預設隱藏)</dd><dt>抹片練習</dt><dd>203 題歷屆考題 + ASH 影像庫補充圖 + 社群投稿 · 103 個診斷</dd><dt>登入方式</dt><dd>Cloudflare Access OTP(email 一次性密碼,無密碼)</dd><dt>裝置支援</dt><dd>桌機、平板、手機、電子紙(可安裝為 PWA)</dd><dt>最佳列印</dt><dd>A4 · 雙面 · 黑白可</dd></dl></section>
 
-<section class="toc"><h2>目錄</h2><ol><li>第一章 · 第一次登入</li><li>第二章 · 介面總覽</li><li>第三章 · 首頁導讀</li><li>第四章 · 複習模式<div class="sub">答題 · 共筆詳解 · 個人筆記 · 留言與 @提及 · 收藏 · 相似題 · AI 摘要與翻譯 · 答案挑戰</div></li><li>第五章 · 全真作答</li><li>第六章 · 錯題回顧與作答紀錄</li><li>第七章 · 搜尋、收藏與快速跳轉</li><li>第八章 · 個人資料與通知</li><li>附錄 A · 鍵盤捷徑速查</li><li>附錄 B · 常見問題 FAQ</li><li>附錄 C · 回報問題與聯絡</li></ol></section>
+<section class="toc"><h2>目錄</h2><ol>
+<li>第一章 · 第一次登入</li>
+<li>第二章 · 介面總覽<div class="sub">頂欄與「更多」 · 右側工具 · 手機底欄 · 主題 · 浮動按鈕</div></li>
+<li>第三章 · 首頁<div class="sub">倒數與讀書計畫 · 抹片分頁 · 筆試分頁</div></li>
+<li>第四章 · 抹片練習<div class="sub">開場設定 · 作答與判定 · 成績 · 診斷詳情與提報 · 搜尋 / 作答記錄 / 錯題本 / 投稿</div></li>
+<li>第五章 · 筆試複習模式<div class="sub">年度清單 · 題目頁 · 作答與信心 · 詳解共筆 · 個人筆記 · 畫記 · 討論串 · 相似題 · 收藏 · 答案挑戰</div></li>
+<li>第六章 · 今日複習(間隔複習)</li>
+<li>第七章 · 全真作答<div class="sub">年度卷 · 自訂測驗 · 作答介面 · 交卷確認 · 成績頁 · 作答紀錄</div></li>
+<li>第八章 · 錯題、搜尋、弱點地圖、收藏與答案挑戰清單</li>
+<li>第九章 · 講義與閱讀輔助<div class="sub">講義列表 · PDF 閱讀器 · 教科書 · 其他筆記 · 影片庫</div></li>
+<li>第十章 · 讀書計畫產生器</li>
+<li>第十一章 · 個人資料與通知<div class="sub">頭像 · 答題狀態分析 · 備份 · Telegram · AI 助手 · MCQ 金鑰 · 通知 · 聊天大廳 · 2048</div></li>
+<li>第十二章 · 離線與裝置<div class="sub">PWA · 離線閱讀 · 電子紙 · 深淺色 · 手把 · 回報</div></li>
+<li>附錄 A · 鍵盤捷徑速查</li>
+<li>附錄 B · 常見問題 FAQ</li>
+<li>附錄 C · 回報問題與聯絡</li>
+</ol></section>
 
 <h1 class="chapter"><span class="num">Chapter 1</span>第一次登入</h1>
-<p class="lead">本系統不存放任何密碼，所有身份驗證交由 Cloudflare Access 完成。第一次登入只需要你填入收信的信箱，系統會寄一封一次性密碼信給你。</p>
+<p class="lead">本系統不存放任何密碼,身份驗證全部交給 Cloudflare Access。第一次登入只需要填入被加入名單的信箱,系統會寄一封一次性密碼信給你。</p>
 <h2>1.1 開啟系統網址</h2>
-<ol class="steps"><li>在瀏覽器網址列輸入由管理員提供的網域，例如 <code>https://hema.example.com</code>。</li><li>第一次進入會自動跳到 Cloudflare Access 登入畫面 (畫面風格與本系統不同，屬正常)。</li><li>選擇 <span class="ui">Send code to your email</span>，填入你被加入白名單的那個 email，然後送出。</li></ol>
-<div class="warn"><span class="label">注意</span>只有事先被加入白名單的 20 位成員可以登入。如果你輸入的信箱不在名單上，會看到 <em>You do not have access</em>。請聯絡管理員 (見附錄 C)。</div>
+<ol class="steps"><li>在瀏覽器輸入管理員提供的網址。未登入時會看到對外頁:站名、<span class="ui">登入</span> 按鈕,以及三張功能卡(共筆詳解 / 全真模擬 / 答案挑戰)。</li><li>按 <span class="ui">登入</span>,會跳到 Cloudflare Access 的登入畫面(風格與本系統不同,屬正常)。</li><li>填入你被加入白名單的 email,送出。</li></ol>
+<div class="shots-row"><figure class="shot" style="flex:1 1 380px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/landing.webp" alt="未登入的對外頁:品牌、登入按鈕與三張功能卡" /><figcaption>未登入的對外頁。頁尾寫著「無密碼,登入收信箱 OTP 即可」。</figcaption></figure><figure class="shot phone"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/m-landing.webp" alt="手機上的對外頁" /><figcaption>手機版對外頁。</figcaption></figure></div>
+<div class="warn"><span class="label">注意</span>只有事先被加入白名單的成員可以登入。信箱不在名單上會看到 <em>You do not have access</em>,請聯絡管理員(見附錄 C)。</div>
 <h2>1.2 收信並輸入一次性密碼</h2>
-<ol class="steps"><li>查看信箱，找到寄件者為 <code>noreply@notify.cloudflare.com</code> 的信。</li><li>信件主旨類似「Your one-time PIN」，內容會有一組六位數字。</li><li>把這組數字貼回登入頁面，按 <span class="ui">Send</span>。</li><li>驗證通過後會自動轉址回系統首頁，看到「早安/午安/晚安 + 你的名字」即代表成功。</li></ol>
-<div class="tip"><span class="label">小撇步</span>Cloudflare 會在你的瀏覽器留下一段時效約 24 小時的 session，期間內重新開啟系統不用再驗證一次。換瀏覽器、清 cookie、或太久沒登入時才需要再走一次 OTP 流程。</div>
+<ol class="steps"><li>查看信箱,找到寄件者為 <code>noreply@notify.cloudflare.com</code> 的信,內含一組六位數字。</li><li>把數字貼回登入頁面送出。</li><li>驗證通過後自動轉回系統首頁,看到「早安 / 午安 / 晚安 + 你的名字」即代表成功。</li></ol>
+<div class="tip"><span class="label">小撇步</span>Cloudflare 會在瀏覽器留下一段 session,期間內重新開啟系統不必再驗證。換瀏覽器、清 cookie 或太久沒登入時才需要再走一次 OTP。</div>
 <h2>1.3 首次登入後該做的事</h2>
-<ol class="steps"><li>右上點頭像進入 <span class="ui">個人資料</span>，把 <strong>顯示名稱</strong> 改成你想被夥伴看到的名字 (預設是 email 前綴)。</li><li>上傳一張頭像 (任何方形圖檔即可，會自動裁切)。</li><li>(選用) 填一段 <strong>Bio</strong>，讓別人在你留言旁邊看到你是哪個次專科/醫院。</li></ol>
-<div class="info"><span class="label">為什麼要設名字</span>你的留言、共筆編輯紀錄、@提及通知都會用這個名字呈現。預設的 email 前綴在共筆協作時辨識度低。</div>
+<ol class="steps"><li>右上點頭像進入 <span class="ui">個人資料</span>,在「基本資料」把 <strong>顯示名稱</strong> 改成你想被夥伴看到的名字(預設是 email 前綴)。</li><li>按 <span class="ui">更換頭像</span> 上傳一張圖(最大 2 MB,自動裁切)。沒上傳時系統會依你的 email 固定指派一隻動物頭像,每台裝置看到的都一樣。</li><li>(選用)填 <strong>個人簡介</strong>,例如「Fellow 2, 某某醫院」。</li><li>按 <span class="ui">儲存</span>,左側出現「✓ 已儲存」。</li></ol>
+<div class="info"><span class="label">為什麼要設名字</span>留言、共筆編輯紀錄、@提及通知、聊天大廳、線上名單都用這個名字呈現;預設的 email 前綴辨識度低。</div>
 
 <h1 class="chapter"><span class="num">Chapter 2</span>介面總覽</h1>
-<p class="lead">系統有一個跨頁固定的頂欄、桌機/手機切換的導航，以及右上角一排狀態工具。把這幾個區塊看熟，後面所有章節都會更直觀。</p>
-<h2>2.1 頂欄結構</h2>
-<div class="screen"><div class="bar">桌機檢視 · 頂欄</div><pre>┌──────────────────────────────────────────────────────────────────────┐
-│ 血專衝衝衝   首頁  複習  全真  搜尋  收藏  錯題     [線上][🌗][💬][🔔][👤 名字] │
-└──────────────────────────────────────────────────────────────────────┘</pre></div>
+<p class="lead">系統有一條跨頁固定的頂欄、隨螢幕寬度收放的導覽、右上角一排狀態工具,以及手機專用的底欄。把這幾個區塊看熟,後面的章節都會更直觀。</p>
+<h2>2.1 頂欄(桌機 / 平板)</h2>
+<p>頂欄在寬度 768px 以上出現,左側是站名(點擊回首頁),接著是主導覽。導覽項目依序為:<span class="ui">首頁</span> <span class="ui">複習</span> <span class="ui">全真</span> <span class="ui">搜尋</span> <span class="ui">收藏</span> <span class="ui">錯題</span> <span class="ui">講義</span> <span class="ui">影片</span> <span class="ui">答案挑戰</span> <span class="ui">抹片</span>。螢幕不夠寬時,尾端的項目會摺進 <span class="ui">更多 ▾</span> 下拉,而不是被擠掉:</p>
+<table><thead><tr><th>寬度</th><th>列上直接看得到</th><th>摺進「更多」</th></tr></thead><tbody>
+<tr><td>768–1023</td><td>首頁 複習 全真 搜尋</td><td>收藏 錯題 講義 影片 答案挑戰 抹片</td></tr>
+<tr><td>1024–1279</td><td>+ 收藏 錯題</td><td>講義 影片 答案挑戰 抹片</td></tr>
+<tr><td>≥1280</td><td>全部十項</td><td>(沒有「更多」)</td></tr>
+</tbody></table>
+<h2>2.2 右側工具列</h2>
+<table><thead><tr><th>順序</th><th>工具</th><th>說明</th></tr></thead><tbody>
+<tr><td>1</td><td>線上人數</td><td>綠點 + 數字(≥1024px 展開成頭像列,最多 5 顆)。點一下看名單。0 人時不顯示。</td></tr>
+<tr><td>2</td><td>聊天大廳</td><td>進入全站聊天室(見 §11.8)。</td></tr>
+<tr><td>3</td><td>答案挑戰</td><td>有表決中的挑戰時會提示;點擊進入挑戰清單。</td></tr>
+<tr><td>4</td><td>主題切換</td><td>單顆按鈕循環:<span class="ui">亮</span> → <span class="ui">暗</span> → <span class="ui">電子紙</span> → <span class="ui">跟系統</span>。偏好存在這台裝置,不同步。</td></tr>
+<tr><td>5</td><td>回報 bug 或意見</td><td>開一個表單,送出後自動建成 GitHub issue(附錄 C)。</td></tr>
+<tr><td>6</td><td>通知</td><td>有人 @ 你、回覆你、挑戰結果等,未讀數顯示在鈴鐺上(§11.7)。</td></tr>
+<tr><td>7</td><td>頭像 + 名字</td><td>點擊進入個人資料。名字在 ≥1024px 才顯示。</td></tr>
+</tbody></table>
+<h2>2.3 手機底欄</h2>
+<p>寬度小於 768px 時頂欄的導覽隱藏,改由底部五顆取代:<span class="ui">首頁</span> <span class="ui">複習</span> <span class="ui">全真</span> <span class="ui">搜尋</span> <span class="ui">收藏</span>。目前部署以抹片練習為主力,所以後四顆指向抹片:「複習」開抹片的主題選擇頁、「全真」直接跳出開始練習對話框、「搜尋」與「收藏」是抹片頁的對應分頁。筆試側的入口在首頁「筆試」分頁與各頁的捷徑列。</p>
+<figure class="shot phone"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/m-home.webp" alt="手機首頁,底部五顆導覽" /><figcaption>手機首頁與底欄。往下捲時頂欄與底欄會自動收起,往回捲就回來;有輸入框聚焦時不收。</figcaption></figure>
+<h2>2.4 浮動按鈕</h2>
+<ul><li><strong>番茄鐘</strong>(右下角,每一頁都有):點開可選 <span class="ui">專注</span> / <span class="ui">短休息</span> / <span class="ui">長休息</span>,按 <span class="ui">開始</span> 後圓鈕變成倒數與進度環。齒輪可設專注時長、休息長度、自動接續、提示音與瀏覽器通知。面板裡有一條 <span class="ui">玩 2048</span> 連結,休息時段會放大提示。</li><li><strong>回到最頂</strong>(左下角):只在題目頁、且手機寬度捲過 400px 後出現。</li><li><strong>手把操作說明</strong>(左下角):接上遊戲手把後才出現,見 §12.5。</li></ul>
+<h2>2.5 離線橫幅與新版本提示</h2>
+<p>斷線時頂欄下方會出現一條細長的 <span class="ui">離線中 · 可閱讀已看過的內容,編輯功能暫停</span>,恢復連線就消失。有新版本部署時會出現 <span class="ui">有新版本可用</span>,按 <span class="ui">重新載入</span> 更新;不想中斷可按 <span class="ui">稍後</span>。</p>
+
+<h1 class="chapter"><span class="num">Chapter 3</span>首頁</h1>
+<p class="lead">首頁上半是考試倒數與讀書計畫,下半分成 <span class="ui">筆試</span> 與 <span class="ui">抹片</span> 兩個分頁,各自是該題庫的儀表板。每次登入先在這裡停一下,比直接跳進題目更有效率。</p>
+<h2>3.1 倒數卡與「生成讀書計畫」</h2>
+<p>最上方顯示距離 <strong>2026 / 10 / 03 08:30</strong> 還剩幾天幾時幾分,天數 ≤60 轉琥珀色、≤30 轉紅色;考試開始後換成「考試已開始 — 加油!」。右側的 <span class="ui">生成讀書計畫</span> 開啟第十章的問卷。倒數卡上方有一顆「上次停留」的小膠囊,點一下回到上次看的頁面。</p>
+<h2>3.2 「抹片」分頁(預設)</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/home-smear.webp" alt="首頁抹片分頁:倒數卡、統計、兩大模式入口、待加強清單" /><figcaption>首頁的抹片分頁。</figcaption></figure>
+<ul><li>三格統計:<span class="ui">場次</span>、<span class="ui">正確率</span>(得分 / 滿分)、<span class="ui">待加強</span>(答錯過而尚未抓穩的診斷數)。</li><li>兩張入口卡:<span class="ui">複習模式</span>(先選主題,每題立刻看判定與詳解)與 <span class="ui">全真模式</span>(連續作答不揭曉,交卷才看)。</li><li><span class="ui">待加強</span> 清單列出最常答錯的前 5 個診斷,<span class="ui">查看全部 →</span> 進錯題本。</li><li><span class="ui">前往完整抹片頁面(搜尋 / 已收藏 / 投稿)</span> 與底部捷徑列(複習班講義、筆試錯題回顧、筆試作答紀錄、答案挑戰、影片庫)——手機上頂欄是藏起來的,這一列是這些頁面最近的入口。</li></ul>
+<h2>3.3 「筆試」分頁</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/home-exam.webp" alt="首頁筆試分頁:到期卡片、配速卡、活動熱圖、統計、兩大模式、依年度" /><figcaption>首頁的筆試分頁。</figcaption></figure>
 <table><thead><tr><th>區塊</th><th>說明</th></tr></thead><tbody>
-<tr><td><strong>血專衝衝衝</strong></td><td>系統 LOGO，點擊任何時候都可以回首頁。</td></tr>
-<tr><td>首頁 / 複習 / 全真 / 搜尋 / 收藏 / 錯題</td><td>主導航。目前所在的頁面會以橘色字體顯示。</td></tr>
-<tr><td>線上 (人頭數字)</td><td>顯示目前同時在線的成員，hover 看 avatar 列表。</td></tr>
-<tr><td>🌗 主題切換</td><td>淺色 ⇄ 深色模式。系統會記住偏好。</td></tr>
-<tr><td>💬 意見回饋</td><td>把 bug 或建議直接送到 GitHub Issues。</td></tr>
-<tr><td>🔔 通知鈴鐺</td><td>有人 @ 你或回覆你的留言時會出現紅點。</td></tr>
-<tr><td>👤 頭像 + 名字</td><td>點擊進入個人資料頁。</td></tr>
+<tr><td>今天 N 張到期</td><td>間隔複習的到期數(到期 / 學習中 / 新卡),點擊進第六章的今日複習。沒有到期時顯示下一張的日期。</td></tr>
+<tr><td>配速卡</td><td>「距考試 N 天 · 已完成 x / y 題」與本週進度條。齒輪可設 <strong>每週目標</strong>(1–1000 題)。下方一句話用近 7 天的實際速度推估第一輪能不能在考前跑完。</td></tr>
+<tr><td>最近 3 個月活動</td><td>每天作答數量的熱圖,顏色愈深作答愈多。</td></tr>
+<tr><td>總題數 / 已複習 / 準確率</td><td>所有年度題數總和;已作答過的不重複題數與百分比;答對 / 總作答。</td></tr>
+<tr><td>三張入口卡</td><td><span class="ui">複習模式</span>、<span class="ui">全真作答</span>(內科 70 + 共同 30 = 100 題)、<span class="ui">複習班講義</span>。</td></tr>
+<tr><td>依年度 (民國)</td><td>每年一張卡:題數、複習進度條、已複習 n/N、右下角最近一次作答的準確率(≥70 綠、≥50 琥珀、其餘紅)。100 年標「(模擬)」。</td></tr>
+<tr><td>快捷連結</td><td>我的收藏、錯題回顧、作答紀錄、答案挑戰。</td></tr>
 </tbody></table>
-<h2>2.2 手機底欄</h2>
-<p>視窗寬度小於約 640px 時，頂欄的主導航會自動隱藏，改由螢幕底部的 5 顆 icon 取代：<span class="ui">首頁</span>、<span class="ui">複習</span>、<span class="ui">全真</span>、<span class="ui">搜尋</span>、<span class="ui">收藏</span>。錯題與其他功能可從首頁或個人頁進入。</p>
-<h2>2.3 深淺色模式</h2>
-<ol class="steps"><li>點右上 <span class="ui">🌗</span> 切換主題。</li><li>選擇 <span class="ui">淺色 / 深色 / 跟隨系統</span>。</li><li>偏好寫進 localStorage，下次回來自動套用。</li></ol>
-<div class="tip"><span class="label">建議</span>白天讀詳解用淺色 (對比清楚，視覺壓力低)；晚上長時間複習切深色 (護眼)。</div>
+<div class="note"><span class="label">103 年</span>題庫只收到 42 題(原卷 100 題),為了不讓人誤以為那年考 42 題,年度清單預設不列出;連結 <code>/year/103</code> 仍然打得開。</div>
 
-<h1 class="chapter"><span class="num">Chapter 3</span>首頁導讀</h1>
-<p class="lead">首頁是個人駕駛艙：考試倒數、每日活動熱圖、累積進度、各年度題目入口、以及社群最新的「答案挑戰」。每次登入先在這裡停一下，比直接跳進題目更有效率。</p>
-<h2>3.1 考試倒數計時</h2>
-<p>最上方的卡片顯示距離 <strong>2026/08/29 (六) 09:00</strong> 還剩多少時間，精確到秒。當天數小於 60 變橘色、小於 30 變紅色，提醒自己進入衝刺期。考試當天會切換為「考試已開始 — 加油!」訊息。</p>
-<h2>3.2 活動熱圖</h2>
-<p>GitHub-style 的綠格熱圖，過去三個月每天的作答數量。顏色越深代表當天作答越多。連續紀錄不需要刻意刷，但長時間不亮會在自己頁面上很顯眼，是個誠實的提醒。</p>
-<h2>3.3 三格統計</h2>
-<table><thead><tr><th>欄位</th><th>計算方式</th></tr></thead><tbody>
-<tr><td>總題數</td><td>所有年度題目總和 (目前 1000 題)。</td></tr>
-<tr><td>已複習</td><td>你已經作答過至少一次的不重複題目數，下方顯示佔比 %。</td></tr>
-<tr><td>準確率</td><td>所有作答中答對的比例。括號內顯示 答對/總作答。</td></tr>
+<h1 class="chapter"><span class="num">Chapter 4</span>抹片練習</h1>
+<p class="lead">專科考試的抹片題是填空,不是選擇:認得出 dacrocyte 但寫成 dacrocite 在考卷上是 0 分。抹片練習讓你看一張血液抹片、把診斷<strong>拼寫</strong>出來,並且區分「認得出」與「寫得出」兩種能力。它跟筆試題庫完全分開——自己的題庫、作答記錄、搜尋與統計。</p>
+<h2>4.1 抹片練習首頁</h2>
+<p>頂欄 <span class="ui">抹片</span>(或首頁抹片分頁的入口)進入 <code>/smear</code>。頁面有六個分頁:<span class="ui">練習</span> <span class="ui">作答記錄</span> <span class="ui">錯題本</span> <span class="ui">搜尋</span> <span class="ui">已收藏</span> <span class="ui">投稿</span>。分頁狀態寫進網址,可以直接加書籤。</p>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/smear-index.webp" alt="抹片練習首頁:六個分頁與兩張模式卡" /><figcaption>抹片練習首頁。上方橫幅提醒「還有 N 個診斷答錯過,尚未抓穩」。</figcaption></figure>
+<h2>4.2 素材與主題</h2>
+<p>題庫有三種題源,開場時可勾選:<span class="ui">歷屆考題</span>(203 題,四份官方答案卷逐頁擷取)、<span class="ui">ASH 影像庫</span>(ASH Image Bank 的補充圖,附出處連結)、<span class="ui">社群投稿</span>(成員上傳、管理員核准後加入)。所有圖對應到 103 個診斷,分成七個主題:<strong>骨髓性 · 淋巴性 · 正常 / 反應性 · 紅血球系 · 血小板 / 巨核系 · 感染相關 · 其他</strong>。每個診斷都有共筆詳解與「容易混淆的」相關診斷。</p>
+<h2>4.3 複習模式 vs 全真模式</h2>
+<table><thead><tr><th></th><th>複習模式</th><th>全真模式</th></tr></thead><tbody>
+<tr><td>入口</td><td><span class="ui">複習模式</span> 卡 → 先選主題</td><td><span class="ui">全真模式</span> 卡 → 直接開設定對話框</td></tr>
+<tr><td>作答後</td><td>立刻看判定、正解、可接受寫法、詳解</td><td>只顯示「已作答」,全程不揭曉</td></tr>
+<tr><td>「不會嗎?直接看答案」</td><td>有(算 0 分,但照樣顯示正解)</td><td>無</td></tr>
+<tr><td>成績</td><td>做完進成績頁</td><td>交卷後才看整體成績與逐題檢討</td></tr>
 </tbody></table>
-<h2>3.4 兩大模式入口</h2>
-<p><span class="ui">複習模式</span> 與 <span class="ui">全真作答</span> 是並列的兩張卡片。點任一張即進入對應章節介紹的流程。</p>
-<h2>3.5 依年度 (民國)</h2>
-<p>一張一張的年度卡，標示該年總題數、你的複習進度條 (橘色填充)、和最近一次作答的準確率 (綠 ≥70%、黃 ≥50%、紅 &lt;50%)。</p>
-<ol class="steps"><li>點任一個年度卡進入該年題目列表。</li><li>在列表內可選任一題開始作答；題號旁的 ●/○ 標示「已作答/未作答」。</li><li>民國 100 年標 <span class="ui">(模擬)</span>，是非考古題的補充練習。</li></ol>
-<h2>3.6 近期答案挑戰</h2>
-<p>題庫的答案不一定無誤，社群可以針對任何一題提出「答案挑戰」。這個區塊聚合最近 8 筆挑戰，狀態標籤如下：</p>
-<table><thead><tr><th>狀態</th><th>意義</th></tr></thead><tbody>
-<tr><td><span class="ui">表決中</span></td><td>剛被提出，等其他人投票同意或反對。</td></tr>
-<tr><td><span class="ui">討論中</span></td><td>有反對票出現，需要進一步釐清證據。</td></tr>
-<tr><td><span class="ui">已採納</span></td><td>多數同意，題目的官方答案已被改寫。</td></tr>
-<tr><td><span class="ui">已駁回</span></td><td>挑戰未獲共識，題目維持原答案。</td></tr>
+<h3>複習模式的主題選擇頁</h3>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/smear-review-topics.webp" alt="複習模式主題選擇頁:全部主題與七個主題卡,各顯示正確率與待加強數" /><figcaption>「複習模式 —— 選擇主題」。每張卡顯示約幾個診斷、你的正確率、上次練習日期,以及「N 個待加強」徽章。</figcaption></figure>
+<p>點 <span class="ui">全部主題</span> 或任一主題卡,會開啟開場設定並預選該主題。</p>
+<h2>4.4 開場設定</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/smear-setup.webp" alt="開始抹片練習對話框:模式、題數、作答寫法、主題篩選、題源" /><figcaption>「開始抹片練習」對話框。</figcaption></figure>
+<ol class="steps"><li><strong>模式</strong>:<span class="ui">複習模式</span> 或 <span class="ui">全真模式</span>。</li><li><strong>題數</strong>:5–200,預設 50。抽題會依主題在題庫的比例分層,並盡量避開上一場考過的圖。</li><li><strong>作答寫法</strong>:<span class="ui">任意寫法</span> / <span class="ui">只收全稱</span> / <span class="ui">只收縮寫</span>。</li><li><strong>主題篩選</strong>:七個主題可複選(至少一個),旁邊標示各主題佔題庫的百分比。</li><li><strong>題源</strong>:歷屆考題 / ASH 影像庫 / 社群投稿,預設全勾。</li><li>按 <span class="ui">開始練習</span>。組合抽不到題時會提示放寬篩選。</li></ol>
+<div class="note"><span class="label">作答寫法目前只是記錄</span>這個選項會存在這場的設定裡,但判定仍同時接受全稱與縮寫。真的要練「只寫全稱」,請自我要求。</div>
+<h2>4.5 作答頁</h2>
+<div class="shots-row"><figure class="shot" style="flex:1 1 380px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/smear-session.webp" alt="抹片作答頁:圖片、What cell? 題幹、判讀骨架、輸入框、提示與提交答案" /><figcaption>作答頁。所有寬度都是單欄,圖在上、輸入在下。</figcaption></figure><figure class="shot phone"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/m-smear-session.webp" alt="手機上的抹片作答頁" /><figcaption>手機版作答頁。</figcaption></figure></div>
+<ul><li><strong>圖片</strong>:點一下全螢幕放大(長邊 2400px),雙指縮放走瀏覽器原生手勢,<kbd>Esc</kbd> 或點空白處關閉。圖左上角的 <span class="ui">複製圖片</span> 把圖放進剪貼簿,方便貼到筆記或問 AI。</li><li><strong>題幹</strong>:<code>What cell?</code> 或 <code>What disease?</code>;有些圖附一行 A / B 標註說明。</li><li><strong>怎麼判讀?</strong>:可摺疊的判讀骨架(細胞辨識五個觀察點 / 紅血球形態五個觀察點 / 疾病診斷三步驟),不含任何診斷專屬資訊。</li><li><strong>輸入框</strong>:單一自由輸入,不顯示格數(格數會洩漏答案長度)。手機鍵盤的自動校正、自動大寫已關閉,<code>Döhle</code>、<code>Auer rod</code> 不會被改掉。<kbd>Enter</kbd> 或 <span class="ui">提交答案</span> 送出。</li><li><span class="ui">提示</span>:顯示「分類提示:{主題}」。用過提示會被記錄下來(不影響分數)。</li><li><span class="ui">不會嗎?直接看答案</span>(只有複習模式):算 0 分,但顯示正解與詳解。</li><li>底部 <span class="ui">上一題</span> / <span class="ui">下一題</span>,最後一題變 <span class="ui">查看成績</span>;<span class="ui">提前結束</span> 會確認「還有 N 題未作答」。</li></ul>
+<h2>4.6 判定:四層,拼字錯不扣分</h2>
+<div class="shots-row"><figure class="shot" style="flex:1 1 380px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/smear-graded.webp" alt="提交後的判定:部分正確半分、拼字提醒、正解、可接受的寫法" /><figcaption>提交後的判定卡:「部分正確(半分)」+0.5 分,拼字提醒「pronromoblast」→ 正確拼法「pronormoblast」,下方列出可接受的寫法。</figcaption></figure><figure class="shot phone"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/m-smear-graded.webp" alt="手機上輸入 tear drop 後判定為俗名用法" /><figcaption>輸入俗名 tear drop:「俗名用法(不計分)」,但正解 dacrocyte 照樣顯示。</figcaption></figure></div>
+<table><thead><tr><th>判定</th><th>分數</th><th>意義</th></tr></thead><tbody>
+<tr><td>✓ 完全正確</td><td>1</td><td>寫出標準全稱、縮寫或其他同義正式寫法(例:dacrocyte / dacryocyte)。</td></tr>
+<tr><td>◐ 部分正確(半分)</td><td>0.5</td><td>方向對但不夠精準(例:poikilocytosis 之於 dacrocyte;Plasma cell 之於 Plasmoblast)。</td></tr>
+<tr><td>~ 俗名用法(不計分)</td><td>0</td><td>tear drop、burr cell、smudge cell 這類俗名。考卷不收,所以不給分,但明確告訴你正解,並單獨統計「用了俗名 N 題」。</td></tr>
+<tr><td>✗ 未命中</td><td>0</td><td>沒對上任何可接受寫法。</td></tr>
 </tbody></table>
-<p>挑戰的完整操作流程見 §4.9。</p>
+<ul><li><strong>拼字容錯</strong>:長度 ≥5 的字允許差 1 個字母,仍給該層滿分,另外顯示「拼字提醒」並計入「拼字完全正確」統計。三字母縮寫(AML / ALL)不容錯——差一個字母就是另一個病。<code>microcytic / macrocytic</code>、<code>hypo- / hyper-</code> 這類臨床意義相反的字對也不容錯。</li><li>比對前會統一大小寫、去變音符與連字號(<code>Pelger-Huët</code> = <code>pelger huet</code>)。</li><li><strong>可接受的寫法</strong> 列出該診斷所有被收錄的寫法,前綴 ✓ / ◐ / ~ 對應上表三層。</li><li>不是完全正確時,判定卡下方提示「往下看『詳解』的容易混淆處,或切到『相似』分頁比較」,接著是四個面板:<span class="ui">詳解</span> <span class="ui">個人筆記</span> <span class="ui">討論</span> <span class="ui">相似</span>(內容同 §4.8 的診斷詳情頁)。</li></ul>
+<h2>4.7 成績頁</h2>
+<div class="shots-row"><figure class="shot" style="flex:1 1 380px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/smear-result.webp" alt="抹片成績頁:分數、拼字完全正確、用了俗名、主題分類、再練一次、逐題檢討" /><figcaption>成績頁。</figcaption></figure><figure class="shot phone"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/m-smear-result.webp" alt="手機上的抹片成績頁" /><figcaption>手機版成績頁。</figcaption></figure></div>
+<ul><li>分數 / 滿分與百分比,加上 <strong>拼字完全正確:N 題</strong>、<strong>用了俗名:N 題</strong>。</li><li><strong>主題分類</strong>:這場出現過的每個主題一條進度條,右側得分 / 滿分。</li><li><span class="ui">再練一次</span>(同模式)、<span class="ui">查看作答記錄</span>,以及 <span class="ui">只針對答錯的 N 個主題再練一次(複習模式)</span>。</li><li><strong>逐題檢討</strong>:篩選 <span class="ui">全部</span> / <span class="ui">待加強</span>(非完全正確都算);每列有縮圖、判定、你的作答、正解(可點進診斷詳情)、拼字提醒。</li></ul>
+<div class="note"><span class="label">全真模式中途看不到成績</span>還沒交卷就把網址改成 <code>/result</code> 會被導回作答頁;作答記錄裡未完成的場次也只顯示「未完成 · 點擊繼續作答」,不顯示分數。</div>
+<h2>4.8 診斷詳情頁與「這個寫法也該算對?」</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/smear-dx.webp" alt="診斷詳情頁 dacrocyte:影像、詳解、可接受的寫法、提報表單與投票" /><figcaption>診斷詳情頁(dacrocyte)。右上角書籤圖示可收藏這個診斷。</figcaption></figure>
+<p>從成績頁的正解、錯題本、搜尋或收藏都能進入 <code>/smear/dx/…</code>。頁面內容:</p>
+<ul><li>標題(全稱 + 縮寫)、主題與題型徽章(<span class="ui">細胞辨識</span> / <span class="ui">疾病診斷</span>)。</li><li><strong>影像(N)</strong>:同一診斷的所有圖;ASH 來源附出處與外部連結。</li><li><span class="ui">詳解</span>:共筆詳解固定五段——<strong>一句話 / 怎麼認 / 容易混淆的 / 臨床脈絡 / 拼字提醒</strong>,「怎麼認」附一段考卷上可以直接寫的英文形態描述。下方是 <strong>可接受的寫法</strong> 清單。</li><li><span class="ui">個人筆記</span>:僅你可見,一個診斷可寫多則,<span class="ui">新增筆記</span> / <span class="ui">編輯</span> / <span class="ui">刪除</span>。</li><li><span class="ui">討論</span>:針對這個診斷的留言串,可回覆;自己的留言可刪。</li><li><span class="ui">相似</span>:容易混淆的診斷,點擊互跳。</li></ul>
+<h3>提報一個新的寫法</h3>
+<ol class="steps"><li>在詳解面板最下方「這個寫法也該算對?」填入 <strong>寫法</strong>、選 <strong>該算幾分</strong>(<span class="ui">全分</span> / <span class="ui">半分</span> / <span class="ui">俗名(不計分)</span>)、<strong>全稱還是縮寫</strong>,理由選填。</li><li>按 <span class="ui">送出提報</span>,提報會出現在下方投票清單,狀態 <span class="ui">投票中</span>。</li><li>其他成員按 <span class="ui">同意</span> 或 <span class="ui">反對</span>(可改票、可收回);提報人不能投自己的。</li><li>累積 <strong>3 票</strong> 且同意多於反對 → <span class="ui">已通過</span>,立刻成為可接受寫法;反對 ≥ 同意(含平手)→ <span class="ui">未通過</span>。結案後不再翻案,也不追溯改已經判過的分數。</li></ol>
+<div class="tip"><span class="label">重複提報</span>同一個寫法已是可接受寫法、或正在投票中,系統會擋下並提示「幫它投一票就好」。</div>
+<h2>4.9 搜尋、作答記錄、錯題本、已收藏</h2>
+<div class="shots-row"><figure class="shot" style="flex:1 1 300px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/smear-search.webp" alt="抹片搜尋分頁" /><figcaption>搜尋:輸入診斷或細胞名稱,即打即搜(獨立索引,不混筆試題庫)。</figcaption></figure><figure class="shot" style="flex:1 1 300px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/smear-history.webp" alt="抹片作答記錄,含未完成場次" /><figcaption>作答記錄:每場的模式、時間、題數與分數;未完成的場次點擊繼續作答。</figcaption></figure></div>
+<ul><li><strong>錯題本</strong>按<strong>診斷</strong>聚合,不按圖:同一個診斷不管答錯幾張圖都是一列,顯示答錯次數與最近一次日期,錯最多的排最前。「錯」的定義是非完全正確(半分、俗名、未命中都算)。頂端的 <span class="ui">針對這 N 個主題再練一次</span> 直接開複習模式。</li><li><strong>已收藏</strong>:在診斷詳情頁右上角按書籤收藏;最近收藏的排前面。</li></ul>
+<h2>4.10 投稿</h2>
+<ol class="steps"><li>切到 <span class="ui">投稿</span> 分頁,按 <span class="ui">點擊選擇圖片(相機或相簿)</span>(JPEG / PNG / WebP / GIF,10 MB 以內)。</li><li>填 <strong>正確答案</strong>(必填)與文字說明(選填),按 <span class="ui">送出投稿</span>。</li><li>下方「我的投稿紀錄」顯示狀態:<span class="ui">審核中</span> → <span class="ui">已核准</span>(進入抽題池)或 <span class="ui">已退件</span>(附審核意見)。</li></ol>
+<p>管理員在同一分頁多一個 <span class="ui">待審核</span> 子分頁:系統會依你填的答案猜一個現有診斷供 <span class="ui">採用建議</span>,也可搜尋改選,然後 <span class="ui">✓ 核准</span> 或 <span class="ui">✗ 退件</span>(可附退件原因)。核准前的圖只有投稿人與管理員看得到。</p>
+<div class="info"><span class="label">抹片練習不做間隔複習、也不支援離線</span>抹片的統計與筆試完全分開:不進首頁熱圖、不進弱點地圖,也沒有 FSRS 排程。離線時抹片頁無法使用。</div>
 
-<h1 class="chapter"><span class="num">Chapter 4</span>複習模式</h1>
-<p class="lead">複習模式是本系統的核心。一題一答、立即揭曉、共筆詳解、討論串、@提及、收藏、相似題、AI 工具，所有功能都圍繞「同一題」展開。本章依使用順序逐項說明。</p>
-<h2>4.1 進入複習</h2>
-<ol class="steps"><li>主選單點 <span class="ui">複習</span>，進入複習索引頁。</li><li>選一個年度，或從首頁的「年度卡」直接進入。</li><li>在該年的題目列表點任一題編號 (例：<code>113-001</code>) 打開題目頁。</li></ol>
-<div class="tip"><span class="label">小撇步</span>題目頁底部有 <span class="ui">⟵ 上一題</span> / <span class="ui">下一題 ⟶</span> 按鈕，可在同年度連續複習而不用回列表。鍵盤可用 <kbd>←</kbd> <kbd>→</kbd> 跳前後題。</div>
-<h2>4.2 看題與作答</h2>
-<div class="screen"><div class="bar">題目頁配置</div><pre>┌───────────────────────────────────────────────────────────────┐
-│  113-042                                  [🔖 收藏] [🚩 回報]   │
-│                                                                │
-│  題幹:                                                          │
-│    某 65 歲男性出現 ... (略)                                    │
-│                                                                │
-│  (A) 選項一                                                     │
-│  (B) 選項二      ← 點任一選項作答                                │
-│  (C) 選項三                                                     │
-│  (D) 選項四                                                     │
-│                                                                │
-│  [送出]                                                         │
-│                                                                │
-│  ──────── 送出後揭曉 ────────                                    │
-│   正解: (B)   你答: (D)   ✗  ←錯了會自動加入錯題                │
-│                                                                │
-│  [詳解] [我的筆記]                                              │
-└───────────────────────────────────────────────────────────────┘</pre></div>
-<ol class="steps"><li>讀完題幹與所有選項。</li><li>點選你認為的答案 (A/B/C/D)，被選中的選項會反白。</li><li>按 <span class="ui">送出</span>，系統立即比對正解。</li><li>答錯會自動把該題加入錯題清單 (見第六章)。</li><li>答對或答錯，都會展開「詳解」分頁。</li></ol>
-<div class="warn"><span class="label">一次性</span>每題每個使用者「最近一次作答」會被記到統計，但你可以重複作答 — 每次送出都會更新最新紀錄。想刻意挑戰自己時可以多答幾次。</div>
-<h2>4.3 共筆詳解</h2>
-<p>詳解是 <strong>整個團隊共同維護的單一份文件</strong>。任何成員都可以編輯，但同一時間只能有一個人在編輯 (悲觀鎖)。</p>
-<h3>4.3.1 閱讀模式</h3>
-<p>題目頁的「詳解」分頁預設是唯讀，顯示目前最新版本。內容支援標題、清單、粗體、斜體、行內 code、區塊引用、圖片、@提及、跨題引用、表格。</p>
-<h3>4.3.2 編輯模式</h3>
-<ol class="steps"><li>確認目前沒有人正在編輯 (沒有「XXX 正在編輯…」橘色橫幅)。</li><li>點詳解區右上的 <span class="ui">編輯</span> (鉛筆 icon)。</li><li>系統會嘗試取得編輯鎖，成功後切到富文本編輯器。</li><li>編輯時頂部會顯示「你正在編輯 · 剩餘 4:58」倒數，每 60 秒自動續鎖。</li><li>編輯完成按 <span class="ui">儲存</span>；要放棄按 <span class="ui">取消</span> (鎖會立刻釋出)。</li></ol>
-<div class="warn"><span class="label">鎖會自動過期</span>若你打開編輯後 5 分鐘沒有任何動作 (沒儲存、沒續鎖)，鎖會自動釋出，其他人即可開始編輯。長時間離開電腦前請先存檔。</div>
-<h3>4.3.3 版本控制</h3>
-<p>每次儲存都會把版本號 +1。如果在你儲存前有別人也存了一版 (你會看到衝突訊息)，系統會拒絕你的儲存，請按 <span class="ui">重新載入最新版</span>，再把你的修改套上去。</p>
-<h3>4.3.4 富文本工具列</h3>
-<table><thead><tr><th>按鈕</th><th>用途</th><th>快捷鍵</th></tr></thead><tbody>
-<tr><td>H1 / H2 / H3</td><td>段落標題</td><td>—</td></tr>
-<tr><td>B</td><td>粗體</td><td><kbd>⌘B</kbd></td></tr>
-<tr><td>I</td><td>斜體</td><td><kbd>⌘I</kbd></td></tr>
-<tr><td>· / 1.</td><td>項目清單 / 編號清單</td><td>—</td></tr>
-<tr><td>"</td><td>引用區塊</td><td>—</td></tr>
-<tr><td>&lt;/&gt;</td><td>行內 code / 程式區塊</td><td>—</td></tr>
-<tr><td>🖼</td><td>插入圖片 (見 §4.3.5)</td><td>—</td></tr>
-<tr><td>@</td><td>提及成員或引用其他題 (見 §4.5 / §7.3)</td><td>—</td></tr>
+<h1 class="chapter"><span class="num">Chapter 5</span>筆試複習模式</h1>
+<p class="lead">一題一答、立即揭曉、共筆詳解、個人筆記、討論串、相似題、答案挑戰,所有功能都圍繞「同一題」展開。本章依使用順序逐項說明。</p>
+<h2>5.1 進入複習與年度清單</h2>
+<div class="shots-row"><figure class="shot" style="flex:1 1 300px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/review-index.webp" alt="複習模式首頁:隨機抽一題、到期、信心校準、年度卡" /><figcaption>複習模式首頁。</figcaption></figure><figure class="shot" style="flex:1 1 300px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/year-list.webp" alt="民國 113 年題目清單" /><figcaption>民國 113 年的題目清單。</figcaption></figure></div>
+<ol class="steps"><li>頂欄 <span class="ui">複習</span>(或首頁筆試分頁的 <span class="ui">複習模式</span> 卡)。頁面有 <span class="ui">隨機抽一題開始</span>、「今天 N 張到期」的入口、信心校準區與 <span class="ui">弱點概念地圖 →</span>。</li><li>在「選擇年度 (民國)」點一年,進入該年清單:標題「民國 113 年 · N 題」,右上有 <span class="ui">匯出</span> 與 <span class="ui">Anki FSRS</span>(該年的到期與新卡數)。</li><li>清單可依科別與作答狀態(<span class="ui">全部</span> / <span class="ui">已作答</span> / <span class="ui">未作答</span> / <span class="ui">答對</span> / <span class="ui">答錯</span>)篩選,並用「篩選題號、關鍵字…」即時過濾。每列標示上次答對 ✓ / 答錯 ✗ 與收藏徽章。</li><li>點任一題開啟題目頁。</li></ol>
+<div class="tip"><span class="label">離線備用</span>進年度清單時,系統會在背景把這一年的題目與詳解拓進離線快取,標題旁顯示「離線備用中… n/N」→「✓ 可離線閱讀」。圖片體積大,要另外按 <span class="ui">連圖片一起離線備用</span>。詳見 §12.2。</div>
+<h2>5.2 題目頁版面</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/question.webp" alt="題目頁雙欄版面:左題目卡、右詳解共筆分頁,詳解被防劇透遮罩蓋住" /><figcaption>桌機雙欄:左邊題目卡,右邊「詳解共筆 / 個人筆記 / 討論串 / 相似題目 / 影片」分頁。詳解在作答前被遮住,要按「點擊顯示詳解」。</figcaption></figure>
+<ul><li><strong>桌機(≥768px)</strong> 預設雙欄,中間分隔線可拖曳調整寬度(雙擊還原)。右上角的檢視切換或 <kbd>t</kbd> 可改成分頁式。</li><li><strong>手機</strong> 一律分頁式:<span class="ui">題目</span> <span class="ui">詳解</span> <span class="ui">個人筆記</span>,其餘(討論串 / 相似題目 / 影片)摺進 <span class="ui">⋮</span>。切分頁會捲回頂端;<strong>換題會重設回「題目」</strong>,避免一進下一題就看到詳解。</li><li>頁首:回年度清單、<span class="ui">上一題</span> / <span class="ui">下一題</span>(從搜尋進來時是「上一個 / 下一個結果」)。下一題會預先抓好,換題幾乎不等待。</li></ul>
+<div class="shots-row"><figure class="shot phone"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/m-question.webp" alt="手機題目頁:題目分頁" /><figcaption>手機:題目分頁。</figcaption></figure><figure class="shot phone"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/m-question-explanation.webp" alt="手機題目頁:詳解分頁" /><figcaption>手機:切到詳解分頁。</figcaption></figure></div>
+<h2>5.3 作答與作答信心</h2>
+<ol class="steps"><li>讀題幹。題幹中的否定詞(<strong>wrong / incorrect / except / is not / 錯誤 / 不正確 / 何者非</strong>…)會標紅加粗,免得整題讀完才發現問的是「何者錯誤」。</li><li>點一個選項,或按 <kbd>A</kbd>–<kbd>E</kbd>(再按一次取消)。</li><li>選了選項後出現 <strong>作答信心:</strong> <span class="ui">猜</span> / <span class="ui">普通</span> / <span class="ui">有把握</span>,預設「普通」。信心會進「信心校準」與答題狀態分析,幫你看出「有把握卻答錯」的盲點。</li><li>按 <span class="ui">提交答案</span>(或 <kbd>Enter</kbd>)。不想作答可按 <span class="ui">略過 / 直接看答案</span>(或 <kbd>Space</kbd>)。</li></ol>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/question-answered.webp" alt="選 B 提交後:正解綠框、答對了、看過次數與答對率、答案挑戰卡" /><figcaption>提交後:正解以綠框標示,顯示「答對了」、已看過幾次、全體答對率與選項分布、你的用時與全體中位數。下方是答案挑戰卡(這一題有人主張正解應為 D,表決中)。</figcaption></figure>
+<ul><li>可以重複作答,每次都會記進歷史;<span class="ui">清除本題作答紀錄</span> 只清你自己的。</li><li>右上角 <span class="ui">複製為 Markdown</span>(或 <kbd>y</kbd>)把題目與選項複製成文字,方便貼給 AI 或筆記軟體。</li><li>離線或送出失敗時會提示「這次作答沒有記錄成功(可能離線)」;作答本身會排進佇列,連線後自動補送(§12.2)。</li></ul>
+<h2>5.4 詳解共筆</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/question-revealed.webp" alt="作答後點擊顯示詳解,詳解掀開" /><figcaption>作答後按「點擊顯示詳解」掀開共筆。工具列:自動挖空 / 防劇透 / 編輯,右緣是 OpenEvidence。</figcaption></figure>
+<p>詳解是<strong>整個團隊共同維護的一份文件</strong>。作答前它被防劇透遮罩蓋住,要按 <span class="ui">點擊顯示詳解</span> 才看得到。</p>
+<h3>編輯</h3>
+<ol class="steps"><li>確認沒有「XXX 正在編輯…」的標示,按 <span class="ui">編輯</span>(離線時不能取得鎖)。</li><li>頂端顯示「✓ 你正在編輯 · 鎖至 HH:MM:SS · 目前版本 vN」。鎖每 60 秒自動續,5 分鐘沒動作會釋出。</li><li>編輯器支援標題、清單、粗體、引用、程式碼、表格、貼上圖片、<code>@</code> 提及成員、<code>@114</code> 引用題目,以及 <span class="ui">匯入 OpenEvidence 連結</span>(把一則已設為公開的 OpenEvidence 對話讀進來)。</li><li>按 <span class="ui">儲存</span>。若別人在你之前存了一版,會看到「版本衝突:伺服器已是 vN,你編輯的是 vM。請取消並重新載入。」——按取消、重載、再把你的修改套上去。</li></ol>
+<p>沒送出的內容會留成草稿,下次進來看到「↺ 有未送出的詳解草稿——點『編輯』繼續」。詳解底部顯示最近更新者、時間、版本與「N 人共筆 · 第 M 版」。</p>
+<h3>自動挖空與防劇透</h3>
+<ul><li><span class="ui">自動挖空</span>:AI 從詳解挑出關鍵詞當空格;再按一次移除。內容太短或這次挑不出來會直接告訴你。</li><li><span class="ui">防劇透</span>:遮住你的螢光標記與自動挖空的關鍵詞,逐個點擊揭曉,拿來自我測驗。</li></ul>
+<h3>OpenEvidence</h3>
+<p>詳解分頁右緣的 <span class="ui">OpenEvidence</span> 把題幹與選項(<strong>不含正解</strong>)丟到 OpenEvidence 新分頁,可當盲解參考。</p>
+<h2>5.5 個人筆記</h2>
+<p><span class="ui">個人筆記</span> 分頁只有你自己看得到。一題可以有<strong>多則</strong>筆記:</p>
+<ul><li>頂端的切換器顯示「標題 n/N」,左右箭頭換筆記;下拉清單可用握把<strong>拖曳排序</strong>(兩則以上才出現),底部 <span class="ui">新增筆記</span>。</li><li>手機上在筆記卡<strong>左右滑動</strong>換上一則 / 下一則(不是換題);表格或程式碼區塊可橫捲的地方不會誤觸。</li><li><span class="ui">全螢幕</span> 把筆記卡放大到整個視窗,<kbd>Esc</kbd> 離開。<span class="ui">自動挖空</span> / <span class="ui">防劇透</span> / <span class="ui">編輯</span> 三顆在窄螢幕收進 <span class="ui">更多</span>。</li><li>編輯時可貼圖、<code>@114</code> 引用其他題、匯入 OpenEvidence 對話(可勾「一則回答存一則筆記」)。<kbd>n</kbd> 直接跳到筆記並開始編輯。</li><li>筆記內的標題會收成手風琴,方便長筆記導覽。</li></ul>
+<h2>5.6 螢光畫記與選字工具列</h2>
+<p>在詳解、個人筆記、其他筆記或講義上<strong>選取文字</strong>,會浮出一條工具列(依情境顯示):</p>
+<table><thead><tr><th>按鈕</th><th>作用</th></tr></thead><tbody>
+<tr><td><span class="ui">螢光標記</span> / <span class="ui">清除標記</span></td><td>畫記或清掉。畫記存在伺服器,<strong>所有裝置同步</strong>;收藏頁的「我的畫記」可總覽。</td></tr>
+<tr><td><span class="ui">查參考資料</span></td><td>選取 ≥3 字,到 Wintrobe 教科書與複習班講義的全文索引找相關段落,附深連結跳到那一頁。</td></tr>
+<tr><td><span class="ui">AI</span></td><td>用你自己的 Groq 金鑰(§11.5)跑提示詞:內建 ELI5 / 助記 / 大綱 / 必考重點,可自訂。結果可 <span class="ui">複製</span> 或 <span class="ui">存到筆記</span>。</td></tr>
+<tr><td><span class="ui">存到 Telegram</span></td><td>已綁定 Telegram 且在題目頁時出現,把選取文字連同題號傳給自己。</td></tr>
+<tr><td><span class="ui">複製成圖卡</span> / <span class="ui">分享圖卡</span></td><td>把選取的一段文字做成圖卡分享(依裝置能力顯示不同文案)。</td></tr>
 </tbody></table>
-<h3>4.3.5 在詳解中插入圖片</h3>
-<ol class="steps"><li>在編輯模式下點工具列的 <span class="ui">🖼</span>。</li><li>選擇本機圖檔 (支援 JPG / PNG / WebP，建議 &lt; 2 MB)。</li><li>圖片會上傳到 R2 私有儲存桶並回傳一組 <code>/img/&lt;key&gt;</code> URL，自動嵌入到目前段落。</li><li>儲存後其他成員打開該題即可看到。</li></ol>
-<div class="info"><span class="label">隱私</span>所有圖片都會經過 Cloudflare Access 驗證，沒有登入的人即使拿到 URL 也看不到。請放心上傳教科書截圖或自繪示意圖。</div>
-<h2>4.4 個人筆記</h2>
-<p>題目頁的第二個分頁 <span class="ui">我的筆記</span> 是 <strong>只有你自己看得到</strong> 的私密欄位。適合放：</p>
-<ul><li>還沒成熟、不想公開給團隊的猜想</li><li>個人助記詞、口訣</li><li>讀書計畫提醒 (例：第二輪要回來看這題)</li></ul>
-<ol class="steps"><li>切到 <span class="ui">我的筆記</span> 分頁。</li><li>直接點內容區進入編輯 (沒有鎖、沒有版本，因為沒有別人會動)。</li><li>編輯完按 <span class="ui">儲存</span>。空白即代表你還沒寫過。</li></ol>
-<h2>4.5 留言與 @ 提及</h2>
-<p>每題下方有一個討論串，用來針對「這份詳解」展開二級討論：質疑、追問、補充延伸閱讀、貼新文獻等。</p>
-<h3>4.5.1 發一條留言</h3>
-<ol class="steps"><li>滑到題目頁底部 <span class="ui">討論</span> 區塊。</li><li>點 <span class="ui">寫留言</span> 開啟編輯框。</li><li>輸入內容 (支援與詳解相同的富文本)。</li><li>按 <span class="ui">送出</span>。留言會即時出現在串列頂部。</li></ol>
-<h3>4.5.2 @ 提及某位成員</h3>
-<ol class="steps"><li>在輸入框任意位置打 <code>@</code>。</li><li>跳出 20 人名單，輸入幾個字即時過濾。</li><li>選中後會插入一個彩色標籤 (例：<span class="ui accent">@小明</span>)。</li><li>送出後，被提及的人會在右上 <span class="ui">🔔</span> 收到通知。</li></ol>
-<h3>4.5.3 回覆別人 (留言串)</h3>
-<ol class="steps"><li>在任一條留言下方點 <span class="ui">回覆</span>。</li><li>輸入內容後送出，回覆會縮排到原留言之下。</li><li>系統會顯示兩層；更深的回覆會被收合，點 <span class="ui">展開</span> 看全文。</li><li>被回覆的人也會收到 🔔 通知。</li></ol>
-<div class="tip"><span class="label">使用習慣</span>詳解改錯就直接編詳解 (留版本紀錄)；對「這份詳解的邏輯/結論」有質疑、想討論不確定的地方，就在留言區提出 — 兩者分工會讓共筆內容比討論串清爽很多。</div>
-<h2>4.6 收藏</h2>
-<ol class="steps"><li>題目頁右上點 <span class="ui">🔖 收藏</span>。</li><li>圖示變成實心橘色代表已加入。</li><li>到主選單 <span class="ui">收藏</span> 頁可看所有自己標記過的題目。</li><li>再點一次 🔖 即可取消收藏。</li></ol>
-<h2>4.7 相似題</h2>
-<p>題目頁中段會自動列出與當前題「最相似」的數題 (依共同 tag 與全文相似度排序)。每筆顯示題號 + 題幹前幾字。</p>
-<ol class="steps"><li>點任一筆即跳到該題目頁。</li><li>找回頭路靠瀏覽器的 <kbd>←</kbd> 上一頁，或頂欄的麵包屑。</li></ol>
-<div class="info"><span class="label">用途</span>題庫中有大量考點重複出現的題目 (例：MGUS vs MM 診斷標準、CAR-T 適應症)。準備同類題時用相似題串著看比直接讀年度更有效率。</div>
-<h2>4.8 AI 摘要與翻譯 (選用)</h2>
-<p>若詳解內容偏長或內含大量英文，題目頁有兩顆按鈕：</p>
-<table><thead><tr><th>按鈕</th><th>效果</th></tr></thead><tbody>
-<tr><td><span class="ui">✨ 摘要</span></td><td>用 Workers AI 跑出 200 字內的中文重點。</td></tr>
-<tr><td><span class="ui">✨ 翻譯</span></td><td>把詳解全文翻成中文。</td></tr>
+<h2>5.7 討論串與 @ 提及</h2>
+<ol class="steps"><li>切到 <span class="ui">討論串</span>,點看起來像輸入框的「寫下你的想法,@提及其他成員…」展開編輯器。</li><li>打 <code>@</code> 挑成員;<code>@114</code> 開頭則是引用題目。按 <span class="ui">發表</span>。</li><li>留言下方 <span class="ui">回覆</span> 可縮排回覆,最多三層;自己的留言可 <span class="ui">編輯</span> / <span class="ui">刪除</span>。</li><li>覺得某則留言有幫助,按「這則留言幫到我了」的按鈕;多於一則時可切換 <span class="ui">依時間</span> / <span class="ui">最有幫助</span>。</li></ol>
+<p>被提及、被回覆、被標記有幫助的人都會收到通知(§11.7)。</p>
+<div class="tip"><span class="label">分工</span>詳解改錯就直接編詳解(留版本);對詳解的邏輯有疑問就在討論串提;認為官方答案錯了就發起答案挑戰(§5.10)。</div>
+<h2>5.8 相似題目與影片</h2>
+<ul><li><span class="ui">相似題目</span>:語意相似(向量)、共用標籤、文字相似三種來源。<span class="ui">開始交錯練習</span> 把這些跨年份的相近題混在一起連續做(interleaving)。「被引用」區列出哪些詳解或留言引用了本題。</li><li><span class="ui">影片</span>:依本題標籤對到影片庫的教學影片;覺得不好可以從卡片右上角移除(全站生效,影片庫可還原)。</li></ul>
+<h2>5.9 收藏與資料夾</h2>
+<p>題目卡右上角的書籤圖示收藏本題(揭曉後也可按 <kbd>b</kbd>);<strong>右鍵</strong>可選資料夾、新增資料夾或取消收藏。收藏總覽見 §8.4。</p>
+<h2>5.10 答案挑戰</h2>
+<p>考古題的官方答案偶爾有錯。任何成員都可以在作答後發起挑戰,由社群投票決定是否改寫題庫答案。</p>
+<ol class="steps"><li>作答揭曉後,題目卡下方按 <span class="ui">🤔 對答案有疑問?發起挑戰</span>。</li><li>選「主張答案應為」哪個選項,填理由(必填;歡迎附指引、文獻),按 <span class="ui">發起挑戰</span>。</li><li>其他人看到橫幅「某人主張正解應為 X (原 Y)」與 <span class="ui">表決中</span>,可按 <span class="ui">同意挑戰</span> / <span class="ui">反對</span>,投錯可 <span class="ui">撤回投票</span>。提案人可 <span class="ui">編輯理由</span> 或 <span class="ui">撤回挑戰</span>。</li></ol>
+<table><thead><tr><th>狀況</th><th>結果</th></tr></thead><tbody>
+<tr><td>2 位同意、0 反對</td><td>立即 <span class="ui">已採納</span>:題庫答案改寫,題目卡留下「由社群修正:Y → X」的紀錄與理由。</td></tr>
+<tr><td>出現任何反對票</td><td>進入 <span class="ui">討論中</span>,至少 48 小時後、同意 ≥4 且淨票 ≥+3 才採納。</td></tr>
+<tr><td>淨票 ≤ −2</td><td><span class="ui">已駁回</span>。</td></tr>
+<tr><td>14 天沒有動靜</td><td>自動封存。</td></tr>
 </tbody></table>
-<ol class="steps"><li>點按鈕，下方面板顯示「處理中…」。</li><li>結果出現後即可閱讀，按 <span class="ui">✕</span> 關閉面板。</li><li>若詳解版本被更新，舊摘要會自動失效，再按一次重新生成。</li></ol>
-<div class="warn"><span class="label">用量限制</span>AI 是 Cloudflare 免費額度，每天上限 10,000 neurons。團隊整體大量使用可能跑完額度；發現「處理失敗」時可隔日再試。</div>
-<h2>4.9 答案挑戰</h2>
-<p class="lead">這是本系統最具特色的功能。考古題的官方答案偶爾有錯，本流程讓任何成員都能正式發起挑戰，經多數同意後改寫題庫的官方答案。</p>
-<h3>4.9.1 提出挑戰 (filing)</h3>
-<ol class="steps"><li>確認你已經作答過該題 (沒答過無法挑戰)。</li><li>滑到題目頁的「答案揭曉」區塊下方，點 <span class="ui">提出答案挑戰</span>。</li><li>從可選字母中挑出你主張的正確答案 (不能選與目前官方答案相同)。</li><li>寫一段論述 (建議附文獻 PMID 或教科書頁數)。</li><li>送出後狀態變 <span class="ui">表決中</span>，全題庫的「近期答案挑戰」會出現你的這筆。</li></ol>
-<h3>4.9.2 投票表決</h3>
-<ol class="steps"><li>看到別人提出的挑戰時，閱讀對方論述。</li><li>點 <span class="ui">✓ 同意</span> 或 <span class="ui">✗ 反對</span>。</li><li>投錯了還可以 <span class="ui">收回投票</span> 重投。</li><li>提案人不能投自己的挑戰。</li></ol>
-<h3>4.9.3 結案</h3>
-<table><thead><tr><th>條件</th><th>狀態</th><th>結果</th></tr></thead><tbody>
-<tr><td>同意 ≫ 反對</td><td><span class="ui">已採納</span></td><td>題目官方答案被改寫為提案答案，挑戰紀錄保留。</td></tr>
-<tr><td>反對 ≫ 同意</td><td><span class="ui">已駁回</span></td><td>官方答案維持，挑戰封存。</td></tr>
-<tr><td>持續有反對票</td><td><span class="ui">討論中</span></td><td>需要在留言區補充證據後重新表決。</td></tr>
-</tbody></table>
-<h3>4.9.4 撤回挑戰</h3>
-<p>若你在發出挑戰後又改變主意，可以從題目頁的挑戰橫幅按 <span class="ui">撤回挑戰</span>。撤回後該挑戰會被歸檔，他人不再看到。</p>
+<p>沒有人工「結案」按鈕——全部由票數與時間自動判定。結果出爐時相關成員會收到通知。所有挑戰的總表見 §8.5。</p>
 
-<h1 class="chapter"><span class="num">Chapter 5</span>全真作答</h1>
-<p class="lead">全真作答是把你關進跟真實考場一樣的情境：100 分鐘、100 題 (內科 70 + 共同 30)，連續作答中途不揭曉答案，做完才看總分與錯題回顧。考前一個月強烈建議至少做完三套。</p>
-<h2>5.1 啟動一場全真</h2>
-<ol class="steps"><li>主選單點 <span class="ui">全真</span>。</li><li>選擇科別：<span class="ui">內科</span> (70 題) 或 <span class="ui">共同</span> (30 題)。預設兩者都選 (= 完整 100 分鐘)，但你也可以只練其中一塊。</li><li>從年度卡 (104–113 + 100 模擬) 點任一年即開始。</li><li>系統會隨機抽題、計時器立刻啟動。</li></ol>
-<h2>5.2 作答介面</h2>
-<div class="screen"><div class="bar">作答中</div><pre>┌────────────────────────────────────────────────────────────────┐
-│  113 年 內科+共同   時間: 01:23:45 / 01:40:00     [⏸ 暫停]      │
-│                                                                 │
-│  Q 42 / 100                                                     │
-│   題幹: ...                                                     │
-│                                                                 │
-│   (A)  (B)  (C) ●  (D)                                          │
-│                                                                 │
-│   [⟵ 上一題]                  [下一題 ⟶]    [🚩 標記]            │
-│                                                                 │
-│   ─── 答題狀態 ───                                              │
-│   ● 已答 1-41   ◐ 標記 8,15   ○ 未答 43-100   [跳到 ___]         │
-└────────────────────────────────────────────────────────────────┘</pre></div>
+<h1 class="chapter"><span class="num">Chapter 6</span>今日複習(間隔複習)</h1>
+<p class="lead">系統用 FSRS 演算法替每一題安排下次複習的日期。首頁與複習頁的「今天 N 張到期」就是入口,做完今天的份就好,不必追。</p>
+<div class="shots-row"><figure class="shot" style="flex:1 1 380px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/due.webp" alt="今日複習頁:今天 N 張、到期 / 學習中 / 新卡,卡片與顯示答案" /><figcaption>今日複習。</figcaption></figure><figure class="shot phone"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/m-due.webp" alt="手機上的今日複習" /><figcaption>手機版。</figcaption></figure></div>
+<ol class="steps"><li>頂端顯示「今天 N 張」與三種來源:<span class="ui">到期</span>(排程到今天的)、<span class="ui">學習中</span>(剛評過「重來 / 困難」、幾分鐘後要再看的)、<span class="ui">新卡</span>(還沒學過的,每天最多 20 張)。</li><li>讀題、心中作答,按 <span class="ui">顯示答案</span>。</li><li>依回想的難易按 <span class="ui">重來</span> / <span class="ui">困難</span> / <span class="ui">良好</span> / <span class="ui">簡單</span>;每顆下方預告下次間隔(現在 / N 分 / N 小時 / N 天)。卡片右上角的「R N%」是預估的記憶保留率。</li><li>做完顯示「今天的複習做完了」與下一張的時間;新卡額度用完會另行提示。</li></ol>
+<div class="note"><span class="label">一天從凌晨 4 點算起</span>熬夜到兩點做的仍算「今天」,四點後才換日。年度清單右上的 <span class="ui">Anki FSRS</span> 可只做某一年的到期卡。</div>
+<div class="warn"><span class="label">離線</span>到期佇列需要伺服器排程,離線時打不開。一般複習模式的作答離線時會先排隊,連線後自動補送。</div>
+
+<h1 class="chapter"><span class="num">Chapter 7</span>全真作答</h1>
+<p class="lead">把自己關進跟考場一樣的情境:每題 1 分鐘、內科 70 + 共同 30 共 100 題、中途不揭曉,做完才看總分與錯題。考前一個月建議至少完成三套。</p>
+<h2>7.1 年度卷</h2>
+<ol class="steps"><li>頂欄 <span class="ui">全真</span>。副標顯示「100 分鐘模擬考」;可在「科別」只勾其中一科,時限依題數等比縮短(每題 1 分鐘)。</li><li>點任一年度卡,系統建卷、計時立刻開始。</li><li>有進行中的考試時,頁面頂端會出現「進行中的模擬考」膠囊,點擊續答。</li></ol>
+<h2>7.2 自訂測驗</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/custom-test.webp" alt="自訂測驗:題目狀態、年度、科別、主題 tag、題數、模式" /><figcaption>自訂測驗產生器。底部固定列即時顯示「符合 N 題 · 本次出 M 題」。</figcaption></figure>
+<p>全真頁的 <span class="ui">自訂測驗</span> 卡(或複習頁的「自訂一份測驗」)可以自己出一份卷:</p>
+<table><thead><tr><th>條件</th><th>選項</th></tr></thead><tbody>
+<tr><td>題目狀態</td><td><span class="ui">未做過</span> <span class="ui">最近答錯</span> <span class="ui">已收藏</span> <span class="ui">曾答對</span>(複選是聯集;不選 = 不限)</td></tr>
+<tr><td>年度 / 科別 / 主題 tag</td><td>不選 = 全部;tag 多選是「或」</td></tr>
+<tr><td>題數</td><td>1–100,預設 20</td></tr>
+<tr><td>模式</td><td><span class="ui">計時</span>(每題 1 分鐘,歸零自動交卷)或 <span class="ui">不計時</span>;<span class="ui">考試模式</span>(全程不揭曉)或 <span class="ui">教學模式</span>(每題作答後立刻看答案與詳解,不可改答)</td></tr>
+</tbody></table>
+<p>從搜尋結果按「把這 N 題出成測驗 →」或錯題回顧按「把這些出成一份測驗 →」進來時,會先鎖定那批題目再套用上面的條件;想放開可按 <span class="ui">改用全題庫</span>。</p>
+<h2>7.3 作答介面</h2>
+<div class="shots-row"><figure class="shot" style="flex:1 1 380px"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/exam-running.webp" alt="全真作答中:計時列、題卡、標記、上一題/下一題與本題計時、題號跳轉" /><figcaption>作答中。計時列黏在頂端:時間、「n/N 題已答」、暫停、交卷。</figcaption></figure><figure class="shot phone"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/m-exam-running.webp" alt="手機上的全真作答" /><figcaption>手機版;這一頁的頂欄不會自動收起。</figcaption></figure></div>
 <table><thead><tr><th>元素</th><th>說明</th></tr></thead><tbody>
-<tr><td>時間</td><td>已花時間 / 總時限 (內科+共同 = 100 分；只選一個科別會按比例縮減)。</td></tr>
-<tr><td>⏸ 暫停</td><td>暫停計時並關閉題目顯示。沒寫完離開電腦時請按這顆，避免時間白白流走。</td></tr>
-<tr><td>🚩 標記</td><td>標記為「待回頭看」。下方答題狀態以 ◐ 顯示，方便最後檢查。</td></tr>
-<tr><td>跳到 ___</td><td>輸入題號 (1–100) 跳轉。</td></tr>
+<tr><td>計時</td><td>倒數(計時卷)或往上跑(不計時卷)。剩不到 10 分鐘出現「剩下不到 10 分鐘,記得交卷。」時間到<strong>自動交卷</strong>,不再確認。</td></tr>
+<tr><td><span class="ui">暫停</span> / <span class="ui">繼續</span></td><td>暫停時題目隱藏、計時凍結。要離開電腦請先按這顆。</td></tr>
+<tr><td><span class="ui">標記</span></td><td>標「待回頭檢查」;題號跳轉與交卷確認都會列出。</td></tr>
+<tr><td><span class="ui">上一題</span> / <span class="ui">下一題</span></td><td>中間顯示「本題 mm:ss」(切到別的分頁或暫停時不累計,僅供參考)。</td></tr>
+<tr><td>題號跳轉</td><td>展開後是 10 欄的題號格:已答 / 未答 / 標記 / 目前這題一眼分清。</td></tr>
 </tbody></table>
-<h2>5.3 中途暫停與續答</h2>
-<ol class="steps"><li>按 <span class="ui">⏸ 暫停</span>，題目隱藏、計時凍結。</li><li>瀏覽器可以關掉、可以登出。session 一直保留。</li><li>下次回到 <span class="ui">全真</span> 主畫面，會看到「上次未完成的考試」橫幅，點 <span class="ui">續答</span> 從原本的題號繼續。</li><li>按 <span class="ui">▶ 繼續</span> 恢復計時。</li></ol>
-<div class="warn"><span class="label">不要硬關</span>不按暫停就關瀏覽器，下次回來時間是繼續走的 (因為 server-side 時間戳沒停)。模擬考想盡量逼近真實，但忘了真的會被扣時間。</div>
-<h2>5.4 交卷與結果頁</h2>
-<ol class="steps"><li>所有題目作答完或時間到，自動跳轉到 <span class="ui">結果頁</span>。</li><li>頁面顯示：總分 (例：72/100)、內科分數、共同分數、平均每題用時。</li><li>下方逐題列出「你的答案 / 正解 / 對錯」，點任一題進入該題的複習頁 (此時詳解、留言、收藏功能都可用)。</li><li>所有錯題會自動加入 <span class="ui">錯題</span> 清單 (第六章)。</li></ol>
-<h2>5.5 歷次紀錄</h2>
-<p>主選單沒有「全真紀錄」入口，但結果頁、全真起始頁、首頁底部都有 <span class="ui">→ 查看歷次作答紀錄</span> 連結。紀錄頁列出每一場：日期、年度、分數、用時，點任一場可重新看結果頁。</p>
+<div class="warn"><span class="label">不要硬關</span>不按暫停就關掉分頁,時間會繼續走(時間戳在伺服器)。作答每一步都即時同步,斷線後回來按「進行中的模擬考」即可續答。</div>
+<h2>7.4 交卷確認</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/exam-submit-dialog.webp" alt="交卷確認對話框:未作答與已標記題號清單" /><figcaption>按「交卷」後的確認對話框。每個題號都能點回去作答。</figcaption></figure>
+<ul><li>還有未答題:先列出 <strong>未作答 · 點題號回去作答</strong> 與 <strong>已標記待檢查</strong> 的題號,主按鈕是 <span class="ui">回去作答</span>;堅持要交按 <span class="ui">仍要交卷</span>,會再問一次「這 N 題會以 0 分計算」。</li><li>全部答完:只問一次「確定要交卷?」,<span class="ui">再檢查一下</span> 或 <span class="ui">確定交卷</span>。</li></ul>
+<h2>7.5 成績頁</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/exam-result.webp" alt="成績頁:分數、用時、登記進複習進度、配速、篩選、逐題列" /><figcaption>成績頁。每列顯示「✗ 你選 B · 正解 A」與用時,可展開選項、在新分頁開啟或快速查看詳解。</figcaption></figure>
+<ul><li>分數、百分比(≥60% 綠)、用時與日期;右上 <span class="ui">匯出</span> / <span class="ui">只匯出答錯的</span>。</li><li><strong>登記進複習進度</strong>:這場考對、但複習進度還記著舊答案的題目,按 <span class="ui">全部登記 (N)</span> 一次搬過去,之後不會再被當成錯題丟回來。考錯的不動。</li><li><strong>配速</strong>:前半段 / 後半段平均用時、後段慢了幾 %、最慢五題。</li><li>篩選 <span class="ui">答錯/未答</span> <span class="ui">答對</span> <span class="ui">標記</span> <span class="ui">全部</span>;<span class="ui">展開全部選項</span> 顯示每題的選項全文、正解、你選的與全體選項分布。</li><li>每列滑過去有 <span class="ui">在新分頁開啟</span> 與 <span class="ui">查看詳解</span>(不離開清單,彈出詳解)。</li></ul>
+<h2>7.6 作答紀錄</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/exam-history.webp" alt="作答紀錄:每場的年度、時間、分數,未完成的可續答" /><figcaption>作答紀錄。未完成的場次顯示「未完成 · 點擊繼續」。</figcaption></figure>
+<p>全真頁底部的 <span class="ui">→ 查看歷次作答紀錄</span> 或首頁捷徑「作答紀錄」。每列列出年度(自訂卷標「自訂」與篩選條件)、開始時間與分數;點擊回成績頁。右側可刪除單筆紀錄。</p>
 
-<h1 class="chapter"><span class="num">Chapter 6</span>錯題回顧與作答紀錄</h1>
-<p class="lead">錯題與作答紀錄是「考前最後一週」的核心戰場。錯過的題目永遠比沒看過的題目值得再看一次。</p>
-<h2>6.1 錯題清單</h2>
-<p>主選單點 <span class="ui">錯題</span>。系統列出所有「最近一次作答答錯」的題目，依年度反向排序。</p>
-<ol class="steps"><li>點任一題的題號進入題目頁。</li><li>重新作答；若這次答對，該題會自動從錯題清單移除。</li><li>過濾器可選「依年度」、「依科別 (內科/共同)」收斂範圍。</li></ol>
-<div class="tip"><span class="label">複習節奏</span>第一週：把所有錯題答對一次。第二週：間隔一週再做一次同一批，仍答錯的代表觀念真的還沒抓到，去翻教科書。</div>
-<h2>6.2 作答紀錄</h2>
-<p><span class="ui">作答紀錄</span> 列出你跑過的每一場全真，可以看分數趨勢。對自己負責的最低標：考前一個月內至少跑兩場分數 ≥ 70 的全真。</p>
+<h1 class="chapter"><span class="num">Chapter 8</span>錯題、搜尋、弱點地圖、收藏與答案挑戰清單</h1>
+<h2>8.1 錯題回顧</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/wrong.webp" alt="錯題回顧清單" /><figcaption>錯題回顧。每列右側是「答對次數 / 作答次數」。</figcaption></figure>
+<p>頂欄 <span class="ui">錯題</span>:列出最近一次作答答錯的題目。可依年度、科別、tag 篩選;排序有 <span class="ui">按錯誤率排序</span> / <span class="ui">按答錯次數排序</span> / <span class="ui">最近做過的排前面</span> / <span class="ui">最久沒做的排前面</span> / <span class="ui">按題號排序</span>。<span class="ui">把這些出成一份測驗 →</span> 直接送進自訂測驗。再答對一次的題目會自動移出。</p>
+<h2>8.2 全文搜尋</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/search.webp" alt="搜尋「白血病」的結果" /><figcaption>搜尋結果:題幹整段顯示,命中字反白;命中落在選項時會補一行「符合選項 X:…」。</figcaption></figure>
+<table><thead><tr><th>語法</th><th>意義</th><th>例</th></tr></thead><tbody>
+<tr><td>空白</td><td>都要有(可能散在題幹與選項各處)</td><td><code>lupus erythematosus disease</code></td></tr>
+<tr><td>逗號(半形、全形都可)</td><td>其中之一(OR)</td><td><code>AML, CML</code></td></tr>
+<tr><td>引號(<code>"" “” 「」</code>)</td><td>連在一起的片語</td><td><code>"lupus erythematosus"</code></td></tr>
+</tbody></table>
+<ul><li>搜尋範圍是題幹、選項與標籤。中文只比對得到連續中文詞的開頭(「慢性」找得到「慢性骨髓性白血病」,「白血病」找不到)。</li><li><span class="ui">AI 進階搜尋</span>(✨):把關鍵字展開成縮寫 / 全名 / 單複數 / 中英對照,勾選後 <span class="ui">套用並搜尋</span>——它只是幫你把逗號串填進搜尋框,沒有第二套語法。</li><li>結果可依年度、科別、作答狀態篩選;<span class="ui">把這 N 題出成測驗 →</span> 出成自訂測驗;<span class="ui">儲存為收藏資料夾</span> 把整批結果存成一個資料夾;<span class="ui">匯出</span> 匯成 Markdown / Anki CSV / 單檔 HTML。</li></ul>
+<h2>8.3 弱點概念地圖</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/weakness-map.webp" alt="弱點概念地圖:依語意分群的錯題" /><figcaption>弱點概念地圖。預設收合,點開一群才看到題目。</figcaption></figure>
+<p>複習頁的 <span class="ui">弱點概念地圖 →</span>:把你答錯的題目依語意分群,找出反覆栽跟頭的主題。每群可 <span class="ui">看這 N 題</span> 或 <span class="ui">交錯練習這組</span>。錯題還沒有兩題落在同一主題時會告訴你「再多做一些」。</p>
+<h2>8.4 我的收藏</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/bookmarks.webp" alt="我的收藏:側欄全部 / 未分類 / 已做筆記 / 我的畫記與資料夾" /><figcaption>我的收藏。</figcaption></figure>
+<p>側欄固定四項:<span class="ui">全部</span> <span class="ui">未分類</span> <span class="ui">已做筆記</span> <span class="ui">我的畫記</span>(所有題目與其他筆記上的螢光標記,跨裝置同步),下方是自訂資料夾(右鍵重新命名 / 刪除,<span class="ui">新增資料夾</span>)。每列的「管理」選單可移到資料夾或取消收藏。</p>
+<h2>8.5 答案挑戰清單</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/challenges.webp" alt="答案挑戰清單" /><figcaption>答案挑戰總表,預設顯示進行中的。</figcaption></figure>
+<p>頂欄 <span class="ui">答案挑戰</span>(或右上角的挑戰圖示):所有題目的挑戰總表,篩選 <span class="ui">全部</span> / <span class="ui">表決中</span> / <span class="ui">已採納</span> / <span class="ui">已駁回</span>,每列顯示「某人主張 Y → X · 同意 n · 反對 m」。點進題目頁投票;規則見 §5.10。</p>
+<h2>8.6 匯出</h2>
+<p>年度清單、錯題、搜尋、收藏、成績頁都有 <span class="ui">匯出</span>。格式三選一:<span class="ui">Markdown</span>(丟進 Obsidian / VS Code)、<span class="ui">Anki CSV</span>(直接拖進 Anki)、<span class="ui">單檔 HTML</span>(瀏覽器開,要 PDF 就「列印 → 儲存成 PDF」);內容可勾共筆詳解、我的筆記、我的畫記,並可內嵌圖片(上限 20 張 / 4 MB)。檔案含你的私人筆記,請勿轉傳。</p>
 
-<h1 class="chapter"><span class="num">Chapter 7</span>搜尋、收藏與快速跳轉</h1>
-<h2>7.1 全文搜尋</h2>
-<ol class="steps"><li>主選單點 <span class="ui">搜尋</span>。</li><li>輸入關鍵字 (中英皆可)，例如 <code>CAR-T</code>、<code>MGUS</code>、<code>thrombocytopenia</code>。</li><li>結果顯示符合的題目，命中字會反白；點任一筆進入。</li><li>可同時搜題幹、選項、詳解、留言。</li></ol>
-<div class="tip"><span class="label">進階用法</span>用引號 <code>"acute lymphoblastic leukemia"</code> 搜整個短語；用空格分隔多個關鍵字代表 AND；想搜縮寫又怕誤判，可拉長為 <code>chronic myeloid leukemia OR CML</code>。</div>
-<h2>7.2 收藏清單</h2>
-<p>主選單 <span class="ui">收藏</span>。所有你按過 🔖 的題目都在這裡，依加入時間排序。可用於：</p>
-<ul><li>標記「考前一定要再看」的題目</li><li>整理「特定主題」(例：用收藏 + 自己的個人筆記做出血液病急症題組)</li><li>標記「想找時間幫詳解擴寫」的題目</li></ul>
-<h2>7.3 在詳解內跨題引用</h2>
-<ol class="steps"><li>編輯詳解時，在編輯框任意位置打 <code>@</code>。</li><li>除了成員名單之外，輸入 <code>113-001</code> 這類題號格式也會出現「跨題引用」選項。</li><li>選中後會插入一個 <span class="ui">↗ 113-001</span> 小膠囊。</li><li>讀者點擊即跳到該題。</li></ol>
+<h1 class="chapter"><span class="num">Chapter 9</span>講義與閱讀輔助</h1>
+<p class="lead">複習班講義與 Wintrobe 教科書都能在站內閱讀,並把畫記、每頁筆記、書籤存在伺服器。閱讀器右側還能列出「這一頁教到的歷屆考題」。</p>
+<h2>9.1 講義列表</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/lectures.webp" alt="講義列表:複習班講義、Wintrobe 教科書、其他筆記、書籤四個分頁" /><figcaption>講義列表。</figcaption></figure>
+<p>頂欄 <span class="ui">講義</span>,四個分頁:<span class="ui">複習班講義</span>(每份顯示頁數、畫記數與筆記數)、<span class="ui">Wintrobe 教科書</span>(依原書 Part / Section 分章)、<span class="ui">其他筆記</span>(§9.4)、<span class="ui">書籤</span>(你在各講義插的旗子,可依日期或依文件排序)。上方搜尋框可搜 <span class="ui">PDF 內文</span> 或 <span class="ui">筆記</span>,結果直接跳到那一頁。</p>
+<h2>9.2 PDF 閱讀器</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/lecture-reader.webp" alt="PDF 閱讀器:左側縮圖/書籤 rail、工具列、右側筆記/標註/歷屆考題面板" /><figcaption>閱讀器:左側 rail(縮圖 / 書籤)、工具列、右側面板(筆記 / 標註 / 歷屆考題)。</figcaption></figure>
+<table><thead><tr><th>工具列</th><th>說明</th></tr></thead><tbody>
+<tr><td>頁面縮圖</td><td>開關左側 rail;rail 有 <span class="ui">縮圖</span> 與 <span class="ui">書籤</span> 兩個分頁,書籤依頁碼排列。</td></tr>
+<tr><td>上一頁 / 下一頁 / 頁碼</td><td>點頁碼可直接輸入跳頁。網址會跟著頁碼走,可分享 <code>?page=N</code>。</td></tr>
+<tr><td>縮小 / 放大 / 符合寬度</td><td></td></tr>
+<tr><td>手掌工具</td><td>拖曳捲動,與螢光筆互斥。</td></tr>
+<tr><td>螢光筆</td><td>選取文字後畫記;畫記列在右側「標註」分頁。</td></tr>
+<tr><td>加入書籤 / 移除書籤</td><td>同一頁只會有一筆,再按一次即移除。</td></tr>
+<tr><td>截圖</td><td>把當前頁(含畫記)轉成 PNG 放進剪貼簿,不支援時改為下載。</td></tr>
+<tr><td>全螢幕</td><td></td></tr>
+<tr><td>筆記面板</td><td>開關右側面板。</td></tr>
+</tbody></table>
+<p>右側面板三個分頁:</p>
+<ul><li><span class="ui">筆記</span>:<strong>一頁一則</strong>的頁面筆記,就地編輯、自動儲存,可用 <code>@114-001</code> 連結題目。右上角的 <span class="ui">OpenEvidence</span> 把本頁筆記連同一段可調整的 prompt 丟到 OpenEvidence 解析。</li><li><span class="ui">標註</span>:本份講義的所有螢光標記,點擊跳頁。</li><li><span class="ui">歷屆考題</span>:這張投影片教到的歷屆 MCQ(離線算好的對應表);點開先看題幹與選項,<span class="ui">顯示答案</span> 後才揭曉,<span class="ui">去複習</span> 跳到題目頁。</li></ul>
+<p>在頁面上<strong>選取文字</strong>會浮出閱讀器專用的選單:<span class="ui">複製</span> <span class="ui">螢光標記</span> <span class="ui">AI 解釋</span> <span class="ui">OpenEvidence</span> <span class="ui">複製到筆記</span>(把選取段落接到本頁筆記)。</p>
+<div class="note"><span class="label">教科書是唯讀的</span>Wintrobe 章節只能閱讀、縮放、截圖與問 AI / OpenEvidence;沒有畫記、書籤與筆記面板。要留紀錄請在題目的個人筆記或「其他筆記」寫。</div>
+<h2>9.3 選字查教科書</h2>
+<p>不限講義頁:站內任何地方選取一段文字,選字工具列的 <span class="ui">查參考資料</span> 會同時在 Wintrobe 教科書與複習班講義裡找相關段落(必要時先用 AI 精煉查詢),結果附「p.N」深連結直接開到那一頁。</p>
+<h2>9.4 其他筆記</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/notes.webp" alt="其他筆記單則頁:標題、標籤、內文" /><figcaption>一則「其他筆記」。標籤由 AI 依內容自動產生,也可手動加。</figcaption></figure>
+<p>不掛在任何題目底下的私人筆記——疾病總覽、機轉、讀書心得都可以。講義列表 <span class="ui">其他筆記</span> 分頁按 <span class="ui">新增筆記</span>;點標題可改名;內文可貼圖、<code>@114-010</code> 連到題目;選取文字可畫記(也會出現在收藏頁的「我的畫記」);<span class="ui">防劇透</span> 遮住畫記自我測驗。底部會推薦「你可能想連結」的相關題目或筆記。</p>
+<h2>9.5 影片庫</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/videos.webp" alt="教學影片庫:主題卡格線" /><figcaption>教學影片庫,以主題為單位。</figcaption></figure>
+<p>頂欄 <span class="ui">影片</span>:策展的教學影片依主題(治療 / 機轉)分組,題目頁的「影片」分頁就是從這裡依標籤取出來的。被成員移除的影片在 <span class="ui">已移除</span> 可還原。</p>
 
-<h1 class="chapter"><span class="num">Chapter 8</span>個人資料與通知</h1>
-<h2>8.1 編輯個人資料</h2>
-<ol class="steps"><li>右上點頭像 → <span class="ui">個人資料</span>。</li><li>修改 <strong>顯示名稱</strong> (留言、@提及、共筆編輯紀錄都會用這個)。</li><li>修改 <strong>Bio</strong> (一兩句自我介紹)。</li><li>按 <span class="ui">儲存</span>。畫面右上會閃 <span class="ui">已儲存</span> 提示。</li></ol>
-<h2>8.2 換頭像</h2>
-<ol class="steps"><li>頁面左上角的頭像區塊點 <span class="ui">換頭像</span>。</li><li>選一張本機圖檔 (建議方形，JPG / PNG，&lt;2 MB)。</li><li>上傳完成後即時生效，所有頁面同步更新。</li></ol>
-<h2>8.3 通知中心</h2>
-<p>右上 🔔 是你會收到通知的地方。觸發條件：</p>
-<ul><li>有人在留言/詳解 @ 提及你</li><li>有人回覆你的留言</li><li>你提出的答案挑戰被採納/駁回</li><li>你投了反對票的挑戰結案 (採納 or 駁回)</li></ul>
-<ol class="steps"><li>有未讀時 🔔 出現紅點。</li><li>點開鈴鐺看清單，每筆顯示「誰、在哪一題、做了什麼」。</li><li>點任一筆跳到該題對應位置 (留言會自動 scroll 到該則)。</li><li>點 <span class="ui">全部標為已讀</span> 一鍵清空紅點。</li></ol>
-<h2>8.4 線上使用者</h2>
-<p>頂欄的「線上 (N)」會顯示目前同時開著系統的成員數量，hover 看頭像清單。考前一週這個數字會明顯變高 — 善用這時候在留言區發問，回應通常很快。</p>
-<h2>8.5 意見回饋</h2>
-<ol class="steps"><li>頂欄的 <span class="ui">💬</span> 按鈕。</li><li>填寫遇到的問題或想要的功能，會自動帶上你目前所在的網址、瀏覽器版本。</li><li>送出後會建立一個 GitHub Issue 到專案 repo。</li><li>後續進度可由系統管理員追蹤。</li></ol>
+<h1 class="chapter"><span class="num">Chapter 10</span>讀書計畫產生器</h1>
+<p class="lead">首頁倒數卡右側的 <span class="ui">生成讀書計畫</span>:回答七個問題,系統排出到考試當天的逐日計畫,可下載成 HTML 或匯入行事曆。首頁的配速卡是「以目前速度做得完嗎」的後視鏡;這裡是「我打算這樣讀,排得出來嗎」的前瞻。</p>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/study-plan.webp" alt="讀書計畫摘要:差 N 題、三顆一鍵調整、逐週表、下載 HTML 與匯入 .ics" /><figcaption>問卷跑完後的摘要。排不完時「差 N 題」放在最前面,底下三顆按鈕一鍵重算。</figcaption></figure>
+<ol class="steps"><li>目前系統紀錄你做過 x / y 題,對嗎?(<span class="ui">對,以系統紀錄為準</span> 或自己填數字)</li><li>要寫哪幾年?(每年一顆,顯示剩幾題)</li><li>每天可以投入多少時間?(30 / 60 / 90 / 120 分鐘)</li><li>一題大概要花多久?(預帶你近期的實測中位數)</li><li>想跑幾輪?第二輪起只排錯題。</li><li>考前想排幾場全真模擬?每場佔一整天。</li><li>通常幾點讀書?(只影響行事曆的時間)+ <span class="ui">週日休息</span>,按 <span class="ui">產生計畫</span>。</li></ol>
+<ul><li>摘要顯示「天後考試 / 每天題數上限 / 已排入題數」;有弱點資料時會多一段 AI 寫的導讀(只寫語氣,不碰任何數字)。</li><li><strong>排不完就明講</strong>:「以這個速度,到考前差 N 題」,並給三顆一鍵重算——<span class="ui">每天多 N 題(約多花 M 分鐘)</span> / <span class="ui">不寫某年(少 N 題)</span> / <span class="ui">改成 N 輪</span>。</li><li><span class="ui">下載計畫表 (HTML)</span>(可直接列印或存成 PDF)、<span class="ui">匯入行事曆 (.ics)</span>(定時事件,手機會跳提醒)、<span class="ui">重新回答</span>。</li></ul>
+<div class="note"><span class="label">只存問卷答案</span>系統不保存排程結果,每次開啟都會依當下進度重算,所以計畫表永遠對得上你實際做到哪。</div>
+
+<h1 class="chapter"><span class="num">Chapter 11</span>個人資料與通知</h1>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/profile.webp" alt="個人資料頁:基本資料、答題狀態分析、備份、Telegram、AI 助手、MCQ 金鑰、帳號" /><figcaption>個人資料頁,左側目錄可跳到各區塊。</figcaption></figure>
+<h2>11.1 基本資料</h2>
+<p>顯示名稱、個人簡介、<span class="ui">更換頭像</span>(見 §1.3)。</p>
+<h2>11.2 顯示:強制手機版面</h2>
+<p>這張卡<strong>只在觸控裝置上出現</strong>。開啟 <span class="ui">強制手機版面</span> 後,平板或電子紙會把雙欄收成單欄分頁、底欄回來,跟手機一樣;設定只影響這台裝置。</p>
+<h2>11.3 答題狀態分析</h2>
+<p>把每一次作答倒成 CSV(年份、題號、題幹、你選的、正解、是否答對、答前信心、標籤、作答秒數、來源與時間,一次一列)。可篩年份、只要答錯的、作答區間,按 <span class="ui">下載 CSV</span>。逐次紀錄自 2026-07 起才留存。</p>
+<h2>11.4 備份我的紀錄</h2>
+<p><span class="ui">下載備份</span> 把你的全部紀錄打包成 zip:一題一個 JSON(題目、共筆詳解、你的作答、信心、筆記、畫記、收藏)、每一場模擬考、講義上的筆記與書籤、其他筆記,外加一份 <code>CLAUDE.md</code>,用 Claude 打開整個資料夾就能直接分析。zip 在瀏覽器端打包,大帳號要等幾十秒;圖片保留網址、不打包。</p>
+<h2>11.5 AI 助手(自備金鑰)</h2>
+<p>貼上你自己的 Groq API Key(免費申請),<span class="ui">測試</span> 後可選模型。金鑰只存在這台裝置的瀏覽器;提示詞(內建四則 + 自訂)則跨裝置同步。用法見 §5.6 的 <span class="ui">AI</span> 按鈕。</p>
+<h2>11.6 Telegram 推播</h2>
+<ol class="steps"><li>按 <span class="ui">產生綁定連結</span>。手機直接按 <span class="ui">在 Telegram 開啟以完成綁定</span>;電腦用手機掃 QR。連結 15 分鐘內有效、一次性。</li><li>在機器人 <code>@HemaMCQBot</code> 對話按「START」,頁面會自動顯示「已綁定 · @你的帳號」。</li><li>之後每天在你設定的時段收到一題(優先到期題),在聊天裡作答會計入複習進度。指令:<code>/today</code> 立刻來一題、<code>/quiz</code> 挑年份測驗、<code>/stats</code> 統計、<code>/settings</code> 推播時段 / 年份 / 開關、<code>/stop</code> 暫停。</li></ol>
+<p>綁定後,題目頁選字工具列多一顆 <span class="ui">存到 Telegram</span>,把選取的內容連同題號傳給自己。</p>
+<h2>11.7 MCQ 小測驗金鑰(/mcq skill)</h2>
+<p><span class="ui">⬇ 下載我的 .skill</span> 取得一個含個人金鑰的 <code>mcq.skill</code>,上傳到 Claude(claude.ai/customize/skills)或 ChatGPT 後,就能在對話裡用:</p>
+<table><thead><tr><th>指令</th><th>作用</th></tr></thead><tbody>
+<tr><td><code>/mcq 114-001</code></td><td>出題作答:先給題幹與選項,回答字母後才揭曉。</td></tr>
+<tr><td><code>/mcq 114-001 answer</code></td><td>直接看正解、共筆詳解與你的個人筆記。</td></tr>
+<tr><td><code>/mcq search: CML</code></td><td>關鍵字搜尋(建議用縮寫)。</td></tr>
+<tr><td><code>/mcq note 114-001: 內容</code></td><td>把內容附加到這題的個人筆記;<code>#2</code> 指定第幾則、<code>#new</code> 另開一則。</td></tr>
+</tbody></table>
+<p>金鑰屬於你個人,請勿外流;<span class="ui">↻ 重新產生金鑰</span> 會讓先前下載的 .skill 立即失效。卡片最底下一行小字 <span class="ui">休息一下</span> 是 2048 的入口(§11.10)。</p>
+<h2>11.8 帳號</h2>
+<p><span class="ui">登出</span>,以及 <span class="ui">清除本機快取並重新載入</span>——頁面顯示不正常、但無痕視窗正常時,按這顆即可,不必登出,也不會動到畫記與筆記。</p>
+<h2>11.9 通知中心</h2>
+<p>右上鈴鐺每分鐘更新未讀數。觸發:提到了你、回覆了你的留言、更新了詳解、在聊天大廳提到了你、有人覺得你的留言有幫助、對本題答案發起挑戰、本題答案已由社群修正、挑戰未通過、挑戰因答案修正而失效。點任一筆跳到該題或聊天大廳;<span class="ui">全部標為已讀</span> 一鍵清空。</p>
+<h2>11.10 聊天大廳</h2>
+<p>右上的聊天圖示進入全站聊天室,顯示「N 人在線」。輸入框支援 <code>@人名</code>、<code>@all</code> 提醒全體、<code>@114-010</code> 自動變成題目連結;<kbd>Enter</kbd> 送出、<kbd>Shift</kbd>+<kbd>Enter</kbd> 換行。每則訊息可加表情(👍 ❤️ 😂 😮 🙏 🔥 🎉)、<span class="ui">回覆</span>(引用片段,點擊跳回原訊息);自己的訊息可 <span class="ui">撤回</span>(要再按一次 <span class="ui">確定撤回</span>),撤回後大家看到「已撤回訊息」。頁首的通知偏好 <span class="ui">全部</span> / <span class="ui">僅@我</span> / <span class="ui">關閉</span> 決定在其他頁面要不要跳出聊天提示。</p>
+<h2>11.11 2048</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/play.webp" alt="2048 休息小遊戲與最高分榜" /><figcaption>2048。進度自動存檔,換裝置接得回來;右側是最高分榜。</figcaption></figure>
+<p>純休息,刻意不跟題庫綁在一起。方向鍵或滑動操作;入口在個人頁與番茄鐘面板。</p>
+
+<h1 class="chapter"><span class="num">Chapter 12</span>離線與裝置</h1>
+<h2>12.1 安裝為 PWA</h2>
+<p>系統可以像 app 一樣加到主畫面:iOS Safari 用「分享 → 加入主畫面」,Android Chrome 與桌機 Chrome 用網址列的安裝圖示。安裝後仍走同一個登入 session。</p>
+<h2>12.2 離線閱讀</h2>
+<ul><li>看過的題目、詳解、講義清單、影片清單會留在裝置快取,離線可讀;<strong>進入年度清單時會自動把整年的題目與詳解拓進快取</strong>(第一次造訪不會,第二次起),標題旁顯示「✓ 可離線閱讀」。圖片要另外按 <span class="ui">連圖片一起離線備用</span>(一年約 8–17 MB)。</li><li>離線時<strong>作答會先排隊</strong>,連線後自動補送;作答當下會看到「這次作答沒有記錄成功(可能離線)」的提示,不必重做。</li><li>離線不能用:共筆編輯與留言(橫幅會提示)、今日複習的到期佇列、全真作答、聊天、抹片練習、沒開過的討論串。</li></ul>
+<div class="tip"><span class="label">畫面卡在舊版或空白</span>個人頁「帳號」的 <span class="ui">清除本機快取並重新載入</span> 會註銷離線快取後重載,不會登出。</div>
+<h2>12.3 電子紙模式</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/question-eink.webp" alt="電子紙模式下的題目頁:純黑白,語意改用框線與符號表達" /><figcaption>電子紙模式。全站純黑白,語意改用框線、符號與線型表達。</figcaption></figure>
+<p>主題切到 <span class="ui">電子紙</span>,整站變成純黑白、無灰階、無動畫餘暉:正解整列反白、答錯粗框加刪除線、及格與否補 ✓ / ✗、頭像改成首字加框線、熱圖改用網底密度、<strong>手動螢光 = 實線、AI 挖空 = 虛線</strong>。血液抹片、講義 PDF 這類醫學圖片刻意<strong>不</strong>二值化——顏色本身就是要學的資訊。BOOX 這類 Android 電子紙建議同時開 §11.2 的「強制手機版面」。</p>
+<h2>12.4 深淺色</h2>
+<figure class="shot"><img loading="lazy" src="https://htlin222.github.io/mcq-bank/screenshots/question-dark.webp" alt="深色模式下的題目頁" /><figcaption>深色模式。</figcaption></figure>
+<p>主題按鈕循環 亮 → 暗 → 電子紙 → 跟系統。偏好存在這台裝置。</p>
+<h2>12.5 手把操作</h2>
+<p>題目頁、年度清單與全真作答支援遊戲手把(藍牙或 USB)。連上後左下角出現「手把操作說明」按鈕,按手把的 <kbd>SELECT</kbd> 也能開關說明面板——面板會依情境(作答中 / 讀詳解 / 看筆記)列出每顆鍵的意思,例如作答中 <kbd>DPAD ↑↓</kbd> 選選項、<kbd>DPAD ←→</kbd> 調作答信心、<kbd>FACE ▼</kbd> 送出、<kbd>L1/R1</kbd> 上下題、<kbd>L2/R2</kbd> 切分頁、<kbd>START</kbd> 回年度清單。按鍵以位置標示(FACE ▼ 而不是 A),8BitDo 請切到 X 模式。</p>
+<h2>12.6 意見回饋</h2>
+<p>右上角的「回報 bug 或意見」在每一頁都在,見附錄 C。</p>
 
 <h1 class="chapter"><span class="num">Appendix A</span>鍵盤捷徑速查</h1>
-<h2>A.1 全域</h2>
-<table><thead><tr><th>動作</th><th>桌機</th></tr></thead><tbody>
-<tr><td>回首頁</td><td><kbd>G</kbd> <kbd>H</kbd></td></tr>
-<tr><td>打開搜尋</td><td><kbd>/</kbd></td></tr>
-<tr><td>切換深淺色</td><td><kbd>⇧</kbd> <kbd>D</kbd></td></tr>
-</tbody></table>
-<h2>A.2 題目頁</h2>
+<p>所有捷徑在輸入框、編輯器內或按著 <kbd>⌘</kbd>/<kbd>Ctrl</kbd>/<kbd>Alt</kbd> 時都不作用。沒有全域捷徑(例如「/」開搜尋),全真作答與今日複習頁也沒有鍵盤捷徑。</p>
+<h2>A.1 題目頁(複習模式、交錯練習)</h2>
 <table><thead><tr><th>動作</th><th>鍵</th></tr></thead><tbody>
-<tr><td>選擇選項</td><td><kbd>A</kbd> / <kbd>B</kbd> / <kbd>C</kbd> / <kbd>D</kbd></td></tr>
-<tr><td>送出答案</td><td><kbd>Enter</kbd></td></tr>
+<tr><td>選擇 / 取消選項(揭曉前)</td><td><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd> <kbd>E</kbd></td></tr>
+<tr><td>提交答案</td><td><kbd>Enter</kbd></td></tr>
+<tr><td>略過 / 直接看答案</td><td><kbd>Space</kbd></td></tr>
+<tr><td>複製題目為 Markdown</td><td><kbd>y</kbd></td></tr>
+<tr><td>收藏 / 取消收藏(揭曉後)</td><td><kbd>b</kbd></td></tr>
 <tr><td>上一題 / 下一題</td><td><kbd>←</kbd> / <kbd>→</kbd></td></tr>
-<tr><td>切到詳解 / 我的筆記</td><td><kbd>E</kbd> / <kbd>N</kbd></td></tr>
-<tr><td>收藏切換</td><td><kbd>B</kbd></td></tr>
+<tr><td>回年度清單</td><td><kbd>↑</kbd></td></tr>
+<tr><td>上一個 / 下一個分頁</td><td><kbd>h</kbd> / <kbd>l</kbd></td></tr>
+<tr><td>跳到個人筆記並開始編輯</td><td><kbd>n</kbd></td></tr>
+<tr><td>雙欄 ⇄ 分頁 版面(≥768px)</td><td><kbd>t</kbd></td></tr>
+<tr><td>離開筆記全螢幕</td><td><kbd>Esc</kbd></td></tr>
 </tbody></table>
-<h2>A.3 編輯器內</h2>
+<h2>A.2 講義閱讀器</h2>
 <table><thead><tr><th>動作</th><th>鍵</th></tr></thead><tbody>
-<tr><td>粗體 / 斜體</td><td><kbd>⌘B</kbd> / <kbd>⌘I</kbd></td></tr>
-<tr><td>標題</td><td><kbd>⌘⌥1</kbd> / <kbd>⌘⌥2</kbd> / <kbd>⌘⌥3</kbd></td></tr>
-<tr><td>清單</td><td><kbd>⌘⇧8</kbd> (項目) / <kbd>⌘⇧7</kbd> (編號)</td></tr>
-<tr><td>引用區塊</td><td><kbd>⌘⇧B</kbd></td></tr>
-<tr><td>儲存</td><td><kbd>⌘S</kbd></td></tr>
-<tr><td>取消編輯</td><td><kbd>Esc</kbd></td></tr>
+<tr><td>上一頁 / 下一頁</td><td><kbd>u</kbd> <kbd>←</kbd> / <kbd>d</kbd> <kbd>→</kbd></td></tr>
+<tr><td>向上 / 向下捲 30%</td><td><kbd>k</kbd> <kbd>↑</kbd> / <kbd>j</kbd> <kbd>↓</kbd></td></tr>
+<tr><td>放大 / 縮小</td><td><kbd>=</kbd> <kbd>+</kbd> / <kbd>-</kbd></td></tr>
+<tr><td>手掌工具</td><td><kbd>h</kbd></td></tr>
+<tr><td>加入 / 移除書籤(教科書無效)</td><td><kbd>b</kbd></td></tr>
+<tr><td>全螢幕 / 離開</td><td><kbd>f</kbd> / <kbd>Esc</kbd></td></tr>
+</tbody></table>
+<h2>A.3 其他</h2>
+<table><thead><tr><th>位置</th><th>鍵</th></tr></thead><tbody>
+<tr><td>抹片作答輸入框:送出</td><td><kbd>Enter</kbd></td></tr>
+<tr><td>抹片圖片放大 / 各對話框:關閉</td><td><kbd>Esc</kbd></td></tr>
+<tr><td>聊天:送出 / 換行</td><td><kbd>Enter</kbd> / <kbd>Shift</kbd>+<kbd>Enter</kbd></td></tr>
+<tr><td>@ 提及選單:移動 / 選定 / 關閉</td><td><kbd>↑</kbd><kbd>↓</kbd> / <kbd>Enter</kbd> / <kbd>Esc</kbd></td></tr>
+<tr><td>2048:移動</td><td><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></td></tr>
 </tbody></table>
 
 <h1 class="chapter"><span class="num">Appendix B</span>常見問題 FAQ</h1>
-<h3>Q1. 我忘記了上次的密碼怎麼辦?</h3>
-<p>本系統 <strong>沒有密碼</strong>。所有登入都靠 Cloudflare Access 寄到信箱的一次性密碼。如果新裝置或新瀏覽器要登入，照第一章流程跑一次即可。</p>
-<h3>Q2. 為什麼我編輯詳解到一半，按儲存出現「衝突」?</h3>
-<p>在你開啟編輯到按儲存的這段時間，有別人也存了一版。請按 <span class="ui">重新載入最新版</span>，把對方的內容讀回來，再把你的修改重新加上去存。鎖無法 100% 避免這個 race，因為鎖會在 5 分鐘無動作時自動釋出 — 這是設計上故意的，避免有人卡住整個共筆。</p>
-<h3>Q3. 我能不能刪掉自己的留言?</h3>
-<p>可以。留言旁的 ⋯ 選單有 <span class="ui">刪除</span>。已被回覆的留言刪除後會顯示「(已刪除)」，保留結構但隱藏內容，避免破壞討論串。</p>
-<h3>Q4. 我發現某一年的某一題題幹有錯字，怎麼修正?</h3>
-<p>題幹屬於官方考古題，原則上 <strong>不修改</strong> (保留原始紀錄)。請在留言區指出錯字，或在詳解開頭寫一行「題幹原文 OCR 有誤，正確應為 ...」。如真是嚴重影響理解的錯誤 (例：選項抄錯)，請從 💬 提交意見回饋給管理員處理。</p>
-<h3>Q5. 我答錯了一題，能不能不要被加進錯題清單?</h3>
-<p>不能直接排除，但若你之後再答對一次，該題會自動移出。錯題的設計就是讓你誠實面對自己。</p>
-<h3>Q6. 全真作答跑到一半網路斷線，紀錄會掉嗎?</h3>
-<p>不會。每次選答案、暫停、跳題都會即時 sync 到 server。網路恢復後重新進入 <span class="ui">全真</span>，按 <span class="ui">續答</span> 即可從原本的狀態回到考場。</p>
-<h3>Q7. 我可以用手機作答嗎?</h3>
-<p>可以。所有頁面都是 RWD 設計。但 <strong>長詳解的閱讀體驗</strong> 在桌機/平板會明顯更好；全真作答強烈建議桌機，避免手滑誤點。</p>
-<h3>Q8. AI 摘要按了沒反應?</h3>
-<p>可能原因：(a) 當天團隊 AI 額度用完；(b) 詳解內容過短不夠摘要；(c) 暫時的 Worker 故障。請隔 30 分鐘再試，或從 💬 回報。</p>
-<h3>Q9. 答案挑戰被駁回後，我能再提一次嗎?</h3>
-<p>可以，但建議先在留言區補上新的證據再開新挑戰，否則容易被同樣的票數再次駁回。挑戰歷史會永久保留 (採納/駁回都看得到)，所以「挑戰失敗」不是負面紀錄，是知識協作的痕跡。</p>
-<h3>Q10. 我能匯出自己的進度、錯題、筆記嗎?</h3>
-<p>目前還沒有 UI 匯出按鈕，但你的所有資料都安全保存在 D1 資料庫中。考完試後若需要備份，可向管理員索取。</p>
+<h3>Q1. 我忘記密碼怎麼辦?</h3>
+<p>本系統<strong>沒有密碼</strong>。新裝置或新瀏覽器要登入,照第一章流程收一次信箱驗證碼即可。</p>
+<h3>Q2. 編輯詳解到一半,按儲存出現「版本衝突」?</h3>
+<p>在你開啟編輯到儲存之間,有別人存了一版。按取消、重新載入把對方的內容讀回來,再把你的修改套上去。你的內容會留在草稿裡,不會不見。鎖在 5 分鐘無動作後會自動釋出,這是刻意的,避免有人卡住整份共筆。</p>
+<h3>Q3. 抹片練習我明明寫對了,為什麼只有半分或 0 分?</h3>
+<p>看判定卡下方的「可接受的寫法」:◐ 是方向對但不夠精準,~ 是俗名(考卷不收)。拼字差一個字母不扣分,會另外顯示「拼字提醒」。如果你認為某個寫法應該算對,到診斷詳情頁的「這個寫法也該算對?」提報,3 票通過就會收錄。</p>
+<h3>Q4. 全真模式的抹片練習,中途想看分數?</h3>
+<p>不行,全真模式藏到交卷為止;作答記錄裡只顯示「未完成 · 點擊繼續作答」。想邊做邊看請用複習模式。</p>
+<h3>Q5. 我答錯了,能不能不要進錯題?</h3>
+<p>不能直接排除,但再答對一次就會自動移出。模擬考考對的題目,可在成績頁「登記進複習進度」一次搬過去。</p>
+<h3>Q6. 全真作答跑到一半斷線,紀錄會掉嗎?</h3>
+<p>不會。每次選答案、暫停、跳題都即時同步到伺服器。恢復連線後回到全真頁,按「進行中的模擬考」續答。注意時間是伺服器算的,沒按暫停就會一直走。</p>
+<h3>Q7. 為什麼今日複習說「今天沒有到期卡片」,可是我很久沒做了?</h3>
+<p>只有在複習模式作答過(或在今日複習評過分)的題目才會進 FSRS 排程;新卡每天最多 20 張。一天從凌晨 4 點算起。</p>
+<h3>Q8. 換手機後,我的畫記、筆記、收藏還在嗎?</h3>
+<p>都在伺服器上,登入即同步。只有主題、強制手機版面、AI 金鑰這類裝置偏好存在本機。</p>
+<h3>Q9. 頁面顯示怪怪的,無痕視窗卻正常?</h3>
+<p>這台裝置的離線快取卡住了。到個人頁「帳號」按「清除本機快取並重新載入」,不必登出。</p>
+<h3>Q10. 我有 iPad / 電子紙,但版面跟桌機一樣擠?</h3>
+<p>到個人頁「顯示」打開「強制手機版面」(只在觸控裝置上顯示這張卡)。電子紙再把主題切到「電子紙」。</p>
+<h3>Q11. 答案挑戰被駁回後,能再提一次嗎?</h3>
+<p>可以,但建議先在討論串補上新證據。挑戰歷史會永久保留,「挑戰失敗」不是負面紀錄。</p>
+<h3>Q12. 我能匯出自己的資料嗎?</h3>
+<p>可以。清單頁的「匯出」給 Markdown / Anki CSV / HTML;個人頁的「答題狀態分析」給逐次作答 CSV;「備份我的紀錄」把全部紀錄打包成 zip。</p>
+<h3>Q13. AI 功能按了沒反應?</h3>
+<p>自動挖空、AI 進階搜尋、筆記標籤走站方的 Workers AI,有每日額度,額度用完會提示可隔日再試。選字工具列的「AI」用你自己的 Groq 金鑰,沒設定會引導你到個人頁輸入。</p>
 
 <h1 class="chapter"><span class="num">Appendix C</span>回報問題與聯絡</h1>
-<h2>C.1 我發現了系統 Bug</h2>
-<ol class="steps"><li>頂欄點 <span class="ui">💬 意見回饋</span>。</li><li>選擇 <span class="ui">Bug 回報</span>。</li><li>盡量描述：(a) 我做了什麼 (b) 我預期看到什麼 (c) 實際看到什麼 (d) 重現步驟。</li><li>如方便附截圖請拖入。</li><li>送出 — 會自動建立 GitHub Issue。</li></ol>
-<h2>C.2 我有功能建議</h2>
-<p>同樣從 💬 進入，類別選 <span class="ui">功能建議</span>。受歡迎的建議會被排進系統路線圖。本系統故意維持小巧：建議「合作學習相關」的功能比「個人化炫技」的功能更容易被採納。</p>
-<h2>C.3 我想加入新成員 / 移除成員</h2>
-<p>請聯絡管理員處理 Cloudflare Access 白名單。新成員加入後需要：</p>
-<ol class="steps"><li>提供其 email 給管理員加入 Access 名單。</li><li>請他/她按第一章的流程登入。</li><li>登入後系統會自動 upsert 為一位成員。</li><li>提醒他/她到個人資料設好顯示名稱與頭像。</li></ol>
-<h2>C.4 我想看完整文件 / 原始碼</h2>
-<p>本系統為內部協作工具，部分文件 (架構、部署、資料庫 schema) 放在專案的 <code>README.md</code> 與 <code>CLAUDE.md</code>。需要技術細節時可向管理員索取 repo 權限。</p>
+<h2>C.1 我發現了系統 Bug 或有功能建議</h2>
+<ol class="steps"><li>右上角點「回報 bug 或意見」(對話氣泡加驚嘆號的圖示)。</li><li>填 <strong>標題</strong>(一句話概括)與 <strong>內容</strong>(重現步驟、預期行為、實際行為,或單純的想法 / 建議)。</li><li>按 <span class="ui">送出</span>。系統會連同你的 email、目前頁面網址與瀏覽器資訊建立一個 GitHub issue,畫面會顯示 issue 編號與連結。</li></ol>
+<p>本系統故意維持小巧,「合作學習相關」的建議比「個人化炫技」更容易被採納。</p>
+<h2>C.2 題目有錯字、選項抄錯</h2>
+<p>題幹屬於官方考古題,原則上保留原文;請用上面的回報按鈕說明題號與正確內容,由管理員修正。認為<strong>答案</strong>有誤請走答案挑戰(§5.10),不要用回報。</p>
+<h2>C.3 加入新成員 / 移除成員</h2>
+<ol class="steps"><li>把 email 交給管理員加入 Cloudflare Access 名單。</li><li>新成員照第一章流程登入,系統自動建立帳號。</li><li>提醒他到個人資料設好顯示名稱。</li></ol>
+<h2>C.4 管理員專屬</h2>
+<p>管理員在複習模式首頁多一顆 <span class="ui">＋ 加入新年份</span>:下載 <code>bank-ingest.skill</code> 在自己電腦解析官方 PDF、推進暫存區、審閱後才發布;在抹片練習「投稿」分頁多一個 <span class="ui">待審核</span> 子分頁;題目卡上多一顆「管理員編輯正解」。技術文件在專案的 <code>README.md</code> 與 <code>CLAUDE.md</code>。</p>
 
 <hr style="margin:60px 0 24px;border:none;border-top:1px solid var(--rule);" />
-<p style="text-align:center;color:var(--ink-500);font-size:9pt;">血專衝衝衝 · 使用手冊 · v1.0<br/>Last updated: 2026-05-25 · 適用對象: 內部 20 位成員<br/>若紙本印出後內容有疑問，以線上即時版本為準。</p>
+<p style="text-align:center;color:var(--ink-500);font-size:9pt;">血專衝衝衝 · 使用手冊 · v2.0<br/>Last updated: 2026-09-05 · 適用對象: 讀書會 20 位成員<br/>若紙本印出後內容有疑問,以線上即時版本為準。</p>
 
 </div></body></html>
