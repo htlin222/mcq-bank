@@ -384,7 +384,11 @@ test('複習模式:作答判定、俗名 tier 跟 miss 不同、提示只揭曉�
     const page = await ctx.newPage();
     await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
 
+    // 「複習模式」現在導去 /smear/review 的主題式選擇頁(見 SmearReview.tsx),
+    // 不再直接開對話框 —— 這裡點「全部主題」,語意等同舊版「不篩選,開始練習」。
     await page.getByRole('button', { name: '複習模式' }).click();
+    await page.waitForURL('**/smear/review', { timeout: 10_000 });
+    await page.getByRole('button', { name: '全部主題' }).click();
     // 空掃防線:主題篩選要真的載入了(GET /api/smear/meta 回來了),否則後面
     // 「開始練習」按鈕全程是 disabled,點下去什麼都不會發生。
     await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
@@ -493,6 +497,8 @@ test('複習模式:「直接看答案」送出空答案、顯示 miss 判定與�
 		await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
 
 		await page.getByRole('button', { name: '複習模式' }).click();
+		await page.waitForURL('**/smear/review', { timeout: 10_000 });
+		await page.getByRole('button', { name: '全部主題' }).click();
 		await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
 		await page.getByLabel('題數').fill('5');
 		await page.getByRole('button', { name: '開始練習' }).click();
@@ -715,6 +721,9 @@ test('390px:複習模式從開始練習到成績頁,每個關鍵步驟都不會�
     assertNoOverflow(await overflow(page), '390px:抹片練習首頁');
 
     await page.getByRole('button', { name: '複習模式' }).click();
+    await page.waitForURL('**/smear/review', { timeout: 10_000 });
+    assertNoOverflow(await overflow(page), '390px:複習模式選擇主題頁');
+    await page.getByRole('button', { name: '全部主題' }).click();
     await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
     assertNoOverflow(await overflow(page), '390px:開始練習對話框');
 
@@ -763,6 +772,9 @@ for (const width of [390, 320]) {
 			await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
 
 			await page.getByRole('button', { name: '複習模式' }).click();
+			await page.waitForURL('**/smear/review', { timeout: 10_000 });
+			assertNoOverflow(await overflow(page), `${width}px:複習模式選擇主題頁`);
+			await page.getByRole('button', { name: '全部主題' }).click();
 			await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
 			await page.getByLabel('題數').fill('5');
 			await page.getByRole('button', { name: '開始練習' }).click();
@@ -796,76 +808,16 @@ for (const width of [390, 320]) {
 }
 
 // ---------------------------------------------------------------------------
-// 測試 5 —— 首頁抹片 dashboard / 手機底部導覽的「複習」「全真」深連結:
-// `?start=review|exam` 要能一鍵直接開對話框(不用先落地再點卡片一次),
-// 而且用過就清掉網址參數,不然瀏覽器上一頁/下一頁在分頁間切換時,這顆
-// 對話框會無緣無故又跳出來一次。
+// 測試 5 —— `/api/smear/meta` 回應格式不對(缺 `topics`)時,不能把整頁
+// 炸掉。這是 2026-09 首頁改版時真的踩到的 bug:測試環境沒接對 fixture、
+// `meta.topics` 是 undefined,`.filter()`/`.map()` 直接丟出未捕捉例外。
+// 兩個獨立入口各自都要防到,不是修一個就順便涵蓋另一個:
+//   - /smear/review(SmearReview.tsx)—— 「複習模式」現在導來這裡,主題卡
+//     片清單直接讀 meta.topics。
+//   - StartDialog.tsx —— 「全真模式」仍然直接開這顆對話框,它自己也獨立
+//     打一次 /api/smear/meta(不是從 SmearReview 收 props 沿用)。
 // ---------------------------------------------------------------------------
-test('練習分頁:?start=review 深連結自動開啟對話框並預選複習模式,用過即清除', async (t) => {
-  if (guard(t)) return;
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
-  installSmearBackend(ctx, { mode: 'review', questions: [], sessionId: 'unused-sess' });
-
-  try {
-    const page = await ctx.newPage();
-    await page.goto(`${server.origin}/smear?tab=practice&start=review`, {
-      waitUntil: 'domcontentloaded',
-    });
-
-    const dialog = page.getByRole('dialog', { name: '開始抹片練習' });
-    await dialog.waitFor({ timeout: 10_000 });
-
-    // 「複習模式」要是預選的那一個 —— aria-pressed 是 ModeButton 用來標示
-    // 選取狀態的屬性(見 StartDialog.tsx 的 ModeButton)。**限定在對話框裡**:
-    // 練習分頁背後的 ModeCard 也叫「複習模式」,不限定會撞成兩個 match。
-    const reviewBtn = dialog.getByRole('button', { name: '複習模式' });
-    await reviewBtn.waitFor();
-    assert.equal(
-      await reviewBtn.getAttribute('aria-pressed'),
-      'true',
-      '?start=review 應該預選「複習模式」',
-    );
-
-    // 網址上的 `start` 參數要被清掉,否則使用者關掉對話框後用瀏覽器上一頁/
-    // 下一頁在分頁之間切換時,這顆對話框會無緣無故又跳出來一次。
-    assert.doesNotMatch(page.url(), /start=/, 'start 參數應該在讀取後被清除');
-  } finally {
-    await ctx.close();
-  }
-});
-
-test('練習分頁:?start=exam 深連結預選全真模式', async (t) => {
-  if (guard(t)) return;
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
-  installSmearBackend(ctx, { mode: 'exam', questions: [], sessionId: 'unused-sess-2' });
-
-  try {
-    const page = await ctx.newPage();
-    await page.goto(`${server.origin}/smear?tab=practice&start=exam`, {
-      waitUntil: 'domcontentloaded',
-    });
-
-    const dialog = page.getByRole('dialog', { name: '開始抹片練習' });
-    await dialog.waitFor({ timeout: 10_000 });
-    const examBtn = dialog.getByRole('button', { name: '全真模式' });
-    await examBtn.waitFor({ timeout: 10_000 });
-    assert.equal(
-      await examBtn.getAttribute('aria-pressed'),
-      'true',
-      '?start=exam 應該預選「全真模式」',
-    );
-  } finally {
-    await ctx.close();
-  }
-});
-
-// ---------------------------------------------------------------------------
-// 測試 6 —— `/api/smear/meta` 回應格式不對(缺 `topics`)時,開始練習對話框
-// 要顯示讀取失敗,不能把整頁炸掉。這是 2026-09 首頁改版時真的踩到的
-// bug:測試環境沒接對 fixture、`meta.topics` 是 undefined,`.filter()`/
-// `.map()` 直接丟出未捕捉例外,整頁變成空白畫面。
-// ---------------------------------------------------------------------------
-test('開始練習對話框:/api/smear/meta 回應缺 topics 時顯示讀取失敗,不是整頁空白', async (t) => {
+test('複習模式選擇主題頁:/api/smear/meta 回應缺 topics 時顯示讀取失敗,不是整頁空白', async (t) => {
   if (guard(t)) return;
   const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
   const pageErrors = [];
@@ -884,6 +836,34 @@ test('開始練習對話框:/api/smear/meta 回應缺 topics 時顯示讀取失�
     await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
 
     await page.getByRole('button', { name: '複習模式' }).click();
+    await page.waitForURL('**/smear/review', { timeout: 10_000 });
+    await page.getByText('主題資料格式不正確').waitFor({ timeout: 10_000 });
+
+    assert.deepEqual(pageErrors, [], `不該有未捕捉例外:\n${pageErrors.join('\n')}`);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('全真模式對話框:/api/smear/meta 回應缺 topics 時顯示讀取失敗,不是整頁空白', async (t) => {
+  if (guard(t)) return;
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
+  const pageErrors = [];
+
+  await ctx.route('**/api/smear/meta', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json; charset=utf-8',
+      body: JSON.stringify({}),
+    }),
+  );
+
+  try {
+    const page = await ctx.newPage();
+    page.on('pageerror', (e) => pageErrors.push(e.message));
+    await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
+
+    await page.getByRole('button', { name: '全真模式' }).click();
     await page.getByText('主題資料格式不正確').waitFor({ timeout: 10_000 });
 
     assert.deepEqual(pageErrors, [], `不該有未捕捉例外:\n${pageErrors.join('\n')}`);

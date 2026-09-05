@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Bookmark, Loader2, Microscope, Search as SearchIcon, Timer } from "lucide-react";
 import { ApiError } from "../lib/api";
 import { KeepAlive } from "../components/KeepAlive";
@@ -15,7 +15,6 @@ import {
 	SMEAR_TOPIC_LABELS,
 	SMEAR_QTYPE_LABELS,
 	SMEAR_MODE_LABELS,
-	type SmearMode,
 	type SmearSearchHit,
 	type SmearHistoryItem,
 	type SmearWrongItem,
@@ -149,27 +148,10 @@ function TabBar({
 // (CLAUDE.md「MOBILE IS THE PRIORITY」),卡片本身就是大按鈕,不需要為了桌機
 // 擠成兩欄後反而在手機上變窄。
 function PracticeTab({ onGotoWrong }: { onGotoWrong: () => void }) {
-	const [searchParams, setSearchParams] = useSearchParams();
-	// `?start=review|exam` 讓首頁抹片 dashboard / 手機底部導覽的「複習」「全真」
-	// 兩顆能一鍵直接開對話框,不用先落地再點一次卡片。只在**初次掛載**讀一次
-	// (lazy initializer),讀完立刻把參數清掉 —— 不然使用者用瀏覽器上一頁/
-	// 下一頁在分頁間切換時,這顆對話框會無緣無故又跳出來一次。
-	const [dialogMode, setDialogMode] = useState<SmearMode | null>(() => {
-		const start = searchParams.get("start");
-		return start === "review" || start === "exam" ? start : null;
-	});
-	useEffect(() => {
-		if (!searchParams.get("start")) return;
-		setSearchParams(
-			(prev) => {
-				const next = new URLSearchParams(prev);
-				next.delete("start");
-				return next;
-			},
-			{ replace: true },
-		);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	const navigate = useNavigate();
+	// 「複習模式」不再直接開對話框 —— 導去 /smear/review 的主題式選擇頁
+	// (見該檔頭的設計理由)。全真模式沒有對應頁面,維持原地開對話框。
+	const [examDialogOpen, setExamDialogOpen] = useState(false);
 	// 只用來決定「要不要顯示弱點提要」這一行 —— 錯題本分頁自己會再抓一次
 	// 完整清單,這裡刻意不共用 state,兩個分頁各自獨立才不會因為誰先掛載
 	// 而互相卡住彼此的載入時機。
@@ -210,18 +192,18 @@ function PracticeTab({ onGotoWrong }: { onGotoWrong: () => void }) {
 				icon={<Microscope size={18} aria-hidden="true" />}
 				title="複習模式"
 				desc="看一張抹片,寫出診斷。每題作答後立刻看判定、可接受寫法與詳解 —— 適合平常累積。"
-				onClick={() => setDialogMode("review")}
+				onClick={() => navigate("/smear/review")}
 			/>
 			<ModeCard
 				icon={<Timer size={18} aria-hidden="true" />}
 				title="全真模式"
 				desc="連續作答,全程不揭曉正解;交卷後才看整體成績與逐題檢討 —— 適合考前自我測驗。"
-				onClick={() => setDialogMode("exam")}
+				onClick={() => setExamDialogOpen(true)}
 			/>
-			{dialogMode && (
+			{examDialogOpen && (
 				<StartDialog
-					initialMode={dialogMode}
-					onClose={() => setDialogMode(null)}
+					initialMode="exam"
+					onClose={() => setExamDialogOpen(false)}
 				/>
 			)}
 		</div>

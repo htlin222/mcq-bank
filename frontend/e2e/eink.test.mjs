@@ -256,6 +256,14 @@ const ROUTES = [
     expectAfter: ['未完成', '全真模式', '複習模式'],
   },
   {
+    path: '/smear/review',
+    name: '複習模式選擇主題(正確率高/低兩種顏色 + 待加強徽章,全新頁面第一次被掃到)',
+    // fixture(smear_topic-stats.json)刻意配了一高一低:myeloid 75%(emerald)、
+    // rbc 40%(rose),跟 smear_wrong.json 的兩個主題重疊,同一次掃描裡三種
+    // 語意色都會出現在畫面上,不需要互動。
+    expectAfter: ['骨髓性', '紅血球系', '個待加強', '正確率'],
+  },
+  {
     path: '/smear?tab=submit',
     name: '抹片投稿 → 待審核佇列(建議 dx 的虛線 accent 徽章 + 核准/退件按鈕,全新分頁+全新元件第一次被掃到)',
     // 「投稿」是第六個分頁,SubmitTab 預設落在「我的投稿」子分頁(表單 +
