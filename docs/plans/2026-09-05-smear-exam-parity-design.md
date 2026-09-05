@@ -31,23 +31,37 @@
 
 ### 方案取捨
 
+**重新檢查現有 `/smear/review`(#232)後發現它不是「表單搬進頁面」,是
+「頁面觸發同一顆 `StartDialog` 彈窗」**——`SmearReview.tsx` 是一頁主題卡片,
+點卡片才 `setDialogTopics(...)`,對話框本身完全沒動。這推翻了下面表格原本
+設想的方案 A(把對話框整個搬成頁面表單);真正跟現有慣例一致的做法是方案 A'。
+
 | 方案 | 做法 | 結論 |
 | --- | --- | --- |
-| **A（採用）** | 新增 `/smear/exam` 路由,把 `StartDialog(initialMode="exam")` 的內容從彈窗搬成頁面的初始狀態——沒有 session 時顯示設定表單,設定完在同一個 URL 邏輯下轉場進作答畫面 | 改動面積小,四顆底部導覽鈕從此都是「同一種東西」(頁面) |
-| B | 反過來把筆試 `/exam` 也改成對話框觸發 | 成本與風險都高:`/exam` 是重度測試過的既有路由(計時列/交卷確認/e2e),而且方向是退步——路由本來就更符合這個站「底部導覽 = 頁面」的心智模型 |
+| **A'(採用,取代原案 A)** | 新增 `/smear/exam` 路由,做成跟 `SmearReview.tsx` 同款的極簡落地頁(返回連結/標題/一段說明 +「開始全真模式」按鈕),按鈕點下去開**同一顆** `StartDialog({initialMode:"exam"})`——對話框本身不動一行 | 跟 `/smear/review` 是同一套心智模型(路由 landing → 點按鈕/卡片開既有對話框),改動只是新增一個小元件,`StartDialog` 零風險 |
+| A(原案,棄用) | 把 `StartDialog` 的表單內容整個搬成頁面(仿 `Exam.tsx` 的 `ExamStart`) | 跟 `/smear/review` 已經確立的慣例不一致——複習也沒有把表單搬進頁面,搬了反而讓抹片內部長出兩種不對稱 |
+| B | 反過來把筆試 `/exam` 也改成對話框觸發 | 成本與風險都高:`/exam` 是重度測試過的既有路由(計時列/交卷確認/e2e),方向是退步 |
 | C | 兩邊路由不動,抹片按鈕點下去先彈一個轉場確認框 | 治標不治本,斷層感沒有真正消除 |
 
 ### 設計細節
 
-- `App.tsx` 的 `BottomAction`（全真那顆特例元件）拿掉,改成
+- 新檔 `frontend/src/routes/SmearExam.tsx`:結構抄 `SmearReview.tsx`(同一個
+  `max-w-2xl` 容器、同一顆「回抹片練習」`<Link>`、`font-serif` 標題),內容只有
+  一段說明(全真模式的特性:計時、交卷後才知道結果、PO 不進全真)+ 一顆
+  「開始全真模式」主按鈕,`onClick` 設 `dialogOpen=true`,底部
+  `{dialogOpen && <StartDialog initialMode="exam" onClose={...} />}`——跟
+  `SmearReview.tsx` 的 `dialogTopics` state 是同一個形狀,只是不需要
+  `initialTopics`(全真不篩主題)。
+- `App.tsx` 的 `BottomAction`(全真那顆特例元件)拿掉,改成
   `<BottomItem to="/smear/exam" Icon={PenLine} label="全真" />`,四顆入口統一
-  用 `NavLink`。
-- `Smear.tsx`(或新檔 `SmearExam.tsx`,視 `ExamStart`/`Exam.tsx` 的既有拆分模式而定)
-  比照筆試 `Exam.tsx` 裡 `ExamStart` 的做法:路由本身先判斷有沒有進行中的
-  session,沒有就 render 設定表單(現有 `StartDialog` 的表單內容原樣搬過來,只是
-  容器從 `<Dialog>` 換成頁面),送出後建立 session 並轉場成作答畫面。
-- `/smear/review` 已經是真路由,不受影響。
-- 既有 e2e(`smear-practice.test.mjs`)裡任何斷言「全真是彈窗」的路徑要跟著改。
+  用 `NavLink`,`smearExamDialogOpen` state 與其 `<StartDialog>` 在 `App.tsx`
+  的殘留一併移除(邏輯搬進 `SmearExam.tsx` 自己管)。
+- 路由註冊表加一條 `<Route path="/smear/exam" element={<SmearExam />} />`,
+  排在 `/smear/dx/:id`、`/smear/s/:id` 之前(同 `/smear/review` 的既有註解:
+  路徑第二段是固定字面值,不會跟萬用參數衝突,但仍照慣例把具體路徑排前面)。
+- `/smear/review` 完全不受影響,不用改。
+- 既有 e2e(`smear-practice.test.mjs`)裡任何斷言「全真是一顆按鈕直接彈窗」
+  的路徑要改成「先導到 `/smear/exam`,再點按鈕開對話框」。
 
 ## Layer 2:答後內容面板收斂(方向已定,細節待下一輪設計)
 
@@ -119,20 +133,27 @@ body: { questionId: string }
 
 - 選到正解一樣算全對(跟「用主題分類提示也能全對」原則一致,`hint_used` 記錄
   但不影響分數)。
-- ⚠️ **不能算進「拼字正確率」**——那個數字回答的是「你寫不寫得出來」,用選的
-  沒有打字這回事。跟「直接看答案」被排除在外是同一個理由(現有邏輯送空字串走
-  `tier: 'miss'` 天然被排除;MC-hint 因為要拿全對所以走 `tier: 'full'`,得在算
-  拼字正確率的查詢裡明確加 `AND hint_used != 'mc_choice'`,否則這個數字會被
-  「用了提示才對」的題目灌水)。
-- 成績頁沿用現有「N 題用了提示」的統計,`mc_choice` 併入同一個計數,不需要再開
-  一個新的統計行。
+- ⚠️ **原本設想「不能算進拼字正確率」,查過現有程式碼後發現這個數字目前根本
+  不存在於複習模式。** 「拼字完全正確:N 題」(`SmearResult.tsx:225`,
+  `spelling_ok`)只在 `POST /sessions/:id/finish` 算,而 `finish` 只有全真模式
+  會呼叫(複習模式沒有交卷、沒有 session 完成的概念——`SmearDashboard`/
+  `SmearReview` 的「正確率」統計也都是 `score/max_score`,同樣只吃已 finish 的
+  場次)。MC-hint 限定複習模式,兩者的交集是空的:**沒有任何現有聚合會讀到
+  `hint_used='mc_choice'` 的列**,不需要另外加排除邏輯——加了也是永遠不會被
+  執行的防禦性程式碼。
+- **原則留著,只是暫時沒有對應的實作要改**:如果複習模式未來也長出「拼字正確率」
+  這種聚合統計,那支查詢要記得排除 `hint_used = 'mc_choice'` 的列,理由不變
+  (那個數字答的是「你寫不寫得出來」,用選的沒有打字這回事)。這行加在這裡
+  是留給下一個真的要做那個功能的人看的。
+- 「用了幾次提示」目前也沒有聚合統計(只有 `smear_answers.hint_used` 這個
+  逐列旗標),所以 MC-hint 不需要新增或修改任何既有統計行——`hint_used` 多一種
+  取值(`'mc_choice'`)即可,跟 `'topic'`/`'reveal_answer'` 並列。
 
 ## 測試
 
 | 層 | 守什麼 |
 | --- | --- |
 | 純函式 | `pickMcqDistractors()`:同 topic 優先、缺額回填其他 topic、正解一定在洗牌後的 5 個裡、不重複 |
-| 純函式 | 拼字正確率聚合查詢:`hint_used = 'mc_choice'` 的列必須被排除,加一條迴歸測試釘住(這正是最容易被未來的重構默默改壞的地方) |
 | e2e | 進入 `/smear/exam` 直接看到設定表單(不是跳出彈窗);「看選項」按下後輸入框消失、選項清單出現;選中後送出算全對;手把在選項模式下可以選取/確認(沿用既有 `QuestionCard` 手把測試的斷言方式) |
 | 既有防線 | `/smear/exam` 加進 `eink.test.mjs`、`overflow.test.mjs` 的路由表(底部導覽入口性質改變,可能動到導覽階梯量測) |
 
