@@ -4,6 +4,7 @@ import type { AppContext } from "../types";
 import { uuid } from "../lib/db";
 import { gradeSmear, type AcceptedTerm } from "../lib/smear-grade";
 import { pickSmearSet, type PoolItem } from "../lib/smear-pick";
+import { pickMcqOptions, type McqCandidate } from "../lib/smear-mcq";
 import { ftsQuery } from "../lib/fts-query";
 import { chunkParams, D1_MAX_PARAMS } from "../lib/sql-params";
 
@@ -482,6 +483,77 @@ smearRoutes.post("/sessions/:id/answer", async (c) => {
 		});
 	}
 	return c.json({ ok: true });
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/smear/sessions/:id/mc-options —— 「看選項」提示,複習模式限定
+//
+// 只回傳洗牌過的選項文字陣列,不帶任何能推出「哪一個是正解」的欄位 ——
+// 同 /answer 端點檔頭那套對抗性審查的精神。全真模式刻意拒絕:那個模式的
+// 全部價值建立在交卷前不揭曉任何判定資訊上,而這支端點的回應本身就會讓
+// 正解的文字出現在畫面上,跟「全真模式全程不揭曉」直接衝突。
+// ---------------------------------------------------------------------------
+smearRoutes.post("/sessions/:id/mc-options", async (c) => {
+	const sid = c.req.param("id");
+	const email = c.var.email;
+
+	const session = await c.env.DB.prepare(
+		"SELECT id, mode, question_ids FROM smear_sessions WHERE id = ? AND user_email = ?",
+	)
+		.bind(sid, email)
+		.first<{ id: string; mode: "review" | "exam"; question_ids: string }>();
+	if (!session) return c.json({ error: "not found" }, 404);
+	if (session.mode !== "review") {
+		return c.json({ error: "mc-options only available in review mode" }, 403);
+	}
+
+	const body = await c.req
+		.json<{ questionId?: string }>()
+		.catch(() => ({}) as Record<string, never>);
+	if (!body.questionId) {
+		return c.json({ error: "questionId is required" }, 400);
+	}
+
+	let questionIds: string[] = [];
+	try {
+		questionIds = JSON.parse(session.question_ids);
+	} catch {
+		questionIds = [];
+	}
+	const idx = resolveQuestionIdx(body.questionId, questionIds);
+	if (idx < 0) {
+		return c.json({ error: "question is not part of this session" }, 400);
+	}
+	const realQuestionId = questionIds[idx];
+
+	const q = await c.env.DB.prepare(
+		`SELECT sq.dx_id, sd.canonical_long, sd.topic
+       FROM smear_questions sq JOIN smear_dx sd ON sd.id = sq.dx_id
+       WHERE sq.id = ?`,
+	)
+		.bind(realQuestionId)
+		.first<{ dx_id: string; canonical_long: string; topic: string }>();
+	if (!q) return c.json({ error: "question not found" }, 404);
+
+	const { results: poolRows } = await c.env.DB.prepare(
+		"SELECT id, canonical_long, topic FROM smear_dx WHERE id != ?",
+	)
+		.bind(q.dx_id)
+		.all<{ id: string; canonical_long: string; topic: string }>();
+
+	const pool: McqCandidate[] = (poolRows ?? []).map((r) => ({
+		id: r.id,
+		topic: r.topic,
+		label: r.canonical_long,
+	}));
+
+	const options = pickMcqOptions(
+		{ id: q.dx_id, topic: q.topic, label: q.canonical_long },
+		pool,
+		Math.random,
+	);
+
+	return c.json({ options });
 });
 
 // ---------------------------------------------------------------------------

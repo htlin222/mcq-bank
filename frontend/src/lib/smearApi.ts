@@ -149,6 +149,20 @@ export interface SmearAnswerAck {
 	ok: true;
 }
 
+// ---------------------------------------------------------------------------
+// POST /api/smear/sessions/:id/mc-options —— 「看選項」提示,複習模式限定
+// ---------------------------------------------------------------------------
+export interface SmearMcqOptionsResponse {
+	options: string[];
+}
+
+export function fetchSmearMcqOptions(
+	sessionId: string,
+	questionId: string,
+): Promise<SmearMcqOptionsResponse> {
+	return api.post(`/api/smear/sessions/${sessionId}/mc-options`, { questionId });
+}
+
 export function submitSmearAnswer(
 	sessionId: string,
 	questionId: string,
