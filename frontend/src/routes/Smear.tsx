@@ -142,16 +142,14 @@ function TabBar({
 	);
 }
 
-// ── 練習分頁:兩張大卡,各自帶著預選的模式打開設定對話框 ─────────────────
+// ── 練習分頁:兩張大卡,各自導去自己的入口頁(/smear/review、/smear/exam),
+// 實際開始作答的 StartDialog 留在那兩個頁面上,不在這裡打開。
 //
 // 刻意全寬堆疊(不是 sm/md 才變兩欄的 grid)—— 手機是這個功能的主要使用情境
 // (CLAUDE.md「MOBILE IS THE PRIORITY」),卡片本身就是大按鈕,不需要為了桌機
 // 擠成兩欄後反而在手機上變窄。
 function PracticeTab({ onGotoWrong }: { onGotoWrong: () => void }) {
 	const navigate = useNavigate();
-	// 「複習模式」不再直接開對話框 —— 導去 /smear/review 的主題式選擇頁
-	// (見該檔頭的設計理由)。全真模式沒有對應頁面,維持原地開對話框。
-	const [examDialogOpen, setExamDialogOpen] = useState(false);
 	// 只用來決定「要不要顯示弱點提要」這一行 —— 錯題本分頁自己會再抓一次
 	// 完整清單,這裡刻意不共用 state,兩個分頁各自獨立才不會因為誰先掛載
 	// 而互相卡住彼此的載入時機。
@@ -198,14 +196,8 @@ function PracticeTab({ onGotoWrong }: { onGotoWrong: () => void }) {
 				icon={<Timer size={18} aria-hidden="true" />}
 				title="全真模式"
 				desc="連續作答,全程不揭曉正解;交卷後才看整體成績與逐題檢討 —— 適合考前自我測驗。"
-				onClick={() => setExamDialogOpen(true)}
+				onClick={() => navigate("/smear/exam")}
 			/>
-			{examDialogOpen && (
-				<StartDialog
-					initialMode="exam"
-					onClose={() => setExamDialogOpen(false)}
-				/>
-			)}
 		</div>
 	);
 }

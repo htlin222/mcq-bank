@@ -16,9 +16,11 @@ import {
 // 導覽與各處入口一律導來這裡,不再是點下去就直接彈出通用的開始練習對話框
 // (那個對話框裡的主題篩選是一排 checkbox,適合微調,不適合當第一個畫面)。
 //
-// **全真模式沒有對應頁面。** 全真模式的語意是照題庫實際比例抽樣、模擬真考卷
-// (見 CLAUDE.md「抹片練習」設計:分層抽樣、PO 不進全真),主題式挑選跟它的
-// 用途矛盾 —— 考卷不能讓你只挑會的主題來考。它留在原地,一顆按鈕直接開對話框。
+// **全真模式現在也有自己的落地頁(`/smear/exam`,見 SmearExam.tsx 檔頭)。**
+// 兩者是同一套心智模型:落地頁 → 按鈕 → 開既有的 StartDialog。差別只在全真
+// 沒有主題卡片 —— 它的語意是照題庫實際比例抽樣、模擬真考卷(見 CLAUDE.md
+// 「抹片練習」設計:分層抽樣、PO 不進全真),主題式挑選跟它的用途矛盾 ——
+// 考卷不能讓你只挑會的主題來考。
 //
 // **卡片點下去開的是同一顆 StartDialog,帶 `initialTopics=[該主題]`。**
 // 不是另外做一條「立刻用預設值開一場」的捷徑:StartDialog 本來就有題數/
@@ -83,7 +85,9 @@ export function SmearReview() {
 
 	const topics = useMemo(() => {
 		if (!meta) return [];
-		return Object.keys(SMEAR_TOPIC_LABELS).filter((t) => meta.topics.includes(t));
+		return Object.keys(SMEAR_TOPIC_LABELS).filter((t) =>
+			meta.topics.includes(t),
+		);
 	}, [meta]);
 
 	return (
@@ -130,7 +134,9 @@ export function SmearReview() {
 					</button>
 
 					{topics.map((t) => {
-						const estCount = Math.round(meta.dxCount * (meta.topicWeights[t] ?? 0));
+						const estCount = Math.round(
+							meta.dxCount * (meta.topicWeights[t] ?? 0),
+						);
 						const wrongN = wrongByTopic.get(t) ?? 0;
 						const stat = statsByTopic.get(t);
 						const accPct =
@@ -173,7 +179,9 @@ export function SmearReview() {
 									{stat?.last_answered_at && (
 										<span>
 											上次{" "}
-											{new Date(stat.last_answered_at).toLocaleDateString("zh-TW")}
+											{new Date(stat.last_answered_at).toLocaleDateString(
+												"zh-TW",
+											)}
 										</span>
 									)}
 								</div>

@@ -583,6 +583,8 @@ test('全真模式:交卷前頁面上找不到任何一個正解字串,交卷後
     await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
 
     await page.getByRole('button', { name: '全真模式' }).click();
+    await page.waitForURL('**/smear/exam', { timeout: 10_000 });
+    await page.getByRole('button', { name: '開始全真模式' }).click();
     await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
     await page.getByLabel('題數').fill('5');
     await page.getByRole('button', { name: '開始練習' }).click();
@@ -657,6 +659,22 @@ test('全真模式:交卷前頁面上找不到任何一個正解字串,交卷後
   }
 });
 
+test('全真模式有自己的網址,跟複習模式對稱', async (t) => {
+  if (guard(t)) return;
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
+  installSmearBackend(ctx, { mode: 'exam', questions: [question('sym-q1', DX.apl)], sessionId: 'sym-sess' });
+
+  try {
+    const page = await ctx.newPage();
+    await page.goto(`${server.origin}/smear/exam`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('heading', { name: '全真模式' }).waitFor();
+    await page.getByRole('button', { name: '開始全真模式' }).click();
+    await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
+  } finally {
+    await ctx.close();
+  }
+});
+
 // ---------------------------------------------------------------------------
 // 測試 2b —— 驗證上面那支「不洩漏」測試真的抓得到迴歸,不是空掃的綠燈。
 //
@@ -681,6 +699,8 @@ test('（自我驗證)若 exam 模式的 answer 回應意外帶了判定,畫面�
     const page = await ctx.newPage();
     await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: '全真模式' }).click();
+    await page.waitForURL('**/smear/exam', { timeout: 10_000 });
+    await page.getByRole('button', { name: '開始全真模式' }).click();
     await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
     await page.getByLabel('題數').fill('5');
     await page.getByRole('button', { name: '開始練習' }).click();
@@ -864,6 +884,8 @@ test('全真模式對話框:/api/smear/meta 回應缺 topics 時顯示讀取失�
     await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
 
     await page.getByRole('button', { name: '全真模式' }).click();
+    await page.waitForURL('**/smear/exam', { timeout: 10_000 });
+    await page.getByRole('button', { name: '開始全真模式' }).click();
     await page.getByText('主題資料格式不正確').waitFor({ timeout: 10_000 });
 
     assert.deepEqual(pageErrors, [], `不該有未捕捉例外:\n${pageErrors.join('\n')}`);
