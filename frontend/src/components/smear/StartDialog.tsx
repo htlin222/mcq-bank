@@ -22,6 +22,7 @@ import {
 const SOURCE_LABELS: Record<string, string> = {
 	exam: "歷屆考題",
 	ash: "ASH 影像庫",
+	submission: "社群投稿",
 };
 
 const FORM_OPTIONS: { id: SmearForm; label: string; hint: string }[] = [
@@ -48,8 +49,11 @@ export function StartDialog({
 	const [meta, setMeta] = useState<SmearMeta | null>(null);
 	const [metaError, setMetaError] = useState<string | null>(null);
 	const [topics, setTopics] = useState<Set<string>>(new Set());
+	// 三個題源預設都勾:'submission' 已是 admin 核准過的活題目,跟 exam/ash
+	// 同等信任(理由同 worker/routes/smear.ts SOURCES 常數旁的註解)——核准本身
+	// 就是信任閘門,不需要在這裡再疊一層「預設不練投稿」的隱性懷疑。
 	const [sources, setSources] = useState<Set<string>>(
-		() => new Set(["exam", "ash"]),
+		() => new Set(["exam", "ash", "submission"]),
 	);
 
 	const [busy, setBusy] = useState(false);
@@ -279,7 +283,7 @@ export function StartDialog({
 							題源
 						</legend>
 						<div className="flex flex-wrap gap-2">
-							{(["exam", "ash"] as const).map((s0) => (
+							{(["exam", "ash", "submission"] as const).map((s0) => (
 								<label
 									key={s0}
 									className="flex items-center gap-2 p-2.5 rounded border border-ink-100 dark:border-ink-700 cursor-pointer hover:border-ink-300 dark:hover:border-ink-600"

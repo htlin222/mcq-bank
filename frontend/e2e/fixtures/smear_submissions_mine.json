@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "id": "sub-e2e-1",
+      "proposed_answer": "dacrocyte",
+      "status": "pending",
+      "created_at": 1783000000000,
+      "reviewed_at": null,
+      "review_note": null
+    },
+    {
+      "id": "sub-e2e-2",
+      "proposed_answer": "acute promyelocytic leukemia",
+      "status": "rejected",
+      "created_at": 1782000000000,
+      "reviewed_at": 1782100000000,
+      "review_note": "圖片對焦不清楚,麻煩重新拍攝後再投稿。"
+    },
+    {
+      "id": "sub-e2e-3",
+      "proposed_answer": "pronormoblast",
+      "status": "approved",
+      "created_at": 1781000000000,
+      "reviewed_at": 1781100000000,
+      "review_note": null
+    }
+  ]
+}
