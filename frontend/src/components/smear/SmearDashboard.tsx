@@ -10,7 +10,6 @@ import {
 	Video,
 } from "lucide-react";
 import { ModeCard } from "../../routes/Smear";
-import { StartDialog } from "./StartDialog";
 import {
 	fetchSmearSessions,
 	fetchSmearWrong,
@@ -32,10 +31,6 @@ export function SmearDashboard() {
 	const navigate = useNavigate();
 	const [sessions, setSessions] = useState<SmearHistoryItem[] | null>(null);
 	const [wrong, setWrong] = useState<SmearWrongItem[] | null>(null);
-	// 「複習模式」導去 /smear/review 的主題式選擇頁,不再直接開對話框
-	// (見 SmearReview.tsx 檔頭的設計理由)。全真模式沒有對應頁面,維持
-	// 原地開對話框。
-	const [examDialogOpen, setExamDialogOpen] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -104,12 +99,9 @@ export function SmearDashboard() {
 					icon={<Timer size={18} aria-hidden="true" />}
 					title="全真模式"
 					desc="連續作答,全程不揭曉正解;交卷後才看整體成績與逐題檢討 —— 適合考前自我測驗。"
-					onClick={() => setExamDialogOpen(true)}
+					onClick={() => navigate("/smear/exam")}
 				/>
 			</section>
-			{examDialogOpen && (
-				<StartDialog initialMode="exam" onClose={() => setExamDialogOpen(false)} />
-			)}
 
 			{/* 錯題預覽 —— 只列前幾個,完整清單在 /smear?tab=wrong。 */}
 			<section>

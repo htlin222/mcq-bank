@@ -68,8 +68,8 @@ import { Challenges } from "./routes/Challenges";
 import Videos from "./routes/Videos";
 import { Smear } from "./routes/Smear";
 import { SmearReview } from "./routes/SmearReview";
+import { SmearExam } from "./routes/SmearExam";
 import { SmearSession } from "./routes/SmearSession";
-import { StartDialog } from "./components/smear/StartDialog";
 import { SmearResult } from "./routes/SmearResult";
 import { SmearDx } from "./routes/SmearDx";
 
@@ -83,9 +83,6 @@ export default function App() {
 	const { me, loading } = useMe();
 	const navigate = useNavigate();
 	const { pathname, search } = useLocation();
-	// 手機底部導覽「全真」(主力是抹片時)—— 直接開對話框,不用先導去
-	// /smear 再自動彈出來。見 BottomNav 那段的說明。
-	const [smearExamDialogOpen, setSmearExamDialogOpen] = useState(false);
 
 	// 捲動時收起頂端/底部列(#136)。opt-out 的判準在 lib/autoHideChrome.ts ——
 	// 掛鉤本身還會再擋 md 以上與 prefers-reduced-motion。
@@ -313,10 +310,11 @@ export default function App() {
 					<Route path="/videos" element={<Videos />} />
 					<Route path="/videos/:slug" element={<Videos />} />
 					<Route path="/smear" element={<Smear />} />
-					{/* 複習模式的獨立主題選擇頁 —— 必須排在 /smear/dx/:id、/smear/s/:id
-					    之前沒有影響(路徑第二段是固定字面值 "review",不會跟
-					    ":id" 這種萬用參數衝突),但仍照慣例把具體路徑排在前面。 */}
+					{/* 複習/全真的獨立落地頁 —— 都必須排在 /smear/dx/:id、/smear/s/:id
+					    之前沒有影響(路徑第二段是固定字面值,不會跟 ":id" 這種萬用參數
+					    衝突),但仍照慣例把具體路徑排在前面。 */}
 					<Route path="/smear/review" element={<SmearReview />} />
+					<Route path="/smear/exam" element={<SmearExam />} />
 					<Route path="/smear/dx/:id" element={<SmearDx />} />
 					<Route path="/smear/s/:id" element={<SmearSession />} />
 					<Route path="/smear/s/:id/result" element={<SmearResult />} />
@@ -352,18 +350,15 @@ export default function App() {
 				{config.home.primary_mode === "smear" ? (
 					<>
 						{/* 主力是抹片時,這四顆改指向抹片對應功能 —— 見 config.toml
-						    [home] primary_mode 的說明。「複習」是真的路徑
-						    (/smear/review,主題式選擇頁 —— 見該檔頭的設計理由:
-						    全真模式抽樣邏輯跟主題篩選矛盾,所以沒有對應頁面,
-						    留著直接開對話框最簡單)。「搜尋」「收藏」都指向
+						    [home] primary_mode 的說明。「複習」「全真」都是真的路徑
+						    (/smear/review、/smear/exam —— 見兩者檔頭的設計理由:
+						    同一套心智模型,路由 landing 點按鈕開既有的 StartDialog;
+						    全真沒有主題卡片,因為它照題庫實際比例抽樣、模擬真考卷,
+						    主題式挑選跟它的用途矛盾)。「搜尋」「收藏」都指向
 						    /smear 底下不同分頁,share 同一個 pathname,只能靠
 						    ?tab= 分道,所以要靠 smearTabParam() 自己算 active。 */}
 						<BottomItem to="/smear/review" Icon={BookOpen} label="複習" />
-						<BottomAction
-							onClick={() => setSmearExamDialogOpen(true)}
-							Icon={PenLine}
-							label="全真"
-						/>
+						<BottomItem to="/smear/exam" Icon={PenLine} label="全真" />
 						<BottomItem
 							to="/smear?tab=search"
 							Icon={SearchIcon}
@@ -386,12 +381,6 @@ export default function App() {
 					</>
 				)}
 			</nav>
-			{smearExamDialogOpen && (
-				<StartDialog
-					initialMode="exam"
-					onClose={() => setSmearExamDialogOpen(false)}
-				/>
-			)}
 		</div>
 		</AnnotationRegistryProvider>
 		</ChatProvider>
@@ -528,31 +517,6 @@ function BottomItem({
 			<Icon size={20} />
 			<span>{label}</span>
 		</NavLink>
-	);
-}
-
-// 底部導覽裡不對應任何頁面、只是開一個對話框的動作鈕(目前只有抹片全真
-// 模式)——刻意不用 NavLink:它不「前往」任何地方,套用 NavLink 的 active
-// 高亮邏輯只會誤導使用者以為自己正停在某個畫面。視覺上跟 BottomItem 完全
-// 一樣,差別只在 <button> 換掉 <NavLink>。
-function BottomAction({
-	onClick,
-	Icon,
-	label,
-}: {
-	onClick: () => void;
-	Icon: LucideIcon;
-	label: string;
-}) {
-	return (
-		<button
-			type="button"
-			onClick={onClick}
-			className="flex flex-col items-center justify-center h-14 text-[11px] gap-0.5 text-ink-500 dark:text-ink-400"
-		>
-			<Icon size={20} />
-			<span>{label}</span>
-		</button>
 	);
 }
 

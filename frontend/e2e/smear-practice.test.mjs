@@ -225,7 +225,7 @@ function installSmearBackend(ctx, { mode, questions, sessionId, leakExamAnswer =
   };
   const calls = { create: [], answer: [], answerResponses: [], finishCount: 0 };
 
-  const pathRe = new RegExp(`^/api/smear/sessions/${sessionId}(?:/(answer|finish))?$`);
+  const pathRe = new RegExp(`^/api/smear/sessions/${sessionId}(?:/(answer|finish|mc-options))?$`);
 
   ctx.route('**/api/smear/**', async (route) => {
     const req = route.request();
@@ -283,6 +283,17 @@ function installSmearBackend(ctx, { mode, questions, sessionId, leakExamAnswer =
           };
         }),
       });
+    }
+
+    if (sub === 'mc-options' && method === 'POST') {
+      if (state.mode !== 'review') return json({ error: 'forbidden' }, 403);
+      const body = JSON.parse(req.postData() || '{}');
+      const idx = resolveIdx(state.questions, body.questionId);
+      const q = state.questions[idx];
+      // 固定不洗牌 —— 測試只需要「正解確實在清單裡」跟「選了正解會判對」，
+      // 不需要驗證洗牌演算法本身(那是 worker/lib/smear-mcq.test.ts 的事)。
+      const distractors = ['Distractor A', 'Distractor B', 'Distractor C', 'Distractor D'];
+      return json({ options: [q.canonical_long, ...distractors] });
     }
 
     if (sub === 'answer' && method === 'POST') {
@@ -483,7 +494,103 @@ test('複習模式:作答判定、俗名 tier 跟 miss 不同、提示只揭曉�
 });
 
 // ---------------------------------------------------------------------------
-// 測試 1b —— 複習模式:「直接看答案」提交空答案、走同一條 miss 揭曉路徑,
+// 測試 1a —— 複習模式「看選項」提示:輸入框換成單選清單,選正解會判對,
+// 可以改回輸入
+// ---------------------------------------------------------------------------
+test('看選項提示:輸入框換成單選清單,選正解會判對,可以改回輸入', async (t) => {
+  if (guard(t)) return;
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
+  const questions = [question('mc-q1', DX.apl)];
+  installSmearBackend(ctx, { mode: 'review', questions, sessionId: 'mc-sess' });
+
+  try {
+    const page = await ctx.newPage();
+    await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
+
+    await page.getByRole('button', { name: '複習模式' }).click();
+    await page.waitForURL('**/smear/review', { timeout: 10_000 });
+    await page.getByRole('button', { name: '全部主題' }).click();
+    await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
+    await page.getByLabel('題數').fill('5');
+    await page.getByRole('button', { name: '開始練習' }).click();
+    await page.waitForURL('**/smear/s/mc-sess', { timeout: 20_000 });
+
+    const input = page.getByPlaceholder('輸入診斷或細胞名稱…');
+    await input.waitFor();
+
+    // 空掃防線:先確認「看選項」按鈕真的找得到,再點它。
+    const mcButton = page.getByRole('button', { name: '看選項' });
+    await mcButton.waitFor();
+    await mcButton.click();
+
+    // 「看選項」到選項清單真的出現之間有 loading 狀態,輸入框在那段時間
+    // 還在 DOM 裡(AnswerInput.tsx 只在 mc.status === 'loaded' 才換成單選
+    // 清單)。先等正解選項真的出現,再斷言輸入框消失 —— 否則這條斷言會
+    // 競態:mock 回應稍有延遲就會在輸入框還沒被換掉時跑到。
+    const correctOption = page.getByRole('radio', { name: DX.apl.canonical_long });
+    await correctOption.waitFor();
+
+    // 選項清單真的出現之後,原本的輸入框應該已經被換掉了。
+    assert.equal(await input.count(), 0, '選項模式下,原本的輸入框應該不在 DOM 裡');
+
+    // 改回輸入 —— 驗證退路真的有效。
+    await page.getByRole('button', { name: '改用輸入' }).click();
+    await input.waitFor();
+    assert.equal(
+      await page.getByRole('radio').count(),
+      0,
+      '改用輸入之後,選項清單應該整個消失',
+    );
+
+    // 再次觸發,這次真的選正解送出。
+    await mcButton.click();
+    await correctOption.waitFor();
+    await correctOption.check();
+    await page.getByRole('button', { name: '提交答案' }).click();
+
+    await page.locator('[data-testid="grade-reveal"]').waitFor();
+    await page.getByText('完全正確').first().waitFor();
+  } finally {
+    await ctx.close();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 測試 1b —— 全真模式不該有「看選項」按鈕(那個模式全程不揭曉判定,
+// 這支端點的回應本身就會讓正解文字出現在畫面上,見 worker/routes/smear.ts
+// mc-options 端點的檔頭註解)
+// ---------------------------------------------------------------------------
+test('全真模式不該有「看選項」按鈕(role 查詢 + DOM 掃描)', async (t) => {
+  if (guard(t)) return;
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
+  installSmearBackend(ctx, { mode: 'exam', questions: [question('mc-exam-q1', DX.apl)], sessionId: 'mc-exam-sess' });
+
+  try {
+    const page = await ctx.newPage();
+    await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: '全真模式' }).click();
+    await page.waitForURL('**/smear/exam', { timeout: 10_000 });
+    await page.getByRole('button', { name: '開始全真模式' }).click();
+    await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
+    await page.getByLabel('題數').fill('5');
+    await page.getByRole('button', { name: '開始練習' }).click();
+    await page.waitForURL('**/smear/s/mc-exam-sess', { timeout: 20_000 });
+    await page.getByPlaceholder('輸入診斷或細胞名稱…').waitFor();
+
+    assert.equal(
+      await page.getByRole('button', { name: '看選項' }).count(),
+      0,
+      '全真模式不該有「看選項」按鈕(role 查詢)',
+    );
+    const html = await page.content();
+    assert.ok(!html.includes('看選項'), '全真模式的「看選項」要整個不在 DOM 裡');
+  } finally {
+    await ctx.close();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 測試 1c —— 複習模式:「直接看答案」提交空答案、走同一條 miss 揭曉路徑,
 // 且不管輸入框裡打了什麼都送空字串。
 // ---------------------------------------------------------------------------
 test('複習模式:「直接看答案」送出空答案、顯示 miss 判定與正解,且忽略半途打的字', async (t) => {
@@ -583,6 +690,8 @@ test('全真模式:交卷前頁面上找不到任何一個正解字串,交卷後
     await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
 
     await page.getByRole('button', { name: '全真模式' }).click();
+    await page.waitForURL('**/smear/exam', { timeout: 10_000 });
+    await page.getByRole('button', { name: '開始全真模式' }).click();
     await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
     await page.getByLabel('題數').fill('5');
     await page.getByRole('button', { name: '開始練習' }).click();
@@ -657,6 +766,22 @@ test('全真模式:交卷前頁面上找不到任何一個正解字串,交卷後
   }
 });
 
+test('全真模式有自己的網址,跟複習模式對稱', async (t) => {
+  if (guard(t)) return;
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
+  installSmearBackend(ctx, { mode: 'exam', questions: [question('sym-q1', DX.apl)], sessionId: 'sym-sess' });
+
+  try {
+    const page = await ctx.newPage();
+    await page.goto(`${server.origin}/smear/exam`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('heading', { name: '全真模式' }).waitFor();
+    await page.getByRole('button', { name: '開始全真模式' }).click();
+    await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
+  } finally {
+    await ctx.close();
+  }
+});
+
 // ---------------------------------------------------------------------------
 // 測試 2b —— 驗證上面那支「不洩漏」測試真的抓得到迴歸,不是空掃的綠燈。
 //
@@ -681,6 +806,8 @@ test('（自我驗證)若 exam 模式的 answer 回應意外帶了判定,畫面�
     const page = await ctx.newPage();
     await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: '全真模式' }).click();
+    await page.waitForURL('**/smear/exam', { timeout: 10_000 });
+    await page.getByRole('button', { name: '開始全真模式' }).click();
     await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
     await page.getByLabel('題數').fill('5');
     await page.getByRole('button', { name: '開始練習' }).click();
@@ -814,8 +941,9 @@ for (const width of [390, 320]) {
 // 兩個獨立入口各自都要防到,不是修一個就順便涵蓋另一個:
 //   - /smear/review(SmearReview.tsx)—— 「複習模式」現在導來這裡,主題卡
 //     片清單直接讀 meta.topics。
-//   - StartDialog.tsx —— 「全真模式」仍然直接開這顆對話框,它自己也獨立
-//     打一次 /api/smear/meta(不是從 SmearReview 收 props 沿用)。
+//   - /smear/exam(SmearExam.tsx)—— 「全真模式」現在導來這裡,按下「開始
+//     全真模式」才打開既有的 StartDialog,它自己也獨立打一次
+//     /api/smear/meta(不是從 SmearReview 收 props 沿用)。
 // ---------------------------------------------------------------------------
 test('複習模式選擇主題頁:/api/smear/meta 回應缺 topics 時顯示讀取失敗,不是整頁空白', async (t) => {
   if (guard(t)) return;
@@ -864,6 +992,8 @@ test('全真模式對話框:/api/smear/meta 回應缺 topics 時顯示讀取失�
     await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
 
     await page.getByRole('button', { name: '全真模式' }).click();
+    await page.waitForURL('**/smear/exam', { timeout: 10_000 });
+    await page.getByRole('button', { name: '開始全真模式' }).click();
     await page.getByText('主題資料格式不正確').waitFor({ timeout: 10_000 });
 
     assert.deepEqual(pageErrors, [], `不該有未捕捉例外:\n${pageErrors.join('\n')}`);

@@ -6,6 +6,7 @@ import {
 	fetchSmearSession,
 	submitSmearAnswer,
 	finishSmearSession,
+	fetchSmearMcqOptions,
 	SMEAR_TOPIC_LABELS,
 	type SmearSessionDetail,
 	type SmearSessionQuestion,
@@ -335,6 +336,12 @@ export function SmearSession() {
 					topicHint={SMEAR_TOPIC_LABELS[current.topic] ?? current.topic}
 					mode={session.mode}
 					onSubmit={(value, hintUsed) => void handleSubmit(current, value, hintUsed)}
+					onRequestMcOptions={
+						session.mode === "review"
+							? () =>
+									fetchSmearMcqOptions(session.id, current.id).then((r) => r.options)
+							: undefined
+					}
 				/>
 			) : currentResult.kind === "grade" ? (
 				<>

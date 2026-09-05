@@ -75,7 +75,7 @@ export function largestRemainder(
   return result;
 }
 
-function fisherYatesShuffle<T>(items: T[], rng: () => number): T[] {
+export function fisherYatesShuffle<T>(items: T[], rng: () => number): T[] {
   const a = items.slice();
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
