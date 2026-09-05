@@ -425,20 +425,33 @@ smearCommunityRoutes.post("/submissions/:id/approve", async (c) => {
 	const prompt = dx.qtype === "cell" ? "What cell?" : "What disease?";
 	const questionId = `submission-${submission.id}`;
 
-	await c.env.DB.batch([
-		c.env.DB.prepare(
-			`UPDATE smear_submissions
-         SET status = 'approved', matched_dx_id = ?, reviewed_by = ?, reviewed_at = ?
-       WHERE id = ? AND status = 'pending'`,
-		).bind(body.dxId, email, now, id),
-		// v1 簡化:不做伺服器端二次裁切,image_key_view / image_key_full 都指向
-		// 同一張已上傳的圖 —— 這是已知的限制,不是 bug(見任務說明)。
-		c.env.DB.prepare(
-			`INSERT INTO smear_questions
-         (id, dx_id, source, source_ref, image_key_view, image_key_full, prompt, image_note, attribution, created_at)
-       VALUES (?, ?, 'submission', ?, ?, ?, ?, NULL, NULL, ?)`,
-		).bind(questionId, body.dxId, submission.id, submission.image_key, submission.image_key, prompt, now),
-	]);
+	// TOCTOU: the SELECT above and this write aren't one atomic step, so two
+	// concurrent approve calls can both pass the 'pending' check above. The
+	// UPDATE's own `WHERE status = 'pending'` guard makes the loser's write a
+	// no-op, but `questionId` is derived from `submission.id` (not random),
+	// so the loser's INSERT collides on smear_questions' primary key and the
+	// whole batch — both statements — rolls back atomically (verified locally:
+	// re-running approve after manually resetting status back to 'pending'
+	// throws and leaves both tables exactly as they were). Catch that instead
+	// of letting it surface as a bare 500.
+	try {
+		await c.env.DB.batch([
+			c.env.DB.prepare(
+				`UPDATE smear_submissions
+           SET status = 'approved', matched_dx_id = ?, reviewed_by = ?, reviewed_at = ?
+         WHERE id = ? AND status = 'pending'`,
+			).bind(body.dxId, email, now, id),
+			// v1 簡化:不做伺服器端二次裁切,image_key_view / image_key_full 都指向
+			// 同一張已上傳的圖 —— 這是已知的限制,不是 bug(見任務說明)。
+			c.env.DB.prepare(
+				`INSERT INTO smear_questions
+           (id, dx_id, source, source_ref, image_key_view, image_key_full, prompt, image_note, attribution, created_at)
+         VALUES (?, ?, 'submission', ?, ?, ?, ?, NULL, NULL, ?)`,
+			).bind(questionId, body.dxId, submission.id, submission.image_key, submission.image_key, prompt, now),
+		]);
+	} catch {
+		return c.json({ error: "submission already resolved" }, 409);
+	}
 
 	// 刻意不動 smear_dx_notes —— explanation_text 是給審核者判斷用的脈絡,
 	// 不是自動併入共筆詳解的內容。那是另一個編輯行為,而且目前這張表還沒有
@@ -468,13 +481,22 @@ smearCommunityRoutes.post("/submissions/:id/reject", async (c) => {
 	}
 
 	const now = Date.now();
-	await c.env.DB.prepare(
+	const res = await c.env.DB.prepare(
 		`UPDATE smear_submissions
        SET status = 'rejected', reviewed_by = ?, reviewed_at = ?, review_note = ?
      WHERE id = ? AND status = 'pending'`,
 	)
 		.bind(email, now, body.reviewNote ?? null, id)
 		.run();
+	// TOCTOU: the SELECT above and this UPDATE aren't one atomic step, so a
+	// concurrent approve can flip the row between the two. Unlike approve
+	// (whose second write is a fixed-id INSERT that collides and rolls the
+	// whole batch back), this UPDATE has no such backstop — without checking
+	// `meta.changes`, a request that lost the race would still get back
+	// `{ok: true}` while the submission was actually approved underneath it.
+	if ((res.meta?.changes ?? 0) === 0) {
+		return c.json({ error: "submission already resolved" }, 409);
+	}
 
 	// R2 物件保留原地 —— 被拒的投稿可能被重新考慮,刪除不是這支的責任。
 	return c.json({ ok: true });
