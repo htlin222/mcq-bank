@@ -1,0 +1,328 @@
+{
+  "generated_at": "2026-09-05T15:50:22.526Z",
+  "shots": [
+    {
+      "name": "landing",
+      "file": "landing.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "m-landing",
+      "file": "m-landing.webp",
+      "mobile": true,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "home-smear",
+      "file": "home-smear.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "home-exam",
+      "file": "home-exam.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "m-home",
+      "file": "m-home.webp",
+      "mobile": true,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "study-plan",
+      "file": "study-plan.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "review-index",
+      "file": "review-index.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "year-list",
+      "file": "year-list.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "question",
+      "file": "question.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "question-answered",
+      "file": "question-answered.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "question-revealed",
+      "file": "question-revealed.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "question-dark",
+      "file": "question-dark.webp",
+      "mobile": false,
+      "theme": "dark",
+      "errors": []
+    },
+    {
+      "name": "question-eink",
+      "file": "question-eink.webp",
+      "mobile": false,
+      "theme": "eink",
+      "errors": []
+    },
+    {
+      "name": "m-question",
+      "file": "m-question.webp",
+      "mobile": true,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "m-question-explanation",
+      "file": "m-question-explanation.webp",
+      "mobile": true,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "due",
+      "file": "due.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "m-due",
+      "file": "m-due.webp",
+      "mobile": true,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "wrong",
+      "file": "wrong.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "search",
+      "file": "search.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "weakness-map",
+      "file": "weakness-map.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "bookmarks",
+      "file": "bookmarks.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "challenges",
+      "file": "challenges.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "exam-running",
+      "file": "exam-running.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "m-exam-running",
+      "file": "m-exam-running.webp",
+      "mobile": true,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "exam-submit-dialog",
+      "file": "exam-submit-dialog.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "exam-result",
+      "file": "exam-result.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "custom-test",
+      "file": "custom-test.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "exam-history",
+      "file": "exam-history.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "smear-index",
+      "file": "smear-index.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "smear-setup",
+      "file": "smear-setup.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "smear-review-topics",
+      "file": "smear-review-topics.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "smear-session",
+      "file": "smear-session.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "m-smear-session",
+      "file": "m-smear-session.webp",
+      "mobile": true,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "smear-graded",
+      "file": "smear-graded.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "m-smear-graded",
+      "file": "m-smear-graded.webp",
+      "mobile": true,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "smear-result",
+      "file": "smear-result.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "m-smear-result",
+      "file": "m-smear-result.webp",
+      "mobile": true,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "smear-dx",
+      "file": "smear-dx.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "smear-search",
+      "file": "smear-search.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "smear-history",
+      "file": "smear-history.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "lectures",
+      "file": "lectures.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "lecture-reader",
+      "file": "lecture-reader.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "notes",
+      "file": "notes.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "videos",
+      "file": "videos.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "profile",
+      "file": "profile.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    },
+    {
+      "name": "play",
+      "file": "play.webp",
+      "mobile": false,
+      "theme": "light",
+      "errors": []
+    }
+  ],
+  "failures": []
+}

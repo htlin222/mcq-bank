@@ -91,3 +91,6 @@ scripts/data/
 # .skill 發出去的,只帶 pyproject.toml,所以這份 lock 不會被送到任何人手上
 # —— 留在 repo 裡只會慢慢漂掉。
 .claude/skills/*/uv.lock
+
+# 文件截圖的中間產物(frontend/e2e/screenshots.mjs)
+.screenshots-tmp/
