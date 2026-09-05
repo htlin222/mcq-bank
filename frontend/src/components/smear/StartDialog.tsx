@@ -36,9 +36,12 @@ const MAX_N = 200;
 
 export function StartDialog({
 	initialMode,
+	initialTopics,
 	onClose,
 }: {
 	initialMode: SmearMode;
+	/** 預選主題(例如從錯題本/成績頁「只練這幾個主題」進來)。省略時預設全選。 */
+	initialTopics?: string[];
 	onClose: () => void;
 }) {
 	const navigate = useNavigate();
@@ -74,7 +77,15 @@ export function StartDialog({
 			.then((m) => {
 				if (cancelled) return;
 				setMeta(m);
-				setTopics(new Set(m.topics)); // 預設全選
+				// initialTopics 只在有交集時採用 —— 題庫變動導致某個弱點主題消失時,
+				// 退回「預設全選」比開出一個一題都沒有的空篩選組合更安全。這個
+				// component 每次開啟都是全新掛載(見呼叫端的 `{cond && <StartDialog
+				// .../>}`),所以只在 mount 時讀一次 initialTopics 完全足夠,不需要
+				// 放進 deps 或另外處理它之後變動的情況。
+				const preselected = initialTopics?.length
+					? m.topics.filter((t) => initialTopics.includes(t))
+					: [];
+				setTopics(new Set(preselected.length > 0 ? preselected : m.topics));
 			})
 			.catch((e) => {
 				if (!cancelled) {
@@ -240,6 +251,11 @@ export function StartDialog({
 						<legend className="text-xs uppercase tracking-wide text-ink-400 mb-2">
 							主題篩選
 						</legend>
+						{initialTopics?.length ? (
+							<p className="text-[11px] text-accent mb-2">
+								已依你的弱點主題預選,可自行調整。
+							</p>
+						) : null}
 						{metaError ? (
 							<p className="text-accent text-xs">{metaError}</p>
 						) : meta === null ? (

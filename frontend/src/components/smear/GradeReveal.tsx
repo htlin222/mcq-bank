@@ -75,7 +75,7 @@ export function GradeReveal({ grade }: { grade: SmearGradeDisplay }) {
 
 	return (
 		<div
-			className="border border-ink-200 dark:border-ink-700 rounded-lg p-4 space-y-3"
+			className="animate-fade-in border border-ink-200 dark:border-ink-700 rounded-lg p-4 space-y-3"
 			data-testid="grade-reveal"
 		>
 			<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
