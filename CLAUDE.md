@@ -718,10 +718,27 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 ⚠️ **加分頁會弄紅 `lectures-tabs.test.mjs`** —— 那支釘死「四顆分頁都在」當空掃
 防線。那是它該有的行為,改數字時要連標題那條(`new Set(titles).size`)一起改。
 
+### 抹片練習: 模組總覽在 `docs/smear-overview.md`
+
+抹片判讀的填空練習,跟 MCQ 在資料層完全分開、以「診斷」而非「題目」為組織
+單位。這個模組是 2026-09-03 到 09-06 三天內以 12 個 PR 建起來的,設計理由
+散在 `docs/plans/2026-09-0{3,5}-smear-*.md` 與各檔檔頭;**`docs/smear-overview.md`
+把它們收成一頁**:資料模型、程式地圖、端點、防洩題的四道閘、已決定過的方案、
+已知地雷、還沒做的缺口與建議順序。動到 `smear_*` / `worker/routes/smear*` /
+`components/smear/` 之前先讀它。兩條在那裡也寫著、但值得在這裡先看到的:
+
+- **`pnpm smear:import --remote` 是 delete-then-insert,會清掉
+  `smear_sessions` / `smear_answers` / `smear_term_votes`。** 正式機一有真人紀錄
+  就不能再跑,而改詳解、補詞表、修 `aml_m2` 全都要重灌 —— 下一輪的第一件事
+  是把內容表與使用者表拆開。
+- **全真模式交卷前不揭曉任何判定資訊**,所有複習限定的功能(提示、看答案、
+  看選項、答後面板)都是 render-level 條件 + 伺服器再擋一次,而 e2e 用「整頁
+  掃不到正解字串」守著。新增複習限定功能要補進那條掃描。
+
 ### 抹片 × 筆試操作一致性:入口對稱與看選項提示
 
 `docs/plans/2026-09-05-smear-exam-parity-design.md`。抹片練習跟筆試 MCQ
-在**資料層**刻意完全分開(見上面「抹片練習」那節),但首頁改成抹片主力
+在**資料層**刻意完全分開(見上一節與 `docs/smear-overview.md`),但首頁改成抹片主力
 落地頁之後,**互動層**的落差開始被感受到:用慣筆試的人進到抹片會覺得
 「同樣的動作,這裡卻不一樣」。
 
