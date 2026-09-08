@@ -27,7 +27,7 @@
     "anki:build:mine": "uv run --with genanki scripts/build-anki.py --merge-basic",
     "seed:lecture-notes": "node --experimental-strip-types scripts/seed-lecture-notes.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test 'worker/**/*.test.ts' 'frontend/src/lib/**/*.test.ts' 'frontend/src/chat/**/*.test.ts' 'scripts/lib/**/*.test.mjs'",
+    "test": "node --test 'worker/**/*.test.ts' 'frontend/src/lib/**/*.test.ts' 'frontend/src/chat/**/*.test.ts' 'scripts/lib/**/*.test.mjs' 'scripts/smear/**/*.test.ts'",
     "test:webkit": "pnpm --dir frontend build && node --test --test-concurrency=2 'frontend/e2e/*.test.mjs'",
     "test:mcq-skill": "node --test worker/e2e/mcq-free-notes.test.mjs"
   },
