@@ -3,10 +3,14 @@
  * Import 抹片練習 (smear practice) content into R2 + D1.
  *
  * Usage:
- *   node --experimental-strip-types scripts/smear/import.ts [--local|--remote] [--force]
+ *   node --experimental-strip-types scripts/smear/import.ts [--local|--remote] [--force] [--prune]
  *
  *   --local   target .wrangler/state emulation (default)
  *   --remote  target prod R2 + D1
+ *   --prune   also delete diagnoses/questions that are no longer in the source
+ *             files. OFF by default because both deletions cascade into user
+ *             data (dx → notes/comments/bookmarks; question → answer history).
+ *             See scripts/smear/sql.ts.
  *   --force   re-upload to R2 even if the object already exists (default:
  *             skip — mirrors scripts/import-lectures.ts's --force)
  *
@@ -18,16 +22,18 @@
  *      a hard error (already verified 203/203 during the A3 audit; this is
  *      a re-check, not a first check).
  *   3. Upload exam page images + ASH supplementary images to R2.
- *   4. Delete-then-insert every smear_* table (idempotent re-run).
+ *   4. Upsert the content tables (idempotent re-run; user tables untouched).
  *
  * See docs/plans/2026-09-03-smear-practice-design.md and
  * migrations/0043_smear.sql for the schema this fills in.
  *
- * ⚠️ Re-running this script wipes smear_sessions / smear_answers /
- *    smear_term_votes ENTIRELY (not just import-derived rows) — see the
- *    "delete-then-insert" section below. That's fine pre-launch (no real
- *    user data exists yet); don't run this against a live remote DB without
- *    accounting for that.
+ * ⚠️ This USED TO wipe smear_sessions / smear_answers / smear_term_votes (and,
+ *    via 0044's ON DELETE CASCADE, smear_notes / smear_comments /
+ *    smear_dx_bookmarks) on every run. It no longer does: content tables are
+ *    upserted and user tables are never named. The guarantee is enforced by
+ *    scripts/smear/sql.test.ts, not by this comment — a comment did not stop
+ *    the same class of bug in worker/routes/questions.ts either (see CLAUDE.md
+ *    "D1 的 bind 是位置對應的").
  */
 
 import { readFile, mkdir, writeFile, stat, readdir } from "node:fs/promises";
@@ -42,6 +48,9 @@ import { cfg } from "../lib/cfg.mjs";
 // reimplementation of normalizeTerm would let the two diverge (called out
 // explicitly in worker/lib/smear-grade.ts's own header comment).
 import { normalizeTerm } from "../../worker/lib/smear-grade.ts";
+// SQL generation is pure and tested separately (scripts/smear/sql.test.ts) —
+// that is where the "never touch user tables" guarantee is actually enforced.
+import { buildImportStatements } from "./sql.ts";
 
 const execFileP = promisify(execFile);
 
@@ -110,6 +119,7 @@ async function main() {
 	const args = process.argv.slice(2);
 	const remote = args.includes("--remote");
 	const force = args.includes("--force");
+	const prune = args.includes("--prune");
 	const mode = remote ? "--remote" : "--local";
 
 	console.log(`🩸 Importing smear practice content (${mode})`);
@@ -405,7 +415,8 @@ async function main() {
 
 	// ---------- Step: smear_terms rows ----------
 	type TermRow = {
-		id: string;
+		// id 不在這裡 —— 主鍵由 sql.ts 的 termKey(dx_id, norm) 算出來。
+		// 位置式 id 會在改詞表之後撞 PRIMARY KEY,見那支的註解。
 		dx_id: string;
 		text: string;
 		norm: string;
@@ -423,7 +434,7 @@ async function main() {
 		// crash the insert. Keep the first-listed spelling per dx and drop
 		// the rest rather than pick a "more correct" one.
 		const seenNorms = new Set<string>();
-		dx.terms.forEach((t, idx) => {
+		dx.terms.forEach((t) => {
 			const norm = normalizeTerm(t.text);
 			if (seenNorms.has(norm)) {
 				dupSkipped++;
@@ -431,7 +442,6 @@ async function main() {
 			}
 			seenNorms.add(norm);
 			termRows.push({
-				id: `${dx.dx_id}-t${idx}`,
 				dx_id: dx.dx_id,
 				text: t.text,
 				norm,
@@ -445,17 +455,19 @@ async function main() {
 			(dupSkipped > 0 ? ` (${dupSkipped} duplicate-norm variant(s) dropped)` : ""),
 	);
 
-	// ---------- Step: FTS rows ----------
+	// ---------- Build SQL, upsert content only, in chunks ----------
+	// Statement generation lives in ./sql.ts (pure, tested). The user-data
+	// guarantee is asserted there; this file only chunks and ships.
 	const now = Date.now();
-	const dxNoteById = new Map(dxNotes.map((n) => [n.dx_id, n]));
-	const termsByDx = new Map<string, string[]>();
-	for (const t of termRows) {
-		const arr = termsByDx.get(t.dx_id) ?? [];
-		arr.push(t.text);
-		termsByDx.set(t.dx_id, arr);
-	}
+	const statements = buildImportStatements({
+		dx: dxList,
+		terms: termRows,
+		questions: questionRows,
+		notes: dxNotes,
+		now,
+		prune,
+	});
 
-	// ---------- Build one big SQL file, delete-then-insert, in chunks ----------
 	const CHUNK = 50;
 	const files: string[] = [];
 	let fileIdx = 0;
@@ -466,98 +478,8 @@ async function main() {
 		files.push(path);
 	}
 
-	// Deletes — explicit, reverse dependency order. Written as their own
-	// chunk so they always run before any insert, regardless of chunk size.
-	await flush([
-		"DELETE FROM smear_fts;",
-		"DELETE FROM smear_answers;",
-		"DELETE FROM smear_sessions;",
-		"DELETE FROM smear_term_votes;",
-		"DELETE FROM smear_terms;",
-		"DELETE FROM smear_dx_notes;",
-		"DELETE FROM smear_questions;",
-		"DELETE FROM smear_dx;",
-	]);
-
-	// smear_dx
-	for (let i = 0; i < dxList.length; i += CHUNK) {
-		const chunk = dxList.slice(i, i + CHUNK);
-		await flush(
-			chunk.map(
-				(d) =>
-					`INSERT INTO smear_dx (id, canonical_long, canonical_abbrev, topic, qtype, created_at) VALUES ` +
-					`('${esc(d.dx_id)}', '${esc(d.canonical_long)}', ${sqlStr(d.canonical_abbrev)}, '${esc(d.topic)}', '${esc(d.qtype)}', ${now});`,
-			),
-		);
-	}
-
-	// smear_terms
-	for (let i = 0; i < termRows.length; i += CHUNK) {
-		const chunk = termRows.slice(i, i + CHUNK);
-		await flush(
-			chunk.map(
-				(t) =>
-					`INSERT INTO smear_terms (id, dx_id, text, norm, tier, form, status, rationale, proposed_by, created_at, resolved_at) VALUES ` +
-					`('${esc(t.id)}', '${esc(t.dx_id)}', '${esc(t.text)}', '${esc(t.norm)}', '${esc(t.tier)}', '${esc(t.form)}', 'accepted', NULL, NULL, ${now}, NULL);`,
-			),
-		);
-	}
-
-	// smear_questions (exam + ash)
-	for (let i = 0; i < questionRows.length; i += CHUNK) {
-		const chunk = questionRows.slice(i, i + CHUNK);
-		await flush(
-			chunk.map(
-				(q) =>
-					`INSERT INTO smear_questions (id, dx_id, source, source_ref, source_url, attribution, image_key_view, image_key_full, prompt, image_note, created_at) VALUES ` +
-					`('${esc(q.id)}', '${esc(q.dx_id)}', '${esc(q.source)}', ${sqlStr(q.source_ref)}, ${sqlStr(q.source_url)}, ${sqlStr(q.attribution)}, '${esc(q.image_key_view)}', '${esc(q.image_key_full)}', ${sqlStr(q.prompt)}, ${sqlStr(q.image_note)}, ${now});`,
-			),
-		);
-	}
-
-	// smear_dx_notes
-	for (let i = 0; i < dxNotes.length; i += CHUNK) {
-		const chunk = dxNotes.slice(i, i + CHUNK);
-		await flush(
-			chunk.map((n) => {
-				const contentJson = JSON.stringify(n.content_json);
-				const relatedIds =
-					n.related_dx_ids && n.related_dx_ids.length > 0
-						? JSON.stringify(n.related_dx_ids)
-						: null;
-				return (
-					`INSERT INTO smear_dx_notes (dx_id, content_json, related_dx_ids, version, updated_by, updated_at, editing_by, editing_until) VALUES ` +
-					`('${esc(n.dx_id)}', '${esc(contentJson)}', ${sqlStr(relatedIds)}, 1, NULL, ${now}, NULL, NULL);`
-				);
-			}),
-		);
-	}
-
-	// smear_fts
-	const ftsRows = dxList.map((dx) => {
-		const note = dxNoteById.get(dx.dx_id);
-		const noteText = note ? extractPlainText(note.content_json) : "";
-		const canonical = [dx.canonical_long, dx.canonical_abbrev]
-			.filter(Boolean)
-			.join(" ");
-		const terms = (termsByDx.get(dx.dx_id) ?? []).join(" ");
-		return {
-			dx_id: dx.dx_id,
-			canonical,
-			terms,
-			topic: dx.topic,
-			note: noteText,
-		};
-	});
-	for (let i = 0; i < ftsRows.length; i += CHUNK) {
-		const chunk = ftsRows.slice(i, i + CHUNK);
-		await flush(
-			chunk.map(
-				(r) =>
-					`INSERT INTO smear_fts (dx_id, canonical, terms, topic, note) VALUES ` +
-					`('${esc(r.dx_id)}', '${esc(r.canonical)}', '${esc(r.terms)}', '${esc(r.topic)}', '${esc(r.note)}');`,
-			),
-		);
+	for (let i = 0; i < statements.length; i += CHUNK) {
+		await flush(statements.slice(i, i + CHUNK));
 	}
 
 	console.log(`\n💾 Writing ${files.length} SQL chunk(s) to D1 (${mode})…`);
@@ -573,7 +495,8 @@ async function main() {
 		`   smear_questions: ${questionRows.length} (exam=${examUploadCount / 2}, ash=${ashUploadCount})`,
 	);
 	console.log(`   smear_dx_notes:  ${dxNotes.length}`);
-	console.log(`   smear_fts:       ${ftsRows.length}`);
+	console.log(`   smear_fts:       rebuilt from D1 (${dxList.length} dx)`);
+	console.log(`   prune:           ${prune ? "ON — stale dx/questions deleted" : "off"}`);
 }
 
 // ------------------------------------------------------------
@@ -606,26 +529,8 @@ async function loadAshIndex(): Promise<Map<string, AshIndexEntry>> {
 	return map;
 }
 
-/** Walks a TipTap doc, concatenating all `type: 'text'` node text with spaces. */
-function extractPlainText(node: unknown): string {
-	const out: string[] = [];
-	function walk(n: any) {
-		if (!n || typeof n !== "object") return;
-		if (n.type === "text" && typeof n.text === "string") out.push(n.text);
-		if (Array.isArray(n.content)) for (const c of n.content) walk(c);
-	}
-	walk(node);
-	return out.join(" ").replace(/\s+/g, " ").trim();
-}
 
-function esc(s: string): string {
-	return s.replace(/'/g, "''");
-}
 
-/** SQL literal for a nullable string column: NULL or a quoted/escaped string. */
-function sqlStr(s: string | null | undefined): string {
-	return s == null ? "NULL" : `'${esc(s)}'`;
-}
 
 /** Runs `fn` over `items` with at most `concurrency` in flight at once. */
 async function runPool<T>(

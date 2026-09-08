@@ -262,7 +262,7 @@ Worker 程式碼裡的寫法固定是 `c.env.DB.prepare(sql).bind(...).first<T>(
 | 詳解(markdown)     | `python3 scripts/seed-explanations.py --local\|--remote`                                                  | `explanations.content_json`           | 讀 `years/<n>/batches/*.json` 的 `explanation_md`                                                                       |
 | 講義 PDF           | `pnpm import:lectures [--remote] [--pdf-dir ./pdf]`                                                       | R2 + `lecture_docs` / `lecture_pages` | 預設 local;PDF 在 gitignored 的 `pdf/`                                                                                  |
 | 教科書             | `node --experimental-strip-types scripts/import-textbook.ts --master <pdf> [--chapters 76,83] [--remote]` | 同上,`kind='textbook'`                | 先用 `--chapters` 小批試                                                                                                |
-| 抹片練習           | `pnpm smear:import [--remote]`                                                                            | R2 + `smear_*`                        | ⚠️ delete-then-insert **會清掉 `smear_sessions` / `smear_answers`**,對有真人資料的 remote 要先想清楚                    |
+| 抹片練習           | `pnpm smear:import [--remote] [--prune]`                                                                  | R2 + 內容 `smear_*`                   | 只 upsert 內容表,使用者表不碰(`scripts/smear/sql.ts`)。`--prune` 才刪過期的診斷/題目,而那會沿 CASCADE 帶走筆記與作答歷史 |
 | 向量索引           | `pnpm vectors:backfill [--dry-run]`                                                                       | Vectorize                             | 相似題 / 弱點地圖沒資料時先查這個有沒有跑過                                                                             |
 | Access 名單        | `pnpm sync-users`                                                                                         | CF Access policy + `users`            | 冪等                                                                                                                    |
 
@@ -727,10 +727,12 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 已知地雷、還沒做的缺口與建議順序。動到 `smear_*` / `worker/routes/smear*` /
 `components/smear/` 之前先讀它。兩條在那裡也寫著、但值得在這裡先看到的:
 
-- **`pnpm smear:import --remote` 是 delete-then-insert,會清掉
-  `smear_sessions` / `smear_answers` / `smear_term_votes`。** 正式機一有真人紀錄
-  就不能再跑,而改詳解、補詞表、修 `aml_m2` 全都要重灌 —— 下一輪的第一件事
-  是把內容表與使用者表拆開。
+- **`pnpm smear:import` 只擁有內容表**(`smear_dx` / `terms` / `questions` /
+  `dx_notes` / `fts`),使用者表的名字一個都不會出現在它產出的 SQL 裡 ——
+  `scripts/smear/sql.test.ts` 守著這條,不是靠註解。它 2026-09-08 之前是
+  delete-then-insert,而**壞法有兩支**:有投稿掛著 `matched_dx_id` 時 FK 失敗、
+  整批 rollback(匯入當掉);沒有那種引用時靜默清空。正式機一直沒出事是因為
+  前者,不是因為它安全。
 - **全真模式交卷前不揭曉任何判定資訊**,所有複習限定的功能(提示、看答案、
   看選項、答後面板)都是 render-level 條件 + 伺服器再擋一次,而 e2e 用「整頁
   掃不到正解字串」守著。新增複習限定功能要補進那條掃描。

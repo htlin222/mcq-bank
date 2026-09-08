@@ -56,9 +56,8 @@
 
 **結論:功能面已完整上線,但實際上還沒有真人用過。** 這件事對規劃的意義有兩個:
 
-- `scripts/smear/import.ts` 的 delete-then-insert **會清掉 `smear_sessions` /
-  `smear_answers` / `smear_term_votes`**,現在重跑還無痛;一旦有人開始用,這條路
-  就要先改(§11 的第一項)。
+- ~~`scripts/smear/import.ts` 的 delete-then-insert 會清掉使用者資料~~ ——
+  2026-09-08 修掉了(§7、§10),現在重跑只動內容表。
 - 提示鏈、提報投票、投稿審核的設計假設(門檻 3 票、俗名比例、topic 分布)全部
   沒有真實資料驗證過。下一輪與其加功能,不如先讓 20 個人真的用一週再看數字。
 
@@ -228,9 +227,40 @@ scripts/smear/
 ```
 
 ```bash
-pnpm smear:import            # local(預設)
-pnpm smear:import --remote   # ⚠️ 會清掉 smear_sessions / smear_answers / smear_term_votes
+pnpm smear:import                    # local(預設)
+pnpm smear:import --remote           # 只 upsert 內容表,不碰任何使用者資料
+pnpm smear:import --remote --prune   # 另外刪掉來源檔已經沒有的診斷與題目(會連帶動到使用者資料,見下)
 ```
+
+**匯入只擁有內容表**(`smear_dx` / `smear_terms` / `smear_questions` /
+`smear_dx_notes` / `smear_fts`),使用者表(`sessions` / `answers` / `term_votes` /
+`bookmarks` / `notes` / `comments` / `submissions`)的名字**一個都不會出現在產出的
+SQL 裡** —— 這條由 `scripts/smear/sql.test.ts` 守著,不是靠註解。
+
+內容表裡也有社群寫進去的列,各有一道覆寫閘:
+
+| 社群寫的                        | 閘                                        | 少了它的症狀                        |
+| ------------------------------- | ----------------------------------------- | ----------------------------------- |
+| 提報通過的寫法 / 被否決的墓碑    | `WHERE smear_terms.proposed_by IS NULL`   | 墓碑被翻回 accepted,同一個詞反覆提報 |
+| 核准的投稿題                     | `WHERE smear_questions.source <> 'submission'` | 投稿題被覆寫                    |
+| 站上編輯過的詳解                 | `WHERE smear_dx_notes.updated_by IS NULL` | 別人寫的詳解被機器初稿蓋掉            |
+
+**`--prune` 預設關閉,因為那兩種刪除都會沿 CASCADE 帶走使用者資料**(診斷 →
+筆記/討論/收藏;題目 → 作答歷史)。過期的**詞條**則不必等 `--prune` 就會清掉 ——
+留著一個拼錯的 alias 會讓使用者打錯字被判成答對,那是判定錯誤不是資料陳舊;
+但會避開社群提報的列與任何有人投過票的列。
+
+⚠️ **詞條的主鍵由 `(dx_id, norm)` 算出來(`termKey()`),不是它在 `dx.json`
+陣列裡的位置。** 位置式 id(`${dx_id}-t${idx}`)在「改一個錯字」或「插一個詞」
+之後,同一個 id 會配到不同的 `norm`:INSERT 撞的是 PRIMARY KEY,而 upsert 的
+衝突目標是 `UNIQUE(dx_id, norm)` —— **目標不同,SQLite 直接報錯而不是更新**,
+整批匯入中斷在半路。實測錯誤是 `UNIQUE constraint failed: smear_terms.id`。
+**原樣重跑不會壞**(兩個鍵指向同一列),所以手測與 CI 都看不到 —— 只有真的
+去改詞表的人會撞上,而那正是這支腳本改成可重跑之後大家第一件要做的事。
+
+**FTS 從 D1 重建,不是從匯入的輸入重建**(`INSERT ... SELECT` + `json_tree`,同
+migration 0016 的慣用法)。照輸入建的話,社群提報通過的寫法與站上編輯過的詳解
+都不會進索引 —— 搜尋找不到,而且無聲。實測那兩項在修正前後是 0 → 1。
 
 - **答案卷 ↔ 投影片的對應要靠錨點題驗證**(Test-3 #18 是唯一的 A/B 雙標題),
   頁數對得上不等於對得對;錯位一格之後每題都錯,看起來像判定壞掉。
@@ -293,8 +323,23 @@ pnpm smear:import --remote   # ⚠️ 會清掉 smear_sessions / smear_answers /
 
 ## §10 已知地雷
 
-- **`import.ts` 是 delete-then-insert,會清掉使用者資料。** 正式機一有真人紀錄就
-  不能再跑 `--remote`。這是目前最大的營運風險(§11 第一項)。
+- **~~`import.ts` 是 delete-then-insert,會清掉使用者資料~~** —— 2026-09-08 修掉了,
+  內容表改成 upsert、使用者表一個名字都不出現(`scripts/smear/sql.ts` + 測試)。
+  **修之前實測過它會怎麼壞**,兩支症狀完全不同,值得記住:
+
+  | 狀態                                     | 舊版跑下去                                        |
+  | ---------------------------------------- | ------------------------------------------------- |
+  | 有任何投稿的 `matched_dx_id` 指向診斷(核准後的常態) | **FK 失敗、整批 rollback** —— 匯入當掉,資料沒事 |
+  | 沒有那種引用                              | **靜默清空** 11 項裡的 10 項                        |
+
+  第二支才是原本以為的症狀,而第一支解釋了為什麼正式機至今沒出事:那裡已經有
+  15 筆投稿掛著 `matched_dx_id`,所以舊版根本跑不完。**「一直沒出事」不是安全的
+  證據** —— 那 15 筆一旦被清掉或改成 NULL,同一支指令就會安靜地把東西全刪光。
+- **`--prune` 的來源清單從「這次真的產出的題目」算出來,不寫死。** 寫死
+  `['exam','ash','po']` 的話,任何一筆 `po` 題目都會在第一次 `--prune` 被刪掉
+  —— 匯入根本不產 `po`,它永遠不在保留名單裡。同理**兩個刪除各看各的清單**:
+  共用一個守衛會在「有診斷但沒有題目」時產出 `id NOT IN ()`,而 SQLite 把空的
+  `NOT IN` 當成恆真(實測:整張表刪光)。
 - **`smear_questions.id` 內嵌 dx slug**(ASH 題),跟 0043 註解寫的純數字格式不符。
   任何把 id 送到前端的新端點都要走 `clientQuestionId()`。
 - **`canonical_long` 常帶括號補充,`gradeSmear()` 只認 `smear_terms`。** 103 個
@@ -322,7 +367,7 @@ pnpm smear:import --remote   # ⚠️ 會清掉 smear_sessions / smear_answers /
 
 | 缺口                                          | 來源           | 大小 | 備註                                                        |
 | --------------------------------------------- | -------------- | ---- | ----------------------------------------------------------- |
-| **import 不能再對正式機重跑**                   | `import.ts` 檔頭 | M  | 改成內容表 upsert、不碰 `smear_sessions`/`answers`/`votes`;或拆成 `--content-only` |
+| ~~import 不能再對正式機重跑~~                    | `import.ts` 檔頭 | —  | **已完成 2026-09-08**:內容表 upsert、使用者表不碰、FTS 改從 D1 重建 |
 | Layer 2:答後面板殼與 `Question.tsx` 分頁殼共用   | parity 設計     | L    | 方向定了,props 介面與階梯斷點沒設計                            |
 | 手把 / 全站鍵盤系統整合                          | parity、#234    | L    | 目前只有原生 radio 的方向鍵                                    |
 | 首字母提示                                      | 設計 §兩種模式  | S    | 加一種 `hint_used` 值 + 一顆按鈕                               |
@@ -343,11 +388,9 @@ pnpm smear:import --remote   # ⚠️ 會清掉 smear_sessions / smear_answers /
 
 按「改動成本 × 使用者撞到的頻率」(parity 設計用的同一把尺):
 
-1. **先解 import 的破壞性**(§11 第一項)。這不是功能,是讓其他每一項變得可做的
-   前提:詳解修錯、詞表補詞、`aml_m2`、PO 補圖全部要重灌,而重灌現在會洗掉紀錄。
-   做法上把「內容表」(`dx` / `terms` / `questions` / `dx_notes` / `fts`)與
-   「使用者表」分開,內容走 upsert,使用者表不碰;`smear_terms` 要保住社群提報進來
-   的列(`proposed_by IS NOT NULL` 的不覆蓋)。
+1. ~~先解 import 的破壞性~~ —— **2026-09-08 完成**。內容表 upsert、使用者表不碰,
+   三道覆寫閘(社群提報的詞 / 核准的投稿題 / 站上編輯過的詳解),過期內容要
+   `--prune` 才刪。詳解修錯、詞表補詞、`aml_m2`、PO 補圖現在都可以重灌了。
 2. **讓人真的用一週,看三個數字**:`hint_used` 分布(提示鏈哪一層有人用)、
    `lay` 比例(俗名層的價值有沒有兌現)、`infection` 這種小 topic 的抽題體感。
    這一步不寫程式。
