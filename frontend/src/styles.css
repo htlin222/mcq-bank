@@ -418,6 +418,23 @@
 	}
 }
 
+/* 第三種形狀:全螢幕螢幕保護(SmearScreensaver)。**它在每個寬度都是滿版**,
+   不像上面那兩個 sheet 到 sm 就變成置中卡片 —— 所以不能沿用 .dialog-sheet-*
+   (那兩個在 ≥sm 會歸零)。
+
+   而且它是唯一一個**橫著看比直著看更常見**的東西(把手機架起來當螢幕保護),
+   而橫向時 iPhone 的瀏海在**側邊** —— 只讓上下的話,那顆離開鈕照樣按不到。
+   四邊都讓。
+
+   ⚠️ 底色留在外層那個 `fixed inset-0`,這一層只縮內容 —— 縮到底色的話,瀏海
+   那一圈會露出頁面的背景,螢幕保護就框了一道白邊。 */
+.screensaver-safe {
+	padding-top: env(safe-area-inset-top);
+	padding-right: env(safe-area-inset-right);
+	padding-bottom: env(safe-area-inset-bottom);
+	padding-left: env(safe-area-inset-left);
+}
+
 /* 講義面板在手機是貼著 `bottom-0` 的底部 sheet,下緣就是 home indicator。
    ≥md 它變成右欄、不再貼著視窗下緣,所以只在 <md 讓。 */
 @media (max-width: 767px) {

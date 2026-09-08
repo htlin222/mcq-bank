@@ -127,6 +127,13 @@ test("curated video listings are cacheable, but the mutable ones are not", () =>
 	assert.equal(isCacheableApiPath("/api/videos/removed"), false);
 });
 
+test("the smear gallery is never cacheable", () => {
+	// 它每次回的是一批**隨機**的圖。被 SW 快取住的症狀是「每次打開首頁都是
+	// 同一批」—— 而那看起來只是「怎麼老是這幾張」,不像壞掉,所以會活很久。
+	assert.equal(isCacheableApiPath("/api/smear/gallery"), false);
+	assert.equal(isCacheableApiPath("/api/smear/gallery?n=24"), false);
+});
+
 test("identity, notifications and chat are never cacheable", () => {
 	assert.equal(isCacheableApiPath("/api/me"), false);
 	assert.equal(isCacheableApiPath("/api/notifications"), false);

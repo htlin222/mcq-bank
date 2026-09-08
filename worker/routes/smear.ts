@@ -763,6 +763,91 @@ smearRoutes.get("/topic-stats", async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// GET /api/smear/gallery?n= —— 首頁輪播卡:隨機一批「圖 + 已揭曉的說明」
+// ---------------------------------------------------------------------------
+//
+// ⚠️ **這支端點是刻意回 `canonical_long` 的 —— 跟這個檔案裡其他每一支正好
+// 相反。** session 那幾支的檔頭寫著「絕不把 canonical_long 或 smear_terms 放
+// 進這份 payload —— 那就是答案」;這裡的整個用途就是把答案講出來給人逛。
+// 兩者不衝突,因為它只服務首頁那張瀏覽卡:**任何 session / 作答 / 全真模式的
+// 路徑都不准改用它**,那會讓正解字串出現在交卷前的畫面上,而
+// `frontend/e2e/smear-exam-noleak.test.mjs` 掃的正是那個。
+//
+// **一次回一批,不是一次一張。** 卡片自動十秒換一張,一張一趟的話停在首頁
+// 十分鐘就是 60 趟;而這份 payload 是純文字(診斷名 + 註解 + 詳解摘要 +
+// 出處),一批 24 筆約十幾 KB —— 同 CLAUDE.md「離線預載一年」那節量完的
+// 結論:文字不是成本,圖片才是。圖片仍然是一張一張按需載入的。
+//
+// 隨機交給 SQLite 的 `RANDOM()`:478 列的全表掃描一趟就好,而且「一批之內
+// 不重複」是它免費附送的 —— client 自己抽的話得另外記已看過哪些。
+const GALLERY_MAX = 48;
+const GALLERY_DEFAULT = 24;
+// 詳解摘要在伺服器端就截斷:卡片只畫兩三行,而一份共筆詳解可以是幾十 KB。
+// 同 lectures.ts 的 PREVIEW_MAX。
+const GALLERY_PREVIEW_MAX = 220;
+
+smearRoutes.get("/gallery", async (c) => {
+	const raw = Number(c.req.query("n"));
+	const n = Number.isFinite(raw)
+		? Math.min(GALLERY_MAX, Math.max(1, Math.floor(raw)))
+		: GALLERY_DEFAULT;
+
+	// 詳解摘要直接在 SQL 裡從 TipTap JSON 走出來(json_tree → key='text' AND
+	// type='text'),同 migration 0016 / lectures.ts 書籤預覽的慣用法。
+	// ⚠️ 那一頁沒有詳解時外層純量子查詢回的是 NULL 不是 '' —— 下面的 shape
+	// 要收掉,不能假設它是字串。
+	const { results } = await c.env.DB.prepare(
+		`SELECT sq.id, sq.dx_id, sq.source, sq.source_ref, sq.source_url,
+            sq.attribution, sq.image_key_view, sq.image_key_full,
+            sq.prompt, sq.image_note,
+            sd.canonical_long, sd.canonical_abbrev, sd.topic, sd.qtype,
+            (SELECT COALESCE(
+                      (SELECT GROUP_CONCAT(value, ' ')
+                         FROM json_tree(n.content_json)
+                        WHERE key = 'text' AND type = 'text'),
+                      '')
+               FROM smear_dx_notes n
+              WHERE n.dx_id = sq.dx_id) AS note_preview
+       FROM smear_questions sq
+       JOIN smear_dx sd ON sd.id = sq.dx_id
+      ORDER BY RANDOM()
+      LIMIT ?`,
+	)
+		.bind(n)
+		.all<{
+			id: string;
+			dx_id: string;
+			source: string;
+			source_ref: string | null;
+			source_url: string | null;
+			attribution: string | null;
+			image_key_view: string;
+			image_key_full: string;
+			prompt: string | null;
+			image_note: string | null;
+			canonical_long: string;
+			canonical_abbrev: string | null;
+			topic: string;
+			qtype: string;
+			note_preview: string | null;
+		}>();
+
+	const items = (results ?? []).map((r) => ({
+		...r,
+		note_preview: truncatePreview(r.note_preview, GALLERY_PREVIEW_MAX),
+	}));
+	return c.json({ items });
+});
+
+/** 空白收斂 + 截斷 + 補刪節號。`null` / 全空白一律收成 null,前端才好判斷
+ *  「有沒有詳解」而不必再問一次字串長度。 */
+function truncatePreview(text: string | null, max: number): string | null {
+	const s = (text ?? "").replace(/\s+/g, " ").trim();
+	if (!s) return null;
+	return s.length <= max ? s : `${s.slice(0, max)}…`;
+}
+
+// ---------------------------------------------------------------------------
 // GET /api/smear/dx/:id —— 診斷詳情:詳解 + 所有圖 + accepted terms
 // ---------------------------------------------------------------------------
 smearRoutes.get("/dx/:id", async (c) => {

@@ -553,3 +553,34 @@ export function rejectSmearSubmission(
 ): Promise<{ ok: true }> {
 	return api.post(`/api/smear/submissions/${id}/reject`, { reviewNote });
 }
+
+// ── 首頁輪播卡 ─────────────────────────────────────────────────────────────
+//
+// ⚠️ **這是這個檔案裡唯一帶著 `canonical_long`(= 正解)的形狀。** 它只服務
+// 首頁那張「逛逛」的卡:任何 session / 作答畫面都不准改用它,那會讓正解字串
+// 出現在全真模式交卷前的畫面上。理由與掃描在 worker/routes/smear.ts 的
+// `/gallery` 檔頭。
+export interface SmearGalleryItem {
+	id: string;
+	dx_id: string;
+	source: string;
+	source_ref: string | null;
+	source_url: string | null;
+	attribution: string | null;
+	image_key_view: string;
+	image_key_full: string;
+	prompt: string | null;
+	image_note: string | null;
+	canonical_long: string;
+	canonical_abbrev: string | null;
+	topic: string;
+	qtype: string;
+	/** 共筆詳解的純文字前 220 字。沒有詳解就是 null(不是空字串)。 */
+	note_preview: string | null;
+}
+
+export function fetchSmearGallery(
+	n: number,
+): Promise<{ items: SmearGalleryItem[] }> {
+	return api.get(`/api/smear/gallery?n=${n}`);
+}

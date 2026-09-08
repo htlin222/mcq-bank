@@ -9,6 +9,7 @@ import { StudyPlanDialog } from "../components/StudyPlanDialog";
 import { KeepAlive } from "../components/KeepAlive";
 import { WrittenExamDashboard } from "../components/home/WrittenExamDashboard";
 import { SmearDashboard } from "../components/smear/SmearDashboard";
+import { SmearGalleryCard } from "../components/home/SmearGalleryCard";
 
 // Exam start time — configured in /config.toml [exam].
 const EXAM_DATE = new Date(config.exam.date_iso);
@@ -178,6 +179,12 @@ export function Home() {
 				</div>
 				{planOpen && <StudyPlanDialog onClose={() => setPlanOpen(false)} />}
 			</section>
+
+			{/* 抹片輪播卡 —— 同倒數卡,是兩個分頁共用的東西,畫在分頁列之上。
+			    它答的是「隨手看兩眼抹片」,跟練哪個模式無關;筆試組的人也會掃,
+			    那正是把它放在共用區而不是 SmearDashboard 裡的理由。
+			    沒有抹片資料時它自己整張不畫(見 SmearGalleryCard)。 */}
+			<SmearGalleryCard />
 
 			<div className="mb-6 inline-flex rounded border border-ink-200 dark:border-ink-700 overflow-hidden" role="tablist" aria-label="首頁分頁">
 				{(["exam", "smear"] as const).map((t) => (
