@@ -32,6 +32,9 @@
 | 單張題每個 dx 幾張圖 | 2 到 10 張,眾數 4 張(37 個 dx) | 「同一診斷多版本要新素材」 |
 | Dropbox `抹片考訊/` | 已匯入的 203 題來自 pre-test-A-2026 / week12 / wk-11-test / pre-test-2 | — |
 | 同資料夾的 Smear-1..5 | **從未匯入**,共 194 頁 | 「素材已經吃乾淨了」 |
+| Smear-1 + Smear-5 切出的案例 | 16 案、77 個帶圖頁、159 張圖 | 「量太少不值得做」 |
+| 帶日期的圖說 | 61 個,其中 **24 個(39%)冒號後面直接寫了判讀** | 「圖說可以揭曉前顯示」 |
+| Smear-2/3/4 帶日期的圖說 | 各 1 個 | 「五份都是案例」 |
 
 最後一列是這輪最重要的發現,見 §2。
 
@@ -59,9 +62,9 @@
 > `2025/04/10 Bone marrow`,`Pleural effusion`、`Mass aspiration` 也一樣。
 > 逐張的 PB/BM 標註**從投影片文字抽得出來,不需要視覺模型**。
 
-⚠️ **授權**。這是具名醫師的教學材料,投影片本身帶免責聲明。站台在 Cloudflare Access
-後面、20 個內部使用者、非商業,而且既有的 203 題就是同一個資料夾的考訊 —— 先例在。
-但**匯入前要跟學長確認一次**,這不是技術問題,不要自己決定。
+**授權已確認可用**(2026-09-09)。站台在 Cloudflare Access 後面、20 個內部使用者、
+非商業,既有的 203 題也是同一個資料夾的考訊。`smear_cases.attribution` 仍要填,
+出處寫到 deck 與課次。
 
 **第二個來源:Alberta 的開放教科書。**
 [A Laboratory Guide to Clinical Hematology](https://pressbooks.openeducationalberta.ca/mlsci/)
@@ -113,7 +116,7 @@ CREATE TABLE smear_case_items (
   modality       TEXT NOT NULL,       -- pb|bm|effusion|aspiration|other
   image_key_view TEXT NOT NULL,
   image_key_full TEXT NOT NULL,
-  caption        TEXT,                -- '2025/04/09 Peripheral blood' —— 揭曉前可見
+  caption        TEXT,                -- '2025/08/03 BM smear' —— 冒號左半,揭曉前可見
   reveal_note    TEXT,                -- 這一張的原文說明 —— 揭曉後才送
   PRIMARY KEY (case_id, idx)
 );
@@ -141,8 +144,15 @@ CREATE INDEX idx_smear_case_attempts_user ON smear_case_attempts(user_email, cre
 - **沒有 `title` 欄位。** 投影片上的標題是 `Case 3: ALL vs. FL?` —— 它含答案。
   存進來就一定有某一支端點會順手把它送出去。**不存,就沒有這個風險。**
   要在清單上顯示,用 `#3` 或病史的第一句。
+- **`caption` 只能存冒號的左半。** 投影片原文是 `2022/08/03 BM smear: suspect AML`,
+  61 個帶日期的圖說裡有 24 個(39%)長這樣。左半是日期與模態,是要給的線索;
+  右半是判讀,原樣存進 `caption` 就等於把答案印在圖旁邊。**切點在冒號,右半進
+  `reveal_note`。** 這一條是量出來的,不是防禦性設計。
 - **`reveal_note` 與 `discussion_json` 揭曉前不進 payload。** 這是這個模組唯一的
   洩題面,見 §6。
+- **一個步驟是一張投影片頁,不是一張嵌入圖。** `render_pages.py` 本來就是整頁轉 WebP,
+  而 159 張嵌入圖分佈在 77 頁上 —— 一頁常常並排 PB 與 BM。所以 `modality` 允許多值,
+  並排的那一頁就是一個同時給兩種的步驟,不要為了讓順序好看而去裁圖。
 - **`steps_seen` 是這個模組唯一有意義的數字。** 分數答「認不認得」,拼字答
   「寫不寫得出來」(既有兩條),`steps_seen` 答「要看幾張才敢講」—— 那正是跑台在測的。
 
@@ -203,6 +213,32 @@ pressbooks.openeducationalberta.ca/mlsci   CC BY-NC
 
 - **`normalizeTerm()` 只有一份**,新腳本一樣直接 import `worker/lib/smear-grade.ts`。
   匯入端與判定端各自一份的話,寫進 `norm` 的字串跟比對時算出來的會漂。
+**已經量過的**(2026-09-09,直接跑 `pdftotext -layout` 與 `pdfimages -list`):
+
+| | Smear-1 | Smear-5 |
+| --- | --- | --- |
+| 案數 | 8 | 8 |
+| 帶圖頁 | 44 | 33 |
+| 每案帶圖頁 | 1 到 13 | 2 到 8 |
+| 標題形態 | 臨床情境(`Intermittent HLH for 5 months`) | **鑑別診斷**(`ALL vs. FL?`、`CLL vs. Reactive?`) |
+
+**兩份不一樣,而 Smear-5 才是這個模組要的。** Smear-1 的八案有三案是 HLH,標題是
+臨床描述而不是鑑別;Smear-5 的八案標題直接就是「這兩個病要怎麼分」。**先做 Smear-5**,
+Smear-1 當第二批。
+
+⚠️ **模態有兩套寫法**:`PB smear` / `BM smear`(Smear-5 的 APL 那案全用這套)與
+`Peripheral blood` / `Bone marrow`。只認長寫法的話,APL 那一案會整案標不到模態,
+而症狀是「這一案沒有 PB→BM 的順序」,看起來像那一案剛好沒有骨髓片。
+
+⚠️ **案界要有結束錨點,不能只認開頭。** 只找 `Case N:` 的話,最後一案會一路吃到投影片
+結尾 —— 實測 Smear-1 的 Case 8 被算成 17 頁,其中 4 頁是收尾投影片。用 Outline 頁的
+案數當上界,同 `parse_answers.py` 的錨點題精神。
+
+**APL 那一案的軸是時間,不只是倍率。** `08/01 PB smear: no obvious blast` →
+`08/03 BM smear` → `08/05 PB smear: leukemic promyelocyte` → `08/09 PB smear (post-ATRA)`。
+第一張看起來沒事,這正是學長講的 hypogranular APL 那種跑台題。所以
+`smear_case_items.idx` 排的是**投影片本來的順序**,不要自作聰明按模態重排。
+
 - **`parse_cases.py` 的 dx 對應要靠錨點驗證**,同既有 `parse_answers.py` 的教訓:
   頁數對得上不等於對得對。這裡的錨點是 Lesson 5 的 Outline 頁 —— 它把八個案的
   診斷列成一張表,可以拿來對切出來的案界。
@@ -293,4 +329,4 @@ WHERE s.user_email = ?          -- 綁的變數名字要有 email(bind-order.ts 
   但不顯示的話使用者不知道還要看多久。
 - 中途的自由輸入要不要有字數下限。空著直接按下一張,等於把逐步揭露變成一次攤開。
 - `steps_seen` 要不要給平均值當回饋(「別人平均 4.1 張」)。20 個人的樣本可能太小。
-- 和信教材的授權要跟學長確認(§2)。**這一項在匯入前必須有答案。**
+授權那一項已經確認可用(2026-09-09),不再是阻擋條件。
