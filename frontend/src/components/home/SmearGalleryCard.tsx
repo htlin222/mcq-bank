@@ -28,7 +28,7 @@ import {
 	GalleryImage,
 } from "./SmearGalleryParts";
 import { SmearGalleryDetailDialog } from "./SmearGalleryDetailDialog";
-import { SmearScreensaver } from "./SmearScreensaver";
+import { prefetchDxNote, SmearScreensaver } from "./SmearScreensaver";
 
 /**
  * 首頁的抹片輪播卡 —— 左圖右說明,自動十秒換一張,可暫停、可手動翻、可全螢幕
@@ -216,8 +216,11 @@ export function SmearGalleryCard() {
 								)}
 							</IconButton>
 						)}
+						{/* pointerdown 就去拿詳解 —— 按下去到放開之間夠一趟 RTT,全螢幕
+						    一開就是全文,不會先閃一下摘要再跳成整篇。 */}
 						<IconButton
 							label="全螢幕輪播"
+							onPointerDown={() => prefetchDxNote(item.dx_id)}
 							onClick={() => {
 								setSaverReading(false);
 								setFullscreen(true);
@@ -276,16 +279,19 @@ export function SmearGalleryCard() {
 function IconButton({
 	label,
 	onClick,
+	onPointerDown,
 	children,
 }: {
 	label: string;
 	onClick: () => void;
+	onPointerDown?: () => void;
 	children: React.ReactNode;
 }) {
 	return (
 		<button
 			type="button"
 			onClick={onClick}
+			onPointerDown={onPointerDown}
 			aria-label={label}
 			title={label}
 			className="p-1.5 rounded text-ink-500 dark:text-ink-400 hover:text-accent hover:bg-ink-50 dark:hover:bg-ink-700 transition"

@@ -21,14 +21,47 @@ import { useIsEink } from "../../lib/theme";
 export function GalleryImage({
 	item,
 	sizeKey,
+	previewKey,
 	className,
 }: {
 	item: SmearGalleryItem;
 	sizeKey: "image_key_view" | "image_key_full";
+	/** 先畫這一個、載好 `sizeKey` 那張再換過去。
+	 *
+	 *  ⚠️ **這是全螢幕「卡一下」的成因。** 478 張裡有 203 張的 full 跟 view 是
+	 *  不同的檔(100–180 KB),而全螢幕的 `<img>` 是一個全新的元素 —— 量出來第
+	 *  一幀就是 `complete: false, naturalWidth: 0`,也就是**圖片區整塊是空的**,
+	 *  等新檔載完才出現。本機 33ms 看不太出來,手機網路上就是幾百毫秒的黑框。
+	 *
+	 *  先畫卡片上已經解碼過的 view(同一個 `<img>` 換 src 時,瀏覽器會**繼續
+	 *  顯示舊的**直到新的解碼完成),所以全程沒有空白,也沒有多花任何頻寬 ——
+	 *  view 本來就已經在快取裡了。 */
+	previewKey?: "image_key_view";
 	className?: string;
 }) {
 	const ref = useRef<HTMLImageElement | null>(null);
 	const eink = useIsEink();
+
+	// 兩段載入。`previewKey` 沒給、或兩個 key 本來就一樣(275/478 是這種)時
+	// 直接用目標尺寸,不多繞一圈。
+	const lo = previewKey ? item[previewKey] : null;
+	const hi = item[sizeKey];
+	const [hiReady, setHiReady] = useState(() => !lo || lo === hi);
+	useEffect(() => {
+		if (!lo || lo === hi) {
+			setHiReady(true);
+			return;
+		}
+		setHiReady(false);
+		const img = new Image();
+		img.onload = () => setHiReady(true);
+		// 載不到就維持在 view —— 那比一塊空白好,而且使用者多半看不出差別。
+		img.src = `/img/${hi}`;
+		return () => {
+			img.onload = null;
+		};
+	}, [lo, hi]);
+	const shownKey = hiReady ? hi : (lo as string);
 
 	useEffect(() => {
 		const el = ref.current;
@@ -55,7 +88,8 @@ export function GalleryImage({
 			<img
 				ref={ref}
 				data-gallery-image={item.id}
-				src={`/img/${item[sizeKey]}`}
+				data-hi-res={hiReady ? "1" : "0"}
+				src={`/img/${shownKey}`}
 				alt={`抹片影像:${item.canonical_long}`}
 				className="max-w-full max-h-full w-auto h-auto object-contain"
 			/>
@@ -254,7 +288,7 @@ export function GalleryCountdown({
 	return (
 		<span
 			aria-hidden
-			className={`tabular-nums text-xs text-ink-400 dark:text-ink-500 w-6 text-right ${className ?? ""}`}
+			className={`tabular-nums text-xs text-ink-400 dark:text-ink-500 w-8 text-right ${className ?? ""}`}
 		>
 			{left}s
 		</span>
