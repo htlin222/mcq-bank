@@ -27,6 +27,7 @@ import {
 	GalleryCountdown,
 	GalleryImage,
 } from "./SmearGalleryParts";
+import { SmearGalleryDetailDialog } from "./SmearGalleryDetailDialog";
 import { SmearScreensaver } from "./SmearScreensaver";
 
 /**
@@ -67,7 +68,10 @@ export function SmearGalleryCard() {
 		() => typeof document !== "undefined" && document.hidden,
 	);
 	const [fullscreen, setFullscreen] = useState(false);
-	const interacting = fullscreen ? saverReading : cardHover;
+	const [detailOpen, setDetailOpen] = useState(false);
+	// 對話框開著就是明確的「我正在讀」——不擋的話,讀到一半底下的輪播照樣在跑,
+	// 關掉對話框會發現圖已經換過好幾張了。
+	const interacting = detailOpen || (fullscreen ? saverReading : cardHover);
 
 	const item = state.batch[state.index] ?? null;
 
@@ -232,10 +236,20 @@ export function SmearGalleryCard() {
 						className="sm:col-span-5 h-48 sm:h-64 bg-ink-100 dark:bg-ink-900"
 					/>
 					<div className="sm:col-span-4 p-4 min-w-0">
-						<GalleryCaption item={item} />
+						<GalleryCaption
+							item={item}
+							onOpenDetail={() => setDetailOpen(true)}
+						/>
 					</div>
 				</div>
 			</div>
+
+			{detailOpen && (
+				<SmearGalleryDetailDialog
+					item={item}
+					onClose={() => setDetailOpen(false)}
+				/>
+			)}
 
 			{fullscreen && (
 				<SmearScreensaver

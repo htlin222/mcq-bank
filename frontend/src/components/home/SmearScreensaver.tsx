@@ -150,7 +150,7 @@ export function SmearScreensaver({
 			    ⚠️ 這裡的離開鈕在 iOS 上是唯一的出路 —— `requestFullscreen()` 會被
 			    拒絕,所以瀏覽器不會替我們處理 Esc,而手機也沒有鍵盤。它落在瀏海
 			    底下就等於出不去。 */}
-			<div className="absolute inset-0 screensaver-safe flex flex-col">
+			<div className="absolute inset-0 screensaver-safe flex flex-col lg:flex-row">
 				{/* 全螢幕用 full 尺寸(長邊 2400)—— 這裡的畫面可能是一台投影機。 */}
 				<GalleryImage
 					item={item}
@@ -158,9 +158,18 @@ export function SmearScreensaver({
 					className="flex-1 min-h-0 bg-black"
 				/>
 
-				{/* 說明:寬螢幕是右側欄,窄螢幕是底部長條。**兩者都是實心底,不是
-				    半透明疊在圖上** —— 疊上去會蓋掉圖的一角,而那一角可能正是
-				    image_note 的箭頭指的地方。
+				{/* 說明:**寬螢幕(≥lg)是右側欄,其餘是底部長條**,不是一律放底下。
+				    寬螢幕上並排才讀得到完整的一段;而窄螢幕與橫向手機的視窗矮,
+				    側欄會把圖擠成一條,所以那些情況才落到下面並吃 max-h + 可捲
+				    ⚠️ 高度上限用 `max-lg:` 只長在**斷點以下**,而不是先給一個上限再用
+				    `lg:max-h-none` 收回來。後者在 1280×900 這種「同時是 lg 又是
+				    landscape」的畫面上,勝負取決於 Tailwind 把哪個變體排在後面 ——
+				    實測 `landscape:max-h-[42%]` 贏了,右欄只有 42% 高、底下一整片黑。
+				    **變體的先後順序不是可以拿來當保證的東西**;讓那條規則在寬螢幕上
+				    根本不存在才是。
+
+				    **兩種形態都是實心底,不是半透明疊在圖上** —— 疊上去會蓋掉圖的
+				    一角,而那一角可能正是 image_note 的箭頭指的地方。
 
 				    ⚠️ **控制列在這一欄裡,不是絕對定位浮在角落。** 浮在右上角時它
 				    正好壓在說明的標題上(離開鈕蓋住診斷名的最後幾個字),而那是
@@ -176,7 +185,7 @@ export function SmearScreensaver({
 				    (或換了一張,見下面的 scrollTop 重設)就結束。 */}
 				<div
 					ref={panelRef}
-					className="shrink-0 max-h-[55%] landscape:max-h-[42%] bg-ink-900 border-t border-ink-700 p-5 overflow-y-auto flex flex-col gap-4"
+					className="shrink-0 lg:w-80 xl:w-96 max-lg:max-h-[55%] max-lg:landscape:max-h-[42%] bg-ink-900 border-t lg:border-t-0 lg:border-l border-ink-700 p-5 overflow-y-auto flex flex-col gap-4"
 					onScroll={(e) => onInteract(e.currentTarget.scrollTop > 0)}
 				>
 					<div

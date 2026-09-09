@@ -239,10 +239,21 @@ function tsxFiles(dir) {
   });
 }
 
-/** 全螢幕遮罩型的對話框(`fixed inset-0 z-50`)。 */
+/** 全螢幕遮罩型的對話框(`fixed inset-0 z-50`)。
+ *
+ *  ⚠️ **`src` 是去掉註解之後的版本。** 這幾支掃描器是逐字比對 class 名的,而
+ *  一個對話框的註解裡很可能**引用到它刻意避開的那個反例**(「配 max-h-full 而
+ *  不是 max-h-[calc(100dvh-2rem)]」正是這樣寫的),那會被判成真的用了它。
+ *  實際踩到:SmearGalleryDetailDialog 的註解讓「高度不准跟視窗綁死」那條紅了,
+ *  而它的程式碼從頭到尾都是 `max-h-full`。
+ *
+ *  註解不是程式碼,不該進掃描範圍;而反過來「因為掃描器會誤判所以不准在註解裡
+ *  講那個反例」是本末倒置 —— 那正是最該寫下來的東西。 */
 function overlayComponents() {
+  const stripComments = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
   return tsxFiles(DIALOG_DIR)
-    .map((f) => ({ path: f, src: fs.readFileSync(f, 'utf8') }))
+    .map((f) => ({ path: f, src: stripComments(fs.readFileSync(f, 'utf8')) }))
     .filter((f) => f.src.includes('fixed inset-0 z-50'));
 }
 
