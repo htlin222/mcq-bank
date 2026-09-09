@@ -352,3 +352,91 @@ test('全螢幕裡也看得到倒數 —— 卡片的 hover 暫停不准漏進�
 
   await ctx.close();
 });
+
+test('點說明開細節對話框 —— 不跳頁,而且輪播停住', async (t) => {
+  const opened = await open(t);
+  if (!opened) return;
+  const { ctx, page } = opened;
+  await page.mouse.move(5, 5);
+
+  const urlBefore = page.url();
+  const idBefore = await currentId(page);
+
+  // 先確認入口找得到,再確認點下去真的長出東西 —— 少了前半段,選擇器腐爛時
+  // 這條會變成空掃的綠燈。
+  const opener = page
+    .locator('[data-smear-gallery] button', { hasText: ITEMS[0].canonical_long })
+    .first();
+  await opener.waitFor({ timeout: 3000 });
+  await opener.click();
+
+  const dialog = page.locator('[data-smear-detail-dialog]');
+  await dialog.waitFor({ timeout: 3000 });
+  assert.equal(page.url(), urlBefore, '這個對話框的重點就是不跳頁');
+
+  // 對話框開著時輪播要停:讀到一半底下換過好幾張,關掉才發現,是最難回報的
+  // 那種壞法。
+  await page.waitForTimeout(WAIT_MS);
+  assert.equal(
+    await currentId(page),
+    idBefore,
+    '對話框開著的時候輪播還在跑',
+  );
+
+  await page.getByRole('button', { name: '關閉' }).click();
+  await dialog.waitFor({ state: 'detached', timeout: 3000 });
+
+  await ctx.close();
+});
+
+test('寬螢幕的全螢幕輪播是左右,不是上下', async (t) => {
+  // 窄螢幕與橫向手機才把說明放到圖下面(視窗矮,側欄會把圖擠成一條)。
+  // ⚠️ 兩側都要取樣:只驗寬螢幕的話,「一律左右」也會綠。
+  const opened = await open(t, { paused: true });
+  if (!opened) return;
+  const { ctx, page } = opened;
+
+  const geometry = async () =>
+    page.evaluate(() => {
+      const saver = document.querySelector('[data-smear-screensaver]');
+      const img = saver.querySelector('img').getBoundingClientRect();
+      // 說明欄 = 帶捲軸、含標題的那一塊
+      const panel = saver
+        .querySelector('.tiptap, h3')
+        .closest('div[class*="overflow-y-auto"]')
+        .getBoundingClientRect();
+      return {
+        imgRight: img.right, panelLeft: panel.left,
+        imgBottom: img.bottom, panelTop: panel.top,
+        panelHeight: panel.height, viewportHeight: window.innerHeight,
+      };
+    });
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.getByRole('button', { name: '全螢幕輪播' }).first().click();
+  await page.locator('[data-smear-screensaver]').waitFor({ timeout: 3000 });
+  await page.waitForTimeout(500);
+  const wide = await geometry();
+  assert.ok(
+    wide.panelLeft >= wide.imgRight - 1,
+    `寬螢幕應該是左右並排:圖右緣 ${wide.imgRight}, 說明左緣 ${wide.panelLeft}`,
+  );
+  // ⚠️ 側欄要吃滿高度。實際踩到:`landscape:max-h-[42%]` 在 1280×900 上同時
+  // 成立而且贏過 `lg:max-h-none`,右欄只有四成高、底下一整片黑 —— 而「左右並排」
+  // 那條斷言照樣是綠的,所以高度得自己驗。
+  assert.ok(
+    wide.panelHeight > wide.viewportHeight * 0.9,
+    `寬螢幕的說明側欄應該吃滿高度,實際只有 ${Math.round(wide.panelHeight)} / ${wide.viewportHeight}`,
+  );
+
+  // 對照組:窄螢幕才是上下
+  await page.setViewportSize({ width: 700, height: 900 });
+  await page.waitForTimeout(500);
+  const narrow = await geometry();
+  assert.ok(
+    narrow.panelTop >= narrow.imgBottom - 1,
+    `窄螢幕應該是上下:圖下緣 ${narrow.imgBottom}, 說明上緣 ${narrow.panelTop}`,
+  );
+
+  await ctx.close();
+});

@@ -70,6 +70,7 @@ export function GalleryCaption({
 	dark = false,
 	clamp = true,
 	note = null,
+	onOpenDetail,
 }: {
 	item: SmearGalleryItem;
 	dark?: boolean;
@@ -80,6 +81,12 @@ export function GalleryCaption({
 	 *  摘要;還沒回來或那個診斷沒有詳解就是 null。**永遠有 fallback** ——
 	 *  「載入中」在螢幕保護上是一塊空白,而空白比舊摘要糟。 */
 	note?: unknown;
+	/** 有給就讓「標題 + 說明」整塊可以點,打開細節對話框(不跳頁)。
+	 *  ⚠️ **可點的範圍刻意不含底下那一行連結** —— 巢狀的互動元素是無效 HTML,
+	 *  瀏覽器解析時會把內層的 `<a>` 拉到 `<button>` 外面,連結就跑到卡片外、
+	 *  點了不一定去對的地方,而且沒有任何錯誤訊息(同 CLAUDE.md 那條巢狀
+	 *  `<a>` 的教訓)。 */
+	onOpenDetail?: () => void;
 }) {
 	const title = item.canonical_abbrev
 		? `${item.canonical_long}(${item.canonical_abbrev})`
@@ -89,8 +96,8 @@ export function GalleryCaption({
 	const noteLine = item.image_note ?? item.prompt;
 	const sourceLabel = item.attribution ?? item.source_ref ?? item.source;
 
-	return (
-		<div className="min-w-0 space-y-2">
+	const body = (
+		<>
 			<h3
 				className={`font-serif text-lg leading-snug break-words ${
 					dark ? "text-white" : "text-ink-900 dark:text-ink-100"
@@ -142,6 +149,24 @@ export function GalleryCaption({
 						{item.note_preview}
 					</p>
 				)
+			)}
+
+		</>
+	);
+
+	return (
+		<div className="min-w-0 space-y-2">
+			{onOpenDetail ? (
+				<button
+					type="button"
+					onClick={onOpenDetail}
+					title="看完整詳解"
+					className="block w-full text-left space-y-2 rounded cursor-pointer"
+				>
+					{body}
+				</button>
+			) : (
+				<div className="space-y-2">{body}</div>
 			)}
 
 			<div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
