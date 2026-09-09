@@ -155,6 +155,7 @@ export function SmearScreensaver({
 				<GalleryImage
 					item={item}
 					sizeKey="image_key_full"
+					previewKey="image_key_view"
 					className="flex-1 min-h-0 bg-black"
 				/>
 
@@ -270,6 +271,29 @@ function ScreenButton({
 // 之後每一次都同步命中。
 const noteCache = new Map<string, unknown>();
 
+/** 先把詳解拿回來放進快取。呼叫端是卡片上那顆 ⛶ 的 pointerdown —— 按下去到
+ *  放開之間就夠一趟 RTT,於是全螢幕一開就是全文,不會先閃一下 220 字的摘要
+ *  再跳成整篇(**內容跳動比慢更難受**:眼睛已經開始讀了)。
+ *
+ *  刻意**不在卡片換圖時就預抓**:那是十秒一趟,而多數人根本不會打開全螢幕。 */
+export function prefetchDxNote(dxId: string): void {
+	if (noteCache.has(dxId)) return;
+	void loadDxNote(dxId).catch(() => {});
+}
+
+function loadDxNote(dxId: string): Promise<unknown> {
+	return fetchSmearDx(dxId).then((d) => {
+		let parsed: unknown = null;
+		try {
+			parsed = d.note ? JSON.parse(d.note.content_json) : null;
+		} catch {
+			parsed = null;
+		}
+		noteCache.set(dxId, parsed);
+		return parsed;
+	});
+}
+
 function useDxNote(dxId: string): unknown {
 	const [note, setNote] = useState<unknown>(() => noteCache.get(dxId) ?? null);
 
@@ -283,15 +307,8 @@ function useDxNote(dxId: string): unknown {
 		// 得多,而且看起來完全正常。
 		setNote(null);
 		let cancelled = false;
-		fetchSmearDx(dxId)
-			.then((d) => {
-				let parsed: unknown = null;
-				try {
-					parsed = d.note ? JSON.parse(d.note.content_json) : null;
-				} catch {
-					parsed = null;
-				}
-				noteCache.set(dxId, parsed);
+		loadDxNote(dxId)
+			.then((parsed) => {
 				if (!cancelled) setNote(parsed);
 			})
 			.catch(() => {

@@ -53,9 +53,13 @@ const BEYOND_PREVIEW = NOTE_NODES.find(
 )?.trim();
 if (!BEYOND_PREVIEW) throw new Error('fixture 裡找不到「只有全文才有」的段落');
 
-// 自動輪播是 10 秒(lib/smearGallery.ts 的 AUTO_ADVANCE_MS)。等 14 秒留四秒
-// 餘裕 —— 寫死「剛好 10 秒」在忙碌的 CI 上會假紅。
-const WAIT_MS = 14_000;
+// 自動輪播是 20 秒(lib/smearGallery.ts 的 AUTO_ADVANCE_MS)。等 26 秒留六秒
+// 餘裕 —— 寫死「剛好 20 秒」在忙碌的 CI 上會假紅。
+//
+// ⚠️ 這幾條因此是整個套件裡最慢的。**不要為了跑快一點把間隔改小** —— 那個常數
+// 回答的是「一張圖該停多久才讀得完」(全螢幕畫的是 1363 字的詳解全文),不是
+// 「測試要跑多久」。
+const WAIT_MS = 26_000;
 
 let browser;
 let server;
@@ -308,7 +312,7 @@ test('自動輪播時顯示秒數倒數,而且真的在往下走', async (t) => 
     { timeout: 3000 },
   );
   const first = await readCountdown();
-  assert.ok(first !== null && first > 0 && first <= 10, `倒數起始值不合理:${first}`);
+  assert.ok(first !== null && first > 0 && first <= 20, `倒數起始值不合理:${first}`);
 
   await page.waitForTimeout(2500);
   const later = await readCountdown();
@@ -436,6 +440,44 @@ test('寬螢幕的全螢幕輪播是左右,不是上下', async (t) => {
   assert.ok(
     narrow.panelTop >= narrow.imgBottom - 1,
     `窄螢幕應該是上下:圖下緣 ${narrow.imgBottom}, 說明上緣 ${narrow.panelTop}`,
+  );
+
+  await ctx.close();
+});
+
+test('全螢幕的第一幀就有圖 —— 不是等 full 載完才出現', async (t) => {
+  // ⚠️ 這條守的是實際回報的「開全螢幕卡卡的」。478 張裡有 203 張的 full 跟 view
+  // 是不同的檔,而全螢幕的 <img> 是全新的元素 —— 修正前量到第一幀就是
+  // `complete: false, naturalWidth: 0`,也就是圖片區整塊空白,等新檔載完才出現。
+  const opened = await open(t, { paused: true });
+  if (!opened) return;
+  const { ctx, page } = opened;
+
+  // 先確認卡片那張真的載好了(對照組):它沒載好的話,下面那條「第一幀有圖」
+  // 本來就不可能成立,測試會紅在一個跟全螢幕無關的地方。
+  await page.waitForFunction(
+    () => {
+      const i = document.querySelector('[data-smear-gallery] img');
+      return !!i && i.complete && i.naturalWidth > 0;
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const first = await page.evaluate(async () => {
+    const btn = [...document.querySelectorAll('[data-smear-gallery] button')].find(
+      (b) => b.getAttribute('aria-label') === '全螢幕輪播',
+    );
+    btn.click();
+    await new Promise((r) => queueMicrotask(() => queueMicrotask(r)));
+    const img = document.querySelector('[data-smear-screensaver] img');
+    return img && { complete: img.complete, natural: img.naturalWidth, src: img.getAttribute('src') };
+  });
+
+  assert.ok(first, '全螢幕裡找不到圖');
+  assert.ok(
+    first.complete && first.natural > 0,
+    `全螢幕第一幀的圖是空的(complete=${first.complete}, naturalWidth=${first.natural}) —— 應該先畫卡片已經載好的 view`,
   );
 
   await ctx.close();

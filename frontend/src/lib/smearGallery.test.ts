@@ -117,17 +117,18 @@ test("each gate on its own is enough to stop it", () => {
 	assert.equal(shouldAutoAdvance({ ...open, hasItems: false }), false);
 });
 
-test("the interval is long enough to read a caption", () => {
-	// 守著這個常數本身 —— 調成兩三秒會讓右欄的說明變成一閃而過的裝飾。
-	assert.ok(AUTO_ADVANCE_MS >= 6000);
+test("間隔要長到讀得完一段說明", () => {
+	// 守著這個常數本身。全螢幕畫的是共筆詳解全文(平均 1363 字),調短會讓那段
+	// 說明變成一閃而過的裝飾 —— 而讀到一半被換走比等久一點難受得多。
+	assert.ok(AUTO_ADVANCE_MS >= 15_000, `間隔太短:${AUTO_ADVANCE_MS}ms`);
 });
 
 // --- 倒數 ------------------------------------------------------------------
 
-test("倒數從 10 開始,而不是 9", () => {
-	// floor 的話一設好就顯示 9,十秒的倒數看起來像少了一秒。
+test("倒數從整數的間隔秒數開始,而不是少一秒", () => {
+	// floor 的話一設好就顯示 19,二十秒的倒數看起來像少了一秒。
 	const t0 = 1_000_000;
-	assert.equal(secondsLeft(t0 + AUTO_ADVANCE_MS, t0), 10);
+	assert.equal(secondsLeft(t0 + AUTO_ADVANCE_MS, t0), AUTO_ADVANCE_MS / 1000);
 });
 
 test("倒數在真正換圖的那一刻才到 0", () => {
