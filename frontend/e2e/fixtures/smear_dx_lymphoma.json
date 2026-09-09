@@ -1,0 +1,150 @@
+{
+  "id": "lymphoma",
+  "canonical_long": "lymphoma",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "created_at": 1788826229306,
+  "note": {
+    "dx_id": "lymphoma",
+    "content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":3},\"content\":[{\"type\":\"text\",\"text\":\"一句話\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"淋巴瘤（lymphoma）泛指源自淋巴系統（B 細胞、T 細胞或 NK 細胞）的惡性腫瘤總稱，涵蓋眾多依細胞來源、分化階段與臨床行為區分的亞型，骨髓抹片上可見異常淋巴球（lymphoma cell）浸潤。\"}]},{\"type\":\"heading\",\"attrs\":{\"level\":3},\"content\":[{\"type\":\"text\",\"text\":\"怎麼認\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"英文形態描述（考卷上可以這樣寫）：\"},{\"type\":\"text\",\"text\":\"Marrow aspirate or biopsy shows an infiltrate of atypical lymphoid cells—ranging from small mature-appearing lymphocytes to larger blastic forms depending on subtype—arranged in interstitial, nodular, or paratrabecular aggregates that efface the normal hematopoietic architecture.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"哪一群細胞異常：\"},{\"type\":\"text\",\"text\":\"淋巴性——但需先判斷是 B 或 T/NK 細胞株系、以及具體亞型，這決定了後續分類與治療方向。\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"異常在哪一個成熟階段：\"},{\"type\":\"text\",\"text\":\"依亞型而異，可以是原始細胞為主（如 LBL/母細胞性淋巴瘤）、中型細胞伴高增生活性（如 Burkitt lymphoma）、或以成熟小到中型淋巴球為主（如 mantle cell lymphoma、marginal zone lymphoma）；單看「lymphoma」這個廣義診斷時，重點在辨認出這是異常淋巴球浸潤而非正常反應性淋巴球，再依細胞大小、核形、核仁決定亞型。\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"有沒有伴隨的背景變化：\"},{\"type\":\"text\",\"text\":\"骨髓抹片上常見淋巴瘤細胞呈局灶性或間質性浸潤（而非瀰漫取代造血組織，除非為白血病期或末期骨髓衰竭），需留意周邊血是否出現「淋巴瘤細胞白血病化」（leukemic phase），以及正常三系造血是否因浸潤或骨髓衰竭而減少。\"}]},{\"type\":\"heading\",\"attrs\":{\"level\":3},\"content\":[{\"type\":\"text\",\"text\":\"容易混淆的\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"跟 mantle cell lymphoma / marginal zone lymphoma / hairy cell leukemia（mantle_cell_lymphoma、mzl、hairy_cell_leukemia）的關係：均屬小 B 細胞淋巴瘤，考卷上通常期望依核形（MCL 核不規則凹陷）、胞質突起（HCL 毛狀）、單核球樣胞質（MZL）等具體特徵指出亞型，而不應籠統只寫 lymphoma。\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"跟 lymphoma cell（lymphoma_cell，單一細胞型態條目）的差別：若要單獨描述看到的異常淋巴球本身型態，對應的是 lymphoma_cell 這個細胞條目；lymphoma 則是疾病層級的整體診斷。\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"跟 LBL / Burkitt lymphoma（lbl、burkitt_lymphoma）的差別：若細胞呈原始母細胞或高度增生的中型細胞型態，應優先考慮 LBL 或 Burkitt lymphoma 而非籠統寫 lymphoma。\"}]},{\"type\":\"heading\",\"attrs\":{\"level\":3},\"content\":[{\"type\":\"text\",\"text\":\"臨床脈絡\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"淋巴瘤病患可能因無痛性淋巴結腫大、B 症狀（發燒、盜汗、體重減輕）或骨髓侵犯導致的血球低下而接受骨髓檢查分期；骨髓抹片／切片檢查主要用於分期（staging）而非初始診斷（初診斷通常仰賴淋巴結或組織切片病理搭配免疫組織化學），發現骨髓侵犯時須進一步以流式細胞儀免疫分型確認亞型與克隆性。\"}]},{\"type\":\"heading\",\"attrs\":{\"level\":3},\"content\":[{\"type\":\"text\",\"text\":\"拼字提醒\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"注意「lymphoma」「lymphoma cells」（對應細胞層級的 lymphoma_cell 條目）「lymphoma involvement」（骨髓侵犯的臨床描述用語）三者所指層次不同；避免將口語 lymph node cancer 用於正式報告中。\"}]}]}",
+    "related_dx_ids": "[\"mantle_cell_lymphoma\",\"mzl\",\"hairy_cell_leukemia\",\"lymphoma_cell\",\"lbl\",\"burkitt_lymphoma\"]",
+    "version": 1,
+    "updated_by": null,
+    "updated_at": 1788829543728,
+    "editing_by": null,
+    "editing_until": null
+  },
+  "terms": [
+    {
+      "id": "lymphoma-t0",
+      "text": "Lymphoma",
+      "tier": "full",
+      "form": "long"
+    },
+    {
+      "id": "lymphoma-t2",
+      "text": "Lymphoma involve",
+      "tier": "full",
+      "form": "long"
+    },
+    {
+      "id": "lymphoma-t3",
+      "text": "lymphoma involvement",
+      "tier": "full",
+      "form": "long"
+    },
+    {
+      "id": "lymphoma-t5",
+      "text": "malignant lymphoma",
+      "tier": "full",
+      "form": "long"
+    },
+    {
+      "id": "lymphoma-t1",
+      "text": "lymph node cancer",
+      "tier": "lay",
+      "form": "long"
+    },
+    {
+      "id": "lymphoma-t4",
+      "text": "lymphoma cells",
+      "tier": "lay",
+      "form": "long"
+    }
+  ],
+  "questions": [
+    {
+      "id": "exam-t1-012",
+      "source": "exam",
+      "source_ref": "pre-test-A-2026.pdf#12",
+      "source_url": null,
+      "attribution": null,
+      "image_key_view": "smear/exam/pre-test-A-2026-012-view.webp",
+      "image_key_full": "smear/exam/pre-test-A-2026-012-full.webp",
+      "prompt": "What disease?",
+      "image_note": null
+    },
+    {
+      "id": "exam-t2-040",
+      "source": "exam",
+      "source_ref": "pre-test-2.pdf#40",
+      "source_url": null,
+      "attribution": null,
+      "image_key_view": "smear/exam/pre-test-2-040-view.webp",
+      "image_key_full": "smear/exam/pre-test-2-040-full.webp",
+      "prompt": "What disease?",
+      "image_note": null
+    },
+    {
+      "id": "exam-t4-005",
+      "source": "exam",
+      "source_ref": "week12.pdf#5",
+      "source_url": null,
+      "attribution": null,
+      "image_key_view": "smear/exam/week12-005-view.webp",
+      "image_key_full": "smear/exam/week12-005-full.webp",
+      "prompt": "What disease?",
+      "image_note": null
+    },
+    {
+      "id": "exam-t4-050",
+      "source": "exam",
+      "source_ref": "week12.pdf#50",
+      "source_url": null,
+      "attribution": null,
+      "image_key_view": "smear/exam/week12-050-view.webp",
+      "image_key_full": "smear/exam/week12-050-full.webp",
+      "prompt": "What disease?",
+      "image_note": null
+    },
+    {
+      "id": "ash-lymphoma-62352",
+      "source": "ash",
+      "source_ref": "62352",
+      "source_url": "https://imagebank.hematology.org/image/62352/abnormal-lymphoid-cells-in-bone-marrow-aspirate-and-imprint-smears?type=upload",
+      "attribution": "Prakriti Gupta; Akriti Manocha; Jasmita Das",
+      "image_key_view": "smear/ash/62352.jpg",
+      "image_key_full": "smear/ash/62352.jpg",
+      "prompt": "What disease?",
+      "image_note": null
+    },
+    {
+      "id": "ash-lymphoma-60634",
+      "source": "ash",
+      "source_ref": "60634",
+      "source_url": "https://imagebank.hematology.org/image/60634/diffuse-large-bcell-lymphoma-in-leukemic-phase?type=upload",
+      "attribution": "Biswadip Hazarika",
+      "image_key_view": "smear/ash/60634.jpg",
+      "image_key_full": "smear/ash/60634.jpg",
+      "prompt": "What disease?",
+      "image_note": null
+    }
+  ],
+  "related": [
+    {
+      "dx_id": "burkitt_lymphoma",
+      "canonical_long": "Burkitt lymphoma"
+    },
+    {
+      "dx_id": "hairy_cell_leukemia",
+      "canonical_long": "hairy cell leukemia"
+    },
+    {
+      "dx_id": "lbl",
+      "canonical_long": "lymphoblastic lymphoma"
+    },
+    {
+      "dx_id": "lymphoma_cell",
+      "canonical_long": "Lymphoma cell"
+    },
+    {
+      "dx_id": "mantle_cell_lymphoma",
+      "canonical_long": "mantle cell lymphoma"
+    },
+    {
+      "dx_id": "mzl",
+      "canonical_long": "marginal zone lymphoma"
+    }
+  ]
+}

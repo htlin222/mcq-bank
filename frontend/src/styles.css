@@ -418,6 +418,36 @@
 	}
 }
 
+/* 螢幕保護的說明欄底色永遠是黑的,跟使用者選什麼主題無關 —— 而 `.tiptap` 的
+   文字色是 `text-ink-800 dark:text-ink-100`,**亮色主題下那是深色字,畫在黑底上
+   等於看不見**(而且是整段看不見,不是難讀)。這一層只改顏色,排版(標題級距、
+   清單縮排、表格、mention/qref)照樣吃 `.tiptap` 那一整段。
+
+   ⚠️ **不是把 `.dark` 掛在子樹上解決。** 那個 class 是全站深色主題的開關,掛上去
+   會讓底下每一處 `dark:` utility 一起翻面(包含背景與邊框),而這裡要換的只有
+   文字顏色。同 `applyTheme()` 那條「.eink 絕不同時掛 .dark」的理由:主題 class
+   是全域不變式,不是可以借來當作用域的工具。
+
+   specificity 是 (0,2,0),打得過 `.tiptap` 自己的 (0,1,0);`code` / `blockquote`
+   自己帶顏色,所以要各自再點名一次。`pre` 本來就是深底淺字,不動。 */
+.smear-note-dark .tiptap {
+	@apply text-ink-100;
+}
+/* ⚠️ 標題要**單獨點名**,不能靠上面那條繼承下去。base layer 有一條全域
+   `h1,h2,h3,h4 { text-ink-800 dark:text-ink-100 }` 直接把顏色設在標題上,而
+   **直接設定的顏色贏過繼承,跟 specificity 完全無關** —— 上面那條再怎麼具體
+   也管不到已經有自己顏色的元素。實測漏掉這條時,標題是 rgb(26,22,15)(近黑)
+   而內文是 rgb(237,233,226),也就是每一個標題在黑底上整行看不見。 */
+.smear-note-dark .tiptap :is(h1, h2, h3, h4) {
+	@apply text-ink-100;
+}
+.smear-note-dark .tiptap blockquote {
+	@apply text-ink-300 border-ink-600;
+}
+.smear-note-dark .tiptap code {
+	@apply bg-ink-700 text-ink-100;
+}
+
 /* 第三種形狀:全螢幕螢幕保護(SmearScreensaver)。**它在每個寬度都是滿版**,
    不像上面那兩個 sheet 到 sm 就變成置中卡片 —— 所以不能沿用 .dialog-sheet-*
    (那兩個在 ≥sm 會歸零)。

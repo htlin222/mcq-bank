@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Pause, Play, X } from "lucide-react";
-import type { SmearGalleryItem } from "../../lib/smearApi";
-import { GalleryCaption, GalleryImage } from "./SmearGalleryParts";
+import { fetchSmearDx, type SmearGalleryItem } from "../../lib/smearApi";
+import { StaticContent } from "../StaticContent";
+import {
+	GalleryCaption,
+	GalleryCountdown,
+	GalleryImage,
+} from "./SmearGalleryParts";
 
 /**
  * 全螢幕螢幕保護 —— 輪播卡右上角那顆 ⛶ 開的東西。輪播的狀態(現在第幾張、
@@ -22,6 +27,8 @@ export function SmearScreensaver({
 	item,
 	paused,
 	eink,
+	deadline,
+	onInteract,
 	onNext,
 	onPrev,
 	onTogglePause,
@@ -30,6 +37,8 @@ export function SmearScreensaver({
 	item: SmearGalleryItem;
 	paused: boolean;
 	eink: boolean;
+	deadline: number | null;
+	onInteract: (active: boolean) => void;
 	onNext: () => void;
 	onPrev: () => void;
 	onTogglePause: () => void;
@@ -37,6 +46,15 @@ export function SmearScreensaver({
 }) {
 	const hostRef = useRef<HTMLDivElement | null>(null);
 	const [showChrome, setShowChrome] = useState(true);
+	const note = useDxNote(item.dx_id);
+	const panelRef = useRef<HTMLDivElement | null>(null);
+
+	// 換圖時把說明捲回頂端。不捲的話新的詳解會從上一篇讀到的位置開始顯示 ——
+	// 看起來像「開頭不見了」。順帶把「正在讀」的訊號一起解除。
+	useEffect(() => {
+		if (panelRef.current) panelRef.current.scrollTop = 0;
+		onInteract(false);
+	}, [item.id, onInteract]);
 
 	// 進場:試著要真的全螢幕 + Wake Lock。**Wake Lock 要使用者手勢**,而點下
 	// 那顆 ⛶ 就是 —— 換到別的時機(例如自動進入)會靜靜失敗。
@@ -132,7 +150,7 @@ export function SmearScreensaver({
 			    ⚠️ 這裡的離開鈕在 iOS 上是唯一的出路 —— `requestFullscreen()` 會被
 			    拒絕,所以瀏覽器不會替我們處理 Esc,而手機也沒有鍵盤。它落在瀏海
 			    底下就等於出不去。 */}
-			<div className="absolute inset-0 screensaver-safe flex flex-col lg:flex-row">
+			<div className="absolute inset-0 screensaver-safe flex flex-col">
 				{/* 全螢幕用 full 尺寸(長邊 2400)—— 這裡的畫面可能是一台投影機。 */}
 				<GalleryImage
 					item={item}
@@ -151,12 +169,22 @@ export function SmearScreensaver({
 
 				    淡出時只改 opacity 不改 display:抽掉的話說明會整段上跳,而
 				    「滑鼠不動三秒版面自己動一下」比留一排看不見的按鈕糟。 */}
-				<div className="lg:w-80 xl:w-96 shrink-0 bg-ink-900 border-t lg:border-t-0 lg:border-l border-ink-700 p-5 overflow-y-auto flex flex-col gap-4">
+				{/* ⚠️ 「正在讀」的訊號是**捲動位置**,不是滑鼠有沒有停在上面。
+				    螢幕保護多半是架著讓它自己跑的,而滑鼠很容易就停在畫面下緣 ——
+				    用 hover 判斷的話,指標隨手一放輪播就再也不動了,而畫面上唯一
+				    的線索只有倒數消失。捲下去過就是明確的「我在讀」,回到頂端
+				    (或換了一張,見下面的 scrollTop 重設)就結束。 */}
+				<div
+					ref={panelRef}
+					className="shrink-0 max-h-[55%] landscape:max-h-[42%] bg-ink-900 border-t border-ink-700 p-5 overflow-y-auto flex flex-col gap-4"
+					onScroll={(e) => onInteract(e.currentTarget.scrollTop > 0)}
+				>
 					<div
 						className={`flex items-center justify-end gap-2 shrink-0 transition-opacity ${
 							showChrome ? "opacity-100" : "opacity-0 pointer-events-none"
 						}`}
 					>
+						<GalleryCountdown deadline={deadline} className="text-ink-400" />
 						<ScreenButton label="上一張" onClick={onPrev}>
 							<ChevronLeft size={20} strokeWidth={1.75} />
 						</ScreenButton>
@@ -181,9 +209,10 @@ export function SmearScreensaver({
 							<X size={20} strokeWidth={1.75} />
 						</ScreenButton>
 					</div>
-					{/* 全螢幕不截斷 —— 這一欄整片空著,收成三行是把版面的限制當成
-					    內容的限制。 */}
-					<GalleryCaption item={item} dark clamp={false} />
+					{/* 全螢幕畫的是**共筆詳解全文**,不是卡片那 220 字的摘要。
+					    `note` 還沒回來(或那個診斷根本沒有詳解)時退回摘要 ——
+					    那一區絕不會是空的。 */}
+					<GalleryCaption item={item} dark clamp={false} note={note} />
 				</div>
 			</div>
 		</div>,
@@ -211,4 +240,58 @@ function ScreenButton({
 			{children}
 		</button>
 	);
+}
+
+// ---------------------------------------------------------------------------
+// 共筆詳解全文
+// ---------------------------------------------------------------------------
+//
+// **不放進 /api/smear/gallery 的 payload。** 全文平均 1363 字(最長 1895),
+// 一批 24 筆會讓那支端點從 20 KB 漲到約 100 KB —— 而首頁那張卡只畫三行,
+// 也就是每個開首頁的人都替「可能永遠不會打開的全螢幕」付這筆錢。改成進了
+// 螢幕保護才逐張取,而且**取的是既有的 `/api/smear/dx/:id`**,不另開端點。
+//
+// ⚠️ **要的是 `content_json` 而不是更長的純文字。** gallery 那支的摘要是
+// `GROUP_CONCAT` 把 TipTap JSON 壓平的結果,220 字還看得下去;整篇壓平之後
+// 標題會黏在內文裡(「…等)。 怎麼認 英文形態描述…」),愈長愈難讀。所以這裡
+// 走 `StaticContent`(lib/staticDoc.ts 的 JSON→React 渲染器,同留言與 Anki
+// 卡),標題、清單、表格都還在。
+//
+// 快取在模組層而不是元件 state:輪播會繞回看過的診斷,而一次 fetch 換來的是
+// 之後每一次都同步命中。
+const noteCache = new Map<string, unknown>();
+
+function useDxNote(dxId: string): unknown {
+	const [note, setNote] = useState<unknown>(() => noteCache.get(dxId) ?? null);
+
+	useEffect(() => {
+		const hit = noteCache.get(dxId);
+		if (hit !== undefined) {
+			setNote(hit);
+			return;
+		}
+		// 換圖的當下先清掉,否則新的圖會配著**上一張**的詳解 —— 那比沒有詳解糟
+		// 得多,而且看起來完全正常。
+		setNote(null);
+		let cancelled = false;
+		fetchSmearDx(dxId)
+			.then((d) => {
+				let parsed: unknown = null;
+				try {
+					parsed = d.note ? JSON.parse(d.note.content_json) : null;
+				} catch {
+					parsed = null;
+				}
+				noteCache.set(dxId, parsed);
+				if (!cancelled) setNote(parsed);
+			})
+			.catch(() => {
+				/* 退回卡片那 220 字的摘要 —— 見 GalleryCaption 的 note fallback */
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [dxId]);
+
+	return note;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import {
@@ -6,6 +6,8 @@ import {
 	SMEAR_TOPIC_LABELS,
 	type SmearGalleryItem,
 } from "../../lib/smearApi";
+import { secondsLeft } from "../../lib/smearGallery";
+import { StaticContent } from "../StaticContent";
 import { useIsEink } from "../../lib/theme";
 
 // 輪播卡與全螢幕螢幕保護共用的兩塊:圖、說明。
@@ -67,12 +69,17 @@ export function GalleryCaption({
 	item,
 	dark = false,
 	clamp = true,
+	note = null,
 }: {
 	item: SmearGalleryItem;
 	dark?: boolean;
 	/** 詳解摘要收成三行。卡片上要(那個右欄只有那麼高),**全螢幕不要** ——
 	 *  一整欄空著卻把說明截掉,是把版面的限制當成內容的限制。 */
 	clamp?: boolean;
+	/** 共筆詳解全文(TipTap JSON,已 parse)。給了就畫全文而不是那 220 字的
+	 *  摘要;還沒回來或那個診斷沒有詳解就是 null。**永遠有 fallback** ——
+	 *  「載入中」在螢幕保護上是一塊空白,而空白比舊摘要糟。 */
+	note?: unknown;
 }) {
 	const title = item.canonical_abbrev
 		? `${item.canonical_long}(${item.canonical_abbrev})`
@@ -111,16 +118,30 @@ export function GalleryCaption({
 				</p>
 			)}
 
-			{/* 共筆詳解摘要。伺服器端已經截到 220 字(見 /gallery 的
-			    GALLERY_PREVIEW_MAX),卡片上再收成三行。 */}
-			{item.note_preview && (
-				<p
-					className={`text-sm leading-relaxed break-words ${
-						clamp ? "line-clamp-3" : ""
-					} ${dark ? "text-ink-200" : "text-ink-600 dark:text-ink-300"}`}
+			{/* 共筆詳解。有全文(`note`)就畫全文,否則畫伺服器端截到 220 字的
+			    摘要(見 /gallery 的 GALLERY_PREVIEW_MAX)。
+
+			    ⚠️ 全文走 StaticContent 而不是把更長的純文字塞進 <p> —— 摘要是
+			    `GROUP_CONCAT` 壓平 TipTap JSON 的結果,220 字還看得下去,整篇
+			    壓平之後標題會黏在內文裡,愈長愈難讀。 */}
+			{note ? (
+				<div
+					className={`text-sm leading-relaxed min-w-0 ${
+						dark ? "smear-note-dark" : ""
+					}`}
 				>
-					{item.note_preview}
-				</p>
+					<StaticContent content={note} />
+				</div>
+			) : (
+				item.note_preview && (
+					<p
+						className={`text-sm leading-relaxed break-words ${
+							clamp ? "line-clamp-3" : ""
+						} ${dark ? "text-ink-200" : "text-ink-600 dark:text-ink-300"}`}
+					>
+						{item.note_preview}
+					</p>
+				)
 			)}
 
 			<div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
@@ -172,6 +193,45 @@ function Badge({
 			}`}
 		>
 			{children}
+		</span>
+	);
+}
+
+/**
+ * 「還有幾秒換下一張」。`deadline` 為 null(自動輪播沒在跑)時整個不畫 ——
+ * 停著的倒數是假的資訊。
+ *
+ * **它自己持有每秒的 state,不是由呼叫端每秒重繪整張卡。** 放在上層的話,圖片、
+ * 說明、整條控制列每秒都要跟著 render 一次;隔離在這裡之後,每秒變的只有一個
+ * 數字。
+ *
+ * `aria-hidden` 是刻意的:讀屏軟體每秒念一次數字會把說明整段蓋掉,而這個數字
+ * 對「這張圖是什麼」沒有任何貢獻。暫停鈕的 label 已經說明了自動輪播的狀態。
+ */
+export function GalleryCountdown({
+	deadline,
+	className,
+}: {
+	deadline: number | null;
+	className?: string;
+}) {
+	const [now, setNow] = useState(() => Date.now());
+
+	useEffect(() => {
+		if (deadline === null) return;
+		setNow(Date.now());
+		const t = window.setInterval(() => setNow(Date.now()), 250);
+		return () => window.clearInterval(t);
+	}, [deadline]);
+
+	const left = secondsLeft(deadline, now);
+	if (left === null) return null;
+	return (
+		<span
+			aria-hidden
+			className={`tabular-nums text-xs text-ink-400 dark:text-ink-500 w-6 text-right ${className ?? ""}`}
+		>
+			{left}s
 		</span>
 	);
 }

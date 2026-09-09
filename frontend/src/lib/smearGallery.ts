@@ -124,3 +124,19 @@ export function writeGalleryPaused(paused: boolean): void {
 		/* 存不進去就算了,當次仍然生效 */
 	}
 }
+
+// ── 倒數 ────────────────────────────────────────────────────────────────────
+
+/**
+ * 距離下一次自動換圖還有幾秒。`deadline` 為 null(自動輪播沒在跑)時回 null,
+ * 呼叫端據此決定不畫。
+ *
+ * **回的是秒數不是毫秒,而且是 `ceil`。** 用 `floor` 的話一設好就顯示 9 —— 十秒
+ * 的倒數從 9 開始數,看起來像少了一秒;`ceil` 讓它從 10 開始、在真正換圖的那一
+ * 刻才到 0。夾在 0 以上:分頁被丟到背景又切回來時 `now` 可能已經過了 deadline,
+ * 負數會閃一下再歸零。
+ */
+export function secondsLeft(deadline: number | null, now: number): number | null {
+	if (deadline === null) return null;
+	return Math.max(0, Math.ceil((deadline - now) / 1000));
+}

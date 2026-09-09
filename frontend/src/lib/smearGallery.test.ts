@@ -7,6 +7,7 @@ import {
 	receivePrefetch,
 	shouldAutoAdvance,
 	shouldPrefetch,
+	secondsLeft,
 	AUTO_ADVANCE_MS,
 	PREFETCH_LEAD,
 	type AutoAdvanceGate,
@@ -119,4 +120,28 @@ test("each gate on its own is enough to stop it", () => {
 test("the interval is long enough to read a caption", () => {
 	// 守著這個常數本身 —— 調成兩三秒會讓右欄的說明變成一閃而過的裝飾。
 	assert.ok(AUTO_ADVANCE_MS >= 6000);
+});
+
+// --- 倒數 ------------------------------------------------------------------
+
+test("倒數從 10 開始,而不是 9", () => {
+	// floor 的話一設好就顯示 9,十秒的倒數看起來像少了一秒。
+	const t0 = 1_000_000;
+	assert.equal(secondsLeft(t0 + AUTO_ADVANCE_MS, t0), 10);
+});
+
+test("倒數在真正換圖的那一刻才到 0", () => {
+	const t0 = 1_000_000;
+	const deadline = t0 + AUTO_ADVANCE_MS;
+	assert.equal(secondsLeft(deadline, deadline - 1), 1);
+	assert.equal(secondsLeft(deadline, deadline), 0);
+});
+
+test("過了期限不會變負數", () => {
+	// 分頁丟到背景再切回來時 now 已經越過 deadline —— 負數會閃一下才歸零。
+	assert.equal(secondsLeft(1000, 9999), 0);
+});
+
+test("沒有在自動輪播時回 null —— 呼叫端據此不畫", () => {
+	assert.equal(secondsLeft(null, Date.now()), null);
 });
