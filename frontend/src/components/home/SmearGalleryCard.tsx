@@ -22,7 +22,11 @@ import {
 	type GalleryState,
 } from "../../lib/smearGallery";
 import { useIsEink } from "../../lib/theme";
-import { GalleryCaption, GalleryImage } from "./SmearGalleryParts";
+import {
+	GalleryCaption,
+	GalleryCountdown,
+	GalleryImage,
+} from "./SmearGalleryParts";
 import { SmearScreensaver } from "./SmearScreensaver";
 
 /**
@@ -48,11 +52,22 @@ export function SmearGalleryCard() {
 	);
 	const [loaded, setLoaded] = useState(false);
 	const [paused, setPaused] = useState(readGalleryPaused);
-	const [interacting, setInteracting] = useState(false);
+	// 「有人正在讀,先別換」有兩個來源,而**它們不能是同一個 state**:
+	//   卡片   指標停在卡上
+	//   全螢幕 說明欄被捲下去了(見 SmearScreensaver 的 onInteract)
+	//
+	// ⚠️ 而且卡片那個訊號在全螢幕開著時必須整個讓開。React 的 portal 事件是沿
+	// **React 樹**冒泡的,所以指標在全螢幕 overlay 裡的任何位置,都會被下面那顆
+	// `<section>` 的 onMouseEnter 收到 —— 於是 `interacting` 永遠是 true、
+	// 自動輪播在螢幕保護裡一次都不會跑,而畫面上唯一的線索是倒數不見了。
+	// 這是實際踩到的:第一版全螢幕開起來之後倒數整個不出現。
+	const [cardHover, setCardHover] = useState(false);
+	const [saverReading, setSaverReading] = useState(false);
 	const [documentHidden, setDocumentHidden] = useState(
 		() => typeof document !== "undefined" && document.hidden,
 	);
 	const [fullscreen, setFullscreen] = useState(false);
+	const interacting = fullscreen ? saverReading : cardHover;
 
 	const item = state.batch[state.index] ?? null;
 
@@ -106,8 +121,17 @@ export function SmearGalleryCard() {
 		interacting,
 		hasItems: state.batch.length > 0,
 	});
+	//
+	// `deadlineAt` 是「下一次換圖的時刻」,交給 GalleryCountdown 自己每秒去逼近。
+	// **時刻而不是剩餘秒數** —— 秒數要由這一層每秒往下數,那等於每秒重繪整張卡
+	// (圖、說明、控制列全部);一個時間戳只在換圖時變一次。
+	const [deadlineAt, setDeadlineAt] = useState<number | null>(null);
 	useEffect(() => {
-		if (!auto) return;
+		if (!auto) {
+			setDeadlineAt(null);
+			return;
+		}
+		setDeadlineAt(Date.now() + AUTO_ADVANCE_MS);
 		const t = window.setTimeout(
 			() => setState((s) => advance(s)),
 			AUTO_ADVANCE_MS,
@@ -151,10 +175,10 @@ export function SmearGalleryCard() {
 			data-smear-gallery
 			// 指標停在卡上、或卡裡有東西拿著焦點時不自動換 —— 正在讀說明時被換走
 			// 是這種卡片最容易被回報成「它自己跳掉了」的一件事。
-			onMouseEnter={() => setInteracting(true)}
-			onMouseLeave={() => setInteracting(false)}
-			onFocusCapture={() => setInteracting(true)}
-			onBlurCapture={() => setInteracting(false)}
+			onMouseEnter={() => setCardHover(true)}
+			onMouseLeave={() => setCardHover(false)}
+			onFocusCapture={() => setCardHover(true)}
+			onBlurCapture={() => setCardHover(false)}
 		>
 			<div className="border border-ink-200 dark:border-ink-700 rounded-lg overflow-hidden bg-white dark:bg-ink-800">
 				<div className="flex items-center gap-2 px-4 py-2 border-b border-ink-100 dark:border-ink-700">
@@ -164,6 +188,9 @@ export function SmearGalleryCard() {
 						答案直接寫在旁邊
 					</span>
 					<div className="ml-auto flex items-center gap-1">
+						{/* 倒數在暫停鈕**左邊** —— 它回答的是「這顆鈕現在在數什麼」,
+						    而按下暫停之後它會消失,那本身就是最直接的狀態回饋。 */}
+						<GalleryCountdown deadline={deadlineAt} />
 						<IconButton label="上一張" onClick={goPrev}>
 							<ChevronLeft size={16} strokeWidth={1.75} />
 						</IconButton>
@@ -185,7 +212,13 @@ export function SmearGalleryCard() {
 								)}
 							</IconButton>
 						)}
-						<IconButton label="全螢幕輪播" onClick={() => setFullscreen(true)}>
+						<IconButton
+							label="全螢幕輪播"
+							onClick={() => {
+								setSaverReading(false);
+								setFullscreen(true);
+							}}
+						>
 							<Expand size={16} strokeWidth={1.75} />
 						</IconButton>
 					</div>
@@ -209,10 +242,17 @@ export function SmearGalleryCard() {
 					item={item}
 					paused={paused}
 					eink={eink}
+					deadline={deadlineAt}
+					onInteract={setSaverReading}
 					onNext={goNext}
 					onPrev={goPrev}
 					onTogglePause={togglePause}
-					onClose={() => setFullscreen(false)}
+					onClose={() => {
+						setFullscreen(false);
+						// 離開時把卡片那個訊號也清掉:指標多半停在剛才那顆 ⛶ 上,
+						// 而 mouseenter 不會再放一次 —— 不清的話輪播就卡在暫停。
+						setCardHover(false);
+					}}
 				/>
 			)}
 		</section>

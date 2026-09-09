@@ -113,6 +113,59 @@ Wake Lock 是 best-effort:**會睡著的螢幕保護不是螢幕保護**。它�
 ⚠️ **寫死一個再由 `className` 蓋是不行的**:同一層 utility 的勝負由打包後的檔案
 順序決定,不是由字串裡誰寫在後面。
 
+## 第二輪(2026-09-09):全文、橫向版面、秒數倒數
+
+### 全螢幕畫的是共筆詳解全文
+
+第一版全螢幕只是把 `line-clamp-3` 拿掉,但**文字本身已經被伺服器截到 220 字**,
+所以照樣斷在「…」。全文平均 **1363 字**(最長 1895,103 篇共 140 KB)。
+
+**沒有把全文放進 `/api/smear/gallery`。** 一批 24 筆會讓那支從 20 KB 漲到約
+100 KB —— 每個開首頁的人都替「可能永遠不會打開的全螢幕」付這筆錢。改成進了
+螢幕保護才逐張取,而且**用既有的 `/api/smear/dx/:id`**,不另開端點;結果快取在
+模組層的 `Map`,輪播繞回看過的診斷就是同步命中。
+
+⚠️ **要的是 `content_json` 而不是「更長的純文字」。** gallery 那支的摘要是
+`GROUP_CONCAT` 把 TipTap JSON 壓平的結果 —— 220 字還看得下去,整篇壓平之後標題
+會黏在內文裡(「…等)。 怎麼認 英文形態描述…」),愈長愈難讀。故走
+`StaticContent`(`lib/staticDoc.ts`),標題、清單、表格都還在。載入中或那個診斷
+沒有詳解時退回摘要,**那一區永遠不會是空的**。
+
+⚠️ **黑底上的文字色要單獨處理,而標題必須另外點名。** `.tiptap` 是
+`text-ink-800 dark:text-ink-100`,亮色主題下畫在黑底等於整段看不見。加
+`.smear-note-dark` 一層只換顏色 —— **不是把 `.dark` 掛在子樹上**(那會讓底下每一處
+`dark:` utility 連背景邊框一起翻面,同 `applyTheme()` 那條不變式)。而 base layer
+有一條全域 `h1,h2,h3,h4 { text-ink-800 }` **直接把顏色設在標題上**,
+**直接設定贏過繼承、跟 specificity 無關**,所以容器那條管不到它:實測漏掉時標題是
+`rgb(26,22,15)`、內文是 `rgb(237,233,226)`,每個標題在黑底上整行看不見。
+
+### 橫向:說明一律在下面
+
+原本 `flex-col lg:flex-row`(≥lg 是右側欄)。改成一律 column、說明在底部,高度
+`max-h-[55%]`、橫向 `landscape:max-h-[42%]` 並可捲 —— 橫向的視窗矮,說明吃太多就
+沒有圖了。圖因此拿得到整個寬度。
+
+### 秒數倒數
+
+⚠️ **卡片持有的是「下一次換圖的時刻」(`deadlineAt`),不是剩餘秒數。** 秒數要由
+那一層每秒往下數,等於每秒重繪整張卡(圖、說明、控制列);時間戳只在換圖時變一次,
+而每秒變的只有 `GalleryCountdown` 裡那一個數字。`secondsLeft()` 用 `ceil`:`floor`
+會讓十秒的倒數從 9 開始,看起來像少了一秒。暫停時整個不畫 —— 停著的倒數是假的資訊。
+
+### ⚠️ portal 的事件會沿 React 樹冒泡,而那讓自動輪播在全螢幕裡一次都沒跑
+
+第一版全螢幕開起來之後倒數整個不出現。原因不是倒數壞了:卡片那顆 `<section>` 的
+`onMouseEnter` **收得到 portal 內的指標移動**(React 的 portal 事件沿 React 樹而非
+DOM 樹冒泡),於是 `interacting` 永遠是 true、`shouldAutoAdvance` 永遠回 false。
+畫面上唯一的線索就是倒數不見了。
+
+修法是把兩個訊號拆開:`interacting = fullscreen ? saverReading : cardHover`。
+
+而全螢幕那個訊號**刻意不是 hover,是說明欄的捲動位置**。螢幕保護多半是架著讓它
+自己跑的,滑鼠很容易停在畫面下緣 —— 用 hover 判斷的話指標隨手一放輪播就再也不動。
+捲下去過是明確的「我在讀」,回到頂端或換一張(換圖時 `scrollTop = 0`,順帶解除)
+就結束。
+
 ## 程式地圖
 
 | 檔                                            | 負責                                   |
@@ -122,7 +175,7 @@ Wake Lock 是 best-effort:**會睡著的螢幕保護不是螢幕保護**。它�
 | `frontend/src/lib/smearApi.ts`                 | `fetchSmearGallery` + `SmearGalleryItem` |
 | `components/home/SmearGalleryCard.tsx`         | 卡片與所有接線(計時器、事件、狀態)     |
 | `components/home/SmearGalleryParts.tsx`        | 圖與說明 —— 卡片與螢幕保護**共用**     |
-| `components/home/SmearScreensaver.tsx`         | 全螢幕版面、全螢幕 API、Wake Lock、鍵盤 |
+| `components/home/SmearScreensaver.tsx`         | 全螢幕版面、全螢幕 API、Wake Lock、鍵盤、詳解全文取用 |
 | `frontend/src/routes/Home.tsx`                 | 掛在兩個分頁**共用**的區域             |
 
 共用的那兩塊是承重的,不是省行數:各寫一份的話,之後加一個欄位一定會有一邊漏掉,

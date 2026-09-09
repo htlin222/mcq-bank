@@ -25,6 +25,34 @@ const FIXTURE = JSON.parse(
 );
 const ITEMS = FIXTURE.items;
 
+// 第一筆的共筆詳解全文 —— 全螢幕畫的是它,不是卡片那 220 字的摘要。
+// 期望值由 fixture 推出來(同上面的理由),而且**刻意取一段落在摘要截斷點之後
+// 的文字**:用摘要裡也有的字去斷言的話,「全文沒載到、退回摘要」照樣會綠。
+const DX = JSON.parse(
+  fs.readFileSync(
+    path.join(HERE, 'fixtures', `smear_dx_${ITEMS[0].dx_id}.json`),
+    'utf8',
+  ),
+);
+
+function plainText(node, out = []) {
+  if (Array.isArray(node)) node.forEach((n) => plainText(n, out));
+  else if (node && typeof node === 'object') {
+    if (node.type === 'text' && node.text) out.push(node.text);
+    Object.values(node).forEach((v) => plainText(v, out));
+  }
+  return out;
+}
+// ⚠️ 比對目標必須是**單一一個文字節點**,不能是把所有節點串起來之後切一段:
+// 串接時節點之間補的空白在 DOM 的 textContent 裡並不存在,切到跨節點的位置就
+// 永遠比不到 —— 而那會紅在一個看起來像「全文沒載到」的地方。實際踩到。
+const NOTE_NODES = plainText(JSON.parse(DX.note.content_json));
+const PREVIEW = ITEMS[0].note_preview;
+const BEYOND_PREVIEW = NOTE_NODES.find(
+  (t) => t.trim().length >= 12 && !PREVIEW.includes(t.trim()),
+)?.trim();
+if (!BEYOND_PREVIEW) throw new Error('fixture 裡找不到「只有全文才有」的段落');
+
 // 自動輪播是 10 秒(lib/smearGallery.ts 的 AUTO_ADVANCE_MS)。等 14 秒留四秒
 // 餘裕 —— 寫死「剛好 10 秒」在忙碌的 CI 上會假紅。
 const WAIT_MS = 14_000;
@@ -218,6 +246,109 @@ test('全螢幕螢幕保護開得起來、關得掉,而且看的是同一張', a
   // 不會替我們處理 Esc,而它是唯一沒有滑鼠的離開方式。
   await page.keyboard.press('Escape');
   await saver.waitFor({ state: 'detached', timeout: 3000 });
+
+  await ctx.close();
+});
+
+test('全螢幕畫的是共筆詳解全文,不是卡片那 220 字的摘要', async (t) => {
+  const opened = await open(t, { paused: true });
+  if (!opened) return;
+  const { ctx, page } = opened;
+
+  // 對照組:卡片上只有摘要,截斷點之後的文字**不該**在那裡。少了這半段,
+  // 下面那條在「卡片本來就畫了全文」時也會綠,等於什麼都沒驗到。
+  const cardText = await page.locator('[data-smear-gallery]').innerText();
+  assert.ok(
+    !cardText.includes(BEYOND_PREVIEW),
+    '卡片上不該出現摘要截斷點之後的文字',
+  );
+
+  await page.getByRole('button', { name: '全螢幕輪播' }).first().click();
+  const saver = page.locator('[data-smear-screensaver]');
+  await saver.waitFor({ timeout: 3000 });
+
+  await page.waitForFunction(
+    (needle) =>
+      document
+        .querySelector('[data-smear-screensaver]')
+        ?.textContent?.includes(needle) ?? false,
+    BEYOND_PREVIEW,
+    { timeout: 5000 },
+  );
+
+  // 結構要留著 —— 整篇壓平成純文字的話標題會黏進內文,愈長愈難讀。
+  assert.ok(
+    await saver.locator('.tiptap :is(h1, h2, h3)').count(),
+    '全文應該走 StaticContent 保留標題,不是一段壓平的純文字',
+  );
+
+  await ctx.close();
+});
+
+test('自動輪播時顯示秒數倒數,而且真的在往下走', async (t) => {
+  const opened = await open(t);
+  if (!opened) return;
+  const { ctx, page } = opened;
+  await page.mouse.move(5, 5);
+
+  const readCountdown = () =>
+    page.evaluate(() => {
+      const el = [...document.querySelectorAll('[data-smear-gallery] span')].find(
+        (s) => /^\d+s$/.test(s.textContent.trim()),
+      );
+      return el ? Number(el.textContent.trim().replace('s', '')) : null;
+    });
+
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll('[data-smear-gallery] span')].some((s) =>
+        /^\d+s$/.test(s.textContent.trim()),
+      ),
+    undefined,
+    { timeout: 3000 },
+  );
+  const first = await readCountdown();
+  assert.ok(first !== null && first > 0 && first <= 10, `倒數起始值不合理:${first}`);
+
+  await page.waitForTimeout(2500);
+  const later = await readCountdown();
+  assert.ok(later !== null && later < first, `倒數沒有往下走:${first} → ${later}`);
+
+  // 暫停之後倒數要消失 —— 停著不動的倒數是假的資訊。
+  await page.getByRole('button', { name: '暫停自動輪播' }).first().click();
+  await page.waitForFunction(
+    () =>
+      ![...document.querySelectorAll('[data-smear-gallery] span')].some((s) =>
+        /^\d+s$/.test(s.textContent.trim()),
+      ),
+    undefined,
+    { timeout: 3000 },
+  );
+
+  await ctx.close();
+});
+
+test('全螢幕裡也看得到倒數 —— 卡片的 hover 暫停不准漏進來', async (t) => {
+  // ⚠️ 這條守的是一個實際踩到的坑:React 的 portal 事件沿 **React 樹**冒泡,
+  // 所以指標在全螢幕 overlay 裡的任何位置都會觸發卡片那顆 <section> 的
+  // onMouseEnter,於是自動輪播在螢幕保護裡一次都不會跑 —— 而畫面上唯一的線索
+  // 就是倒數不見了。
+  const opened = await open(t);
+  if (!opened) return;
+  const { ctx, page } = opened;
+
+  await page.getByRole('button', { name: '全螢幕輪播' }).first().click();
+  const saver = page.locator('[data-smear-screensaver]');
+  await saver.waitFor({ timeout: 3000 });
+
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll('[data-smear-screensaver] span')].some((s) =>
+        /^\d+s$/.test(s.textContent.trim()),
+      ),
+    undefined,
+    { timeout: 4000 },
+  );
 
   await ctx.close();
 });
