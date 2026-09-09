@@ -66,6 +66,22 @@
 非商業,既有的 203 題也是同一個資料夾的考訊。`smear_cases.attribution` 仍要填,
 出處寫到 deck 與課次。
 
+### §2.1 v1 的 20 個核心案例
+
+| 來源 | 案數 | 覆蓋 |
+| --- | --- | --- |
+| Smear-5 全收 | 8 | B-ALL、T-ALL、`ALL vs. FL?`、`CLL vs. Reactive?`、Pancreatic ca with HLH、APL、`AML vs. Aggressive BCL?`、`AML vs. LPL?` |
+| Smear-1 選 4 | 4 | Burkitt with BM involvement、Ewing sarcoma 骨髓轉移、Leukocytosis with ecchymosis、HLH(取 13 個帶圖頁那案) |
+| ASH 選 8 | 8 | `#138` MDS del(5q)、`#102` HCL、`#129` MCL、`#142` CLL atypical、`#73` PV、`#16` ET、`#144` HbSD、`#11` AA + PNH |
+
+- **Smear-1 只取 4 案。** 八案裡有三案是 HLH,而且標題是臨床描述(`Intermittent HLH
+  for 5 months`)不是鑑別診斷。留最完整的那一案,其餘兩案的圖進單張題池。
+- **`#142 CLL with atypical features` 是刻意選的。** 它跟 Smear-5 的 `CLL vs. Reactive?`
+  是**同一個診斷的兩個病人**,在案例層面兌現學長那句「同樣的病,不同病人長得不一樣」。
+  這也是 §3 第三條「共用 `smear_dx`」買到的東西 —— 另開一套詞彙的話這兩案串不起來。
+- **CML 與 MM 沒有案例,只有單張題。** 兩者在跑台常入題,但 ASH 沒有堪用的案例,
+  而和信兩份也沒有。這是 v1 已知的洞,寫在這裡是為了不要有人以為漏掉了。
+
 **第二個來源:Alberta 的開放教科書。**
 [A Laboratory Guide to Clinical Hematology](https://pressbooks.openeducationalberta.ca/mlsci/)
 (Villatoro & To,CC BY-NC)是 RBC 形態為主的圖譜。原設計把 PathologyOutlines 補圖
@@ -73,9 +89,25 @@
 `smear_questions` 已經有 `attribution` 與 `source_url` 兩個欄位。
 **它補的是單張題的覆蓋率,不是跑台** —— 圖譜是單細胞圖,不是病人。
 
-**ASH 的 134 案不在 v1。** 理由不是它不好,是它跟和信的資料形狀不同:沒有病史、
-沒有逐張標籤、一病一案。兩種案例混在同一個清單裡,使用者會看到兩種完全不同的體驗,
-而那看起來像壞掉。留給 v2,那時已經知道這個互動形態值不值得餵更多內容。
+**ASH 選 8 案進 v1,其餘 126 案留 v2。** ⚠️ 這一段是 2026-09-09 改過的,而**改的理由
+是原本的判斷被量測推翻**:第一版寫著「ASH 沒有病史」,那是只讀了一案(AML t(8;21),
+剛好是唯一一種通用疾病描述)就下的結論。實際數過 134 案的敘述:
+
+| | 案數 | 比例 |
+| --- | --- | --- |
+| 有年齡或主訴 | 107 | 79% |
+| 有實驗室數值 | 34 | 25% |
+| 兩者都有 | 28 | 20% |
+
+**下次要否決一個資料來源,先數過再說。** 一案的樣本推不出 134 案的結論。
+
+剩下的真差別只有一個:**ASH 沒有逐張說明,只有整案敘述。** 這個落差的處理見 §3 第二條
+—— 兩種來源都改成中途不回饋,格式就一致了。
+
+⚠️ **ASH 補得上,但補不齊。** `reference-cases` 裡 **T-PLL、B-PLL、CMML、
+myelofibrosis、MAHA、malaria、ATLL、Burkitt 一案都沒有**;CML 與 MM 有候選但不帶病史
+或圖太少。學長點名的 T-PLL / B-PLL 因此**留在單張題**,素材是 Smear-3(帶臨床特徵與
+免疫表型)。不要再回頭去 ASH 找這幾個。
 
 ## §3 七個已決定的事
 
@@ -84,7 +116,7 @@
 | 決定 | 被否決的 | 為什麼 |
 | --- | --- | --- |
 | **逐步揭露,中途要答**:一次一張,答完才解鎖下一張,最後一張才問診斷 | 全部攤開只問診斷 / 只做瀏覽 | 跑台測的是「看到什麼就想到什麼」的過程,一次攤開等於把過程跳過 |
-| **中途那題不判分**,送出後直接給這張圖的原文說明讓你自己比 | 關鍵詞命中計分 / 勾選清單 / 改問封閉問題 | 形態描述沒有封閉答案集;關鍵詞命中的偽陰性會讓模組一直判你錯。勾選清單本身洩題(看到 Auer rod 在選項裡就不用猜了) |
+| **中途完全不回饋**:寫下就進下一張,揭曉時才逐張並排「你寫的」與「原文」 | 關鍵詞命中計分 / 勾選清單 / 改問封閉問題 / 每張送出後立刻給說明 | 形態描述沒有封閉答案集;關鍵詞命中的偽陰性會讓模組一直判你錯。勾選清單本身洩題(看到 Auer rod 在選項裡就不用猜了)。**「每張立刻給說明」是 2026-09-09 改掉的**:ASH 案例沒有逐張原文,兩種來源會變成兩種節奏;而且真的跑台本來就不會看一張就有人告訴你對不對 |
 | **正解共用 `smear_dx`**,缺的詞彙補進去 | case 另開一套答案詞彙 / dx 加旗標分流 | 一個病人就是那個診斷的一個實例,跟一張圖同地位。另開一套的話「CLL 案例」跟「CLL 單張圖」會變成兩個互不相干的東西,而那正好殺掉「同一診斷多版本」 |
 | **只標模態,揭曉文字用原文** | 逐張自產形態描述 | 103 份 dx 詳解過了兩輪醫學審核才上線;1111 段逐張描述只抽樣審,等於接受「有幾段是錯的,不知道哪幾段」。而和信投影片的模態標籤與說明文字本來就在頁面上 |
 | **`/smear/station` 自己一條路,不做全真** | 跑台也有計時交卷 / 混進現有 session | 全真的價值建立在交卷前什麼都不揭曉,而跑台的核心迴圈就是「答一張、看一張說明」,兩者直接衝突。也省下把四道防洩閘在案例形狀上重做 |
@@ -126,7 +158,7 @@ CREATE TABLE smear_case_attempts (
   id          TEXT PRIMARY KEY,
   user_email  TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE,
   case_id     TEXT NOT NULL REFERENCES smear_cases(id) ON DELETE CASCADE,
-  notes_json  TEXT,                   -- 逐步的自由輸入,不判分,只留給自己回看
+  notes_json  TEXT,                   -- 逐步的自由輸入,不判分;揭曉時跟原文並排
   final_typed TEXT,
   tier        TEXT,                   -- full|half|lay|miss,gradeSmear() 給的
   score       REAL,
@@ -165,10 +197,16 @@ CREATE INDEX idx_smear_case_attempts_user ON smear_case_attempts(user_email, cre
 
 | 端點 | 用途 | 洩題注意 |
 | --- | --- | --- |
-| `GET /api/smear/cases` | 案例清單:id、`steps` 張數、`modalities`、我答過沒 | 不回 dx_id、不回 reveal_note |
-| `GET /api/smear/cases/:id` | 開場:`history_md` + 第 1 張 | **只回第 1 張** |
-| `POST /api/smear/cases/:id/step` | 送出這一步的自由輸入 → 回這張的 `reveal_note` + 下一張 | 最後一張之後不回下一張 |
-| `POST /api/smear/cases/:id/answer` | 送出診斷 → `gradeSmear()` → 回 tier + `discussion_json` + 全部 `reveal_note` | 這支之前,`discussion_json` 一次都不會出現 |
+| `GET /api/smear/cases` | 案例清單:id、`steps` 張數、`modalities`、我答過沒 | 不回 `dx_id`、不回任何說明文字 |
+| `GET /api/smear/cases/:id` | 開場:`history_md` + **全部**圖的 key 與清乾淨的 `caption` | 不回 `reveal_note`、不回 `discussion_json` |
+| `POST /api/smear/cases/:id/answer` | 送出診斷與逐步筆記 → `gradeSmear()` → 回 tier + 全部 `reveal_note` + `discussion_json` | 這支之前,說明文字一次都不會出現 |
+
+**「中途不回饋」把 `/step` 整支端點消掉了。** 既然每一步不需要伺服器回話,圖就可以
+一次全給、由 client 逐張揭開 —— **少一支端點就少一個洩題面**,而且換題不必等 RTT。
+洩的是文字不是圖:知道這案有五張圖、其中一張是骨髓,是合理的線索不是答案。
+
+`steps_seen` 由 client 隨最後那支一起回報。它不計分,所以不需要防作弊 —— 同
+`play-2048` 那條「驗證只防資料汙染,不防作弊」。
 
 前端路由 `/smear/station`(清單)與 `/smear/station/:id`(作答)。
 ⚠️ **要排在 `/smear/dx/:id`、`/smear/s/:id` 這兩個萬用參數路由之前**,
@@ -292,7 +330,7 @@ WHERE s.user_email = ?          -- 綁的變數名字要有 email(bind-order.ts 
 - **不判定中途的形態描述。** 見 §3 第二條。
 - **不標倍率。** 來源沒寫,標了就是猜的,而「低倍」標成「高倍」會直接教錯判讀順序。
   順序用 PB 在前 BM 在後,那也是真的跑台的順序。
-- **不做 ASH 134 案。** v2,見 §2。
+- **ASH 只收 8 案**(§2.1),其餘 126 案 v2。
 - **不接手把。** 沿用 overview §11 既有的缺口,那一塊要 Layer 2 的情境判斷。
 - **不混進首頁熱力圖 / 弱點地圖 / 成績頁。** 同整個抹片模組的第一條原則。
 
@@ -302,9 +340,14 @@ WHERE s.user_email = ?          -- 綁的變數名字要有 email(bind-order.ts 
 | --- | --- | --- | --- |
 | **P0** | import 非破壞化(§8) | — | M |
 | **P1** | 抽題輪替(§9)+ 詞彙補齊(`cll` / `t_pll` / `b_pll`) | 詞彙補齊要 P0 | S |
-| **P2** | 和信管線 + `smear_cases` / `smear_case_items` + `/smear/station` | P0 | L |
-| **P3** | Alberta OER 補 RBC 單張題 | P0 | M |
-| **P4** | ASH 134 案(可選) | P2 上線並有人用過 | M |
+| **P2** | 和信管線(12 案)+ `smear_cases` / `smear_case_items` + `/smear/station` | P0 | L |
+| **P3** | ASH 8 案(§2.1)—— 需要 modality 分類 | P2 | M |
+| **P4** | Alberta OER 補 RBC 單張題 | P0 | M |
+| **P5** | ASH 其餘 126 案(可選) | P3 上線並有人用過 | M |
+
+⚠️ **P3 是 v1 的一部分,不是可選的** —— 少了它,MDS、HCL、MCL、PV、ET、thalassemia、
+AA/PNH 這幾個跑台常入題的病就沒有案例。但它排在 P2 之後,因為 ASH 需要 modality
+分類而和信不需要;先把不需要模型的那 12 案跑通,分類錯了才看得出來是分類的問題。
 
 **P1 的抽題輪替可以先於 P0 上線** —— 它不碰 import。
 如果只做得完一件事,做那一件:它回答了學長第二句話,而且成本最低。
