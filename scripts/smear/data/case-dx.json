@@ -1,0 +1,130 @@
+[
+ {
+  "case_id": "kfs-l1-c1",
+  "title_raw": "Burkitt lymphoma with BM involvement?",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": "burkitt_lymphoma",
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ },
+ {
+  "case_id": "kfs-l1-c2",
+  "title_raw": "DLBCL with BM involvement?",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": "lymphoma",
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ },
+ {
+  "case_id": "kfs-l1-c3",
+  "title_raw": "HLH with EBV viremia",
+  "dx_id": "hlh",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l1-c4",
+  "title_raw": "Intermittent HLH for 5 months",
+  "dx_id": "hlh",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l1-c5",
+  "title_raw": "Ewing sarcoma with bone marrow mets?",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": "metastatic_cancer",
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ },
+ {
+  "case_id": "kfs-l1-c6",
+  "title_raw": "Leukocytosis with ecchymosis",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": null,
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ },
+ {
+  "case_id": "kfs-l1-c7",
+  "title_raw": "Leukocytosis",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": null,
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ },
+ {
+  "case_id": "kfs-l1-c8",
+  "title_raw": "HLH with EBV viremia",
+  "dx_id": "hlh",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l5-c1",
+  "title_raw": "B-ALL (thrombocytopenia) B-ALL",
+  "dx_id": "all",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l5-c2",
+  "title_raw": "T-ALL (mediastinal mass)",
+  "dx_id": "all",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l5-c3",
+  "title_raw": "Acute lymphoblast leukemia (ALL) vs.",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": "all",
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ },
+ {
+  "case_id": "kfs-l5-c4",
+  "title_raw": "Chronic lymphocytic leukemia (CLL) vs. Reactive?",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": "cll",
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ },
+ {
+  "case_id": "kfs-l5-c5",
+  "title_raw": "Pancreatic ca with HLH?",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": "hlh",
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ },
+ {
+  "case_id": "kfs-l5-c6",
+  "title_raw": "Acute promyelocytic leukemia with pancytopenia",
+  "dx_id": "apl",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l5-c7",
+  "title_raw": "Acute myeloid leukemia (AML) vs.",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": "aml_unspecified",
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ },
+ {
+  "case_id": "kfs-l5-c8",
+  "title_raw": "Acute myeloid leukemia (AML) vs.",
+  "dx_id": null,
+  "needs_review": true,
+  "proposed_dx_id": "wm",
+  "why": "標題是鑑別診斷(帶問號)或不是診斷 —— 講課時口頭講的,投影片文字層沒有結論"
+ }
+]

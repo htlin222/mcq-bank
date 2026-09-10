@@ -62,8 +62,31 @@ def _resize_to_long_edge(img: Image.Image, long_edge: int) -> Image.Image:
     return img.resize((new_w, new_h), Image.LANCZOS)
 
 
-def render_page(page: "fitz.Page") -> Image.Image:
+def redact_page(page: "fitz.Page", needles: list[str]) -> int:
+    """在 render 之前,把 needles 命中的文字塗白。回傳塗掉幾處。
+
+    ⚠️ 這不是排版偏好,是去識別化。和信教學片的投影片上有 `Mr.林 41`、
+    `Ms.RO 50` 這種病人識別資訊,而這裡是整頁 render —— 不塗掉的話,一個真實
+    病人的姓氏會出現在一個 20 人看得到的網站上,而且沒有人會注意到。
+
+    ⚠️ 用 add_redact_annot + apply_redactions,不是畫一個白色矩形。畫矩形只是
+    蓋住,文字仍然留在 PDF 的文字層裡;雖然我們只輸出 WebP,但中間那份 PDF
+    如果哪天被順手拿去做別的事,遮蔽就失效了。真的把它從文件裡拿掉。
+    """
+    n = 0
+    for needle in needles:
+        for rect in page.search_for(needle):
+            page.add_redact_annot(rect, fill=(1, 1, 1))
+            n += 1
+    if n:
+        page.apply_redactions()
+    return n
+
+
+def render_page(page: "fitz.Page", redact: list[str] | None = None) -> Image.Image:
     """Render 一頁成裁邊後的 RGB PIL Image(未縮放)。"""
+    if redact:
+        redact_page(page, redact)
     pix = page.get_pixmap(dpi=DPI)
     mode = "RGBA" if pix.alpha else "RGB"
     img = Image.frombytes(mode, (pix.width, pix.height), pix.samples)
@@ -81,7 +104,13 @@ def render_page(page: "fitz.Page") -> Image.Image:
     return img
 
 
-def render_deck(deck_path: str, out_dir: str, limit: int = 0) -> list[str]:
+def render_deck(
+    deck_path: str,
+    out_dir: str,
+    limit: int = 0,
+    pages: list[int] | None = None,
+    redactions: dict[int, list[str]] | None = None,
+) -> list[str]:
     """把 deck_path 每一頁(1-based 頁碼)render 成 view/full 兩份 WebP,
     寫進 out_dir。回傳寫出的檔案路徑清單。
     """
@@ -94,9 +123,11 @@ def render_deck(deck_path: str, out_dir: str, limit: int = 0) -> list[str]:
         page_count = len(doc)
         n_pages = page_count if not limit else min(limit, page_count)
         for i in range(n_pages):
-            page = doc[i]
             page_num = i + 1  # 1-based:對應人類講的「第 18 頁」
-            trimmed = render_page(page)
+            if pages is not None and page_num not in pages:
+                continue
+            page = doc[i]
+            trimmed = render_page(page, (redactions or {}).get(page_num))
 
             for label, long_edge in (("view", VIEW_LONG_EDGE), ("full", FULL_LONG_EDGE)):
                 resized = _resize_to_long_edge(trimmed, long_edge)
@@ -117,9 +148,25 @@ def main():
     parser.add_argument(
         "--limit", type=int, default=0, help="最多 render 幾頁(0 = 全部)"
     )
+    parser.add_argument("--pages", help="只 render 這些頁(逗號分隔的 1-based 頁碼)")
+    parser.add_argument(
+        "--redact-json",
+        help='去識別化清單:{"<頁碼>": ["Mr.林 41", ...]}。'
+        "跑台案例一律要帶 —— 見 parse_cases.py 的 redactions 欄位。",
+    )
     args = parser.parse_args()
 
-    written = render_deck(args.deck, args.out, args.limit)
+    pages = None
+    if args.pages:
+        pages = [int(x) for x in args.pages.split(",") if x.strip()]
+    redactions = None
+    if args.redact_json:
+        import json
+
+        with open(args.redact_json, encoding="utf-8") as f:
+            redactions = {int(k): v for k, v in json.load(f).items()}
+
+    written = render_deck(args.deck, args.out, args.limit, pages, redactions)
     for path in written:
         print(path)
 

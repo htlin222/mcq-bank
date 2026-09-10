@@ -584,3 +584,71 @@ export function fetchSmearGallery(
 ): Promise<{ items: SmearGalleryItem[] }> {
 	return api.get(`/api/smear/gallery?n=${n}`);
 }
+
+// ---------------------------------------------------------------------------
+// 跑台(station)—— 一個病人、多張片子、逐步揭露
+// 設計:docs/plans/2026-09-09-smear-station-design.md
+// ---------------------------------------------------------------------------
+
+export interface SmearStationCaseRow {
+	id: string;
+	source: string;
+	steps: number;
+	teaser: string | null;
+	modalities: string[];
+	my_attempts: number;
+	last_tier: SmearTier | "miss" | null;
+}
+
+export interface SmearStationStep {
+	idx: number;
+	modality: string[];
+	image_key_view: string;
+	image_key_full: string;
+	caption: string | null;
+}
+
+export interface SmearStationCase {
+	id: string;
+	source: string;
+	source_ref: string | null;
+	attribution: string | null;
+	history_md: string | null;
+	steps: SmearStationStep[];
+}
+
+export interface SmearStationVerdict {
+	tier: SmearTier | "miss";
+	score: number;
+	matched: string | null;
+	canonical: string | null;
+	spellingErrors: { typed: string; expected: string }[];
+	dx_id: string;
+	discussion: string[] | null;
+	reveals: { idx: number; reveal_note: string | null }[];
+}
+
+// 模態標籤。集中一份,清單卡片與作答頁都要用 —— 各寫一份的話新增一種模態
+// 會有一邊漏改,而症狀是「某一張圖的標籤是英文 slug」。
+export const SMEAR_MODALITY_LABELS: Record<string, string> = {
+	pb: "周邊血液",
+	bm: "骨髓",
+	effusion: "積液",
+	aspiration: "穿刺抽吸",
+	csf: "腦脊髓液",
+	ihc: "免疫染色",
+	flow: "流式細胞術",
+	other: "其他",
+};
+
+export const listStationCases = () =>
+	api.get<{ cases: SmearStationCaseRow[] }>("/api/smear/station/cases");
+
+export const fetchStationCase = (id: string) =>
+	api.get<SmearStationCase>(`/api/smear/station/cases/${encodeURIComponent(id)}`);
+
+/** ⚠️ 這是唯一一支會回揭曉文字的端點。呼叫它之前,畫面上不該有任何說明。 */
+export const answerStationCase = (
+	id: string,
+	body: { typed: string; notes: Record<string, string>; steps_seen: number },
+) => api.post<SmearStationVerdict>(`/api/smear/station/cases/${encodeURIComponent(id)}/answer`, body);

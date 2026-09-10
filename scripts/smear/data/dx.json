@@ -3693,5 +3693,175 @@
     "n": 32
    }
   ]
+ },
+ {
+  "dx_id": "cll",
+  "canonical_long": "chronic lymphocytic leukemia",
+  "canonical_abbrev": "CLL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "CLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "chronic lymphocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "CLL/SLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "chronic lymphocytic leukaemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "small lymphocytic lymphoma",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "SLL",
+    "tier": "half",
+    "form": "abbrev"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "t_pll",
+  "canonical_long": "T-cell prolymphocytic leukemia",
+  "canonical_abbrev": "T-PLL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "T-PLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "T cell prolymphocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "T-cell prolymphocytic leukaemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "prolymphocytic leukemia",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "PLL",
+    "tier": "half",
+    "form": "abbrev"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "b_pll",
+  "canonical_long": "B-cell prolymphocytic leukemia",
+  "canonical_abbrev": "B-PLL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "B-PLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "B cell prolymphocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "B-cell prolymphocytic leukaemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "prolymphocytic leukemia",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "PLL",
+    "tier": "half",
+    "form": "abbrev"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "pv",
+  "canonical_long": "polycythemia vera",
+  "canonical_abbrev": "PV",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "PV",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "polycythemia vera",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "polycythaemia vera",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "polycythemia",
+    "tier": "half",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "aplastic_anemia",
+  "canonical_long": "aplastic anemia",
+  "canonical_abbrev": "AA",
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "aplastic anemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "aplastic anaemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AA",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "bone marrow failure",
+    "tier": "half",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
  }
 ]

@@ -1,0 +1,22 @@
+{
+  "cases": [
+    {
+      "id": "kfs-l5-c6",
+      "source": "kfs",
+      "steps": 8,
+      "teaser": "48 歲女性,因全血球低下就醫",
+      "modalities": ["pb", "bm"],
+      "my_attempts": 0,
+      "last_tier": null
+    },
+    {
+      "id": "ash-c142",
+      "source": "ash",
+      "steps": 5,
+      "teaser": "The patient is a 71-year-old man with lymphocytosis found on routine CBC.",
+      "modalities": ["pb", "flow"],
+      "my_attempts": 1,
+      "last_tier": "half"
+    }
+  ]
+}

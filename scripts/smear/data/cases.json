@@ -1,0 +1,1005 @@
+[
+ {
+  "id": "kfs-l1-c1",
+  "deck": "kfs-l1",
+  "source_ref": "20250313_血液_Smear-1.pdf#Case1",
+  "title_raw": "Burkitt lymphoma with BM involvement?",
+  "history": [
+   "2022/11/21 BM biopsy: negative",
+   "2022/11/21 BM cytogenetic: t(8;14)"
+  ],
+  "pages": [
+   {
+    "page": 9,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2022/11/21 BM smear"
+    ],
+    "reveal": [
+     "2022/11/21 BM smear:several medium to large sized abnormal lymphocyte"
+    ]
+   },
+   {
+    "page": 10,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "kfs-l1-c2",
+  "deck": "kfs-l1",
+  "source_ref": "20250313_血液_Smear-1.pdf#Case2",
+  "title_raw": "DLBCL with BM involvement?",
+  "history": [],
+  "pages": [
+   {
+    "page": 11,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "kfs-l1-c3",
+  "deck": "kfs-l1",
+  "source_ref": "20250313_血液_Smear-1.pdf#Case3",
+  "title_raw": "HLH with EBV viremia",
+  "history": [],
+  "pages": [
+   {
+    "page": 12,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2023/09/25 BM smear"
+    ],
+    "reveal": [
+     "2023/09/25 BM smear:medium to large sized abnormal lymphocytes with vacuoles"
+    ]
+   },
+   {
+    "page": 13,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2023/09/25 BM smear"
+    ],
+    "reveal": [
+     "2023/09/25 BM smear:increased histiocytes with hemophagocytic activity"
+    ]
+   },
+   {
+    "page": 14,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 16,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "kfs-l1-c4",
+  "deck": "kfs-l1",
+  "source_ref": "20250313_血液_Smear-1.pdf#Case4",
+  "title_raw": "Intermittent HLH for 5 months",
+  "history": [
+   "2023/06/12 BM biopsy: negative",
+   "2023/06/12 BM cytogenetic: normal",
+   "2023/07/19 BM biopsy: atypical B lymphocytes",
+   "2023/07/19 BM cytogenetic: normal"
+  ],
+  "pages": [
+   {
+    "page": 17,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2023/06/05 PB smear"
+    ],
+    "reveal": [
+     "2023/06/05 PB smear:abnormal lymphocyte + monocytosis"
+    ]
+   },
+   {
+    "page": 18,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2023/06/12 BM smear"
+    ],
+    "reveal": [
+     "2023/06/12 BM smear:hemophagocytosis"
+    ]
+   },
+   {
+    "page": 19,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 20,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 21,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2023/07/05 PB smear"
+    ],
+    "reveal": [
+     "2023/07/05 PB smear:abnormal lymphocyte • 2023/07/17 PB smear: phagocyte"
+    ]
+   },
+   {
+    "page": 22,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2023/07/18 BM smear"
+    ],
+    "reveal": [
+     "2023/07/18 BM smear:abnormal lymphocyte + hemophagocytosis"
+    ]
+   },
+   {
+    "page": 23,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 24,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 25,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2023/10/31 PB smear"
+    ],
+    "reveal": [
+     "2023/10/31 PB smear:abnormal lymphocyte • 2023/11/06 PB smear: phagocyte"
+    ]
+   },
+   {
+    "page": 26,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2023/10/31 BM smear"
+    ],
+    "reveal": [
+     "2023/10/31 BM smear:abnormal lymphocyte + hemophagocytosis"
+    ]
+   },
+   {
+    "page": 27,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "kfs-l1-c5",
+  "deck": "kfs-l1",
+  "source_ref": "20250313_血液_Smear-1.pdf#Case5",
+  "title_raw": "Ewing sarcoma with bone marrow mets?",
+  "history": [
+   "2023/10/31 BM biopsy: negative",
+   "2023/10/31 BM cytogenetic: complex",
+   "2024/01/05 Pleural fluid: consistent tumor with history of Ewing sarcoma"
+  ],
+  "pages": [
+   {
+    "page": 28,
+    "modality": [
+     "bm"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 29,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2023/10/31 BM smear"
+    ],
+    "reveal": [
+     "2023/10/31 BM smear:tumor nests were seen"
+    ]
+   },
+   {
+    "page": 30,
+    "modality": [
+     "bm"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 31,
+    "modality": [
+     "bm"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "kfs-l1-c6",
+  "deck": "kfs-l1",
+  "source_ref": "20250313_血液_Smear-1.pdf#Case6",
+  "title_raw": "Leukocytosis with ecchymosis",
+  "history": [
+   "2021/11/04: abnormal DIC profile"
+  ],
+  "pages": [
+   {
+    "page": 33,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 34,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2021/11/04 PB smear (from VHG central lab)"
+    ],
+    "reveal": []
+   },
+   {
+    "page": 35,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2021/11/05 PB smear (from VHG Hema lab)"
+    ],
+    "reveal": []
+   },
+   {
+    "page": 36,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2021/11/05 BM smear"
+    ],
+    "reveal": []
+   },
+   {
+    "page": 37,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 38,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "kfs-l1-c7",
+  "deck": "kfs-l1",
+  "source_ref": "20250313_血液_Smear-1.pdf#Case7",
+  "title_raw": "Leukocytosis",
+  "history": [],
+  "pages": [
+   {
+    "page": 39,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2025/01/27 PB smear"
+    ],
+    "reveal": [
+     "2025/01/27 PB smear:suspect APL"
+    ]
+   },
+   {
+    "page": 40,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2025/01/28 BM smear"
+    ],
+    "reveal": [
+     "2025/01/28 BM smear:suspect APL"
+    ]
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "kfs-l1-c8",
+  "deck": "kfs-l1",
+  "source_ref": "20250313_血液_Smear-1.pdf#Case8",
+  "title_raw": "HLH with EBV viremia",
+  "history": [
+   "2023/05/09 ER: slow response, general weakness",
+   "2023/05/12 consult Hema for suspect HLH",
+   "2023/05/12 EBV PCR = 213000 IU/mL"
+  ],
+  "pages": [
+   {
+    "page": 41,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 42,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 43,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2023/05/12 PB smear"
+    ],
+    "reveal": [
+     "2023/05/12 PB smear:large sized abnormal lymphocyte"
+    ]
+   },
+   {
+    "page": 44,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2023/05/13 BM smear"
+    ],
+    "reveal": [
+     "2023/05/13 BM smear:large sized abnormal lymphocyte + hemophagocytosis"
+    ]
+   },
+   {
+    "page": 45,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 46,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 47,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2023/05/16 PB smear"
+    ],
+    "reveal": [
+     "2023/05/16 PB smear:large sized abnormal lymphocyte + hemophagocytosis"
+    ]
+   },
+   {
+    "page": 48,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "kfs-l5-c1",
+  "deck": "kfs-l5",
+  "source_ref": "20250702_血液_Smear-5.pdf#Case1",
+  "title_raw": "B-ALL (thrombocytopenia) B-ALL",
+  "history": [
+   "2025/04/08 VGH: 35-year-old",
+   "Epidemiology",
+   "2-5 per 100,000 adults annually, ♀>♂",
+   "Pathophysiology",
+   "autoantibodies target platelets for",
+   "Diagnosis",
+   "Isolated thrombocytopenia (< 100 × 10⁹/L)",
+   "Diagnosed after ruling out other causes",
+   "Bone marrow test: Rarely needed"
+  ],
+  "pages": [
+   {
+    "page": 5,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 6,
+    "modality": [
+     "pb",
+     "bm"
+    ],
+    "captions": [
+     "2025/04/09 Peripheral blood",
+     "2025/04/10 Bone marrow"
+    ],
+    "reveal": []
+   },
+   {
+    "page": 7,
+    "modality": [
+     "bm"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": [
+   {
+    "page": 6,
+    "text": "Ms.李"
+   }
+  ]
+ },
+ {
+  "id": "kfs-l5-c2",
+  "deck": "kfs-l5",
+  "source_ref": "20250702_血液_Smear-5.pdf#Case2",
+  "title_raw": "T-ALL (mediastinal mass)",
+  "history": [
+   "30-year-old man, no underlying disease",
+   "2025/03: severe dry cough, facial and neck",
+   "2025/03/15 WFH:",
+   "CXR showed mediastinal mass, right pleural",
+   "Lab:",
+   "Hemogram: WBC 8250/uL (Seg 80.1%, Baso",
+   "Biochemistry: LDH 576 U/L, UA 7.5mg/dL",
+   "Tumor: β-HCG < 0.6 mIU/mL, CEA 0.85",
+   "2025/03/18 WFH: CT showed large mediastinal mass with SVC invasion from",
+   "2025/03/19 KFSYSCC: for second opinion admission"
+  ],
+  "pages": [
+   {
+    "page": 8,
+    "modality": [
+     "effusion"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 9,
+    "modality": [
+     "effusion"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 10,
+    "modality": [
+     "effusion",
+     "aspiration",
+     "pb",
+     "bm"
+    ],
+    "captions": [
+     "2025/03/19 Pleural effusion",
+     "2025/03/20 Mass aspiration",
+     "2025/03/25 Peripheral blood",
+     "2025/03/25 Bone marrow"
+    ],
+    "reveal": []
+   },
+   {
+    "page": 11,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 12,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": [
+   {
+    "page": 10,
+    "text": "Mr.陳"
+   }
+  ]
+ },
+ {
+  "id": "kfs-l5-c3",
+  "deck": "kfs-l5",
+  "source_ref": "20250702_血液_Smear-5.pdf#Case3",
+  "title_raw": "Acute lymphoblast leukemia (ALL) vs.",
+  "history": [
+   "42-year-old man, no underlying diseases",
+   "2025/01/03 輔大H: palpable right neck mass, bilateral lower limbs",
+   "2025/01/08 CT: splenomegaly and diffuse lymphadenopathy in neck,",
+   "2025/01/17 KFSYSCC for 2nd opinion",
+   "Lab: WBC 54710/uL (Lymph 3%, Atypical lymphocyte 87%), Hb 7.4g/dL, Plt"
+  ],
+  "pages": [
+   {
+    "page": 13,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 14,
+    "modality": [
+     "bm",
+     "pb"
+    ],
+    "captions": [
+     "2025/01/13 Bone marrow (輔大H)",
+     "2025/01/20 Bone marrow (KFSYSCC)",
+     "2025/01/20 Peripheral blood",
+     "2025/01/20 Bone marrow"
+    ],
+    "reveal": [
+     "2025/01/13 Bone marrow (輔大H):pending",
+     "2025/01/20 Bone marrow (KFSYSCC):pending"
+    ]
+   }
+  ],
+  "redactions": [
+   {
+    "page": 14,
+    "text": "Mr.林"
+   }
+  ]
+ },
+ {
+  "id": "kfs-l5-c4",
+  "deck": "kfs-l5",
+  "source_ref": "20250702_血液_Smear-5.pdf#Case4",
+  "title_raw": "Chronic lymphocytic leukemia (CLL) vs. Reactive?",
+  "history": [
+   "50-year-old woman, no underlying diseases",
+   "2023/08/06 VGH: cough and sore throat for 3 days"
+  ],
+  "pages": [
+   {
+    "page": 15,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 16,
+    "modality": [
+     "pb",
+     "bm"
+    ],
+    "captions": [
+     "2023/08/05 Peripheral blood",
+     "2023/08/05 Peripheral blood",
+     "2023/08/07 Peripheral blood",
+     "2023/08/07 Peripheral blood",
+     "2023/08/07 Bone marrow"
+    ],
+    "reveal": []
+   }
+  ],
+  "redactions": [
+   {
+    "page": 16,
+    "text": "Ms.RO"
+   }
+  ]
+ },
+ {
+  "id": "kfs-l5-c5",
+  "deck": "kfs-l5",
+  "source_ref": "20250702_血液_Smear-5.pdf#Case5",
+  "title_raw": "Pancreatic ca with HLH?",
+  "history": [
+   "55-year-old woman, underlying disease of asthma",
+   "2023/05/26 VGH: admitted for abdominal distension and poor",
+   "2023/05/27 CT:  Ill-defined soft tissue",
+   "2023/05/26 persistent high fever",
+   "2023/05-2023/06 Lab",
+   "2023/05-2023/06 Lab",
+   "2023/06/01 Acute respiratory failure (start MTP), on ETT+MV",
+   "2023/06/03 ferritin 36230 ng/mL",
+   "2023/06/07 EBV 69000 IU/mL",
+   "2023/06/06 BM",
+   "2023/06/06 BM",
+   "2023/06/06 BM",
+   "2023/06/06 BM",
+   "2023/06/06 BM",
+   "2023/06/06 BM",
+   "2023/06/09 Hemorrhagic shock with abdominal fullness",
+   "2023/06/09 CT: Partial resolution of previously noted ill-defined soft",
+   "2023/06/11 Expired"
+  ],
+  "pages": [
+   {
+    "page": 17,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 18,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 19,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 20,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 21,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2023/06/01 PB smear",
+     "2023/06/01 Peripheral blood",
+     "2023/06/01 Peripheral blood"
+    ],
+    "reveal": [
+     "2023/06/01 PB smear:hemophagocytosis with abnormal lymphocyte"
+    ]
+   },
+   {
+    "page": 22,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 23,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2023/06/06 Bone marrow biopsy"
+    ],
+    "reveal": []
+   },
+   {
+    "page": 24,
+    "modality": [
+     "effusion"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": [
+   {
+    "page": 21,
+    "text": "Ms.許"
+   }
+  ]
+ },
+ {
+  "id": "kfs-l5-c6",
+  "deck": "kfs-l5",
+  "source_ref": "20250702_血液_Smear-5.pdf#Case6",
+  "title_raw": "Acute promyelocytic leukemia with pancytopenia",
+  "history": [],
+  "pages": [
+   {
+    "page": 25,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2022/08/01 PB smear"
+    ],
+    "reveal": [
+     "2022/08/01 PB smear:no obvious blast"
+    ]
+   },
+   {
+    "page": 26,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2022/08/03 BM smear"
+    ],
+    "reveal": [
+     "2022/08/03 BM smear:suspect AML"
+    ]
+   },
+   {
+    "page": 27,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2022/08/01 PB smear"
+    ],
+    "reveal": [
+     "2022/08/01 PB smear:leukoerythroblastosis"
+    ]
+   },
+   {
+    "page": 28,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 29,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2022/08/05 PB smear"
+    ],
+    "reveal": [
+     "2022/08/05 PB smear:leukemic promyelocyte"
+    ]
+   },
+   {
+    "page": 30,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 31,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2022/08/09 PB smear (post-ATRA)"
+    ],
+    "reveal": []
+   },
+   {
+    "page": 32,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "kfs-l5-c7",
+  "deck": "kfs-l5",
+  "source_ref": "20250702_血液_Smear-5.pdf#Case7",
+  "title_raw": "Acute myeloid leukemia (AML) vs.",
+  "history": [
+   "46-year-old woman, underlying disease of Left breast cancer",
+   "stage IIA, pT1c(1.3cm)N1a(1/11)M0, ER/PR/HER2: 8/8/2+, ECS+, NG3, LVI+",
+   "s/p Left Wide excision (WE) + Axillary Lymph Node Dissection (ALND) on 2023/8/31",
+   "s/p Adjuvant chemotherapy: Adriamycin/Cyclophosphamide (AC) x 4 Docetaxel",
+   "s/p Radiotherapy: Whole left breast & SC area (4600 cGy/23fr) + Left breast tumor",
+   "s/p Adjuvant tamoxifen (2024/05-2024/08)(standard 10 years) and abemaciclib",
+   "Lost follow up since then",
+   "s/p restart with Letrozole (2025/05/02-)",
+   "2025/06/14 天成ER: Off and on fever over 2 weeks with chest",
+   "2025/06/14 KFSYSCC",
+   "Suspect AML with leukostasis Transfer to NTUH for potential leukapheresis",
+   "2025/06/16 NTUH BM pathology: Aggressive B cell lymphoma/leukemia"
+  ],
+  "pages": [
+   {
+    "page": 33,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 34,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 35,
+    "modality": [
+     "pb"
+    ],
+    "captions": [
+     "2025/06/14 KYSYSCC PB smear",
+     "2025/06/14 Peripheral blood",
+     "2025/06/14 Peripheral blood"
+    ],
+    "reveal": []
+   }
+  ],
+  "redactions": [
+   {
+    "page": 35,
+    "text": "Ms.賴"
+   }
+  ]
+ },
+ {
+  "id": "kfs-l5-c8",
+  "deck": "kfs-l5",
+  "source_ref": "20250702_血液_Smear-5.pdf#Case8",
+  "title_raw": "Acute myeloid leukemia (AML) vs.",
+  "history": [
+   "72-year old man, underlying diseases with hypertension, benign",
+   "2025/02/10 KFSYSCC: progressive upper abdominal discomfort and",
+   "2025/02/10 Lab:",
+   "Hemogram: WBC 1250/uL (Seg 12%, Baso 0%, Eo 0%, Lymph 45%, Mono 15%),",
+   "Biochemistry: Cr 0.99mg/dL, Total protein 9.23g/dL, Alb 3.94g/dL (A/G ratio =",
+   "Tumor: IgG/IgA/IgM = 3401/299/67mg/dL, Light chain kappa/lambda",
+   "2025/02/12 Abdomen CT: enlarged lymph nodes at neck, axilla,",
+   "2025/02/14 Lymph node biopsy"
+  ],
+  "pages": [
+   {
+    "page": 36,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 37,
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 38,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2025/02/11 Bone marrow smear",
+     "2025/02/11 Bone marrow pathology",
+     "2025/02/11 Bone marrow",
+     "2025/02/11 Bone marrow"
+    ],
+    "reveal": [
+     "2025/02/11 Bone marrow pathology:Acute leukemia (MPO-, TdT+,"
+    ]
+   },
+   {
+    "page": 39,
+    "modality": [
+     "bm"
+    ],
+    "captions": [
+     "2025/03/12 Bone marrow pathology"
+    ],
+    "reveal": [
+     "2025/03/12 Bone marrow pathology:Plasma cell neoplasm (40%,"
+    ]
+   }
+  ],
+  "redactions": [
+   {
+    "page": 38,
+    "text": "Mr.張"
+   }
+  ]
+ }
+]

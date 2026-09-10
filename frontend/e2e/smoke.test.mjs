@@ -126,6 +126,14 @@ const ROUTES = [
     expectText: '次答錯',
   },
   {
+    path: '/smear/station',
+    name: '跑台清單(一個病人一組片子,單位是病人不是圖)',
+    // 掛的是別處沒有的型態:卡片顯示的是**病史第一行**,不是投影片標題 ——
+    // 原始標題是 'Case 3: ALL vs. FL?',它含答案,所以資料庫裡根本沒有那個
+    // 欄位。斷言病史摘要真的畫出來,證明清單接上了而不是停在空狀態。
+    expectText: '48 歲女性',
+  },
+  {
     path: '/smear/review',
     name: '複習模式選擇主題(獨立頁,新的 /api/smear/topic-stats 端點)',
     // 掛的是別處沒有的型態:同一頁三支端點(meta/wrong/topic-stats)各自
