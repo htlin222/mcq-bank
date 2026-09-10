@@ -91,3 +91,10 @@ scripts/data/
 # .skill 發出去的,只帶 pyproject.toml,所以這份 lock 不會被送到任何人手上
 # —— 留在 repo 裡只會慢慢漂掉。
 .claude/skills/*/uv.lock
+
+# 抹片:外部來源的圖片與衍生檔。原圖來自 Alberta 開放教科書(CC BY-NC),
+# 由 scripts/smear/fetch_oer.py 抓、prepare_oer.py 轉檔 —— 兩支腳本都可重跑,
+# 而 data/oer.json(清單)有進版控,所以這裡只是本機快取。同考題投影片
+# 不進 repo 的慣例。
+scripts/smear/data/oer/
+scripts/smear/data/oer-webp/

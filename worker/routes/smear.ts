@@ -27,7 +27,10 @@ const TOPICS = [
 // (worker/routes/smear-community.ts 的 POST /submissions/:id/approve)。
 // 核准本身就是那道信任閘門 —— 通過之後跟 exam/ash 同等對待,包含在預設
 // 抽題來源裡,不必等一個「只有投稿」的額外篩選才會被抽到。
-const SOURCES = ["exam", "ash", "po", "submission"];
+// 'oer' 是 Alberta 開放教科書(A Laboratory Guide to Clinical Hematology,
+// CC BY-NC)的單細胞圖譜,補 rbc 主題的覆蓋率 —— 那是七個主題裡素材最薄的
+// 一塊。跟 exam/ash 同等對待,進預設抽題池。
+const SOURCES = ["exam", "ash", "po", "submission", "oer"];
 
 type SmearSessionRow = {
 	id: string;
@@ -196,7 +199,7 @@ smearRoutes.post("/sessions", async (c) => {
 			? body.sources.filter((s) => SOURCES.includes(s))
 			// 'po' 還沒有真正匯入的資料,留在預設之外;'submission' 已經是核准
 			// 過的活題目,理由同上面 SOURCES 常數的註解。
-			: ["exam", "ash", "submission"];
+			: ["exam", "ash", "submission", "oer"];
 
 	const sourcePlaceholders = sources.map(() => "?").join(",");
 	const topicPlaceholders = topics.map(() => "?").join(",");

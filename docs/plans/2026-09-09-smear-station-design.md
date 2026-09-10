@@ -373,3 +373,75 @@ AA/PNH 這幾個跑台常入題的病就沒有案例。但它排在 P2 之後,�
 - 中途的自由輸入要不要有字數下限。空著直接按下一張,等於把逐步揭露變成一次攤開。
 - `steps_seen` 要不要給平均值當回饋(「別人平均 4.1 張」)。20 個人的樣本可能太小。
 授權那一項已經確認可用(2026-09-09),不再是阻擋條件。
+
+---
+
+## §14 實作紀錄(2026-09-10)
+
+設計寫完隔天一路做到底。這一節記的是**設計沒說對、實作才知道的事** ——
+上面那些節保留原樣,不要回頭改成「早就想到了」。
+
+### 做了什麼
+
+| 期 | 狀態 | 東西 |
+| --- | --- | --- |
+| P0 | ✅ | `import.ts` 非破壞化:內容表 UPSERT、使用者表不碰、`--wipe-user-data` 只准 local |
+| P1 | ✅ | `pickUnseenFirst()` 抽題輪替 + 詞彙補齊(cll / t_pll / b_pll / pv / aplastic_anemia,後續又補 11 個細胞形態) |
+| P2 | ✅ | migration 0045、`worker/routes/smear-station.ts`、`/smear/station` 兩頁、和信 6 案 |
+| P3 | ✅ | ASH 8 案 |
+| P4 | ✅ | Alberta OER 91 張單張題,涵蓋 34 個診斷 |
+
+### 五個實作才發現的坑
+
+**一、投影片上有病人姓名,而這裡是整頁 render。** `Mr.林 41`、`Ms.RO 50`,
+七處。`render_pages.py --redact-json` 用 `add_redact_annot` + `apply_redactions`
+把文字從文件裡真的拿掉,不是畫白色矩形蓋住 —— 只蓋住的話,中間那份 PDF 哪天
+被拿去做別的事,遮蔽就失效了。`import_cases.ts` **一律**傳這個參數,即使清單是空的:
+空清單跟「忘了傳」在指令列上長得一樣,而後者的代價是病人姓名上線。
+
+**二、圖說行開頭有項目符號,所以整行被歸進病史 —— 而病史是作答前就顯示的。**
+判日期之前沒先剝 `•`,於是 `2022/08/03 BM smear: suspect AML` 整行落進病史,
+那 39% 的判讀全部被印在題目上。**畫面上完全看不出來**:病史本來就該有日期跟檢驗。
+
+**三、ASH 的「病史」混著 WHO 分類路徑,而那條路徑逐字寫著診斷。** 補了一道
+pre-flight:病史含這一案自己任何一個 accepted term 就遮成 `▮▮▮` 並印出來。
+⚠️ 第一版是**刪整行**,結果把 ASH 的臨床病史連根拔掉 —— 而「有病史」正是把它們
+選進 v1 的理由。**洩的是那個詞,不是那句話。**
+
+**四、e2e 只掃 DOM 抓不到 payload 洩題。** 自我驗證那條(故意讓 GET 帶
+`reveal_note`)在只掃 `page.content()` 的版本下是**綠的**,因為 UI 剛好沒渲染
+那個欄位。而「剛好沒渲染」不是保證。改成連回應本文一起掃。
+
+**五、章節頁上的圖不一定在講這一章的主題。** acanthocyte 那章夾了一張
+agglutination,bite cell 那章夾了一張 MAHA —— 對比用的。`prepare_oer.py` 的
+`audit()` 拿檔名跟詞表交叉比對,對不上就標 `needs_review`、import 跳過。
+⚠️ **那是網不是保證**:它靠「檔名寫著別的診斷的**詞表裡的詞**」,而詞表不見得
+收了那個字面。兩張是人眼看出來後手動排除的。同理 ASH 的標題比對:
+只比 `title` 不要連 `category` 一起比,否則 `aplastic_anemia` 會挑到
+「Nucleated red blood cell」——那是分類路徑裡剛好有那個詞。
+
+### 兩件設計時判斷錯的
+
+**「和信的案界要有結束錨點」是多慮的。** 這批投影片**每一張都重複帶著
+`Case N:` 標題**,所以正確的規則是逐頁問「這一頁掛的是哪一案」,連結束錨點
+都不需要。而且 Smear-1 根本沒有 Outline 頁 —— 第一版把它寫成硬性前提,
+於是整份 Smear-1 一案都出不來。
+
+**「和信 16 案」高估了。** 實際只有 6 案的正解在檔案裡找得到。這批是講課
+投影片,`Case 3: ALL vs. FL?` 的答案是**口頭講的**,全份掃不到任何
+final diagnosis / impression / conclusion。`data/case-dx.json` 因此是人審檔,
+`needs_review` 的 10 案 import 直接跳過。**要補到 20 案,需要有人把那 10 案的
+正解填上** —— 那不是程式問題。
+
+### 還沒做的
+
+- **和信那 10 案的正解**(`data/case-dx.json`)。填完重跑 `import_cases.ts` 就進去了。
+- **Smear-2/3/4 的單張題。** 那三份是疾病分類教學片,T-PLL / B-PLL 在裡面,
+  但**頁面是多格對照**(一頁同時放 B-ALL / B-PLL / T-ALL / T-PLL),整頁掛一個
+  診斷會標錯。t_pll / b_pll 的圖改從本機 ASH image bank 補進 `ash-map.json`。
+- **`--remote` 一次都還沒跑。** 上線前要:`pnpm db:migrate:remote`(0045)、
+  `import.ts --remote`、`import_cases.ts --remote`、`import_oer.ts --remote`,
+  然後 `SELECT COUNT(*) FROM smear_case_items` 確認不是空的。
+- **`import_oer.ts` 是 UPSERT,改了 id 規則會留下孤兒列。** 實際發生過:
+  id 規則修掉撞號之後,舊的 60 列還在,`source='oer'` 變成 151 筆而不是 91 筆。
+  改 id 規則時要自己下 `DELETE ... WHERE source='oer' AND id NOT IN (...)`。

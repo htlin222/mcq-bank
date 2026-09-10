@@ -1,6 +1,6 @@
 # 抹片練習(smear)模組總覽
 
-更新:2026-09-06(#234 合併後)。這份是**模組地圖 + 規劃底稿**,不是 API 手冊。
+更新:2026-09-10(跑台模組上線後)。這份是**模組地圖 + 規劃底稿**,不是 API 手冊。
 設計理由的原文在 `docs/plans/2026-09-0{3,5}-smear-*.md`,踩坑紀錄分散在各檔檔頭,
 這裡把它們收成一頁,好讓下一輪規劃不必重新考古。
 
@@ -85,7 +85,22 @@ smear_sessions             一場練習:mode(review|exam) / config_json / questi
 
 smear_submissions          投稿待審佇列:status(pending|approved|rejected) / matched_dx_id
 smear_fts                  FTS5:canonical + terms + topic + note(unicode61)
+
+smear_cases                跑台:一個病人 —— dx_id / history_md / discussion_json / source(kfs|ash)
+ └ smear_case_items        一張投影片頁 = 一個步驟:idx / modality / caption / reveal_note
+smear_case_attempts        一次跑台 = 一列:notes_json / final_typed / tier / steps_seen
 ```
+
+跑台(migration `0045`,設計 `docs/plans/2026-09-09-smear-station-design.md`)
+共用 `smear_dx`,不另開答案詞彙 —— CLL 的案例跟 CLL 的單張圖必須是同一個東西,
+否則「同一診斷多種版本」串不起來,而那正是這個模組被要求做出來的原因。
+三條硬規則:
+
+- **`smear_cases.id` 不准內嵌 dx slug**(用 `kfs-l5-c6` 這種 deck + 序號)。
+- **沒有 title 欄位。** 投影片標題是 `Case 3: ALL vs. FL?`,它含答案;不存就沒有
+  那個風險。清單上顯示的是病史第一行。
+- **`caption` 只存冒號左半,右半進 `reveal_note`。** 原文是
+  `2022/08/03 BM smear: suspect AML` —— 61 個帶日期的圖說裡有 24 個(39%)長這樣。
 
 三條 schema 註解裡就寫著的硬規則(`migrations/0043_smear.sql`、`0044`):
 
@@ -125,6 +140,8 @@ smear_fts                  FTS5:canonical + terms + topic + note(unicode61)
 |            | `components/smear/ReadingFramework.tsx`           | 「怎麼判讀?」通用骨架(依 qtype/topic,不揭曉答案;開關記 localStorage)   | 100  |
 |            | `components/smear/SmearDashboard.tsx`             | 首頁「抹片」分頁                                                       | 226  |
 |            | `components/smear/SubmitTab.tsx` / `AdminSubmissionQueue.tsx` | 投稿表單 / 管理員審核佇列                                   | 425 / 379 |
+| 路由(跑台) | `worker/routes/smear-station.ts`                  | 清單 / 開場 / 判定 + 揭曉 / 我的紀錄,四支                              | ~200 |
+| 前端(跑台) | `routes/SmearStation.tsx` / `SmearStationCase.tsx`| 清單 / 逐步揭露作答頁                                                  | 88 / 250 |
 | 資料管線   | `scripts/smear/`                                  | 見 §7                                                                 | —    |
 | 測試       | `worker/lib/smear-*.test.ts`                      | 純函式                                                                | 4 支 |
 |            | `frontend/e2e/smear-practice.test.mjs`            | 12 條:複習全流程、看選項、全真零洩漏、`/smear/exam`、meta 防呆          | 1003 |
@@ -153,6 +170,10 @@ smear_fts                  FTS5:canonical + terms + topic + note(unicode61)
 | `GET  /dx/:id` · `GET /search`        | 診斷詳情 / 獨立 FTS 搜尋                          |                     |
 | `smear-terms`:4 個                    | `GET /terms/recent`、`POST /dx/:id/terms`、投票 POST/DELETE |            |
 | `smear-community`:15 個              | 收藏 3、筆記 4、討論 3、投稿 5(`pending`/`approve`/`reject` 需 admin) |  |
+| `GET  /station/cases`                 | 跑台清單:張數、模態、我跑過沒               | 不回 dx_id、不回說明 |
+| `GET  /station/cases/:id`             | 開場:病史 + 全部圖 + 清乾淨的 caption       | **不回 reveal_note / discussion** |
+| `POST /station/cases/:id/answer`      | 判定 + 一次揭曉全部                          | 唯一會回說明的一支 |
+| `GET  /station/attempts`              | 我跑過哪些案                                 |  |
 
 前端路由(`App.tsx:312-320`;具體路徑排在 `/smear/dx/:id`、`/smear/s/:id` 之前):
 
@@ -163,6 +184,8 @@ smear_fts                  FTS5:canonical + terms + topic + note(unicode61)
 | `/smear/exam`             | 一段說明 + 一顆按鈕 → 開 `StartDialog({initialMode:'exam'})` |
 | `/smear/s/:id`            | 作答頁;複習模式揭曉後直接嵌入 `SmearDxPanel`            |
 | `/smear/s/:id/result`     | 成績頁;**未完成的全真直接導回作答頁**(#224 抓到的洩題)  |
+| `/smear/station`          | 跑台清單                                               |
+| `/smear/station/:id`      | 跑台作答:病史 → 逐張 → 診斷 → 一次揭曉                |
 | `/smear/dx/:id`           | 診斷詳情                                               |
 
 入口:`config.toml [home] primary_mode = "smear"` 時,首頁預設開抹片分頁、手機底部
@@ -227,10 +250,38 @@ scripts/smear/
   import.ts          上面全部 → R2 + D1(delete-then-insert)
 ```
 
-```bash
-pnpm smear:import            # local(預設)
-pnpm smear:import --remote   # ⚠️ 會清掉 smear_sessions / smear_answers / smear_term_votes
 ```
+scripts/smear/(跑台與 OER,2026-09-10 新增)
+  parse_cases.py       和信 Smear-1/5 → cases.json(案界、模態、圖說切冒號、待遮蔽清單)
+  parse_ash_cases.py   ASH reference-cases 選 8 案 → cases-ash.json
+  data/case-dx.json    案 → 正解的**可審檔**;needs_review 的案 import 直接跳過
+  import_cases.ts      render(帶去識別化)→ R2 → smear_cases / smear_case_items
+  fetch_oer.py         Alberta 開放教科書 → data/oer/*.jpg + oer.json(H5P,見下)
+  prepare_oer.py       → view/full WebP
+  import_oer.ts        → R2 + smear_questions(source='oer')
+```
+
+```bash
+pnpm smear:import            # local(預設);2026-09-10 起是 UPSERT,不碰使用者資料
+pnpm smear:import --remote   # 內容更新安全;--wipe-user-data 只准 local
+```
+
+⚠️ **和信教學片的投影片上有病人姓名**(`Mr.林 41`、`Ms.RO 50`),而這裡是整頁
+render。`render_pages.py --redact-json` 用 `add_redact_annot` + `apply_redactions`
+把文字從文件裡真的拿掉,不是畫白色矩形蓋住。`import_cases.ts` 一律傳這個參數,
+**即使清單是空的** —— 空清單跟「忘了傳」在指令列上長得一樣,而後者的代價是
+病人姓名上線。
+
+⚠️ **和信的正解有一半在檔案裡不存在。** 那是講課投影片,`Case 3: ALL vs. FL?`
+的答案是口頭講的 —— 全份掃不到任何 final diagnosis / impression / conclusion。
+所以 `case-dx.json` 是**人審檔**,`needs_review` 的 10 案 import 會跳過並列出來。
+不要為了湊數去猜。
+
+⚠️ **Alberta 那本書的圖不在 `<img>` 裡**,包在 H5P 的 ImageSlider。要先抓
+`admin-ajax.php?action=h5p_embed&id=<n>`,從 `H5PIntegration.jsonContent` 讀出
+`images/file-*.jpg`,再拼上 `H5PIntegration.url`。直接爬 `<img>` 會得到「這本書
+沒有圖」的錯誤結論(少數章節確實是普通 `<img>`,所以兩條路都要有)。
+CC BY-NC 要求標示出處,`attribution` 與 `source_url` 缺任一欄整批拒。
 
 - **答案卷 ↔ 投影片的對應要靠錨點題驗證**(Test-3 #18 是唯一的 A/B 雙標題),
   頁數對得上不等於對得對;錯位一格之後每題都錯,看起來像判定壞掉。
@@ -322,7 +373,7 @@ pnpm smear:import --remote   # ⚠️ 會清掉 smear_sessions / smear_answers /
 
 | 缺口                                          | 來源           | 大小 | 備註                                                        |
 | --------------------------------------------- | -------------- | ---- | ----------------------------------------------------------- |
-| **import 不能再對正式機重跑**                   | `import.ts` 檔頭 | M  | 改成內容表 upsert、不碰 `smear_sessions`/`answers`/`votes`;或拆成 `--content-only` |
+| ~~import 不能再對正式機重跑~~ **已解決(2026-09-10)** | — | — | 內容表 UPSERT、使用者表不碰;`smear_terms` 只重建 `proposed_by IS NULL` 的列。`--wipe-user-data` 留給本機重置,跟 `--remote` 一起用會拒絕 |
 | Layer 2:答後面板殼與 `Question.tsx` 分頁殼共用   | parity 設計     | L    | 方向定了,props 介面與階梯斷點沒設計                            |
 | 手把 / 全站鍵盤系統整合                          | parity、#234    | L    | 目前只有原生 radio 的方向鍵                                    |
 | 首字母提示                                      | 設計 §兩種模式  | S    | 加一種 `hint_used` 值 + 一顆按鈕                               |

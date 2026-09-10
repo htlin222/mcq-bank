@@ -628,6 +628,43 @@ async function main() {
 	);
 	console.log(`   smear_dx_notes:  ${dxNotes.length}`);
 	console.log(`   smear_fts:       ${ftsRows.length}`);
+
+	// ---------- 匯入後健檢 ----------
+	//
+	// ⚠️ 這道檢查是實際踩到才加的。dx.json 曾經在檔案搬動時掉了五筆
+	//    (cll / t_pll / b_pll / pv / aplastic_anemia),而 smear_dx 是 UPSERT
+	//    所以那五列**還在資料庫裡**;但 smear_terms 每次重建,於是它們的可接受
+	//    寫法全沒了。後果是那五個診斷**答什麼都判 miss**,而畫面上看起來就只是
+	//    「我答錯了」—— 沒有人會回報成「這題的詞表是空的」。
+	//
+	//    UPSERT 讓內容更新變安全,代價就是「來源少了一筆」不再會自己現形。
+	//    所以要主動問資料庫。
+	const health = await execFileP("wrangler", [
+		"d1", "execute", D1_DB, mode, "--json", "--command",
+		`SELECT d.id FROM smear_dx d
+		  WHERE NOT EXISTS (SELECT 1 FROM smear_terms t
+		                     WHERE t.dx_id = d.id AND t.status = 'accepted')`,
+	]).catch(() => null);
+	if (health) {
+		try {
+			const out = health.stdout;
+			const orphan = (
+				JSON.parse(out.slice(out.indexOf("["))) as { results: { id: string }[] }[]
+			)[0].results.map((r) => r.id);
+			if (orphan.length) {
+				console.error(
+					`\n✖ ${orphan.length} 個診斷沒有任何可接受寫法,它們現在答什麼都會判 miss:\n` +
+						`   ${orphan.join(", ")}\n` +
+						`   多半是 dx.json 掉了那幾筆(smear_dx 是 UPSERT,舊列會留著)。`,
+				);
+				process.exitCode = 1;
+			} else {
+				console.log("   健檢:每個診斷都有可接受寫法 ✓");
+			}
+		} catch {
+			console.warn("   ⚠ 健檢查詢解析失敗(不影響匯入結果)");
+		}
+	}
 }
 
 // ------------------------------------------------------------
