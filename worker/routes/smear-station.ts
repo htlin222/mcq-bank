@@ -22,6 +22,7 @@ import { Hono } from "hono";
 import type { AppContext } from "../types";
 import { uuid } from "../lib/db";
 import { gradeSmear, type AcceptedTerm } from "../lib/smear-grade";
+import { pickCorrectOptionLabel } from "../lib/smear-mcq";
 
 export const smearStationRoutes = new Hono<AppContext>();
 
@@ -140,16 +141,22 @@ smearStationRoutes.post("/station/cases/:id/answer", async (c) => {
 		.first<CaseRow>();
 	if (!row) return c.json({ error: "case not found" }, 404);
 
+	// ⚠️ 要 form 這個欄位,不只是 text/tier —— 顯示正解走 pickCorrectOptionLabel(),
+	//    它靠 form 挑「長寫法」。少了它,APL 那案的正解會顯示成 `APML`(詞表裡
+	//    第一個 full 剛好是縮寫),而使用者看到的是一個他沒學過的縮寫。
+	//    CLAUDE.md 的 #234 critical bug 講的就是這條:canonical_long 有 18% 帶
+	//    括號補充,直接送進判定會是 miss,所以正解一律走這支。
 	const { results: termRows } = await c.env.DB.prepare(
-		"SELECT text, tier FROM smear_terms WHERE dx_id = ? AND status = 'accepted'",
+		"SELECT text, tier, form FROM smear_terms WHERE dx_id = ? AND status = 'accepted'",
 	)
 		.bind(row.dx_id)
-		.all<AcceptedTerm>();
-	const terms = (termRows ?? []) as AcceptedTerm[];
+		.all<AcceptedTerm & { form: string }>();
+	const terms = (termRows ?? []) as (AcceptedTerm & { form: string })[];
 
 	// 判定沿用單張題那一支,一個字都沒改 —— 「一個病人」跟「一張圖」都是那個
 	// 診斷的一個實例,所以答案的判準沒有理由不同。
 	const grade = gradeSmear([body.typed ?? ""], terms);
+	const canonicalLabel = pickCorrectOptionLabel(terms, grade.canonical ?? row.dx_id);
 
 	const { results: items } = await c.env.DB.prepare(
 		"SELECT idx, modality, image_key_view, image_key_full, caption, reveal_note FROM smear_case_items WHERE case_id = ? ORDER BY idx",
@@ -191,7 +198,7 @@ smearStationRoutes.post("/station/cases/:id/answer", async (c) => {
 		tier: grade.tier,
 		score: grade.score,
 		matched: grade.matched,
-		canonical: grade.canonical,
+		canonical: canonicalLabel,
 		spellingErrors: grade.spellingErrors,
 		dx_id: row.dx_id,
 		discussion,
