@@ -228,8 +228,21 @@ smearRoutes.post("/sessions", async (c) => {
 		}
 	}
 
+	// 「這個人作答過哪些圖」—— 推導,不加表(同「attempts 是 source of truth」)。
+	// 用途是讓同一個 dx 優先給沒看過的那張,見 pickUnseenFirst 的檔頭。
+	// ⚠️ 這是排序不是篩選:全部看過就回頭隨機,不會讓某個病消失。
+	const { results: seenRows } = await c.env.DB.prepare(
+		`SELECT DISTINCT a.question_id
+       FROM smear_answers a
+       JOIN smear_sessions s ON s.id = a.session_id
+      WHERE s.user_email = ?`,
+	)
+		.bind(email)
+		.all<{ question_id: string }>();
+	const seen = new Set((seenRows ?? []).map((r) => r.question_id));
+
 	const { topicWeights } = await computeTopicWeights(c.env.DB);
-	const pickedIds = pickSmearSet(pool, n, topicWeights, exclude, Math.random);
+	const pickedIds = pickSmearSet(pool, n, topicWeights, exclude, Math.random, seen);
 
 	if (pickedIds.length === 0) {
 		return c.json({ error: "no questions available for that selection" }, 404);
