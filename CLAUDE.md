@@ -309,12 +309,47 @@ bucket **永遠不公開**,一律走 `/img/:key`、`/pdf/:key` 的 Worker 代理
 | -------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
 | `pnpm typecheck` + `pnpm --dir frontend typecheck` | tsc(**repo 沒有 eslint / biome,tsc 是唯一靜態檢查**)                                 | 每次改完                                                                               |
 | `pnpm test`                                        | 純函式:`worker/**/*.test.ts`、`frontend/src/lib`、`frontend/src/chat`、`scripts/lib` | 每次改完。**CI 不跑它**,本機自己負責                                                   |
-| `pnpm test:webkit`                                 | build 前端 → WebKit(iPhone)e2e 全套,打 `frontend/e2e/fixtures/` 的樁                 | 動到 React / TipTap / 版面 / SW。理由見「Frontend changes must be verified on WebKit」 |
+| `pnpm test:webkit`                                 | build 前端 → WebKit(iPhone)e2e **全部 47 支**(glob,不是逐檔列舉),打 `frontend/e2e/fixtures/` 的樁 | 動到 React / TipTap / 版面 / SW。約 6m50s;為什麼限併發見下面那節 |
 | CI(`deploy.yml`)                                   | 只跑 `smoke` + `nav-prefetch` 兩支 e2e,`E2E_REQUIRE=1`                               | push main 自動                                                                         |
 
 e2e 不接真 Worker:`frontend/e2e/server.mjs` 回 `fixtures/<path 把 / 換成 _>.json`,沒有 fixture
 的端點回 `{}` 並在結尾列出。**新路由 = 新 fixture**:`wrangler dev` 下打真端點存回應。
 確認一支新測試會紅時**不要** `pnpm build >/dev/null 2>&1`,建置失敗會被吞掉、測試跑在舊 bundle 上。
+
+### `test:webkit` 為什麼是 glob + 限併發(2026-09-17)
+
+**它原本逐檔列舉 45 支,於是「新增一支 spec 卻忘了註冊」完全無聲** —— 那跟「沒有寫
+測試」在畫面上一模一樣。實際發生過兩次:`hidden-year.test.mjs`(5 條)與
+`smear-gallery.test.mjs`(10 條)都在磁碟上、單獨跑全綠,但**從來沒有被這個關卡跑
+到**。改成 `node --test 'frontend/e2e/*.test.mjs'` 之後那個失誤不可能再發生 ——
+同「離線預載」那節的精神:不是把問題解決掉,是讓它不存在。
+
+⚠️ **`--test-concurrency=2` 是承重的,不是調校。** `node --test` 預設按 CPU 數平行
+跑檔案(這台機器 10 核 = 同時開十個瀏覽器),而每支 spec 都自己 launch 一個 WebKit。
+量出來:
+
+| 併發 | 結果        | 時間  |
+| ---- | ----------- | ----- |
+| 10(預設) | 282/287,**5 條紅** | 4m10s |
+| 2    | **287/287 全綠**   | 6m49s |
+
+那 5 條**每一條單獨跑都綠**(手把、離線預載、複製成圖、弱點地圖)。也就是說預設併發
+之下這個套件**長期是紅的**,而一個永遠紅的關卡等於沒有關卡 —— 沒有人分得出「我剛
+改壞了」與「它本來就這樣」。多花兩分半換一個可信的紅綠燈。
+
+⚠️ **不要拿「它本來就會抖」當成跳過它的理由,也不要把抖動歸因到自己的改動之前先量
+基準線。** 2026-09-08 曾經誤以為某次改動弄壞了七條,stash 之後量 HEAD 才發現本來
+就是七條。
+
+### 不要讀正在 transition 的值,也不要等固定毫秒
+
+`review-ui.test.mjs` 的 `settleOpacity()`。弱點地圖那一頁的 `prepare` 會點開每個
+分組,指標因此停在列上、`group-hover` 讓按鈕正在淡入 —— 直接讀 `opacity` 會抓到
+中間值(實測 `0.122968`),而且**只有在機器忙的時候才抓得到,單獨跑永遠是綠的**。
+作法是先把指標移開,再輪詢到它真的停下來。
+
+這樣寫沒有讓斷言失去力道:按鈕若一直看得見,等 `'0'` 會逾時;hover 若沒有效果,
+等 `'1'` 也會逾時 —— 兩種壞法都還是紅。
 
 開 PR 前的固定順序:`/simplify` → `/code-review` → 本節三個指令全綠。
 
