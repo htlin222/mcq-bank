@@ -294,11 +294,19 @@ for (const P of PAGES) {
 
       // 用 opacity 量而不是 toBeVisible —— `opacity-0` 的元素在 Playwright 眼裡
       // 仍然是 visible(有尺寸、沒有 display:none),那樣寫兩邊都會通過。
-      const opacity = () => btn.evaluate((el) => getComputedStyle(el).opacity);
-      assert.equal(await opacity(), '0', 'hover 之前不該看得見');
+      //
+      // ⚠️ **兩邊都要等 transition 收到底,不能直接讀、也不能等固定毫秒。**
+      // 弱點地圖那一頁的 `prepare` 會點開每一個分組,指標因此停在列上,
+      // `group-hover` 讓按鈕正在淡入 —— 直接讀會抓到中間值(實測 0.122968),
+      // 而且只有在機器忙的時候才抓得到,單獨跑永遠是綠的。所以先把指標移開,
+      // 再輪詢到它真的停下來。
+      //
+      // 這樣寫**沒有讓斷言失去力道**:按鈕若一直看得見,等 '0' 會逾時;hover
+      // 若沒有效果,等 '1' 也會逾時。兩種壞法都還是紅。
+      await page.mouse.move(0, 0);
+      await settleOpacity(btn, '0', 'hover 之前不該看得見');
       await row.hover();
-      await page.waitForTimeout(300);
-      assert.equal(await opacity(), '1', 'hover 之後該看得見');
+      await settleOpacity(btn, '1', 'hover 之後該看得見');
       assert.deepEqual(errors, []);
     } finally {
       await ctx.close();
@@ -367,6 +375,19 @@ for (const P of PAGES) {
 // ⚠️ **`prepare` 會把每一群點開,所以表裡那六條看不到「預設是不是收合的」** ——
 // 一個「永遠攤開」的實作在那六條底下全綠。這一頁的價值是「一眼看到自己弱在哪」,
 // 一進來就攤開 60 題等於把那個總覽埋掉。
+/** 輪詢到 computed opacity 停在 `want`。用來取代「直接讀」與「等固定毫秒」——
+ *  兩者在機器忙的時候都會抓到 CSS transition 的中間值。 */
+async function settleOpacity(locator, want, message, timeout = 5000) {
+  const started = Date.now();
+  let last = null;
+  while (Date.now() - started < timeout) {
+    last = await locator.evaluate((el) => getComputedStyle(el).opacity);
+    if (last === want) return;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  assert.equal(last, want, message);
+}
+
 test('弱點地圖:預設收合 —— 總覽不會被 60 題埋掉', async (t) => {
   if (guard(t)) return;
   const P = PAGES.find((x) => x.name === '弱點地圖');
