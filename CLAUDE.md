@@ -262,7 +262,7 @@ Worker 程式碼裡的寫法固定是 `c.env.DB.prepare(sql).bind(...).first<T>(
 | 詳解(markdown)     | `python3 scripts/seed-explanations.py --local\|--remote`                                                  | `explanations.content_json`           | 讀 `years/<n>/batches/*.json` 的 `explanation_md`                                                                       |
 | 講義 PDF           | `pnpm import:lectures [--remote] [--pdf-dir ./pdf]`                                                       | R2 + `lecture_docs` / `lecture_pages` | 預設 local;PDF 在 gitignored 的 `pdf/`                                                                                  |
 | 教科書             | `node --experimental-strip-types scripts/import-textbook.ts --master <pdf> [--chapters 76,83] [--remote]` | 同上,`kind='textbook'`                | 先用 `--chapters` 小批試                                                                                                |
-| 抹片練習           | `pnpm smear:import [--remote]`                                                                            | R2 + `smear_*`                        | ⚠️ delete-then-insert **會清掉 `smear_sessions` / `smear_answers`**,對有真人資料的 remote 要先想清楚                    |
+| 抹片練習           | `pnpm smear:import [--remote]`                                                                            | R2 + `smear_*`                        | 內容表 UPSERT、使用者表不碰(2026-09-10 起);跑完有健檢。跑台案例另跑 `scripts/smear/import_cases.ts`,見 `docs/smear-overview.md` §7 |
 | 向量索引           | `pnpm vectors:backfill [--dry-run]`                                                                       | Vectorize                             | 相似題 / 弱點地圖沒資料時先查這個有沒有跑過                                                                             |
 | Access 名單        | `pnpm sync-users`                                                                                         | CF Access policy + `users`            | 冪等                                                                                                                    |
 
@@ -762,10 +762,14 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 已知地雷、還沒做的缺口與建議順序。動到 `smear_*` / `worker/routes/smear*` /
 `components/smear/` 之前先讀它。兩條在那裡也寫著、但值得在這裡先看到的:
 
-- **`pnpm smear:import --remote` 是 delete-then-insert,會清掉
-  `smear_sessions` / `smear_answers` / `smear_term_votes`。** 正式機一有真人紀錄
-  就不能再跑,而改詳解、補詞表、修 `aml_m2` 全都要重灌 —— 下一輪的第一件事
-  是把內容表與使用者表拆開。
+- **`import.ts` 已經不是 delete-then-insert 了(2026-09-10)。** 內容表 UPSERT、
+  使用者表不碰、社群提報的詞保留;代價是「來源少了一筆」不再自己現形,所以結尾
+  有健檢(有診斷沒有任何 accepted term 就 exit 1)—— 那個情況真的發生過。
+- **跑台(`/smear/station`)的步驟圖是整頁 render 的投影片,而投影片標題就是答案。**
+  `render_pages.py --strip-text` 遮掉整頁文字層只留圖說左半,
+  `audit_case_images.py` 再 OCR 一次剔除點陣圖裡看得到答案的步驟(病理報告截圖)。
+  兩層都拿掉的話,實測 39 張步驟圖 39 張掃得到正解。**文字掃描與 e2e 都看不到這一類** ——
+  它們驗的是 payload 與 DOM,不是像素。
 - **全真模式交卷前不揭曉任何判定資訊**,所有複習限定的功能(提示、看答案、
   看選項、答後面板)都是 render-level 條件 + 伺服器再擋一次,而 e2e 用「整頁
   掃不到正解字串」守著。新增複習限定功能要補進那條掃描。

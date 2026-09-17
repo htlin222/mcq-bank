@@ -255,7 +255,9 @@ scripts/smear/(跑台與 OER,2026-09-10 新增)
   parse_cases.py       和信 Smear-1/5 → cases.json(案界、模態、圖說切冒號、待遮蔽清單)
   parse_ash_cases.py   ASH reference-cases 選 8 案 → cases-ash.json
   data/case-dx.json    案 → 正解的**可審檔**;needs_review 的案 import 直接跳過
-  import_cases.ts      render(帶去識別化)→ R2 → smear_cases / smear_case_items
+  caption.py           圖說判準(解析器與渲染器共用的唯一一份)
+  import_cases.ts      render(去識別化 + --strip-text)→ OCR 稽核 → R2 → smear_cases / smear_case_items
+  audit_case_images.py 步驟圖 OCR:看得到正解或 `Case N` 標題的步驟剔除;讀失敗一律拒絕
   fetch_oer.py         Alberta 開放教科書 → data/oer/*.jpg + oer.json(H5P,見下)
   prepare_oer.py       → view/full WebP
   import_oer.ts        → R2 + smear_questions(source='oer')
@@ -272,7 +274,13 @@ render。`render_pages.py --redact-json` 用 `add_redact_annot` + `apply_redacti
 **即使清單是空的** —— 空清單跟「忘了傳」在指令列上長得一樣,而後者的代價是
 病人姓名上線。
 
-⚠️ **和信的正解有一半在檔案裡不存在。** 那是講課投影片,`Case 3: ALL vs. FL?`
+⚠️ **步驟圖是整頁 render 的投影片,而投影片標題就是答案。** 不帶 `--strip-text`
+的話實測 39 張步驟圖 39 張 OCR 掃得到正解;e2e 與文字掃描都看不到這一類,因為它們驗的
+是 DOM 與 payload,不是像素。詳見設計文件 §15。
+
+⚠️ ~~和信的正解有一半在檔案裡不存在~~ **更正(2026-09-17):在,只是在紅字標題與報告截圖裡。**
+下面這段是舊判斷,留著當教訓 —— 只 grep 文字層、而且漏了 `pathology:`。
+**和信的正解有一半在檔案裡不存在。** 那是講課投影片,`Case 3: ALL vs. FL?`
 的答案是口頭講的 —— 全份掃不到任何 final diagnosis / impression / conclusion。
 所以 `case-dx.json` 是**人審檔**,`needs_review` 的 10 案 import 會跳過並列出來。
 不要為了湊數去猜。

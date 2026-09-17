@@ -79,14 +79,57 @@ def redact_page(page: "fitz.Page", needles: list[str]) -> int:
             page.add_redact_annot(rect, fill=(1, 1, 1))
             n += 1
     if n:
-        page.apply_redactions()
+        page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_PIXELS)
     return n
 
 
-def render_page(page: "fitz.Page", redact: list[str] | None = None) -> Image.Image:
+def strip_text(page: "fitz.Page") -> int:
+    """遮掉整頁文字層,只留圖說的冒號左半。回傳遮了幾處。
+
+    ⚠️ 跑台的步驟圖是整頁 render,而投影片**每一張都印著標題**,標題就是答案
+    (`Case 6: Acute promyelocytic leukemia with pancytopenia`),有的還用紅字標
+    出鑑別診斷裡對的那一個。同一頁底下常常還有 `BM pathology: Aggressive B cell
+    lymphoma`。實測現行作法 39 張步驟圖 **39 張** OCR 掃得到洩題。
+    臨床文字本來就另外以純文字送(history_md / reveal_note),圖上不需要任何字。
+
+    ⚠️ 用 PDF_REDACT_IMAGE_PIXELS:文字常常疊在圖片上(病人姓名就寫在一張圖裡),
+    只拿掉文字物件的話,圖片那一份還在。
+    """
+    from caption import is_caption, split_caption
+
+    n = 0
+    for block in page.get_text("dict").get("blocks", []):
+        for line in block.get("lines", []):
+            text = "".join(sp.get("text", "") for sp in line.get("spans", []))
+            if not text.strip():
+                continue
+            rect = fitz.Rect(line["bbox"])
+            if is_caption(text):
+                _, verdict = split_caption(text)
+                if verdict:
+                    for r in page.search_for(verdict, clip=rect):
+                        page.add_redact_annot(r, fill=(1, 1, 1))
+                        n += 1
+                continue
+            page.add_redact_annot(rect, fill=(1, 1, 1))
+            n += 1
+    return n
+
+
+def render_page(
+    page: "fitz.Page", redact: list[str] | None = None, strip: bool = False
+) -> Image.Image:
     """Render 一頁成裁邊後的 RGB PIL Image(未縮放)。"""
+    n = 0
     if redact:
-        redact_page(page, redact)
+        for needle in redact:
+            for rect in page.search_for(needle):
+                page.add_redact_annot(rect, fill=(1, 1, 1))
+                n += 1
+    if strip:
+        n += strip_text(page)
+    if n:
+        page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_PIXELS)
     pix = page.get_pixmap(dpi=DPI)
     mode = "RGBA" if pix.alpha else "RGB"
     img = Image.frombytes(mode, (pix.width, pix.height), pix.samples)
@@ -110,6 +153,7 @@ def render_deck(
     limit: int = 0,
     pages: list[int] | None = None,
     redactions: dict[int, list[str]] | None = None,
+    strip: bool = False,
 ) -> list[str]:
     """把 deck_path 每一頁(1-based 頁碼)render 成 view/full 兩份 WebP,
     寫進 out_dir。回傳寫出的檔案路徑清單。
@@ -127,7 +171,7 @@ def render_deck(
             if pages is not None and page_num not in pages:
                 continue
             page = doc[i]
-            trimmed = render_page(page, (redactions or {}).get(page_num))
+            trimmed = render_page(page, (redactions or {}).get(page_num), strip)
 
             for label, long_edge in (("view", VIEW_LONG_EDGE), ("full", FULL_LONG_EDGE)):
                 resized = _resize_to_long_edge(trimmed, long_edge)
@@ -154,6 +198,11 @@ def main():
         help='去識別化清單:{"<頁碼>": ["Mr.林 41", ...]}。'
         "跑台案例一律要帶 —— 見 parse_cases.py 的 redactions 欄位。",
     )
+    parser.add_argument(
+        "--strip-text",
+        action="store_true",
+        help="遮掉整頁文字,只留圖說左半。跑台步驟圖一律要帶 —— 標題就是答案。",
+    )
     args = parser.parse_args()
 
     pages = None
@@ -166,7 +215,7 @@ def main():
         with open(args.redact_json, encoding="utf-8") as f:
             redactions = {int(k): v for k, v in json.load(f).items()}
 
-    written = render_deck(args.deck, args.out, args.limit, pages, redactions)
+    written = render_deck(args.deck, args.out, args.limit, pages, redactions, args.strip_text)
     for path in written:
         print(path)
 

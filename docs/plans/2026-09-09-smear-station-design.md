@@ -445,3 +445,52 @@ final diagnosis / impression / conclusion。`data/case-dx.json` 因此是人審�
 - **`import_oer.ts` 是 UPSERT,改了 id 規則會留下孤兒列。** 實際發生過:
   id 規則修掉撞號之後,舊的 60 列還在,`source='oer'` 變成 151 筆而不是 91 筆。
   改 id 規則時要自己下 `DELETE ... WHERE source='oer' AND id NOT IN (...)`。
+
+## §15 第二輪(2026-09-17):正解補齊,以及步驟圖本身在洩題
+
+### 十案的正解其實在投影片上
+
+§14 說「那 10 案的答案是口頭講的,檔案裡沒有」—— **錯了一半,而錯在查法**:
+
+- **只 grep 了 `final diagnosis / impression / conclusion`,漏了 `pathology:`。**
+  Case 7 的文字層裡就寫著 `2025/06/16 NTUH BM pathology: Aggressive B cell
+  lymphoma/leukemia`。
+- **另一半在點陣圖裡**:病理報告、染色體報告是截圖,文字層不存在。
+- **講者用紅字標出鑑別診斷裡對的那一個。** `ALL vs. Follicular lymphoma (FL)?`
+  紅的是 FL;`CLL vs. Reactive?` 紅的是 CLL。四案的慣例一致,而且都跟內文證據相符。
+
+所以正確的查法是**把頁面 render 出來用看的**。十案裡九案找到證據(出處逐案寫在
+`data/case-dx.json` 的 `why`),一案排除(`kfs-l1-c2` 只有一頁翻拍的染色體講義,
+沒有任何抹片)。v1 因此是 **15 + 8 = 23 案**。
+
+兩案的證據等級要講清楚:`kfs-l1-c7` 只有 `suspect APL`(沒有確診報告);
+`kfs-l5-c8` 同一人一個月後另有 plasma cell neoplasm,正解取標題紅字的 AML。
+
+### 步驟圖在洩題,而既有的每一道防線都看不到
+
+render 出來看的時候才發現:**步驟圖是整頁 render,投影片每一張都印著標題**
+(`Case 6: Acute promyelocytic leukemia with pancytopenia`),而標題就是答案。
+用 tesseract 掃已上線的 6 案:**39 張步驟圖,39 張掃得到洩題**(全部有標題,
+半數以上有完整正解)。
+
+它能活過 §14 那一整輪,是因為每一道防線驗的都不是像素:
+
+| 防線 | 驗什麼 | 為什麼沒抓到 |
+| --- | --- | --- |
+| GET 不回 `reveal_note` | payload | 答案不在 payload,在圖裡 |
+| e2e 掃整頁原始碼 + 回應本文 | DOM / 文字 | 圖片是 `<img src>`,掃不到內容 |
+| 病史遮正解詞 | `history_md` | 同上 |
+
+修法兩層,**缺一不可**:
+
+1. **`render_pages.py --strip-text`**:render 前遮掉整頁文字層,只留圖說冒號左半
+   (判準與解析器共用 `caption.py`)。臨床文字本來就另外以純文字送,圖上不需要字。
+   用 `PDF_REDACT_IMAGE_PIXELS` —— 病人姓名是疊在一張圖上的,只拿掉文字物件的話
+   圖片那一份還在(已用眼睛確認 `Mr.林 Lv41` 連年齡一起塗掉)。
+2. **`audit_case_images.py`**:render 後 OCR,圖上看得到這一案的 accepted term
+   或 `Case N` 標題就剔除那一步,原文併進揭曉後的討論。遮完文字層後 72 張裡還剩
+   5 張(全是報告截圖)。⚠️ 它是網不是保證:tesseract 讀不到花俏字型,三個字元
+   以下的詞不掃。**姓名那一層靠 redaction,不靠 OCR。**
+
+**下次加素材,不管來源多乾淨,先把步驟圖 render 出來看一眼。** 這一類問題的症狀
+是「畫面完全正常」,而正常的畫面上印著答案。

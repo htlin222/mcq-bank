@@ -49,21 +49,10 @@ DECKS = {
     "kfs-l5": "20250702_血液_Smear-5.pdf",
 }
 
-# 兩套模態寫法。順序有意義:先長後短,否則 'Bone marrow' 會先被 'BM' 之外的
-# 分支吃掉。值是存進 smear_case_items.modality 的代碼。
-MODALITIES = [
-    ("pb", r"Peripheral blood|PB smear"),
-    ("bm", r"Bone marrow|BM smear|Marrow aspirate"),
-    ("effusion", r"Pleural effusion|Ascites|effusion"),
-    ("aspiration", r"Mass aspiration|FNA|aspiration"),
-    ("csf", r"\bCSF\b"),
-]
-MOD_RE = re.compile("|".join(f"(?P<{k}>{v})" for k, v in MODALITIES), re.I)
+from caption import DATE, bare, detect_modalities, split_caption  # 唯一一份判準
 
 CASE_HEAD = re.compile(r"Case\s+(\d+)\s*[::]\s*(.*)")
 OUTLINE_CASE = re.compile(r"Case\s+(\d+)\s*[::]")
-DATE = r"\d{4}/\d{1,2}(?:/\d{1,2})?"
-CAPTION = re.compile(rf"({DATE})\s*([^\n:：]*?)\s*(?:\(([^)]*)\))?\s*(?:[:：]\s*(.*))?$")
 # 病人識別:Mr./Ms./Mrs. 後面接姓氏或代號,常後接年齡。
 PII = re.compile(r"\b(?:Mr|Ms|Mrs|Miss)\.?\s*[A-Za-z一-鿿]{1,12}\s*\d{0,3}")
 
@@ -91,27 +80,8 @@ def outline_case_count(pages):
     return best or None
 
 
-def detect_modalities(text):
-    found = []
-    for m in MOD_RE.finditer(text):
-        for k, _ in MODALITIES:
-            if m.group(k):
-                if k not in found:
-                    found.append(k)
-                break
-    return found
 
 
-def split_caption(line):
-    """一行圖說 → (caption, reveal)。冒號右半是判讀,切掉。"""
-    m = CAPTION.match(line.strip())
-    if not m:
-        return line.strip(), None
-    date, what, site, verdict = m.groups()
-    left = f"{date} {(what or '').strip()}".strip()
-    if site:
-        left += f" ({site.strip()})"
-    return left, (verdict or "").strip() or None
 
 
 def parse_deck(deck_id, path):
@@ -143,15 +113,15 @@ def parse_deck(deck_id, path):
                     continue
                 if PII.search(ln):
                     c["redactions"].append({"page": pno, "text": PII.search(ln).group(0)})
-                bare = ln.lstrip("•· \t")
-                if re.match(rf"^{DATE}", bare):
-                    left, rev = split_caption(bare)
-                    if detect_modalities(bare):
+                b = bare(ln)
+                if re.match(rf"^{DATE}", b):
+                    left, rev = split_caption(b)
+                    if detect_modalities(b):
                         caps.append(left)
                         if rev:
                             reveals.append(f"{left}:{rev}")
                     else:
-                        c["history"].append(bare)
+                        c["history"].append(b)
                 elif ln.startswith(("•", "·")):
                     c["history"].append(ln.lstrip("•· "))
             c["pages"].append(

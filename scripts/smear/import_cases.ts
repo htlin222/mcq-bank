@@ -64,7 +64,7 @@ type ParsedCase = {
 	pages: ParsedPage[];
 	redactions: { page: number; text: string }[];
 };
-type DxRow = { case_id: string; dx_id: string | null; needs_review: boolean };
+type DxRow = { case_id: string; dx_id: string | null; needs_review: boolean; excluded?: boolean; why?: string };
 
 function sh(cmd: string, args: string[]): Promise<void> {
 	return new Promise((res, rej) => {
@@ -105,7 +105,9 @@ async function main() {
 	for (const c of kfs) {
 		const row = dxById.get(c.id);
 		if (!row || row.needs_review || !row.dx_id) {
-			skipped.push(`${c.id}  ${c.title_raw.slice(0, 46)}`);
+			// 刻意排除的(excluded)印理由,不是「待確認」—— 兩者混在一起,
+			// 看的人會以為那幾案還在等人填。
+			skipped.push(`${c.id}  ${row?.excluded ? row.why ?? "排除" : "正解未確認:" + c.title_raw.slice(0, 40)}`);
 			continue;
 		}
 		ready.push({ ...c, dx_id: row.dx_id });
@@ -118,9 +120,9 @@ async function main() {
 		ready.push(c);
 	}
 	if (skipped.length) {
-		console.log(`\n⏭  跳過 ${skipped.length} 案(正解未確認,見 data/case-dx.json):`);
+		console.log(`\n⏭  跳過 ${skipped.length} 案(見 data/case-dx.json):`);
 		for (const s of skipped) console.log(`     ${s}`);
-		console.log("   確認之後把 dx_id 填上、needs_review 設成 false,再重跑這支。\n");
+		console.log("   待確認的:填上 dx_id、needs_review 設成 false,再重跑這支。\n");
 	}
 	if (ready.length === 0) {
 		console.error("✖ 一案都沒得匯入。");
@@ -206,13 +208,15 @@ async function main() {
 	}
 	if (stripped) console.log(`   共剝掉 ${stripped} 行(答案不該出現在作答前的畫面上)\n`);
 
-	// ---------- render 和信的頁(帶去識別化) ----------
+	// ---------- render 和信的頁(去識別化 + 遮掉文字層) ----------
 	await mkdir(SCRATCH, { recursive: true });
-	const keyOf = (caseId: string, idx: number, label: string) =>
-		`smear/case/${caseId}/${String(idx).padStart(2, "0")}-${label}.webp`;
 
-	const uploads: { key: string; file: string; ct: string }[] = [];
-	const items: { caseId: string; idx: number; mod: string; view: string; full: string; cap: string | null; rev: string | null }[] = [];
+	type Step = {
+		caseId: string; dxId: string; mod: string;
+		viewFile: string; fullFile: string; ct: string; ext: string;
+		cap: string | null; rev: string | null;
+	};
+	const stepsByCase = new Map<string, Step[]>();
 
 	for (const c of ready.filter((x) => x.deck.startsWith("kfs"))) {
 		const deck = DECK_FILE[c.deck];
@@ -230,31 +234,79 @@ async function main() {
 			"--out", outDir,
 			"--pages", c.pages.map((p) => p.page).join(","),
 			"--redact-json", redactFile,
+			// ⚠️ 一律帶。投影片每一張都印著標題,而標題就是答案;實測不帶的話
+			//    39 張步驟圖 39 張 OCR 掃得到洩題。臨床文字另外以純文字送。
+			"--strip-text",
 		]);
-		c.pages.forEach((p, i) => {
-			const view = keyOf(c.id, i, "view");
-			const full = keyOf(c.id, i, "full");
-			uploads.push({ key: view, file: join(outDir, `${stem}-${String(p.page).padStart(3, "0")}-view.webp`), ct: "image/webp" });
-			uploads.push({ key: full, file: join(outDir, `${stem}-${String(p.page).padStart(3, "0")}-full.webp`), ct: "image/webp" });
-			items.push({
-				caseId: c.id, idx: i, mod: p.modality.join(","),
-				view, full,
-				cap: p.captions.join(" · ") || null,
-				rev: p.reveal.join("\n") || null,
-			});
-		});
+		const pageFile = (page: number, label: string) =>
+			join(outDir, `${stem}-${String(page).padStart(3, "0")}-${label}.webp`);
+		stepsByCase.set(c.id, c.pages.map((p) => ({
+			caseId: c.id, dxId: c.dx_id as string, mod: p.modality.join(","),
+			viewFile: pageFile(p.page, "view"), fullFile: pageFile(p.page, "full"),
+			ct: "image/webp", ext: "webp",
+			cap: p.captions.join(" · ") || null,
+			rev: p.reveal.join("\n") || null,
+		})));
 	}
 
 	// ---------- ASH 的圖直接上傳原檔 ----------
-	// v1 簡化:view 與 full 指向同一把 key,不做伺服器端二次裁切 —— 同
+	// v1 簡化:view 與 full 指向同一個檔,不做伺服器端二次裁切 —— 同
 	// smear-community.ts 的 approve() 已經確立的作法。
 	for (const c of ready.filter((x) => x.deck === "ash")) {
-		c.pages.forEach((p, i) => {
-			if (!p.image_file || !existsSync(p.image_file)) return;
-			const key = `smear/case/${c.id}/${String(i).padStart(2, "0")}.jpg`;
-			uploads.push({ key, file: p.image_file, ct: "image/jpeg" });
-			items.push({ caseId: c.id, idx: i, mod: p.modality.join(","), view: key, full: key, cap: null, rev: null });
-		});
+		stepsByCase.set(c.id, c.pages
+			.filter((p) => p.image_file && existsSync(p.image_file))
+			.map((p) => ({
+				caseId: c.id, dxId: c.dx_id as string, mod: p.modality.join(","),
+				viewFile: p.image_file!, fullFile: p.image_file!, ct: "image/jpeg", ext: "jpg",
+				cap: null, rev: null,
+			})));
+	}
+
+	// ---------- OCR 稽核:圖上看得到答案的步驟剔除 ----------
+	//
+	// --strip-text 只遮得掉文字層。病理報告截圖、烙在圖裡的標籤是點陣圖,
+	// 文字層裡不存在 —— 實測遮完文字層之後 72 張裡還有 5 張看得到正解。
+	// 判準與限制見 audit_case_images.py 的檔頭。
+	const manifest = [...stepsByCase.values()].flat().map((s, i) => ({
+		case_id: s.caseId, idx: i, file: s.fullFile, dx_id: s.dxId,
+	}));
+	const manifestPath = join(SCRATCH, "ocr-manifest.json");
+	await writeFile(manifestPath, JSON.stringify(manifest), "utf-8");
+	await sh("python3", [join(HERE, "audit_case_images.py"), manifestPath]);
+	const leaked = new Set(
+		(JSON.parse(await readFile(manifestPath, "utf-8")) as { idx: number; leak: string[] }[])
+			.filter((r) => r.leak.length > 0).map((r) => r.idx),
+	);
+
+	const uploads: { key: string; file: string; ct: string }[] = [];
+	const items: { caseId: string; idx: number; mod: string; view: string; full: string; cap: string | null; rev: string | null }[] = [];
+	// 被剔除那一步的原文不丟:併進揭曉後的整案討論。那一頁多半是病理報告,
+	// 正是揭曉時最該看到的東西 —— 只是不能在作答前看到。
+	const droppedNotes = new Map<string, string[]>();
+	let flatIdx = 0;
+	for (const [caseId, steps] of stepsByCase) {
+		let idx = 0;
+		for (const s of steps) {
+			if (leaked.has(flatIdx++)) {
+				if (s.rev) (droppedNotes.get(caseId) ?? droppedNotes.set(caseId, []).get(caseId)!).push(s.rev);
+				continue;
+			}
+			const base = `smear/case/${caseId}/${String(idx).padStart(2, "0")}`;
+			const view = s.viewFile === s.fullFile ? `${base}.${s.ext}` : `${base}-view.${s.ext}`;
+			const full = s.viewFile === s.fullFile ? view : `${base}-full.${s.ext}`;
+			uploads.push({ key: view, file: s.viewFile, ct: s.ct });
+			if (full !== view) uploads.push({ key: full, file: s.fullFile, ct: s.ct });
+			items.push({ caseId, idx, mod: s.mod, view, full, cap: s.cap, rev: s.rev });
+			idx++;
+		}
+	}
+	for (const c of ready) {
+		const extra = droppedNotes.get(c.id);
+		if (extra?.length) c.discussion = [...(c.discussion ?? []), ...extra];
+		if (!items.some((it) => it.caseId === c.id)) {
+			// 全部步驟都被剔除的案不該上線 —— 一張圖都沒有的跑台不是跑台。
+			throw new Error(`${c.id} 的步驟圖全部在 OCR 稽核中被剔除,檢查這一案的素材`);
+		}
 	}
 
 	console.log(`\n📤 ${uploads.length} 個物件要上 R2`);
@@ -263,7 +315,6 @@ async function main() {
 		await shRetry("wrangler", [
 			"r2", "object", "put", `${R2_BUCKET}/${u.key}`,
 			"--file", u.file, "--content-type", u.ct, mode,
-			...(force ? [] : []),
 		]);
 		if ((i + 1) % 20 === 0) console.log(`   ... ${i + 1}/${uploads.length}`);
 	}
@@ -296,7 +347,7 @@ async function main() {
 	await shRetry("wrangler", ["d1", "execute", D1_DB, mode, "--file", sqlPath]);
 
 	console.log(`\n✅ ${ready.length} 案 / ${items.length} 個步驟已匯入。`);
-	if (skipped.length) console.log(`   ⏭ ${skipped.length} 案待人工確認正解。`);
+	if (skipped.length) console.log(`   ⏭ 跳過 ${skipped.length} 案(見上方理由)。`);
 }
 
 main().catch((e) => {

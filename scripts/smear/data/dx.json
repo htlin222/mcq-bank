@@ -2440,6 +2440,21 @@
     "text": "spread of cancer",
     "tier": "lay",
     "form": "long"
+   },
+   {
+    "text": "metastatic tumor",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "tumor nests",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Ewing sarcoma",
+    "tier": "half",
+    "form": "long"
    }
   ],
   "source_answers": [
@@ -4139,6 +4154,76 @@
    },
    {
     "text": "bone marrow failure",
+    "tier": "half",
+    "form": "long"
+   }
+  ]
+ },
+ {
+  "dx_id": "follicular_lymphoma",
+  "canonical_long": "follicular lymphoma",
+  "canonical_abbrev": "FL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "source_answers": [],
+  "terms": [
+   {
+    "text": "FL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "follicular lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "lymphoma",
+    "tier": "half",
+    "form": "long"
+   }
+  ]
+ },
+ {
+  "dx_id": "aggressive_b_cell_lymphoma",
+  "canonical_long": "aggressive B-cell lymphoma",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "source_answers": [],
+  "terms": [
+   {
+    "text": "aggressive B cell lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "aggressive B-cell lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "high grade B-cell lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "DLBCL",
+    "tier": "half",
+    "form": "abbrev"
+   },
+   {
+    "text": "diffuse large B cell lymphoma",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "B cell lymphoma",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "lymphoma",
     "tier": "half",
     "form": "long"
    }
