@@ -39,6 +39,7 @@ export function FeedbackButton() {
 function FeedbackDialog({ onClose }: { onClose: () => void }) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [isQuestionFix, setIsQuestionFix] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ url: string; number: number } | null>(null);
@@ -67,6 +68,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
         title: title.trim(),
         body: body.trim(),
         url: window.location.href,
+        isQuestionFix,
       }, idemKey.current);
       setSuccess({ url: r.url, number: r.number });
       idemKey.current = null;
@@ -156,6 +158,15 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
               />
               <div className="text-right text-[11px] text-ink-400 dark:text-ink-500 mt-1">{body.length} / 4000</div>
             </div>
+            <label className="flex items-center gap-2 text-sm text-ink-700 dark:text-ink-200 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isQuestionFix}
+                onChange={(e) => setIsQuestionFix(e.target.checked)}
+                className="accent-accent"
+              />
+              這是題目內容問題(錯字、亂碼、選項或答案有誤)
+            </label>
             {error && (
               <div className="p-2 rounded bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-sm">
                 {error}

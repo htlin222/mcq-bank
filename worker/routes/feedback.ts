@@ -28,11 +28,12 @@ feedbackRoutes.post("/", async (c) => {
 		if (hit) return c.json(hit.body, hit.status as any);
 	}
 
-	type Body = { title?: string; body?: string; url?: string };
+	type Body = { title?: string; body?: string; url?: string; isQuestionFix?: boolean };
 	const body = await c.req.json<Body>().catch(() => ({}) as Body);
 	const title = (body.title || "").trim().slice(0, 200);
 	const content = (body.body || "").trim().slice(0, 4000);
 	const fromUrl = (body.url || "").trim().slice(0, 500);
+	const isQuestionFix = body.isQuestionFix === true;
 
 	if (!title || !content) {
 		return c.json({ error: "title and body required" }, 400);
@@ -60,7 +61,9 @@ feedbackRoutes.post("/", async (c) => {
 			body: JSON.stringify({
 				title: `[Feedback] ${title}`,
 				body: issueBody,
-				labels: ["feedback", "from-app"],
+				labels: isQuestionFix
+					? ["feedback", "from-app", "data"]
+					: ["feedback", "from-app"],
 			}),
 		},
 	);
