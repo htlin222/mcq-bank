@@ -117,13 +117,23 @@ def strip_text(page: "fitz.Page") -> int:
 
 
 def render_page(
-    page: "fitz.Page", redact: list[str] | None = None, strip: bool = False
+    page: "fitz.Page",
+    redact: list[str] | None = None,
+    strip: bool = False,
+    report: dict | None = None,
 ) -> Image.Image:
     """Render 一頁成裁邊後的 RGB PIL Image(未縮放)。"""
     n = 0
     if redact:
         for needle in redact:
-            for rect in page.search_for(needle):
+            rects = page.search_for(needle)
+            # ⚠️ 命中 0 次要講出來。`search_for` 找不到就是靜靜回空 list ——
+            #    PyMuPDF 把 `Mr.林` 拆在兩個 span、或空白正規化不同,姓名就原樣
+            #    render 出去而沒有任何一層會吵(OCR 稽核明講不涵蓋姓名)。
+            #    呼叫端據此整批拒絕。(2026-09-21 自審抓到)
+            if report is not None:
+                report[needle] = report.get(needle, 0) + len(rects)
+            for rect in rects:
                 page.add_redact_annot(rect, fill=(1, 1, 1))
                 n += 1
     if strip:
@@ -154,6 +164,7 @@ def render_deck(
     pages: list[int] | None = None,
     redactions: dict[int, list[str]] | None = None,
     strip: bool = False,
+    report: dict | None = None,
 ) -> list[str]:
     """把 deck_path 每一頁(1-based 頁碼)render 成 view/full 兩份 WebP,
     寫進 out_dir。回傳寫出的檔案路徑清單。
@@ -171,7 +182,7 @@ def render_deck(
             if pages is not None and page_num not in pages:
                 continue
             page = doc[i]
-            trimmed = render_page(page, (redactions or {}).get(page_num), strip)
+            trimmed = render_page(page, (redactions or {}).get(page_num), strip, report)
 
             for label, long_edge in (("view", VIEW_LONG_EDGE), ("full", FULL_LONG_EDGE)):
                 resized = _resize_to_long_edge(trimmed, long_edge)
@@ -199,6 +210,10 @@ def main():
         "跑台案例一律要帶 —— 見 parse_cases.py 的 redactions 欄位。",
     )
     parser.add_argument(
+        "--redact-report",
+        help="把每個遮蔽字串的命中次數寫成 JSON。命中 0 次代表那個姓名沒被遮到。",
+    )
+    parser.add_argument(
         "--strip-text",
         action="store_true",
         help="遮掉整頁文字,只留圖說左半。跑台步驟圖一律要帶 —— 標題就是答案。",
@@ -215,7 +230,15 @@ def main():
         with open(args.redact_json, encoding="utf-8") as f:
             redactions = {int(k): v for k, v in json.load(f).items()}
 
-    written = render_deck(args.deck, args.out, args.limit, pages, redactions, args.strip_text)
+    report: dict | None = {} if args.redact_report else None
+    written = render_deck(
+        args.deck, args.out, args.limit, pages, redactions, args.strip_text, report
+    )
+    if args.redact_report:
+        import json
+
+        with open(args.redact_report, "w", encoding="utf-8") as f:
+            json.dump(report, f, ensure_ascii=False)
     for path in written:
         print(path)
 

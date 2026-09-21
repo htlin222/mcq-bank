@@ -65,6 +65,7 @@ import { join, basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 import { cfg } from "../lib/cfg.mjs";
+import { d1Rows } from "../lib/wrangler-json.mjs";
 // Cross-import from worker/lib, same pattern as scripts/build-slide-mcq-links.ts
 // importing worker/lib/ai-models.ts. MUST be the real function — a second
 // reimplementation of normalizeTerm would let the two diverge (called out
@@ -539,10 +540,19 @@ async function main() {
 		await flush(
 			chunk.map(
 				(t) =>
-					// INSERT OR IGNORE:唯一鍵 (dx_id, norm) 撞到社群提報那一列時,
-					// 讓社群的贏 —— 那一列帶著 proposed_by 與投票紀錄。
-					`INSERT OR IGNORE INTO smear_terms (id, dx_id, text, norm, tier, form, status, rationale, proposed_by, created_at, resolved_at) VALUES ` +
-					`('${esc(t.id)}', '${esc(t.dx_id)}', '${esc(t.text)}', '${esc(t.norm)}', '${esc(t.tier)}', '${esc(t.form)}', 'accepted', NULL, NULL, ${now}, NULL);`,
+					// 唯一鍵 (dx_id, norm) 撞到社群那一列時讓社群的贏 —— 那一列帶著
+					// proposed_by 與投票紀錄。
+					// ⚠️ 但**不能**用 INSERT OR IGNORE。0043 把 status='rejected' 的列留成
+					//    墓碑(擋重複提報),而墓碑也占著同一個唯一鍵 —— 一個曾經被否決、
+					//    後來寫進 dx.json 的寫法會被永久壓住,使用者打它一律算錯,而新加的
+					//    健檢抓不到(它只問「有沒有任何一個 accepted」)。所以只在對方是
+					//    墓碑或非 accepted 時才覆蓋,社群已接受的那一列原封不動。
+					//    (2026-09-21 自審抓到)
+					`INSERT INTO smear_terms (id, dx_id, text, norm, tier, form, status, rationale, proposed_by, created_at, resolved_at) VALUES ` +
+					`('${esc(t.id)}', '${esc(t.dx_id)}', '${esc(t.text)}', '${esc(t.norm)}', '${esc(t.tier)}', '${esc(t.form)}', 'accepted', NULL, NULL, ${now}, NULL) ` +
+					`ON CONFLICT(dx_id, norm) DO UPDATE SET text = excluded.text, tier = excluded.tier, ` +
+					`form = excluded.form, status = 'accepted' ` +
+					`WHERE smear_terms.proposed_by IS NULL OR smear_terms.status <> 'accepted';`,
 			),
 		);
 	}
@@ -647,10 +657,9 @@ async function main() {
 	]).catch(() => null);
 	if (health) {
 		try {
-			const out = health.stdout;
-			const orphan = (
-				JSON.parse(out.slice(out.indexOf("["))) as { results: { id: string }[] }[]
-			)[0].results.map((r) => r.id);
+			// ⚠️ 走 d1Rows,不要自己切字串 —— 切錯會丟 SyntaxError,而這整段包在
+			//    try/catch 裡,健檢就靜靜退化成 no-op(它本身就是在防靜默失敗的)。
+			const orphan = (d1Rows(health.stdout) as { id: string }[]).map((r) => r.id);
 			if (orphan.length) {
 				console.error(
 					`\n✖ ${orphan.length} 個診斷沒有任何可接受寫法,它們現在答什麼都會判 miss:\n` +

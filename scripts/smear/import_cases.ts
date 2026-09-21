@@ -32,6 +32,9 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 import { cfg } from "../lib/cfg.mjs";
+// ⚠️ 不要自己 `JSON.parse(out.slice(out.indexOf("[")))` —— wrangler 會在 JSON 前面
+//    夾人看的文案,而文案裡出現一個方括號就切在錯的地方。理由寫在那支的檔頭。
+import { d1Rows } from "../lib/wrangler-json.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DATA = join(HERE, "data");
@@ -141,9 +144,7 @@ async function main() {
 		p.on("exit", (c) => (c === 0 ? res(o) : rej(new Error(`d1 exited ${c}`))));
 	});
 	const known = new Set<string>(
-		(JSON.parse(dxOut.slice(dxOut.indexOf("["))) as { results: { id: string }[] }[])[0].results.map(
-			(r) => r.id,
-		),
+		(d1Rows(dxOut) as { id: string }[]).map((r) => r.id),
 	);
 	const bad = ready.filter((c) => !known.has(c.dx_id as string));
 	if (bad.length) {
@@ -176,8 +177,7 @@ async function main() {
 		p.on("exit", (c) => (c === 0 ? res(o) : rej(new Error(`d1 exited ${c}`))));
 	});
 	const termsByDx = new Map<string, string[]>();
-	for (const r of (JSON.parse(termsOut.slice(termsOut.indexOf("["))) as
-		{ results: { dx_id: string; text: string }[] }[])[0].results) {
+	for (const r of d1Rows(termsOut) as { dx_id: string; text: string }[]) {
 		// 三個字元以下的詞不拿來掃 —— 'AA'、'PV' 這種會在任何一段英文裡誤中,
 		// 而誤剝掉真的病史比漏掉一次更難察覺。
 		if (r.text.trim().length <= 3) continue;
@@ -201,8 +201,10 @@ async function main() {
 					out = out.replace(re, "▮▮▮");
 				}
 			}
-			// 整行只剩分類路徑之類的殘骸就不要了
-			if (out.replace(/[▮\s>·—-]/g, "").length >= 8) kept.push(out);
+			// 整行只剩分類路徑之類的殘骸就不要了。
+			// ⚠️ 只對**真的被遮過**的行套這個長度門檻 —— 對每一行都套的話,
+			//    `Plt 12k`(7 字元)這種正常的檢驗數據會被靜默丟掉。
+			if (line === out || out.replace(/[▮\s>·—-]/g, "").length >= 8) kept.push(out);
 		}
 		c.history = kept;
 	}
@@ -228,16 +230,33 @@ async function main() {
 		const redactFile = join(SCRATCH, `${c.id}-redact.json`);
 		await writeFile(redactFile, JSON.stringify(redactMap), "utf-8");
 		const outDir = join(SCRATCH, c.id);
+		const reportFile = join(SCRATCH, `${c.id}-redact-report.json`);
 		await sh("python3", [
 			join(HERE, "render_pages.py"),
 			"--deck", join(DECK_DIR, deck),
 			"--out", outDir,
 			"--pages", c.pages.map((p) => p.page).join(","),
 			"--redact-json", redactFile,
+			"--redact-report", reportFile,
 			// ⚠️ 一律帶。投影片每一張都印著標題,而標題就是答案;實測不帶的話
 			//    39 張步驟圖 39 張 OCR 掃得到洩題。臨床文字另外以純文字送。
 			"--strip-text",
 		]);
+		// ⚠️ 檔頭承諾了「沒套用就拒絕跑」,而第一版只是把參數傳過去,沒有人檢查結果。
+		//    `page.search_for()` 找不到就是靜靜回空 list —— PyMuPDF 把 `Mr.林` 拆在
+		//    兩個 span、或空白正規化不同,姓名就原樣進圖而沒有任何一層會吵
+		//    (OCR 稽核明講不涵蓋姓名)。整批拒絕,不要跳過那一頁:一個沒遮到的
+		//    姓名比少一案嚴重得多。(2026-09-21 自審抓到)
+		const report = JSON.parse(await readFile(reportFile, "utf-8")) as Record<string, number>;
+		const missed = Object.entries(report).filter(([, n]) => n === 0).map(([k]) => k);
+		if (missed.length) {
+			console.error(
+				`✖ ${c.id}:這些要遮的字串在 PDF 裡一次都沒命中,姓名會原樣進圖:\n` +
+					missed.map((m) => `   ${JSON.stringify(m)}`).join("\n"),
+			);
+			process.exit(1);
+		}
+
 		const pageFile = (page: number, label: string) =>
 			join(outDir, `${stem}-${String(page).padStart(3, "0")}-${label}.webp`);
 		stepsByCase.set(c.id, c.pages.map((p) => ({

@@ -1,4 +1,4 @@
-"""和信教學片 → 跑台案例 JSON。
+r"""和信教學片 → 跑台案例 JSON。
 
 設計:docs/plans/2026-09-09-smear-station-design.md §7
 
@@ -54,7 +54,11 @@ from caption import DATE, bare, detect_modalities, split_caption  # 唯一一份
 CASE_HEAD = re.compile(r"Case\s+(\d+)\s*[::]\s*(.*)")
 OUTLINE_CASE = re.compile(r"Case\s+(\d+)\s*[::]")
 # 病人識別:Mr./Ms./Mrs. 後面接姓氏或代號,常後接年齡。
-PII = re.compile(r"\b(?:Mr|Ms|Mrs|Miss)\.?\s*[A-Za-z一-鿿]{1,12}\s*\d{0,3}")
+# ⚠️ 長的排前面。Python 的 | 取第一個match得上的分支,不是最長 ——
+# `Mrs.王 50` 會命中 `Mr` 那支,`\.?` 比對到空,然後 [A-Za-z…] 只吃掉 `s`,
+# 於是遮蔽清單裡是 `Mrs`,而真正的姓氏原樣 render 進圖裡。同「題幹否定詞」
+# 那節「詞表按長度排序才組成正則」的同一個坑。(2026-09-21 自審抓到)
+PII = re.compile(r"\b(?:Mrs|Miss|Mr|Ms)\.?\s*[A-Za-z一-鿿]{1,12}\s*\d{0,3}")
 
 
 def page_texts(path):
@@ -111,8 +115,8 @@ def parse_deck(deck_id, path):
             for ln in lines:
                 if CASE_HEAD.match(ln):
                     continue
-                if PII.search(ln):
-                    c["redactions"].append({"page": pno, "text": PII.search(ln).group(0)})
+                for m in PII.finditer(ln):
+                    c["redactions"].append({"page": pno, "text": m.group(0)})
                 b = bare(ln)
                 if re.match(rf"^{DATE}", b):
                     left, rev = split_caption(b)

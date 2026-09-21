@@ -98,3 +98,12 @@ scripts/data/
 # 不進 repo 的慣例。
 scripts/smear/data/oer/
 scripts/smear/data/oer-webp/
+
+# ⚠️ 不帶斜線。帶斜線的樣式(`node_modules/`)只比對目錄,**比對不到 symlink** ——
+# worktree 為了共用主 checkout 的依賴與本機狀態會把它們連過來,於是 `git add -A`
+# 把三條指向 /Users/... 的絕對路徑 symlink 提交了進去。在別人的 clone 或 CI 上
+# 那是斷掉的連結:pnpm install 會失敗或寫到意外的位置,wrangler 則會指向不存在的
+# 本機狀態。(2026-09-21 自審抓到)
+node_modules
+frontend/node_modules
+.wrangler

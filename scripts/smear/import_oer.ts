@@ -22,6 +22,9 @@ import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { cfg } from "../lib/cfg.mjs";
+// ⚠️ 不要自己 `JSON.parse(out.slice(out.indexOf("[")))` —— wrangler 會在 JSON 前面
+//    夾人看的文案,而文案裡出現一個方括號就切在錯的地方。理由寫在那支的檔頭。
+import { d1Rows } from "../lib/wrangler-json.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const D1_DB = cfg("project.d1_db") as string;
@@ -84,9 +87,7 @@ async function main() {
 		let o = ""; p.stdout.on("data", (d) => (o += d));
 		p.on("exit", (c) => (c === 0 ? res(o) : rej(new Error(`d1 exited ${c}`))));
 	});
-	const known = new Set<string>(
-		(JSON.parse(dxOut.slice(dxOut.indexOf("["))) as { results: { id: string }[] }[])[0]
-			.results.map((r) => r.id));
+	const known = new Set<string>((d1Rows(dxOut) as { id: string }[]).map((r) => r.id));
 	const unknown = [...new Set(rows.filter((r) => !known.has(r.dx_id)).map((r) => r.dx_id))];
 	if (unknown.length) {
 		console.error(`✖ 這些 dx_id 不在 smear_dx 裡,先跑 import.ts:${unknown.join(", ")}`);
@@ -102,13 +103,19 @@ async function main() {
 		await shRetry("wrangler", ["r2", "object", "put", `${R2_BUCKET}/${kf}`,
 			"--file", abs(r.webp_full!), "--content-type", "image/webp", mode]);
 		if ((i + 1) % 20 === 0) console.log(`   ... ${i + 1}/${rows.length}`);
+		// ⚠️ image_note 一律 NULL,**不要放 alt**。這本書的 alt 是
+		//    `Image 1: Teardrop Cells (Dacrocyte)` —— 逐字就是答案,95 張裡有 37 張
+		//    長這樣。而 `image_note` 在 smear.ts 是**無條件**回給前端的
+		//    (不在 revealGrade 後面),SmearSession 把它畫在作答框正上方 ——
+		//    等於每一題都把正解當圖說印出來。alt 除了答案沒有別的資訊,所以是丟掉
+		//    不是遮掉。(2026-09-21 自審抓到)
 		stmts.push(
 			`INSERT INTO smear_questions (id, dx_id, source, source_ref, source_url, attribution, image_key_view, image_key_full, prompt, image_note, created_at) VALUES ` +
 			`('${esc(r.id)}', '${esc(r.dx_id)}', 'oer', 'Alberta OER', ${sqlStr(r.source_url)}, ${sqlStr(r.attribution)}, ` +
-			`'${esc(kv)}', '${esc(kf)}', NULL, ${sqlStr(r.alt || null)}, ${Date.now()}) ` +
+			`'${esc(kv)}', '${esc(kf)}', NULL, NULL, ${Date.now()}) ` +
 			`ON CONFLICT(id) DO UPDATE SET dx_id = excluded.dx_id, source_url = excluded.source_url, ` +
 			`attribution = excluded.attribution, image_key_view = excluded.image_key_view, ` +
-			`image_key_full = excluded.image_key_full, image_note = excluded.image_note;`,
+			`image_key_full = excluded.image_key_full, image_note = NULL;`,
 		);
 	}
 	const p = "/tmp/smear-oer.sql";

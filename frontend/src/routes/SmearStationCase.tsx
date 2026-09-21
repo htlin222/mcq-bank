@@ -31,6 +31,9 @@ export function SmearStationCase() {
 	const [notes, setNotes] = useState<Record<string, string>>({});
 	const [typed, setTyped] = useState("");
 	const [verdict, setVerdict] = useState<SmearStationVerdict | null>(null);
+	// ⚠️ 送出失敗跟載入失敗要分開。共用一個 err 的話,送出失敗會把整頁換成
+	//    「載入失敗」—— 使用者整輪打的逐張筆記就這樣沒了,而且沒有重試。
+	const [submitErr, setSubmitErr] = useState<string | null>(null);
 	const [sending, setSending] = useState(false);
 	const topRef = useRef<HTMLDivElement | null>(null);
 
@@ -40,6 +43,10 @@ export function SmearStationCase() {
 		setNotes({});
 		setTyped("");
 		setVerdict(null);
+		// ⚠️ err 也要清。不清的話 `if (err) return` 會在換到下一案時照樣擋在前面
+		//    (React Router 重用同一個元件,不重新掛載),而資料其實已經抓回來了。
+		setErr(null);
+		setSubmitErr(null);
 		fetchStationCase(id)
 			.then(setData)
 			.catch((e) => setErr(String(e)));
@@ -65,6 +72,7 @@ export function SmearStationCase() {
 	async function submit() {
 		if (sending) return;
 		setSending(true);
+		setSubmitErr(null);
 		try {
 			const v = await answerStationCase(id, {
 				typed,
@@ -76,7 +84,7 @@ export function SmearStationCase() {
 			setVerdict(v);
 			topRef.current?.scrollIntoView({ block: "start" });
 		} catch (e) {
-			setErr(String(e));
+			setSubmitErr(String(e));
 		} finally {
 			setSending(false);
 		}
@@ -168,6 +176,11 @@ export function SmearStationCase() {
 						<p className="mt-2 text-xs text-ink-500">
 							不必看完全部才作答 —— 你看了幾張會一起記下來。
 						</p>
+						{submitErr && (
+							<p className="mt-2 text-sm text-accent dark:text-accent-light">
+								送出失敗:{submitErr} —— 你寫的內容還在,再按一次即可。
+							</p>
+						)}
 						<button
 							type="button"
 							disabled={sending || typed.trim() === ""}

@@ -29,6 +29,7 @@ export const smearStationRoutes = new Hono<AppContext>();
 type CaseRow = {
 	id: string;
 	dx_id: string;
+	canonical_long?: string;
 	history_md: string | null;
 	discussion_json: string | null;
 	source: string;
@@ -92,7 +93,10 @@ smearStationRoutes.get("/station/cases", async (c) => {
 smearStationRoutes.get("/station/cases/:id", async (c) => {
 	const id = c.req.param("id");
 	const row = await c.env.DB.prepare(
-		"SELECT id, dx_id, history_md, discussion_json, source, source_ref, attribution FROM smear_cases WHERE id = ?",
+		`SELECT sc.id, sc.dx_id, sc.history_md, sc.discussion_json, sc.source, sc.source_ref,
+              sc.attribution, sd.canonical_long
+         FROM smear_cases sc JOIN smear_dx sd ON sd.id = sc.dx_id
+        WHERE sc.id = ?`,
 	)
 		.bind(id)
 		.first<CaseRow>();
@@ -135,7 +139,10 @@ smearStationRoutes.post("/station/cases/:id/answer", async (c) => {
 		.catch(() => ({}) as Record<string, never>);
 
 	const row = await c.env.DB.prepare(
-		"SELECT id, dx_id, history_md, discussion_json, source, source_ref, attribution FROM smear_cases WHERE id = ?",
+		`SELECT sc.id, sc.dx_id, sc.history_md, sc.discussion_json, sc.source, sc.source_ref,
+              sc.attribution, sd.canonical_long
+         FROM smear_cases sc JOIN smear_dx sd ON sd.id = sc.dx_id
+        WHERE sc.id = ?`,
 	)
 		.bind(id)
 		.first<CaseRow>();
@@ -156,7 +163,12 @@ smearStationRoutes.post("/station/cases/:id/answer", async (c) => {
 	// 判定沿用單張題那一支,一個字都沒改 —— 「一個病人」跟「一張圖」都是那個
 	// 診斷的一個實例,所以答案的判準沒有理由不同。
 	const grade = gradeSmear([body.typed ?? ""], terms);
-	const canonicalLabel = pickCorrectOptionLabel(terms, grade.canonical ?? row.dx_id);
+	// ⚠️ 退路是 canonical_long,不是 dx_id。詞表空掉時(import.ts 的健檢正是在防
+	//    這件事)使用者會看到「正解:hairy_cell_leukemia」—— 一個他沒學過的 slug。
+	const canonicalLabel = pickCorrectOptionLabel(
+		terms,
+		grade.canonical ?? row.canonical_long ?? row.dx_id,
+	);
 
 	const { results: items } = await c.env.DB.prepare(
 		"SELECT idx, modality, image_key_view, image_key_full, caption, reveal_note FROM smear_case_items WHERE case_id = ? ORDER BY idx",
