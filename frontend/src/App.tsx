@@ -72,6 +72,8 @@ import { SmearExam } from "./routes/SmearExam";
 import { SmearSession } from "./routes/SmearSession";
 import { SmearResult } from "./routes/SmearResult";
 import { SmearDx } from "./routes/SmearDx";
+import { SmearStation } from "./routes/SmearStation";
+import { SmearStationCase } from "./routes/SmearStationCase";
 
 // Lazy — keeps EmbedPDF's pdfium-wasm bundle off every other route.
 const Lectures = lazy(() => import("./routes/Lectures"));
@@ -315,6 +317,8 @@ export default function App() {
 					    衝突),但仍照慣例把具體路徑排在前面。 */}
 					<Route path="/smear/review" element={<SmearReview />} />
 					<Route path="/smear/exam" element={<SmearExam />} />
+					<Route path="/smear/station" element={<SmearStation />} />
+					<Route path="/smear/station/:id" element={<SmearStationCase />} />
 					<Route path="/smear/dx/:id" element={<SmearDx />} />
 					<Route path="/smear/s/:id" element={<SmearSession />} />
 					<Route path="/smear/s/:id/result" element={<SmearResult />} />

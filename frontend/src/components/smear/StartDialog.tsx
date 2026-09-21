@@ -23,6 +23,7 @@ const SOURCE_LABELS: Record<string, string> = {
 	exam: "歷屆考題",
 	ash: "ASH 影像庫",
 	submission: "社群投稿",
+	oer: "開放教科書",
 };
 
 const FORM_OPTIONS: { id: SmearForm; label: string; hint: string }[] = [
@@ -56,7 +57,11 @@ export function StartDialog({
 	// 同等信任(理由同 worker/routes/smear.ts SOURCES 常數旁的註解)——核准本身
 	// 就是信任閘門,不需要在這裡再疊一層「預設不練投稿」的隱性懷疑。
 	const [sources, setSources] = useState<Set<string>>(
-		() => new Set(["exam", "ash", "submission"]),
+		// ⚠️ 這三個地方要一起改:標籤、預設值、下面的核取方塊。伺服器的預設只在
+		//    篩選後是空陣列時才會用到,而 noSources 擋住了送出 —— 所以漏掉任何一個
+		//    的症狀是「那個來源的圖永遠抽不到」,而畫面上完全看不出來(2026-09-21
+		//    自審抓到:P4 匯入的 91 張 OER 圖從頭到尾沒有被抽到過)。
+		() => new Set(["exam", "ash", "submission", "oer"]),
 	);
 
 	const [busy, setBusy] = useState(false);
@@ -310,7 +315,7 @@ export function StartDialog({
 							題源
 						</legend>
 						<div className="flex flex-wrap gap-2">
-							{(["exam", "ash", "submission"] as const).map((s0) => (
+							{(["exam", "ash", "submission", "oer"] as const).map((s0) => (
 								<label
 									key={s0}
 									className="flex items-center gap-2 p-2.5 rounded border border-ink-100 dark:border-ink-700 cursor-pointer hover:border-ink-300 dark:hover:border-ink-600"

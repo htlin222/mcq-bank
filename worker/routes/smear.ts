@@ -27,7 +27,10 @@ const TOPICS = [
 // (worker/routes/smear-community.ts 的 POST /submissions/:id/approve)。
 // 核准本身就是那道信任閘門 —— 通過之後跟 exam/ash 同等對待,包含在預設
 // 抽題來源裡,不必等一個「只有投稿」的額外篩選才會被抽到。
-const SOURCES = ["exam", "ash", "po", "submission"];
+// 'oer' 是 Alberta 開放教科書(A Laboratory Guide to Clinical Hematology,
+// CC BY-NC)的單細胞圖譜,補 rbc 主題的覆蓋率 —— 那是七個主題裡素材最薄的
+// 一塊。跟 exam/ash 同等對待,進預設抽題池。
+const SOURCES = ["exam", "ash", "po", "submission", "oer"];
 
 type SmearSessionRow = {
 	id: string;
@@ -196,7 +199,7 @@ smearRoutes.post("/sessions", async (c) => {
 			? body.sources.filter((s) => SOURCES.includes(s))
 			// 'po' 還沒有真正匯入的資料,留在預設之外;'submission' 已經是核准
 			// 過的活題目,理由同上面 SOURCES 常數的註解。
-			: ["exam", "ash", "submission"];
+			: ["exam", "ash", "submission", "oer"];
 
 	const sourcePlaceholders = sources.map(() => "?").join(",");
 	const topicPlaceholders = topics.map(() => "?").join(",");
@@ -228,8 +231,21 @@ smearRoutes.post("/sessions", async (c) => {
 		}
 	}
 
+	// 「這個人作答過哪些圖」—— 推導,不加表(同「attempts 是 source of truth」)。
+	// 用途是讓同一個 dx 優先給沒看過的那張,見 pickUnseenFirst 的檔頭。
+	// ⚠️ 這是排序不是篩選:全部看過就回頭隨機,不會讓某個病消失。
+	const { results: seenRows } = await c.env.DB.prepare(
+		`SELECT DISTINCT a.question_id
+       FROM smear_answers a
+       JOIN smear_sessions s ON s.id = a.session_id
+      WHERE s.user_email = ?`,
+	)
+		.bind(email)
+		.all<{ question_id: string }>();
+	const seen = new Set((seenRows ?? []).map((r) => r.question_id));
+
 	const { topicWeights } = await computeTopicWeights(c.env.DB);
-	const pickedIds = pickSmearSet(pool, n, topicWeights, exclude, Math.random);
+	const pickedIds = pickSmearSet(pool, n, topicWeights, exclude, Math.random, seen);
 
 	if (pickedIds.length === 0) {
 		return c.json({ error: "no questions available for that selection" }, 404);

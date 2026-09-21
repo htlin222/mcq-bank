@@ -3,12 +3,15 @@
  * Import 抹片練習 (smear practice) content into R2 + D1.
  *
  * Usage:
- *   node --experimental-strip-types scripts/smear/import.ts [--local|--remote] [--force]
+ *   node --experimental-strip-types scripts/smear/import.ts [--local|--remote] [--force] [--wipe-user-data]
  *
  *   --local   target .wrangler/state emulation (default)
  *   --remote  target prod R2 + D1
  *   --force   re-upload to R2 even if the object already exists (default:
  *             skip — mirrors scripts/import-lectures.ts's --force)
+ *   --wipe-user-data
+ *             ⚠️ ALSO delete smear_sessions / smear_answers /
+ *             smear_term_votes. Local resets only. Refused with --remote.
  *
  * What this does, in FK-dependency order:
  *   1. Render all pages of the 4 exam decks (scripts/smear/render_pages.py,
@@ -18,16 +21,41 @@
  *      a hard error (already verified 203/203 during the A3 audit; this is
  *      a re-check, not a first check).
  *   3. Upload exam page images + ASH supplementary images to R2.
- *   4. Delete-then-insert every smear_* table (idempotent re-run).
+ *   4. UPSERT the content tables. User tables are never touched.
  *
  * See docs/plans/2026-09-03-smear-practice-design.md and
  * migrations/0043_smear.sql for the schema this fills in.
  *
- * ⚠️ Re-running this script wipes smear_sessions / smear_answers /
- *    smear_term_votes ENTIRELY (not just import-derived rows) — see the
- *    "delete-then-insert" section below. That's fine pre-launch (no real
- *    user data exists yet); don't run this against a live remote DB without
- *    accounting for that.
+ * ⚠️ 2026-09-10:這支腳本以前是 delete-then-insert,會連
+ *    smear_sessions / smear_answers / smear_term_votes 一起清掉。那讓
+ *    「修一個詳解的錯字」跟「洗掉所有人的練習紀錄」變成同一個動作,而
+ *    抹片模組後面每一項工作(補詞彙、加案例、補圖)都要重灌。
+ *    現在改成:
+ *
+ *      內容表(可重跑)                       使用者表(絕不碰)
+ *      smear_dx          UPSERT              smear_sessions
+ *      smear_questions   UPSERT              smear_answers
+ *      smear_dx_notes    UPSERT(見下)        smear_term_votes
+ *      smear_terms       僅重建 import 擁有   smear_notes / smear_comments
+ *                        的列(proposed_by     smear_dx_bookmarks
+ *                        IS NULL)             smear_submissions
+ *      smear_fts         整表重建(純衍生)
+ *
+ *    三個承重的地方:
+ *
+ *    - **`smear_dx` 用 UPSERT 不用 delete。** 它的每一張子表都是
+ *      `ON DELETE CASCADE`,刪一個 dx 等於連詳解、收藏、作答紀錄一起帶走。
+ *    - **`smear_terms` 只刪 `proposed_by IS NULL` 的列。** 社群提報通過的
+ *      寫法要活下來,否則重灌一次就把大家投票通過的結果退回原始詞表,
+ *      而症狀是「我明明提報通過了,怎麼又算我錯」。插入用 INSERT OR IGNORE,
+ *      唯一鍵 (dx_id, norm) 撞到社群那一列時讓社群的贏。
+ *    - **`smear_dx_notes` 的 UPSERT 帶 `WHERE updated_by IS NULL`。**
+ *      站上共筆編輯的 UI 還沒做,但鎖欄位已經在 schema 裡;等它做出來,
+ *      這一行就是「不要把別人在站上寫的東西蓋掉」。現在加,比之後想起來加便宜。
+ *
+ *    ⚠️ 舊資料的清理不在這支腳本裡。來源移除了一張圖,它會留在
+ *    `smear_questions` 而不是被刪掉 —— 刪它會 CASCADE 帶走那些人的作答。
+ *    真的要清,手動下 SQL 並且自己決定要不要保紀錄。
  */
 
 import { readFile, mkdir, writeFile, stat, readdir } from "node:fs/promises";
@@ -37,6 +65,7 @@ import { join, basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 import { cfg } from "../lib/cfg.mjs";
+import { d1Rows } from "../lib/wrangler-json.mjs";
 // Cross-import from worker/lib, same pattern as scripts/build-slide-mcq-links.ts
 // importing worker/lib/ai-models.ts. MUST be the real function — a second
 // reimplementation of normalizeTerm would let the two diverge (called out
@@ -110,6 +139,14 @@ async function main() {
 	const args = process.argv.slice(2);
 	const remote = args.includes("--remote");
 	const force = args.includes("--force");
+	const wipeUserData = args.includes("--wipe-user-data");
+	if (wipeUserData && remote) {
+		console.error(
+			"✖ --wipe-user-data 不准跟 --remote 一起用。那會刪掉真人的練習紀錄,\n" +
+				"  而這支腳本存在的理由就是讓內容更新不必冒那個險。",
+		);
+		process.exit(1);
+	}
 	const mode = remote ? "--remote" : "--local";
 
 	console.log(`🩸 Importing smear practice content (${mode})`);
@@ -466,17 +503,21 @@ async function main() {
 		files.push(path);
 	}
 
-	// Deletes — explicit, reverse dependency order. Written as their own
-	// chunk so they always run before any insert, regardless of chunk size.
+	// 只刪「這支腳本擁有的」列。使用者表不在這裡,理由見檔頭。
+	//   smear_fts    純衍生,整表重建
+	//   smear_terms  只有 proposed_by IS NULL 的是 import 擁有的
+	// smear_dx / smear_questions / smear_dx_notes 一律 UPSERT —— 它們都被
+	// ON DELETE CASCADE 指著,刪一列會連使用者資料一起帶走。
 	await flush([
 		"DELETE FROM smear_fts;",
-		"DELETE FROM smear_answers;",
-		"DELETE FROM smear_sessions;",
-		"DELETE FROM smear_term_votes;",
-		"DELETE FROM smear_terms;",
-		"DELETE FROM smear_dx_notes;",
-		"DELETE FROM smear_questions;",
-		"DELETE FROM smear_dx;",
+		"DELETE FROM smear_terms WHERE proposed_by IS NULL;",
+		...(wipeUserData
+			? [
+					"DELETE FROM smear_answers;",
+					"DELETE FROM smear_sessions;",
+					"DELETE FROM smear_term_votes;",
+				]
+			: []),
 	]);
 
 	// smear_dx
@@ -486,7 +527,9 @@ async function main() {
 			chunk.map(
 				(d) =>
 					`INSERT INTO smear_dx (id, canonical_long, canonical_abbrev, topic, qtype, created_at) VALUES ` +
-					`('${esc(d.dx_id)}', '${esc(d.canonical_long)}', ${sqlStr(d.canonical_abbrev)}, '${esc(d.topic)}', '${esc(d.qtype)}', ${now});`,
+					`('${esc(d.dx_id)}', '${esc(d.canonical_long)}', ${sqlStr(d.canonical_abbrev)}, '${esc(d.topic)}', '${esc(d.qtype)}', ${now}) ` +
+					`ON CONFLICT(id) DO UPDATE SET canonical_long = excluded.canonical_long, ` +
+					`canonical_abbrev = excluded.canonical_abbrev, topic = excluded.topic, qtype = excluded.qtype;`,
 			),
 		);
 	}
@@ -497,8 +540,19 @@ async function main() {
 		await flush(
 			chunk.map(
 				(t) =>
+					// 唯一鍵 (dx_id, norm) 撞到社群那一列時讓社群的贏 —— 那一列帶著
+					// proposed_by 與投票紀錄。
+					// ⚠️ 但**不能**用 INSERT OR IGNORE。0043 把 status='rejected' 的列留成
+					//    墓碑(擋重複提報),而墓碑也占著同一個唯一鍵 —— 一個曾經被否決、
+					//    後來寫進 dx.json 的寫法會被永久壓住,使用者打它一律算錯,而新加的
+					//    健檢抓不到(它只問「有沒有任何一個 accepted」)。所以只在對方是
+					//    墓碑或非 accepted 時才覆蓋,社群已接受的那一列原封不動。
+					//    (2026-09-21 自審抓到)
 					`INSERT INTO smear_terms (id, dx_id, text, norm, tier, form, status, rationale, proposed_by, created_at, resolved_at) VALUES ` +
-					`('${esc(t.id)}', '${esc(t.dx_id)}', '${esc(t.text)}', '${esc(t.norm)}', '${esc(t.tier)}', '${esc(t.form)}', 'accepted', NULL, NULL, ${now}, NULL);`,
+					`('${esc(t.id)}', '${esc(t.dx_id)}', '${esc(t.text)}', '${esc(t.norm)}', '${esc(t.tier)}', '${esc(t.form)}', 'accepted', NULL, NULL, ${now}, NULL) ` +
+					`ON CONFLICT(dx_id, norm) DO UPDATE SET text = excluded.text, tier = excluded.tier, ` +
+					`form = excluded.form, status = 'accepted' ` +
+					`WHERE smear_terms.proposed_by IS NULL OR smear_terms.status <> 'accepted';`,
 			),
 		);
 	}
@@ -510,7 +564,12 @@ async function main() {
 			chunk.map(
 				(q) =>
 					`INSERT INTO smear_questions (id, dx_id, source, source_ref, source_url, attribution, image_key_view, image_key_full, prompt, image_note, created_at) VALUES ` +
-					`('${esc(q.id)}', '${esc(q.dx_id)}', '${esc(q.source)}', ${sqlStr(q.source_ref)}, ${sqlStr(q.source_url)}, ${sqlStr(q.attribution)}, '${esc(q.image_key_view)}', '${esc(q.image_key_full)}', ${sqlStr(q.prompt)}, ${sqlStr(q.image_note)}, ${now});`,
+					`('${esc(q.id)}', '${esc(q.dx_id)}', '${esc(q.source)}', ${sqlStr(q.source_ref)}, ${sqlStr(q.source_url)}, ${sqlStr(q.attribution)}, '${esc(q.image_key_view)}', '${esc(q.image_key_full)}', ${sqlStr(q.prompt)}, ${sqlStr(q.image_note)}, ${now}) ` +
+					`ON CONFLICT(id) DO UPDATE SET dx_id = excluded.dx_id, source = excluded.source, ` +
+					`source_ref = excluded.source_ref, source_url = excluded.source_url, ` +
+					`attribution = excluded.attribution, image_key_view = excluded.image_key_view, ` +
+					`image_key_full = excluded.image_key_full, prompt = excluded.prompt, ` +
+					`image_note = excluded.image_note;`,
 			),
 		);
 	}
@@ -527,7 +586,12 @@ async function main() {
 						: null;
 				return (
 					`INSERT INTO smear_dx_notes (dx_id, content_json, related_dx_ids, version, updated_by, updated_at, editing_by, editing_until) VALUES ` +
-					`('${esc(n.dx_id)}', '${esc(contentJson)}', ${sqlStr(relatedIds)}, 1, NULL, ${now}, NULL, NULL);`
+					`('${esc(n.dx_id)}', '${esc(contentJson)}', ${sqlStr(relatedIds)}, 1, NULL, ${now}, NULL, NULL) ` +
+					// WHERE updated_by IS NULL:站上共筆編輯過的詳解不准被重灌蓋掉。
+					// 那個 UI 還沒做,但鎖欄位在 schema 裡 —— 現在加比之後想起來加便宜。
+					`ON CONFLICT(dx_id) DO UPDATE SET content_json = excluded.content_json, ` +
+					`related_dx_ids = excluded.related_dx_ids, updated_at = excluded.updated_at ` +
+					`WHERE smear_dx_notes.updated_by IS NULL;`
 				);
 			}),
 		);
@@ -574,6 +638,42 @@ async function main() {
 	);
 	console.log(`   smear_dx_notes:  ${dxNotes.length}`);
 	console.log(`   smear_fts:       ${ftsRows.length}`);
+
+	// ---------- 匯入後健檢 ----------
+	//
+	// ⚠️ 這道檢查是實際踩到才加的。dx.json 曾經在檔案搬動時掉了五筆
+	//    (cll / t_pll / b_pll / pv / aplastic_anemia),而 smear_dx 是 UPSERT
+	//    所以那五列**還在資料庫裡**;但 smear_terms 每次重建,於是它們的可接受
+	//    寫法全沒了。後果是那五個診斷**答什麼都判 miss**,而畫面上看起來就只是
+	//    「我答錯了」—— 沒有人會回報成「這題的詞表是空的」。
+	//
+	//    UPSERT 讓內容更新變安全,代價就是「來源少了一筆」不再會自己現形。
+	//    所以要主動問資料庫。
+	const health = await execFileP("wrangler", [
+		"d1", "execute", D1_DB, mode, "--json", "--command",
+		`SELECT d.id FROM smear_dx d
+		  WHERE NOT EXISTS (SELECT 1 FROM smear_terms t
+		                     WHERE t.dx_id = d.id AND t.status = 'accepted')`,
+	]).catch(() => null);
+	if (health) {
+		try {
+			// ⚠️ 走 d1Rows,不要自己切字串 —— 切錯會丟 SyntaxError,而這整段包在
+			//    try/catch 裡,健檢就靜靜退化成 no-op(它本身就是在防靜默失敗的)。
+			const orphan = (d1Rows(health.stdout) as { id: string }[]).map((r) => r.id);
+			if (orphan.length) {
+				console.error(
+					`\n✖ ${orphan.length} 個診斷沒有任何可接受寫法,它們現在答什麼都會判 miss:\n` +
+						`   ${orphan.join(", ")}\n` +
+						`   多半是 dx.json 掉了那幾筆(smear_dx 是 UPSERT,舊列會留著)。`,
+				);
+				process.exitCode = 1;
+			} else {
+				console.log("   健檢:每個診斷都有可接受寫法 ✓");
+			}
+		} catch {
+			console.warn("   ⚠ 健檢查詢解析失敗(不影響匯入結果)");
+		}
+	}
 }
 
 // ------------------------------------------------------------

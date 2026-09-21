@@ -203,6 +203,10 @@ test("抹片練習的所有端點都不能被快取 —— 可變的個人進度
 	assert.equal(isCacheableApiPath("/api/smear/sessions"), false);
 	assert.equal(isCacheableApiPath("/api/smear/sessions/abc123"), false);
 	assert.equal(isCacheableApiPath("/api/smear/wrong"), false);
+	// 跑台。快取住的症狀是「跑過的案例重整之後又變成沒跑過」,而且無聲。
+	assert.equal(isCacheableApiPath("/api/smear/station/cases"), false);
+	assert.equal(isCacheableApiPath("/api/smear/station/cases/kfs-l5-c6"), false);
+	assert.equal(isCacheableApiPath("/api/smear/station/attempts"), false);
 	// smear_terms 可以被社群投票從 open 變成 accepted(Task C2)——快取住
 	// 這支的症狀是「剛通過的詞條 / 剛編輯的筆記,重整還是看不到」。
 	assert.equal(isCacheableApiPath("/api/smear/dx/dacrocyte"), false);

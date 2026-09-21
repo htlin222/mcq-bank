@@ -2440,6 +2440,21 @@
     "text": "spread of cancer",
     "tier": "lay",
     "form": "long"
+   },
+   {
+    "text": "metastatic tumor",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "tumor nests",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Ewing sarcoma",
+    "tier": "half",
+    "form": "long"
    }
   ],
   "source_answers": [
@@ -3691,6 +3706,526 @@
    {
     "key": "Test-1-ANS.pdf",
     "n": 32
+   }
+  ]
+ },
+ {
+  "dx_id": "schistocyte",
+  "canonical_long": "schistocyte",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "schistocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "schizocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "fragmented red cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "RBC fragment",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "helmet cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "elliptocyte",
+  "canonical_long": "elliptocyte",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "elliptocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "ovalocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "oval cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "spherocyte",
+  "canonical_long": "spherocyte",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "spherocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "spherocytosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "microspherocyte",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "sickle_cell",
+  "canonical_long": "sickle cell",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "sickle cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "drepanocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "sickled red cell",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "stomatocyte",
+  "canonical_long": "stomatocyte",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "stomatocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "mouth cell",
+    "tier": "lay",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "heinz_body",
+  "canonical_long": "Heinz body",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "Heinz body",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Heinz bodies",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "poikilocytosis",
+  "canonical_long": "poikilocytosis",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "poikilocytosis",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "poikilocyte",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "anisopoikilocytosis",
+    "tier": "half",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "hemoglobin_c_crystal",
+  "canonical_long": "hemoglobin C crystal",
+  "canonical_abbrev": null,
+  "topic": "rbc",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "hemoglobin C crystal",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Hb C crystal",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "HbC crystal",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "pelger_huet_anomaly",
+  "canonical_long": "Pelger-Huët anomaly",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "Pelger-Huet anomaly",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Pelger-Huët anomaly",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "Pelger-Huet cell",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "pseudo-Pelger-Huet",
+    "tier": "half",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "hypersegmented_neutrophil",
+  "canonical_long": "hypersegmented neutrophil",
+  "canonical_abbrev": null,
+  "topic": "normal_reactive",
+  "qtype": "cell",
+  "terms": [
+   {
+    "text": "hypersegmented neutrophil",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hypersegmentation",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "hypersegmented neutrophils",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "pnh",
+  "canonical_long": "paroxysmal nocturnal hemoglobinuria",
+  "canonical_abbrev": "PNH",
+  "topic": "rbc",
+  "qtype": "disease",
+  "terms": [
+   {
+    "text": "PNH",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "paroxysmal nocturnal hemoglobinuria",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "paroxysmal nocturnal haemoglobinuria",
+    "tier": "full",
+    "form": "long"
+   }
+  ],
+  "source_answers": []
+ },
+ {
+  "dx_id": "cll",
+  "canonical_long": "chronic lymphocytic leukemia",
+  "canonical_abbrev": "CLL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "source_answers": [],
+  "terms": [
+   {
+    "text": "CLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "chronic lymphocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "CLL/SLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "chronic lymphocytic leukaemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "small lymphocytic lymphoma",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "SLL",
+    "tier": "half",
+    "form": "abbrev"
+   }
+  ]
+ },
+ {
+  "dx_id": "t_pll",
+  "canonical_long": "T-cell prolymphocytic leukemia",
+  "canonical_abbrev": "T-PLL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "source_answers": [],
+  "terms": [
+   {
+    "text": "T-PLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "T cell prolymphocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "T-cell prolymphocytic leukaemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "prolymphocytic leukemia",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "PLL",
+    "tier": "half",
+    "form": "abbrev"
+   }
+  ]
+ },
+ {
+  "dx_id": "b_pll",
+  "canonical_long": "B-cell prolymphocytic leukemia",
+  "canonical_abbrev": "B-PLL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "source_answers": [],
+  "terms": [
+   {
+    "text": "B-PLL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "B cell prolymphocytic leukemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "B-cell prolymphocytic leukaemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "prolymphocytic leukemia",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "PLL",
+    "tier": "half",
+    "form": "abbrev"
+   }
+  ]
+ },
+ {
+  "dx_id": "pv",
+  "canonical_long": "polycythemia vera",
+  "canonical_abbrev": "PV",
+  "topic": "myeloid",
+  "qtype": "disease",
+  "source_answers": [],
+  "terms": [
+   {
+    "text": "PV",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "polycythemia vera",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "polycythaemia vera",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "polycythemia",
+    "tier": "half",
+    "form": "long"
+   }
+  ]
+ },
+ {
+  "dx_id": "aplastic_anemia",
+  "canonical_long": "aplastic anemia",
+  "canonical_abbrev": "AA",
+  "topic": "rbc",
+  "qtype": "disease",
+  "source_answers": [],
+  "terms": [
+   {
+    "text": "aplastic anemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "aplastic anaemia",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "AA",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "bone marrow failure",
+    "tier": "half",
+    "form": "long"
+   }
+  ]
+ },
+ {
+  "dx_id": "follicular_lymphoma",
+  "canonical_long": "follicular lymphoma",
+  "canonical_abbrev": "FL",
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "source_answers": [],
+  "terms": [
+   {
+    "text": "FL",
+    "tier": "full",
+    "form": "abbrev"
+   },
+   {
+    "text": "follicular lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "lymphoma",
+    "tier": "half",
+    "form": "long"
+   }
+  ]
+ },
+ {
+  "dx_id": "aggressive_b_cell_lymphoma",
+  "canonical_long": "aggressive B-cell lymphoma",
+  "canonical_abbrev": null,
+  "topic": "lymphoid",
+  "qtype": "disease",
+  "source_answers": [],
+  "terms": [
+   {
+    "text": "aggressive B cell lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "aggressive B-cell lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "high grade B-cell lymphoma",
+    "tier": "full",
+    "form": "long"
+   },
+   {
+    "text": "DLBCL",
+    "tier": "half",
+    "form": "abbrev"
+   },
+   {
+    "text": "diffuse large B cell lymphoma",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "B cell lymphoma",
+    "tier": "half",
+    "form": "long"
+   },
+   {
+    "text": "lymphoma",
+    "tier": "half",
+    "form": "long"
    }
   ]
  }

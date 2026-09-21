@@ -75,6 +75,33 @@ export function largestRemainder(
   return result;
 }
 
+/**
+ * 洗牌,但「這個人還沒作答過的」一律排在「作答過的」前面。
+ *
+ * 這是「同一診斷多種版本」的整個實作(設計:2026-09-09-smear-station-design §9)。
+ * 學長的原話是「就算是同一種疾病,也可以多看不同病人的片子,因為彼此都還是會有
+ * 些許差異」—— 而素材早就在資料庫裡了(每個 dx 有 2 到 10 張圖),缺的只是抽題
+ * 會不會讓你碰到不同張。
+ *
+ * ⚠️ **兩組各自洗牌,不是把 seen 整批砍掉。** 全部看過之後就回頭隨機,而不是
+ * 「這個病不會再出現了」—— 後者的症狀是使用者以為題庫壞了。
+ *
+ * ⚠️ 這裡刻意不做「per-dx 輪替」那種更複雜的版本:全域的 unseen-first 在效果上
+ * 就是 per-dx 的(一個 dx 底下沒看過的圖必然排在看過的前面),而 per-dx 版本要多
+ * 帶 dx_id 進來、多一層分組,換不到任何東西。
+ */
+export function pickUnseenFirst<T extends { id: string }>(
+	items: T[],
+	seen: Set<string>,
+	rng: () => number,
+): T[] {
+	if (seen.size === 0) return fisherYatesShuffle(items, rng);
+	const unseen: T[] = [];
+	const already: T[] = [];
+	for (const item of items) (seen.has(item.id) ? already : unseen).push(item);
+	return [...fisherYatesShuffle(unseen, rng), ...fisherYatesShuffle(already, rng)];
+}
+
 export function fisherYatesShuffle<T>(items: T[], rng: () => number): T[] {
   const a = items.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -96,6 +123,9 @@ export function fisherYatesShuffle<T>(items: T[], rng: () => number): T[] {
  *      讓總數少於 n(除非整個題庫都不夠)。
  *   3. 盡量避開 exclude;只有在扣掉 exclude 後仍然湊不滿 n 時,才會
  *      動用 exclude 裡的題目 —— 湊滿 n 優先於「完全不重複上一場」。
+ *   4. 在以上三點都滿足的前提下,同一批候選裡「這個人沒作答過的圖」排前面
+ *      (`seen`,見 `pickUnseenFirst`)。這一層純粹是排序,不改變任何一個
+ *      配額或總數 —— 所以加上它不會讓上面三個保證失效。
  */
 export function pickSmearSet(
   pool: PoolItem[],
@@ -103,6 +133,7 @@ export function pickSmearSet(
   topicWeights: Record<string, number>,
   exclude: Set<string>,
   rng: () => number,
+  seen: Set<string> = new Set(),
 ): string[] {
   if (n <= 0) return [];
 
@@ -134,7 +165,7 @@ export function pickSmearSet(
     const candidates = (byTopic.get(topic) ?? []).filter(
       (item) => !exclude.has(item.id) && !selectedSet.has(item.id),
     );
-    const shuffled = fisherYatesShuffle(candidates, rng);
+    const shuffled = pickUnseenFirst(candidates, seen, rng);
     for (const item of shuffled.slice(0, quota)) {
       selected.push(item.id);
       selectedSet.add(item.id);
@@ -149,7 +180,7 @@ export function pickSmearSet(
     const backfill = allItems.filter(
       (item) => !exclude.has(item.id) && !selectedSet.has(item.id),
     );
-    const shuffled = fisherYatesShuffle(backfill, rng);
+    const shuffled = pickUnseenFirst(backfill, seen, rng);
     for (const item of shuffled) {
       if (remaining <= 0) break;
       selected.push(item.id);
@@ -162,7 +193,7 @@ export function pickSmearSet(
     // 缺額回填(第二輪):非 exclude 的候選也不夠了,才動用 exclude —— 湊滿
     // n 題優先於「完全不重複上一場」。
     const lastResort = allItems.filter((item) => !selectedSet.has(item.id));
-    const shuffled = fisherYatesShuffle(lastResort, rng);
+    const shuffled = pickUnseenFirst(lastResort, seen, rng);
     for (const item of shuffled) {
       if (remaining <= 0) break;
       selected.push(item.id);

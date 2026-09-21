@@ -1,0 +1,735 @@
+[
+ {
+  "id": "ash-c138",
+  "deck": "ash",
+  "source_ref": "ASH reference-case #138",
+  "source_url": "https://imagebank.hematology.org/reference-case/138/myelodysplastic-syndrome-with-del5q",
+  "attribution": "ASH Image Bank — Mir Alikhan, MD; Girish Venkataraman, MD, 08/25/2021",
+  "dx_id": "mds",
+  "title_raw": "Myelodysplastic syndrome with  del(5q)",
+  "history": [
+   "The patient is an 88-year-old woman who presents with fatigue and dizziness."
+  ],
+  "discussion": [
+   "Myeloid Neoplasms and acute leukemia (WHO 2016) > Myelodysplastic Syndromes (MDS) > Myelodysplastic syndrome with isolated del(5q)",
+   "The patient is an 88-year-old woman who presents with fatigue and dizziness. She was found to have unexplained macrocytic anemia with a hemoglobin of 9.3 g/dL and MCV of 105.1. Platelet and absolute neutrophil counts were normal (308,000 k/uL and 2,200 k/uL, respectively).",
+   "A bone marrow biopsy showed trilineage but atypical hematopoiesis. Most notably, megakaryocytes were often small and hypolobated with many showing a plasmacytoid appearance. Erythroid precursors sometimes showed irregular nuclear contours. Blasts were not increased. An iron stain did not demonstrate ring sideroblasts.",
+   "Karyotype and FISH studies showed deletion of 5q in 12 of 20 cells, without other abnormalities. Next-generation sequencing studies were negative for significant alterations. A diagnosis of myelodysplastic syndrome with isolated del(5q) was rendered. The patient has been well without treatment since diagnosis (8 months prior), but has been transfusion dependent. Treatment with lenalidomide is being considered.",
+   "Myelodysplastic syndrome with isolated del(5q) is a distinct entity characterized by anemia without other cytopenias. It may also present with thrombocytosis. It is more common in women of middle or elderly age.",
+   "without any changes compared to the prior revised fourth edition WHO classification except for change in terminology to \"MDS with del(5q)\".",
+   "These cases by definition should not have more than one other alteration except -7 or del(7q). The classification of lower risk MDS in the current schema of the ICC includes cases with",
+   "1. Arber DA, Orazi A, and Tefferi A coworkers. International Consensus Classification of Myeloid Neoplasms and Acute Leukemia: Integrating Morphological, Clinical, and Genomic Data. Blood. 2022 Jun 29.",
+   "Peripheral blood demonstrating macrocytosis without thrombocytopenia. Atypical, large platelets can be appreciated (arrow).",
+   "Many atypical megakaryocytes are seen characterized by small size, hypolobated or non-lobated nuclei, and often plasmacytoid appearance with eccentric nuclei. Erythropoiesis and granulopoiesis are relatively unremarkable. Blasts are not increased.",
+   "Conventional karyotype analysis demonstrates deletion of the long arm of chromosome 5 (arrow)."
+  ],
+  "pages": [
+   {
+    "page": 0,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/138/images/63677.jpg",
+    "modality": [
+     "pb"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 1,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/138/images/63674.jpg",
+    "modality": [
+     "bm"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 2,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/138/images/63678.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 3,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/138/images/63675.jpg",
+    "modality": [
+     "bm"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 4,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/138/images/63676.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "ash-c102",
+  "deck": "ash",
+  "source_ref": "ASH reference-case #102",
+  "source_url": "https://imagebank.hematology.org/reference-case/102/hairy-cell-leukemia-hcl",
+  "attribution": "ASH Image Bank — Mir B. Alikhan; Dilshad Daliwal, 04/19/2019",
+  "dx_id": "hairy_cell_leukemia",
+  "title_raw": "Hairy cell Leukemia (HCL)",
+  "history": [
+   "The patient is a 59-year-old male who presented with chief complaints of fatigue and left upper quadrant abdominal pain. HCL-v (Variant) often presents with Normal or increased blood counts, no monocytopenia, cells with prominent nucleoli and an aggressive course."
+  ],
+  "discussion": [
+   "Lymphoma: Mature B-cell and Plasma cell Neoplasms > Splenic lymphomas > Hairy Cell Leukemia",
+   "The patient is a 59-year-old male who presented with chief complaints of fatigue and left upper quadrant abdominal pain. CT scan showed splenomegaly with spleen span of 26 cm.",
+   "Complete blood count showed pancytopenia and a monocytopenia (<0.1 k/uL). Peripheral blood smear examination showed relative lymphocytosis with atypical lymphoid cells.",
+   "A bone marrow study was performed, which showed a diffuse infiltrate of atypical lymphoid cells. A diagnosis of Hairy Cell leukemia was made, and the patient has been started on 2-chlorodeoxyadenosine (2-CdA) and is doing well.",
+   "1.      Hairy cell Leukemia (HCL) is an indolent B cell malignancy involving spleen, peripheral blood and bone marrow. Classic cases present with pancytopenias including monocytopenia.",
+   "Bone marrow has a charaterstic dry tap owing to massive fibrosis, as fibrogenic growth factors are secreted by tumour cells in the marrow.",
+   "Spleen is massively enlarged with leukemic cells charaterstically infiltrating the red pulp.",
+   "3.     Immunophenotyping reveals a neoplastic B cell population showing a bright CD20 alongwith aberrant expression of CD11c, CD25, CD103.",
+   "4.      Annexin A1 is the most specific immunohistochemical marker for HCL, although TRAP and CD123 are often also positive. CD22 is uniformly bright.",
+   "5. HCL-v (Variant) often presents with Normal or increased blood counts, no monocytopenia, cells with prominent nucleoli and an aggressive course.",
+   "6. Treatment includes Cladribine and Pentostatin (Purine analogs), recently INF-alpha and a BRAF inhibitor- Vemurafenib have been tried and have proved efficacious in relapsed and refractory cases. More recently, immunotoxins such as moxetumomab Pasudotox (anti-CD22) are showing promising results.",
+   "There is lymphocytosis with atypical cells. These are characterized by intermediate-sized cells with oval and slightly irregular indented nuclei, referred to as reniform or kidney bean appearance. There is a moderate amount of cytoplasm that often shows circumferential hairy projections. Notably, monocytes are nearly absent.",
+   "Bone marrow biopsy shows a hypercellular marrow infiltrated by small lymphoid cells with oval nuclei and abundant pale cytoplasm, imparting a “fried-egg” appearance.",
+   "Immunohistochemical stains on the core biopsy showed increased CD20+ B-cells with co-expression of TRAP (tartrate-resistant acid phosphatase) and Annexin A1. The latter is most sensitive and specific for hairy cell leukemia amongst other B-cell lymphomas. However, the marker is strongly positive in granulocytes, necessitating comparison with CD20 when interpreting the stain.",
+   "Flow analysis revealed a monotypic B-cell population showing expression of CD19, CD103, CD11c, and lambda light-chain. There is variable positivity for CD25. The neoplastic B cells are negative for CD5 and CD10.",
+   "The peripheral blood smear was submitted to the molecular pathology lab to perform a melt-curve analysis for identification of",
+   "V600E. Essentially all hairy cell leukemias harbor this missense mutation. This assay utilizes a FRET probe that takes advantage of the lower melting temperature of the DNA of mutated cases."
+  ],
+  "pages": [
+   {
+    "page": 0,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/102/images/62314.jpg",
+    "modality": [
+     "pb"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 1,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/102/images/62312.jpg",
+    "modality": [
+     "bm"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 2,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/102/images/62313.jpg",
+    "modality": [
+     "ihc"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 3,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/102/images/62310.jpg",
+    "modality": [
+     "flow"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 4,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/102/images/62311.jpg",
+    "modality": [
+     "flow"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 5,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/102/images/62315.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "ash-c129",
+  "deck": "ash",
+  "source_ref": "ASH reference-case #129",
+  "source_url": "https://imagebank.hematology.org/reference-case/129/mantle-cell-lymphoma-expressing-p53",
+  "attribution": "ASH Image Bank — Jeeva Alphonsa Joy; Girish Venkataraman, 02/26/2020",
+  "dx_id": "mantle_cell_lymphoma",
+  "title_raw": "Mantle cell lymphoma expressing P53",
+  "history": [
+   "This is a 62-year-old male with lymphadenopathy involving the neck, para-aortic lymph nodes, liver and spleen as well as bone marrow all involved by mantle cell lymphoma, mantle cell international prognostic index 7."
+  ],
+  "discussion": [
+   "This is a 62-year-old male with lymphadenopathy involving the neck, para-aortic lymph nodes, liver and spleen as well as bone marrow all involved by mantle cell lymphoma, mantle cell international prognostic index 7.4.",
+   "The case shown below is morphologically compatible with mantle cell lymphoma and associated pleomorphic features expressing cyclin D1 and SOX11.  Nodal mantle cell lymphoma comprises nearly 80% of all mantle cell lymphoma and is typically positive for cyclin D1 and SOX11, the latter indicative of origin from unmutated naïve B cells that have not experienced germinal center reaction. In addition, two important adverse prognostic markers including p53 and Ki-67 (>30%) are both positive.",
+   "Jain P, Wang M. Mantle cell lymphoma: 2019 update on the diagnosis, pathogenesis, prognostication, and management. Am J Hematol. 2019;94(6):710–725",
+   "Giemsa stain (top left image) of touch imprint showing numerous pleomorphic moderate to large lymphoid cells with distinct nucleoli similar to those described in H&E sections.",
+   "H&E stain (top right image) of low power view of lymph node showing diffuse effacement in architecture of node with a vague nodular appearance.",
+   "H&E stain (bottom left image) of high power view of lymph node showing sheets of pleomorphic moderate to large lymphoid cells with convoluted nuclear membrane, clumped dispersed chromatin with single prominent central eosinophilic nucleoli. Also note mitosis in the center of field.",
+   "CD20 immunostain (top left image) of high power view showing pleomorphic lymphoid cells positive for CD20 indicating B cell lineage.",
+   "CD3 immunostain (top right image) of high power view showing CD3 positive scattered T cells. The pleomorphic lymphoma cells are CD3 negative.",
+   "CD5 immunostain (bottom left image) of high power view showing lymphoma cells positive for CD5. There are more CD5 positive cells compared to CD3 indicating that many CD5+ cells correspond to lymphomatous B cells.",
+   "LEF1 immunostain (top left image) at high power view showing lack of staining for LEF1 in  lymphoma cells. The positive staining for LEF1 is seen in the scattered normal T cells present in the center of the field.",
+   "Cyclin D1 immunostain (top right image) at high power view showing positive staining in numerous pleomorphic lymphoid cells confirming the diagnosis of Mantle Cell Lymphoma.",
+   "Ki67 immunostain (middle left image) at high power view showing 30-40% proliferation index.",
+   "P53 immunostain (middle right image) at high power view showing positive nuclear staining in all lymphoma cells.",
+   "BCL2 immunostain (bottom left image) at high power view showing positive staining in lympoma cells."
+  ],
+  "pages": [
+   {
+    "page": 0,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62958.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 1,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62953.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 2,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62954.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 3,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62951.jpg",
+    "modality": [
+     "ihc"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 4,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62949.jpg",
+    "modality": [
+     "ihc"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 5,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62950.jpg",
+    "modality": [
+     "ihc"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 6,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62956.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 7,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62952.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 8,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62955.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 9,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62957.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 10,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/129/images/62959.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "ash-c142",
+  "deck": "ash",
+  "source_ref": "ASH reference-case #142",
+  "source_url": "https://imagebank.hematology.org/reference-case/142/chronic-lymphocytic-leukemia-with-atypical-features",
+  "attribution": "ASH Image Bank — Mir Alikhan, MD; Girish Venkataraman, MD, 09/29/2021",
+  "dx_id": "cll",
+  "title_raw": "Chronic lymphocytic leukemia with atypical features",
+  "history": [
+   "A 71-year-old man presents with fatigue."
+  ],
+  "discussion": [
+   "Lymphoma: Mature B-cell and Plasma cell Neoplasms > Low-grade B-cell lymphoma > Chronic Lymphocytic Leukemia/Small Lymphocytic Lymphoma",
+   "A 71-year-old man presents with fatigue. He was found to be anemic with a hemoglobin of 10.7 g/dL. A complete blood count also revealed a white blood cell count of 51,000 k/uL, with 80% of circulating cells being lymphocytes by the differential. A peripheral blood smear showed atypical lymphocytes. Some were small with round nuclei and clumped nuclear chromatin. However, many are enlarged with irregular nuclear contours and more abundant cytoplasm.",
+   "Flow cytometry was performed on the peripheral blood and showed a monotypic B-cell population with dim co-expression of CD20, CD5, CD23, dim kappa light-chain, and CD200. CD79b expression was absent.",
+   "A bone marrow study showed extensive infiltration by small to medium-sized lymphocytes in a rather diffuse manner. A diagnosis of chronic lymphocytic leukemia with atypical morphologic features was made. Cytogenetic studies showed trisomy 12 and deletion of 13q14. IGH sequencing analysis detected a B-cell clone with mutational analysis showing unmutated IGHV.",
+   "1.      Trisomy 12 CLL have good prognosis in CLL with frequent CD38 expression and mutated IGHV. Deletion of 17p and del(11q) are typically associated with worse outcome and disease progression/transformation.",
+   "referenced below also recognizes the need to distinguish accelerated CLL from transformation as well as noting not to misinterpret cases of “pseudo-transformation” in the setting of BTKi withdrawal as Richter transformation.[1]",
+   "1. Arber DA, Orazi A, and Tefferi A coworkers. International Consensus Classification of Myeloid Neoplasms and Acute Leukemia: Integrating Morphological, Clinical, and Genomic Data. Blood. 2022 Jun 29.",
+   "Peripheral blood smear shows prominent lymphocytosis. Some smudge cells (arrows) can be identified. The atypical lymphocytes show both small forms with clumped nuclear chromatin as well as some larger forms with more abundant cytoplasm.",
+   "The characteristic CLL cell is small with a round nucleus, scant cytoplasm, clumped nuclear chromatin, and inconspicuous nucleoli. The chromatin can appear like “cracked-earth” on smears and “chocolate-chip cookie” or “soccer ball”-like in tissue sections. Prolymphocytes are larger cells with a more visible nucleolus that can be observed in peripheral blood and tissue section. Often in tissue sections, larger cells with a central eosinophilic nucleolus can be seen, consistent with immunoblasts.",
+   "The bone marrow exhibits increased atypical lymphocytes with similar cytologic features as those seen in the peripheral blood (A). These are present in a diffuse pattern (B) infiltrating between normal hematopoiesis (C).",
+   "Immunohistochemical stains show the lymphocytes are mostly CD20-positive B-cells with just a few background T-cells. There is aberrant expression of CD5, without cyclin D1 positivity.",
+   "Flow cytometry shows a population of CD19+ cells with aberrant CD5 co-expression (black arrow). These have dim kappa expression (red arrow), dim CD20 expression (curved arrow), and positivity for CD23 (yellow arrow) and CD200 (green circle). CD10 and CD79b are both negative.",
+   "CLL Flow: CLL/SLL shows a characteristic immunophenotype. The B-cells show reduced expression of surface immunoglobulin and associated antigens, such as lights chains (kappa or lambda), CD20 and CD79b. Most cases are positive for CD200 by flow cytometry and LEF1 by immunohistochemical stain; CD23 is also often positive, but is not entirely sensitive or specific for CLL. There is aberrant co-expression of CD5, which is also seen in mantle cell lymphoma. However, cyclin D1 and the t(11;14) translocation are consistently negative.",
+   "Conventional karyotype shows trisomy 12 (arrow). FISH studies (not pictured) showed deletion of 13q14."
+  ],
+  "pages": [
+   {
+    "page": 0,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/142/images/63764.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 1,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/142/images/63763.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 2,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/142/images/63762.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 3,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/142/images/63765.jpg",
+    "modality": [
+     "flow"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 4,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/142/images/63766.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "ash-c73",
+  "deck": "ash",
+  "source_ref": "ASH reference-case #73",
+  "source_url": "https://imagebank.hematology.org/reference-case/73/polycythemia-vera-with-progression",
+  "attribution": "ASH Image Bank — Girish Venkataraman, MD, MBBS; James Vardiman, MD; Olatoyosi Odenike, MD; Loren Joseph, MD, 07/10/2018",
+  "dx_id": "pv",
+  "title_raw": "Polycythemia vera with progression",
+  "history": [
+   "Girish Venkataraman, MD, MBBS; James Vardiman, MD; Olatoyosi Odenike, MD; Loren Joseph, MD, 07/10/2018   This is a 73-year-old woman diagnosed with Polycythemia Vera in 2010 at which time she had a hemoglobin of 16."
+  ],
+  "discussion": [
+   "Girish Venkataraman, MD, MBBS; James Vardiman, MD; Olatoyosi Odenike, MD; Loren Joseph, MD, 07/10/2018",
+   "Myeloid Neoplasms and acute leukemia (WHO 2016) > Myeloproliferative Neoplasms (MPN) > Polycythemia Vera (PV) > Proliferative phase",
+   "This is a 73-year-old woman diagnosed with Polycythemia Vera in 2010 at which time she had a hemoglobin of 16.9 g/dL, WBC count of 14,500/uL and normal platelet count of 310,000/uL. She was noted to have low erythropoietin levels (2.3 mIU/mL) at that time and carried a",
+   "The marrow depicted here is from an year after the original diagnosis after which she was on hydroxyurea with normalized count but with some features worrisome for progression at this time. She continued on pegylated interferon, hydroxyurea and phlebotomy since this 2011 marrow.",
+   "However, 6 years later, there was evidence of clonal (new del13q) and morphologic progression to fibrotic stage with increased blasts and dysplastic hematopoiesis. She then underwent an allogeneic stem cell transplantation.",
+   "Blood counts and morphologic findings may be altered after therapy and reclassification of disease should not be done through different time points of a disease modified by therapy.",
+   "At this time the WBC was 13,400/uL, Hemoglobin was 12.6 g/dL and Platelet count was 282,000/uL.",
+   "The peripheral blood smear shows mild leukocytosis that is due primarily to an increase in the numbers of granulocytic cells. Blasts with features of myeloblasts account for about 5% of the WBCs (third image high power). There is a moderate \"left shift\"with increased bands and occasional myelocytes. There is also absolute basophilia (second image bottom cell). Although most area morphologically normal, occasional neutrophils have hypogranular cytoplasm and/or abnormally segmented nuclei with nuclear excrescences (see second image).  The red blood cell morphology shows only mild anisopoikilocytosis, with occasional macrocytes, very rare teardrop shaped RBCs, polychromasia (third image) and occasional cells with basophilic stippling. Rare NRBCs are also seen (not shown). Platelets are present in adequate number, and occasional giant platelets as well as circulating megakaryocytic nuclei are noted.",
+   "The bone marrow biopsy specimen shows a hypercellular bone marrow (80-85%).  Although the cellularity is due somewhat to panmyelosis, the predominant cells are megakaryocytes and granulocytes. Megakaryocytes are prominently increased in number.",
+   "The megakaryocytes are of variable size, ranging from normal to enlarged forms with somewhat hyperlobulated nuclei. A few smaller forms are also seen. None are bizarre,however, and they generally lack the \"bulky\" nuclei observed in primary myelofibrosis.",
+   "Granulopoiesis is shifted towards segmented neutrophils, which are focally very abundant.  Erythropoiesis is primarily limited to small scattered islands and is overall at least relatively reduced in quantity. There is some shift towards pronormoblasts, but maturation is seen as well. Although blasts are observed scattered throughout the biopsy, they appear only minimally increased in percentage.",
+   "The bone trabeculae show some variability, ranging from somewhat thinned to thickened bone. There is a definite increase in reticulin fibers, 1-2+/3+ noted on the reticulin stain.",
+   "The bone marrow aspirate smears shows variably sized spicules and variable cellularity, which may in part be due to the underlying reticulin fibrosis. In these preparations blasts account for about 4-5% of the bone marrow cells, depending on the area examined. There is maturation in the granulocytic lineage to segmented neutrophils which predominate. Minor dyspoietic features are appreciated in some of the maturing granulocytes, such as rare myelocytes with twinned nuclei, or, in the mature cells, irregular nuclear excrescences. However, overall, the dyspoietic features are not prominent. There are more erythroid precursors noted on the aspirate smears than in the biopsy. They are generally normoblastic, although occasional dyspoietic forms with multi-nucleation are seen (not seen in this image).",
+   "The megakaryocytes show the same range of morphology as described in the biopsy. Basophils are somewhat conspicuous, but not markedly increased percentage.",
+   "by RT-PCR was performed using a semi- quantitative assay. From the signal strength for the calibrators, it could be estimated that this sample has a JAK2 level greater than the 50% range, a range which can be clinically significant (and consistent with the diagnosis of PV which typically demonstrates high mutated allele burden).",
+   "This level (greater than 50% of the alleles) is most likely due to  loss of the normal allele ('LOH' loss of heterozygosity) rather than amplification of the mutated allele. See for example an early report by R. Kralovics et al in NEJM 352:1779 (2005)."
+  ],
+  "pages": [
+   {
+    "page": 0,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/73/images/61657.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 1,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/73/images/61658.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 2,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/73/images/61659.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 3,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/73/images/61660.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 4,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/73/images/61661.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 5,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/73/images/61662.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 6,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/73/images/61663.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 7,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/73/images/61664.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 8,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/73/images/61665.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "ash-c16",
+  "deck": "ash",
+  "source_ref": "ASH reference-case #16",
+  "source_url": "https://imagebank.hematology.org/reference-case/16/essential-thrombocythemia",
+  "attribution": "ASH Image Bank — Elizabeth L. Courville, MD, 09/22/2015",
+  "dx_id": "et",
+  "title_raw": "Essential thrombocythemia",
+  "history": [
+   "This is a 60 year old female with thrombocytosis for 2 years."
+  ],
+  "discussion": [
+   "Myeloid Neoplasms and acute leukemia (WHO 2016) > Myeloproliferative Neoplasms (MPN) > Essential Thrombocythemia",
+   "This is a 60 year old female with thrombocytosis for 2 years. A bone marrow biopsy is performed and revealed features typical of Essential Thrombocythemia (ET).",
+   "Diagnostic learning point: Most ET marrows are typically normocellular and abnormalities are restricted to the megakaryocytes as opposed to Polycythemia Vera marrows which show a hypercellular marrow with proliferation of all three lines with relative predominance of erythroid lineage.",
+   "The marrow is hypercellular for age with increased megakaryocytes. The megakaryocytes are dispersed throughout the marrow and include frequent large forms with abundant cytoplasm and deeply lobated nuclei.",
+   "The atypical megakaryocytes are evident on the aspirate smear, including quite large forms with abundant cytoplasm, and deeply lobulated nuclei."
+  ],
+  "pages": [
+   {
+    "page": 0,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/16/images/1221.jpg",
+    "modality": [
+     "pb"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 1,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/16/images/1222.jpg",
+    "modality": [
+     "pb"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 2,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/16/images/1224.jpg",
+    "modality": [
+     "pb"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 3,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/16/images/1225.jpg",
+    "modality": [
+     "pb"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 4,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/16/images/60082.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 5,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/16/images/60081.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 6,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/16/images/60080.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 7,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/16/images/2736.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 8,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/16/images/2738.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "ash-c144",
+  "deck": "ash",
+  "source_ref": "ASH reference-case #144",
+  "source_url": "https://imagebank.hematology.org/reference-case/144/double-heterozygous-hbsd-disease-with-sickling-syndrome-in-a-child",
+  "attribution": "ASH Image Bank — Reena Das, MD; Diksha Dev; Prashant Sharma, 11/05/2021",
+  "dx_id": "thalassemia",
+  "title_raw": "Double heterozygous HbSD Disease with sickling syndrome in a child",
+  "history": [
+   "Disorders of Iron Metabolism and Heme Synthesis > Hemochromatosis > x linked (and other) hereditary sideroblastic anmia > Conditions of ineffective erythropoiesis > Hemoglobin E/β-Thalassemia A 8 years old male from Punjab, a north-Indian state presented with history of fever since one week."
+  ],
+  "discussion": [
+   "Disorders of Iron Metabolism and Heme Synthesis > Hemochromatosis > x linked (and other) hereditary sideroblastic anmia > Conditions of ineffective erythropoiesis > Hemoglobin E/β-Thalassemia",
+   "A 8 years old male from Punjab, a north-Indian state presented with history of fever since one week. Past history revealed two prior hospitalizations for fever and anemia. History of multiple blood transfusions was present. Family history was noncontributory. On examination, pallor was noted along with splenomegaly (5 cms below costal margin).",
+   "His hemogram revealed moderate anemia of 82 g/L with normocytic normochromic indices (Mean Corpuscular Volume: 91.9fl and Mean Corpuscular Hemoglobin: 29.2 pg) and increased Red Cell Distribution Width of 18.1%. Reticulocyte count was increased (7.3%). Peripheral blood film examination showed many sickled cells (",
+   "). High pressure liquid chromatography (HPLC, Bio-Rad Variant II) revealed characteristic criss-crossed twin peaks in S and D window of 33.8% and 43.6% respectively along with an HbF of 12.6%, and HbA2 of 3.5% (",
+   "). Cellulose acetate hemoglobin electrophoresis at alkaline pH (8.6) showed a prominent slow-moving band in S/D/G region and no band in A0 region (",
+   "). His parents’ HPLCs revealed that his mother was a sickle cell trait (variant peak in S window: 26.1%,",
+   "1. Sickle cell disease (SCD) is the commonest symptomatic hemoglobinopathy in the world with multifarious genotypes and wide phenotypic heterogeneity.",
+   "2. HbSD disease is a double heterozygous state with co-inheritance of HBB:c.20A>T and HBB:c.364G>C which produces a severe sickling disorder.",
+   "3. Other common double heterozygous states that produce a severe sickling disorder are HbS- beta thalassemia, HbSC, HbSO-Arab and HbS-Lepore diseases.",
+   "4. HbSD disease cases usually present early in childhood with infective complications and pain crisis.",
+   "5. Hemogram often shows normocytic to macrocytic indices, while peripheral blood film can show sickled red cells.",
+   "6. Diagnosis is usually made on HPLC and is confirmed by sickling test and parental studies. Molecular confirmation is usually not required.",
+   "7. Treatment of HbSD generally a disease aims at relieving symptoms and preventing infections, sickle cell crises and long-term complications. Stem cell transplant is the only potential cure available presently.",
+   "8. HbD Punjab is symptomatically severe only with double heterozygosity with sickle cell trait. Individuals with HbD Punjab trait remain clinically asymptomatic.",
+   "Peripheral blood film (MGG, 40x) showing severe anisopoikilocytosis with microcytes, macrocytes, spherocytes, target cells, boat cells and many sickled red blood cells"
+  ],
+  "pages": [
+   {
+    "page": 0,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/144/images/63850.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 1,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/144/images/63847.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 2,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/144/images/63848.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 3,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/144/images/63849.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 4,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/144/images/63851.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 5,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/144/images/63852.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ },
+ {
+  "id": "ash-c11",
+  "deck": "ash",
+  "source_ref": "ASH reference-case #11",
+  "source_url": "https://imagebank.hematology.org/reference-case/11/aplastic-anemia-and-paroxysmal-nocturnal-hemoglobinuria-pnh-clone",
+  "attribution": "ASH Image Bank — Katherine Calvo, MD, PhD, 09/20/2015",
+  "dx_id": "aplastic_anemia",
+  "title_raw": "Aplastic Anemia and Paroxysmal Nocturnal Hemoglobinuria (PNH) clone",
+  "history": [
+   "23 year old male presented with severe pancytopenia (WBC 2."
+  ],
+  "discussion": [
+   "23 year old male presented with severe pancytopenia (WBC 2.1 K/uL, Hb 4.6 g/dL, Plt 10 K/uL , ANC 0.39 K/uL, ARC 16.9 K/uL)."
+  ],
+  "pages": [
+   {
+    "page": 0,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/11/images/60051.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 1,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/11/images/60052.jpg",
+    "modality": [
+     "other"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 2,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/11/images/60055.jpg",
+    "modality": [
+     "bm"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 3,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/11/images/60053.jpg",
+    "modality": [
+     "bm"
+    ],
+    "captions": [],
+    "reveal": []
+   },
+   {
+    "page": 4,
+    "image_file": "/Users/htlin/ash-image-bank/data/reference-cases/11/images/60054.jpg",
+    "modality": [
+     "flow"
+    ],
+    "captions": [],
+    "reveal": []
+   }
+  ],
+  "redactions": []
+ }
+]

@@ -1,0 +1,130 @@
+[
+ {
+  "case_id": "kfs-l1-c1",
+  "title_raw": "Burkitt lymphoma with BM involvement?",
+  "dx_id": "burkitt_lymphoma",
+  "needs_review": false,
+  "why": "BM biopsy negative,但 BM cytogenetics t(8;14),報告寫 compatible with Burkitt lymphoma;smear 有帶空泡的中大型異常淋巴球(p9–10)",
+  "evidence": "投影片圖像逐頁判讀(2026-09-17)"
+ },
+ {
+  "case_id": "kfs-l1-c2",
+  "title_raw": "DLBCL with BM involvement?",
+  "dx_id": null,
+  "needs_review": false,
+  "why": "不收:整案只有一頁,是翻拍的講課投影片(染色體核型),沒有任何抹片",
+  "excluded": true
+ },
+ {
+  "case_id": "kfs-l1-c3",
+  "title_raw": "HLH with EBV viremia",
+  "dx_id": "hlh",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l1-c4",
+  "title_raw": "Intermittent HLH for 5 months",
+  "dx_id": "hlh",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l1-c5",
+  "title_raw": "Ewing sarcoma with bone marrow mets?",
+  "dx_id": "metastatic_cancer",
+  "needs_review": false,
+  "why": "2023/10/31 BM smear: tumor nests were seen;胸水 NKX2.2(+) 符合 Ewing sarcoma(p29–31)",
+  "evidence": "投影片圖像逐頁判讀(2026-09-17)"
+ },
+ {
+  "case_id": "kfs-l1-c6",
+  "title_raw": "Leukocytosis with ecchymosis",
+  "dx_id": "apl",
+  "needs_review": false,
+  "why": "標題中性(Leukocytosis with ecchymosis);BM biopsy 病理診斷 Acute promyelocytic leukemia,karyotype t(15;17)(p37–38)",
+  "evidence": "投影片圖像逐頁判讀(2026-09-17)"
+ },
+ {
+  "case_id": "kfs-l1-c7",
+  "title_raw": "Leukocytosis",
+  "dx_id": "apl",
+  "needs_review": false,
+  "why": "標題中性(Leukocytosis);PB 與 BM smear 圖說皆為 suspect APL(p39–40)。⚠️ 證據等級是 suspect,沒有確診報告",
+  "evidence": "投影片圖像逐頁判讀(2026-09-17)"
+ },
+ {
+  "case_id": "kfs-l1-c8",
+  "title_raw": "HLH with EBV viremia",
+  "dx_id": "hlh",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l5-c1",
+  "title_raw": "B-ALL (thrombocytopenia) B-ALL",
+  "dx_id": "all",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l5-c2",
+  "title_raw": "T-ALL (mediastinal mass)",
+  "dx_id": "all",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l5-c3",
+  "title_raw": "Acute lymphoblast leukemia (ALL) vs.",
+  "dx_id": "follicular_lymphoma",
+  "needs_review": false,
+  "why": "標題以紅字標出 Follicular lymphoma (FL);PB 為有切痕的小淋巴球,atypical lymphocyte 87%(p13–14)",
+  "evidence": "投影片圖像逐頁判讀(2026-09-17)"
+ },
+ {
+  "case_id": "kfs-l5-c4",
+  "title_raw": "Chronic lymphocytic leukemia (CLL) vs. Reactive?",
+  "dx_id": "cll",
+  "needs_review": false,
+  "why": "標題以紅字標出 CLL;淋巴球 5–8 萬持續數月、smudge cells(p15–16)",
+  "evidence": "投影片圖像逐頁判讀(2026-09-17)"
+ },
+ {
+  "case_id": "kfs-l5-c5",
+  "title_raw": "Pancreatic ca with HLH?",
+  "dx_id": "hlh",
+  "needs_review": false,
+  "why": "PB/BM 可見 hemophagocytosis、ferritin 36230、EBV 69000;BM biopsy 未見 carcinoma(p17–24)。標題本身是問句",
+  "evidence": "投影片圖像逐頁判讀(2026-09-17)"
+ },
+ {
+  "case_id": "kfs-l5-c6",
+  "title_raw": "Acute promyelocytic leukemia with pancytopenia",
+  "dx_id": "apl",
+  "needs_review": false,
+  "proposed_dx_id": null,
+  "why": "標題是陳述句,答案就是標題"
+ },
+ {
+  "case_id": "kfs-l5-c7",
+  "title_raw": "Acute myeloid leukemia (AML) vs.",
+  "dx_id": "aggressive_b_cell_lymphoma",
+  "needs_review": false,
+  "why": "標題以紅字標出 Aggressive B cell lymphoma;2025/06/16 NTUH BM pathology: Aggressive B cell lymphoma/leukemia(p35)",
+  "evidence": "投影片圖像逐頁判讀(2026-09-17)"
+ },
+ {
+  "case_id": "kfs-l5-c8",
+  "title_raw": "Acute myeloid leukemia (AML) vs.",
+  "dx_id": "aml_unspecified",
+  "needs_review": false,
+  "why": "標題以紅字標出 AML;2025/02/11 BM pathology: Acute leukemia (MPO-, CD13/33/34/117+), M0(p38)。⚠️ 同一人 03/12 另有 plasma cell neoplasm",
+  "evidence": "投影片圖像逐頁判讀(2026-09-17)"
+ }
+]

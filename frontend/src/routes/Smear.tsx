@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Bookmark, Loader2, Microscope, Search as SearchIcon, Timer } from "lucide-react";
+import { Bookmark, Loader2, Microscope, Search as SearchIcon, Timer, Layers } from "lucide-react";
 import { ApiError } from "../lib/api";
 import { KeepAlive } from "../components/KeepAlive";
 import { StartDialog } from "../components/smear/StartDialog";
@@ -197,6 +197,14 @@ function PracticeTab({ onGotoWrong }: { onGotoWrong: () => void }) {
 				title="全真模式"
 				desc="連續作答,全程不揭曉正解;交卷後才看整體成績與逐題檢討 —— 適合考前自我測驗。"
 				onClick={() => navigate("/smear/exam")}
+			/>
+			{/* 第三張卡 —— 跑台。它跟上面兩張的差別是「單位是病人不是圖」:
+			    一組片子從臨床病史開始,PB 到 BM 一張一張看下去。 */}
+			<ModeCard
+				icon={<Layers size={18} aria-hidden="true" />}
+				title="跑台"
+				desc="一個病人、一組片子。先讀病史,再一張一張看,每張寫下所見 —— 中途不給回饋,下完診斷才一次揭曉。"
+				onClick={() => navigate("/smear/station")}
 			/>
 		</div>
 	);
