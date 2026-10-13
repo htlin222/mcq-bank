@@ -192,7 +192,7 @@ Pages 會靜靜上到 Preview(wrangler 用當前分支名推環境),線上變成
 ### 4.3 部署的坑
 
 - **`Failed to fetch auth token: 400`** 不是 token 過期:`.env` 用的是舊名 `CF_API_TOKEN`,wrangler 認的是 `CLOUDFLARE_API_TOKEN`。`export CLOUDFLARE_API_TOKEN=$CF_API_TOKEN` 即可。
-- **`Cannot apply new-sqlite-class migration to class 'ChatRoom' … already depended on`** 的意思是 CI 那份 `WRANGLER_TOML` secret 缺了後面的 `[[migrations]]`(v2/v3),wrangler 從頭重放。本機重現不出來,因為本機那份是對的。
+- **`Cannot apply new-sqlite-class migration to class 'ChatRoom' … already depended on`** 的意思是 CI 那份 `WRANGLER_TOML` secret 缺了後面的 `[[migrations]]`(v2/v3),wrangler 從頭重放。本機重現不出來,因為本機那份是對的。Worker 部署前會用 `scripts/lib/check-wrangler-bindings.mjs` 把 secret 的 binding 名稱與 migration tag 對 `wrangler.example.toml`;少了就紅,summary 點名缺的那項,不印 secret。
 - `wrangler d1 create` 說 already exists —— 正常,`deploy.sh` 會去 `d1 list` 撈 id。
 - Pages 自訂網域要幾分鐘生效;`*.pages.dev` 立刻可用。
 - 部署完瀏覽器還是舊版 —— 硬重載並比對 bundle hash 與 `frontend/dist/index.html`,再下結論說部署失敗。

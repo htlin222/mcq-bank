@@ -286,6 +286,11 @@ jobs:
           printf '%s' "$CONFIG_TOML" > config.toml
           echo "PUBLIC_HOST=$(node scripts/lib/cfg.mjs public.host)" >> "$GITHUB_ENV"
 
+      # secret 少了範本裡的 binding 或 migration tag 就停,不要開始 deploy。
+      # 2026-08-10 的錯誤指著 ChatRoom,少的其實是後面的 tag。這一步只印少了的名稱。
+      - name: Check WRANGLER_TOML bindings against the example
+        run: node scripts/lib/check-wrangler-bindings.mjs wrangler.example.toml wrangler.toml
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9
