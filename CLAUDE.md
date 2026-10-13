@@ -1423,7 +1423,10 @@ endpoints. 共筆詳解、留言這類**協作**寫入仍然沒有離線路徑,U
 (2026-08-09,e-ink 上連續四題靜默沒進 D1 那次)把**作答**排除在外。理由寫在那個
 檔的檔頭:原則的成本是「寫入衝突的複雜度」,而一筆作答只屬於一個人、只會被寫一次,
 `/api/review/answer` 又本來就帶 idempotency key —— 沒有衝突要解,自然也就沒有那個
-複雜度。改這一區之前先讀那個檔,不要照著這裡舊的一句話把它拆掉。
+複雜度。改這一區之前先讀那個檔,不要照著這裡舊的一句話把它拆掉。模擬考走另一份
+`examOutbox`(不要跟複習佇列混):同一選項沿用同一把鍵打 `/api/exam/:sid/answer`,
+教學模式在那筆離開佇列之前不揭曉。交卷的 PUT 成功後要把該場的佇列清掉,否則
+補送會再 append 一次相同的 attempt。
 
 The one thing to understand before touching any of this: **an expired
 Cloudflare Access session is answered by the edge with a 302 to the login
