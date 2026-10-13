@@ -3,6 +3,7 @@ import type { D1Database } from "@cloudflare/workers-types";
 import type { AppContext } from "../types";
 import { uuid } from "../lib/db";
 import { gradeSmear, type AcceptedTerm } from "../lib/smear-grade";
+import { laterAcceptedTyped } from "../lib/smear-proposal";
 import { pickSmearSet, type PoolItem } from "../lib/smear-pick";
 import { pickMcqOptions, pickCorrectOptionLabel, type McqCandidate } from "../lib/smear-mcq";
 import { ftsQuery } from "../lib/fts-query";
@@ -652,6 +653,25 @@ smearRoutes.post("/sessions/:id/finish", async (c) => {
 		}>();
 	const aMap = new Map((answerDetailRows ?? []).map((r) => [r.question_id, r]));
 
+	// 檢討頁才查「這個寫法後來被接受了嗎」。分數用的是 smear_answers 裡
+	// 交卷當下的 tier/score,這裡不回寫。只取 accepted,pending/rejected 不會標。
+	const dxIds = [...new Set([...qMap.values()].map((q) => q.dx_id).filter(Boolean))];
+	const acceptedByDx = new Map<string, { norm: string; text: string }[]>();
+	for (const part of chunkParams(dxIds, D1_MAX_PARAMS)) {
+		const placeholders = part.map(() => "?").join(",");
+		const { results } = await c.env.DB.prepare(
+			`SELECT dx_id, norm, text FROM smear_terms
+        WHERE status = 'accepted' AND dx_id IN (${placeholders})`,
+		)
+			.bind(...part)
+			.all<{ dx_id: string; norm: string; text: string }>();
+		for (const term of results ?? []) {
+			const list = acceptedByDx.get(term.dx_id) ?? [];
+			list.push({ norm: term.norm, text: term.text });
+			acceptedByDx.set(term.dx_id, list);
+		}
+	}
+
 	const breakdown = questionIds.map((qid) => {
 		const q = qMap.get(qid);
 		const a = aMap.get(qid);
@@ -678,6 +698,11 @@ smearRoutes.post("/sessions/:id/finish", async (c) => {
 			tier: a?.tier ?? "miss",
 			score: a?.score ?? 0,
 			spelling_errors: spellingErrors,
+			later_accepted: laterAcceptedTyped(
+				typed,
+				a?.tier ?? "miss",
+				q?.dx_id ? (acceptedByDx.get(q.dx_id) ?? []) : [],
+			),
 		};
 	});
 

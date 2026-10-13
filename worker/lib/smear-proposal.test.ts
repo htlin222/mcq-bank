@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveProposal } from './smear-proposal.ts';
+import { laterAcceptedTyped, resolveProposal } from './smear-proposal.ts';
 
 const agree = (n: number) => Array.from({ length: n }, () => ({ agree: true }));
 const disagree = (n: number) => Array.from({ length: n }, () => ({ agree: false }));
@@ -21,6 +21,20 @@ test('達門檻且同意過半 → accepted', () => {
 test('達門檻且反對過半 → rejected', () => {
   assert.equal(resolveProposal([...disagree(3)], 3), 'rejected');
   assert.equal(resolveProposal([...disagree(2), ...agree(1)], 3), 'rejected');
+});
+
+test('當時 miss、現在是 accepted 詞才標後來被接受', () => {
+  const accepted = [{ norm: 'dacrocyte', text: 'dacrocyte' }];
+  assert.deepEqual(laterAcceptedTyped(['Dacrocyte'], 'miss', accepted), ['Dacrocyte']);
+  assert.deepEqual(laterAcceptedTyped(['Dacrocyte'], 'full', accepted), []);
+  assert.deepEqual(laterAcceptedTyped(['Dacrocyte'], 'half', accepted), []);
+  assert.deepEqual(laterAcceptedTyped(['Dacrocyte'], 'lay', accepted), []);
+  assert.deepEqual(laterAcceptedTyped(['teardrop'], 'miss', []), []);
+  assert.deepEqual(laterAcceptedTyped(['  ', 12], 'miss', accepted), []);
+  assert.deepEqual(
+    laterAcceptedTyped(['Dacrocyte', 'dacrocyte'], 'miss', accepted),
+    ['Dacrocyte'],
+  );
 });
 
 test('達門檻但打平 → 保守預設 rejected(不讓有爭議的寫法悄悄變成可判分)', () => {

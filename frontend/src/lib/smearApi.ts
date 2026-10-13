@@ -188,6 +188,8 @@ export interface SmearFinishBreakdownRow {
 	tier: SmearTier | "miss";
 	score: number;
 	spelling_errors: unknown[];
+	/** 交卷時判 miss、現在這個字已是該診斷的 accepted 詞。不改分數。 */
+	later_accepted?: string[];
 }
 
 export interface SmearFinishResult {
