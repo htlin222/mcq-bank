@@ -11,7 +11,6 @@ import {
 	Undo2,
 } from "lucide-react";
 import { ApiError } from "../../lib/api";
-import { isEmptyDoc } from "../../lib/drafts";
 import { useMe, type Me } from "../../hooks/useMe";
 import { useNarrow } from "../../hooks/useNarrow";
 import { noteTitleFromJson, NOTE_TITLE_NARROW } from "../../lib/noteTitle";
@@ -20,6 +19,7 @@ import { useDismiss } from "../../hooks/useDismiss";
 import { KeepAlive } from "../KeepAlive";
 import { StaticContent } from "../StaticContent";
 import { RichEditor } from "../RichEditor";
+import { SmearDxNoteEditor } from "./SmearDxNoteEditor";
 import { SmearCommentThread } from "./SmearCommentThread";
 import { TIER_META, TERM_TIER_ORDER } from "./GradeReveal";
 import {
@@ -217,6 +217,7 @@ export function SmearDxPanel({
 							onProposed={(t) => setProposals((prev) => [...prev, t])}
 							onVote={handleVote}
 							onRetractVote={handleRetractVote}
+							onNoteSaved={(note) => setDx((d) => (d ? { ...d, note } : d))}
 						/>
 					</KeepAlive>
 					<KeepAlive active={tab === "note"}>
@@ -251,6 +252,7 @@ function ExplanationPane({
 	onProposed,
 	onVote,
 	onRetractVote,
+	onNoteSaved,
 }: {
 	dx: SmearDxDetail;
 	me: Me | null;
@@ -260,18 +262,8 @@ function ExplanationPane({
 	onProposed: (term: SmearProposedTerm) => void;
 	onVote: (term: SmearProposedTerm, agree: boolean) => void;
 	onRetractVote: (term: SmearProposedTerm) => void;
+	onNoteSaved: (note: NonNullable<SmearDxDetail["note"]>) => void;
 }) {
-	const doc = useMemo(() => {
-		const raw = dx.note?.content_json;
-		if (!raw) return null;
-		try {
-			return JSON.parse(raw);
-		} catch {
-			return null;
-		}
-	}, [dx.note?.content_json]);
-	const noteEmpty = !doc || isEmptyDoc(doc);
-
 	const groupedTerms = useMemo(() => {
 		const g: Record<SmearTier, SmearDxDetail["terms"]> = { full: [], half: [], lay: [] };
 		for (const t of dx.terms ?? []) g[t.tier]?.push(t);
@@ -281,11 +273,13 @@ function ExplanationPane({
 	return (
 		<div className="space-y-8">
 			<section>
-				{noteEmpty ? (
-					<p className="text-sm text-ink-400 dark:text-ink-500">詳解尚未建立。</p>
-				) : (
-					<StaticContent content={doc} />
-				)}
+				<SmearDxNoteEditor
+					dxId={dx.id}
+					note={dx.note}
+					isAdmin={!!me?.is_admin}
+					myEmail={me?.email ?? null}
+					onSaved={onNoteSaved}
+				/>
 			</section>
 
 			<section>

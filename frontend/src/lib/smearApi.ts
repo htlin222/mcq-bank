@@ -234,6 +234,27 @@ export interface SmearDxNote {
 	version: number;
 	updated_by: string | null;
 	updated_at: number;
+	editing_by?: string | null;
+	editing_until?: number | null;
+}
+
+export function lockSmearDxNote(dxId: string): Promise<{ ok: true; until: number }> {
+	return api.post(`/api/smear/dx/${dxId}/note/lock`);
+}
+
+export function unlockSmearDxNote(dxId: string): Promise<{ ok: true }> {
+	return api.post(`/api/smear/dx/${dxId}/note/unlock`);
+}
+
+export function saveSmearDxNote(
+	dxId: string,
+	content: unknown,
+	expectedVersion: number,
+): Promise<{ ok: true; version: number; updated_by: string; updated_at: number }> {
+	return api.put(`/api/smear/dx/${dxId}/note`, {
+		content_json: content,
+		expected_version: expectedVersion,
+	});
 }
 
 export interface SmearAcceptedTermFull {

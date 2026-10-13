@@ -6,6 +6,15 @@ import { normalizeTerm } from "../lib/smear-grade";
 import { validateImageFile, type UploadedFile } from "../lib/upload-validate";
 import { resolveSmearNoteOrder } from "../lib/smear-notes";
 import {
+	SMEAR_NOTE_LOCK_SQL,
+	SMEAR_NOTE_SAVE_SQL,
+	parseSmearNoteSaveBody,
+	smearNoteLockBinds,
+	smearNoteLockDecision,
+	smearNoteSaveBinds,
+	smearNoteSaveRefusal,
+} from "../lib/smear-dx-note";
+import {
 	DELETED_SMEAR_COMMENT_PREVIEW,
 	smearCommentPreview,
 	smearMentionTargets,
@@ -212,6 +221,95 @@ smearCommunityRoutes.delete("/notes/:id", async (c) => {
 		.bind(id, email)
 		.run();
 	return c.json({ ok: true });
+});
+
+// ---------------------------------------------------------------------------
+// 共筆詳解 —— 管理員在診斷頁改。鎖 5 分鐘,存檔對版本。
+// updated_by 有值之後,匯入的 ON CONFLICT 不會把這份蓋回 JSON。
+// ---------------------------------------------------------------------------
+
+smearCommunityRoutes.post("/dx/:id/note/lock", async (c) => {
+	const email = c.var.email;
+	if (!isAdminEmail(email, c.env)) return c.json({ error: "forbidden" }, 403);
+	const dxId = c.req.param("id");
+	const now = Date.now();
+	const decision = smearNoteLockDecision(
+		await c.env.DB.prepare(
+			"SELECT editing_by, editing_until FROM smear_dx_notes WHERE dx_id = ?",
+		)
+			.bind(dxId)
+			.first<{ editing_by: string | null; editing_until: number | null }>(),
+		email,
+		now,
+	);
+	if (decision.action === "missing") return c.json({ error: "note missing" }, 404);
+	if (decision.action === "deny") {
+		return c.json(
+			{ error: "locked", locked_by: decision.lockedBy, until: decision.until },
+			423,
+		);
+	}
+	const wrote = await c.env.DB.prepare(SMEAR_NOTE_LOCK_SQL)
+		.bind(...smearNoteLockBinds(email, decision.until, dxId, now))
+		.run();
+	if ((wrote.meta?.changes ?? 0) > 0) return c.json({ ok: true, until: decision.until });
+	const again = smearNoteLockDecision(
+		await c.env.DB.prepare(
+			"SELECT editing_by, editing_until FROM smear_dx_notes WHERE dx_id = ?",
+		)
+			.bind(dxId)
+			.first<{ editing_by: string | null; editing_until: number | null }>(),
+		email,
+		now,
+	);
+	if (again.action === "deny") {
+		return c.json({ error: "locked", locked_by: again.lockedBy, until: again.until }, 423);
+	}
+	if (again.action === "missing") return c.json({ error: "note missing" }, 404);
+	return c.json({ error: "locked" }, 423);
+});
+
+smearCommunityRoutes.post("/dx/:id/note/unlock", async (c) => {
+	const email = c.var.email;
+	if (!isAdminEmail(email, c.env)) return c.json({ error: "forbidden" }, 403);
+	await c.env.DB.prepare(
+		"UPDATE smear_dx_notes SET editing_by = NULL, editing_until = NULL WHERE dx_id = ? AND editing_by = ?",
+	)
+		.bind(c.req.param("id"), email)
+		.run();
+	return c.json({ ok: true });
+});
+
+smearCommunityRoutes.put("/dx/:id/note", async (c) => {
+	const email = c.var.email;
+	if (!isAdminEmail(email, c.env)) return c.json({ error: "forbidden" }, 403);
+	const dxId = c.req.param("id");
+	const parsed = parseSmearNoteSaveBody(await c.req.json().catch(() => null));
+	if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+
+	const now = Date.now();
+	const wrote = await c.env.DB.prepare(SMEAR_NOTE_SAVE_SQL)
+		.bind(...smearNoteSaveBinds(parsed.json, email, now, dxId, parsed.expectedVersion))
+		.run();
+	if ((wrote.meta?.changes ?? 0) > 0) {
+		return c.json({ ok: true, version: parsed.expectedVersion + 1, updated_by: email, updated_at: now });
+	}
+	const row = await c.env.DB.prepare(
+		"SELECT editing_by, editing_until, version FROM smear_dx_notes WHERE dx_id = ?",
+	)
+		.bind(dxId)
+		.first<{ editing_by: string | null; editing_until: number | null; version: number }>();
+	const refusal = smearNoteSaveRefusal(row ?? null, email, parsed.expectedVersion, now);
+	if (refusal.status === 423 && refusal.error === "locked") {
+		return c.json({ error: "locked", locked_by: refusal.lockedBy, until: refusal.until }, 423);
+	}
+	if (refusal.status === 409) {
+		return c.json(
+			{ error: "version conflict", server_version: refusal.serverVersion, your_version: parsed.expectedVersion },
+			409,
+		);
+	}
+	return c.json({ error: refusal.error }, refusal.status);
 });
 
 // ---------------------------------------------------------------------------
