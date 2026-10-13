@@ -287,6 +287,23 @@ const ROUTES = [
     // 沒有,不會恆真;「核准」「退件」是這支測試第一次掃到的按鈕文字。
     expectAfter: ['系統猜測', '核准', '退件'],
   },
+  {
+    path: '/smear?tab=submit',
+    name: '抹片投稿 → 確認退件(textarea 與確認鈕,子狀態預設不開)',
+    // 上一條只掃到「退件」那顆鈕。點下去之後整列換成 textarea +「確認退件」,
+    // 那個子狀態不開就永遠不在畫面上,getClientRects() 掃不到。
+    async interact(page) {
+      await page.getByRole('tab', { name: '待審核' }).click();
+      await page.getByRole('button', { name: '退件', exact: true }).first().click();
+      const area = page.getByPlaceholder('讓投稿者知道為什麼被退件…');
+      const confirm = page.getByRole('button', { name: '確認退件', exact: true });
+      await area.waitFor();
+      await confirm.waitFor();
+      assert.ok(await area.isVisible(), '退件原因的 textarea 要在畫面上');
+      assert.ok(await confirm.isVisible(), '確認退件要在畫面上');
+    },
+    expectAfter: ['確認退件', '退件原因(選填)'],
+  },
 ];
 
 // 顏色屬性的檢查條件 —— 沒有這些前置判斷會淹沒在偽陽性裡。最大的一個是
