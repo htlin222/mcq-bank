@@ -1,6 +1,7 @@
 name: Deploy
 
-# 一次 push 到 main → classify 決定要部署什麼 → pages / worker 各自跑。
+# 一次 push 到 main → classify 決定要部署什麼 → check(typecheck + 單元測試)
+# → pages / worker 各自跑。check 紅了,後面兩個不會開始。
 #
 # 這支取代了原本的 deploy-pages.yml + deploy-worker.yml。舊版兩支各自帶一份
 # 「只有 X 變更才部署」的 guard,而判準是 allowlist(「有沒有非 frontend 的
@@ -124,8 +125,50 @@ jobs:
             echo 'worker='"$WORKER"
           } >> "$GITHUB_OUTPUT"
 
-  pages:
+  # 部署前的純函式關卡。紅了就不要開始部署 —— 單元測試掛掉仍上線,是這支
+  # workflow 以前的缺口。test:webkit 不在這裡(那是另一支、另一則 issue)。
+  #
+  # 只在這次真的會部署時跑。只改文件、classify 兩邊都是 false 時不必為了
+  # 一個不會發生的部署付這段時間;check 自己失敗仍然是紅的。
+  #
+  # node 22:package.json 的 `pnpm test` 直接把 .ts 交給 node --test。
+  # 部署 job 的 node 20 不會剝型別,這三項在那上面跑不起來。
+  check:
     needs: classify
+    if: needs.classify.outputs.pages == 'true' || needs.classify.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            frontend/pnpm-lock.yaml
+
+      - name: Install
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          pnpm --dir frontend install --frozen-lockfile
+
+      - name: Typecheck worker
+        run: pnpm typecheck
+
+      - name: Typecheck frontend
+        run: pnpm --dir frontend typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+  pages:
+    needs: [classify, check]
     if: needs.classify.outputs.pages == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -211,7 +254,7 @@ jobs:
           exit 1
 
   worker:
-    needs: classify
+    needs: [classify, check]
     if: needs.classify.outputs.worker == 'true'
     runs-on: ubuntu-latest
     steps:

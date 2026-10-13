@@ -173,7 +173,9 @@ Worker 要用就在 `setup.sh` 的鏡射清單與 `wrangler.example.toml [vars]`
 ### 4.2 之後的日常部署
 
 **push 到 `main` 就部署**(`.github/workflows/deploy.yml`):`classify` 決定要不要動
-Pages / Worker,判準在 `scripts/lib/classify-deploy.sh`(有測試)。需要人工的只有三種檔:
+Pages / Worker,判準在 `scripts/lib/classify-deploy.sh`(有測試)。會部署時先跑
+`pnpm typecheck`、`pnpm --dir frontend typecheck`、`pnpm test`,紅了就不更新
+Pages 或 Worker。需要人工的只有三種檔:
 `migrations/**`、`wrangler.example.toml`、`config.example.toml` —— 那時 job **直接紅**,不是綠色的 skipped。
 
 | 改了                                                     | push 前要先做                                                                           |
@@ -308,9 +310,9 @@ bucket **永遠不公開**,一律走 `/img/:key`、`/pdf/:key` 的 Worker 代理
 | 指令                                               | 涵蓋                                                                                 | 何時跑                                                                                 |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
 | `pnpm typecheck` + `pnpm --dir frontend typecheck` | tsc(**repo 沒有 eslint / biome,tsc 是唯一靜態檢查**)                                 | 每次改完                                                                               |
-| `pnpm test`                                        | 純函式:`worker/**/*.test.ts`、`frontend/src/lib`、`frontend/src/chat`、`scripts/lib` | 每次改完。**CI 不跑它**,本機自己負責                                                   |
+| `pnpm test`                                        | 純函式:`worker/**/*.test.ts`、`frontend/src/lib`、`frontend/src/chat`、`scripts/lib` | 每次改完。push `main` 且這次會部署時,`check` job 也跑;紅了就不部署                     |
 | `pnpm test:webkit`                                 | build 前端 → WebKit(iPhone)e2e **全部 47 支**(glob,不是逐檔列舉),打 `frontend/e2e/fixtures/` 的樁 | 動到 React / TipTap / 版面 / SW。約 6m50s;為什麼限併發見下面那節 |
-| CI(`deploy.yml`)                                   | 只跑 `smoke` + `nav-prefetch` 兩支 e2e,`E2E_REQUIRE=1`                               | push main 自動                                                                         |
+| CI(`deploy.yml`)                                   | 部署前 `check`:`typecheck` 兩邊 + `pnpm test`。Pages job 另跑 `smoke` + `nav-prefetch`,`E2E_REQUIRE=1` | push main 自動。兩邊都不部署時不跑 `check`                                              |
 
 e2e 不接真 Worker:`frontend/e2e/server.mjs` 回 `fixtures/<path 把 / 換成 _>.json`,沒有 fixture
 的端點回 `{}` 並在結尾列出。**新路由 = 新 fixture**:`wrangler dev` 下打真端點存回應。
@@ -2441,7 +2443,9 @@ no fixture get `{}` and are listed at the end of the run.
 ## 部署管線: 判準是 denylist,而「跳過」不准是綠的
 
 `.github/workflows/deploy.yml` 一支涵蓋兩邊:push 到 `main` → `classify` 決定要
-部署什麼 → `pages` / `worker` 兩個 job 各自跑。判準抽在
+部署什麼 → `check`(typecheck 與 `pnpm test`)→ `pages` / `worker` 兩個 job 各自跑。
+`check` 紅了,部署不會開始。classify 判定兩邊都不部署時 `check` 不跑。
+`test:webkit` 不在 `check` 裡。判準抽在
 `scripts/lib/classify-deploy.sh`(有測試),**不是內嵌在 YAML 裡** —— 內嵌的
 shell 只能靠「推上去看看會不會動」來驗,而部署邏輯最不該用那種方式驗。
 
