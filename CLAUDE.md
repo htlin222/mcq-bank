@@ -2095,10 +2095,14 @@ migration、worker route、前端面板全部照設計做好了,唯獨最後一�
 - 寫入沿用原設計的 delete-then-insert per slug,冪等 —— 之後只加一個新講義,
   可以只針對那個 slug 重跑,不用整批重來。跑之前先 `--local` 驗證(尤其是驗證
   回報案例那一頁真的有結果),再 `--remote` 推上去,同原始腳本的慣例。
-- 這是**一次性手動回填**,沒有寫成常態 pipeline / cron。原本的
-  `scripts/build-slide-mcq-links.ts` 還在 repo 裡,但它的 Workers AI 逐候選判定
-  模式在這個題庫規模下不現實 —— 之後新增講義要回填,照這節描述的做法(subagent +
-  完整題目摘要)重做一輪,而不是直接跑那支腳本。
+- 重跑用 `scripts/build-slide-mcq-links.ts --slug=<slug>`,不呼叫 Workers AI。
+  比對的是標籤、題幹裡的中文詞、和大寫縮寫有沒有出現在那一頁;AML、ALL 這種
+  幾十題共用的標籤單獨不夠,總覽頁才不會被整科灌滿。每頁仍最多 6 題。只刪該
+  slug 的列,其他 slug 不動。跑完印 `wrote N`;N 可以是 0(題庫沒有那個主題,
+  例如 neuroblastoma),那是跑完,不是失敗。沒給 `--slug`、slug 不存在、或
+  wrangler 失敗,都是非 0 結束,而且不會印 `wrote`。上面那次 subagent 回填
+  還在沒被重跑的 slug 上;要換一份講義才重跑那一份。先 `--dry-run`,再
+  `--local`,確認筆數之後才 `--remote`。
 
 ### Images: R2 via Worker proxy (not public bucket)
 
