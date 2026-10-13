@@ -81,9 +81,12 @@ const FORM_LABEL: Record<"long" | "abbrev", string> = {
 export function SmearDxPanel({
 	dxId,
 	className = "",
+	initialTab = "explanation",
 }: {
 	dxId: string;
 	className?: string;
+	/** 通知點進來時直接開討論。只接受這四個分頁。 */
+	initialTab?: SmearDxPanelTab;
 }) {
 	const { me } = useMe();
 	const narrow = useNarrow();
@@ -91,7 +94,7 @@ export function SmearDxPanel({
 
 	const [dx, setDx] = useState<SmearDxDetail | null>(null);
 	const [loadError, setLoadError] = useState<string | null>(null);
-	const [tab, setTab] = useState<SmearDxPanelTab>("explanation");
+	const [tab, setTab] = useState<SmearDxPanelTab>(initialTab);
 
 	// 提報中的詞 + 我投的票 —— 同 SmearDx.tsx 舊版的理由:GET /dx/:id 只回
 	// status='accepted' 的列,剛提報成功的詞要靠這裡才看得到自己的提案。
@@ -105,7 +108,7 @@ export function SmearDxPanel({
 		setLoadError(null);
 		setProposals([]);
 		setMyVotes({});
-		setTab("explanation");
+		setTab(initialTab);
 		fetchSmearDx(dxId)
 			.then((d) => {
 				if (!cancelled) setDx(d);
@@ -123,7 +126,7 @@ export function SmearDxPanel({
 		return () => {
 			cancelled = true;
 		};
-	}, [dxId]);
+	}, [dxId, initialTab]);
 
 	function pickTab(t: SmearDxPanelTab) {
 		setTab(t);

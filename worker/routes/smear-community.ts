@@ -5,6 +5,12 @@ import { isAdminEmail } from "../lib/admin";
 import { normalizeTerm } from "../lib/smear-grade";
 import { validateImageFile, type UploadedFile } from "../lib/upload-validate";
 import { resolveSmearNoteOrder } from "../lib/smear-notes";
+import {
+	DELETED_SMEAR_COMMENT_PREVIEW,
+	smearCommentPreview,
+	smearMentionTargets,
+} from "../lib/smear-mentions";
+import { extractMentions } from "../lib/db";
 
 // 抹片練習的社群功能:收藏 / 個人筆記 / 討論 / 投稿。掛在 /api/smear 下,
 // 跟 routes/smear.ts、routes/smear-terms.ts 分成三個檔案純粹是行數考量,
@@ -211,8 +217,8 @@ smearCommunityRoutes.delete("/notes/:id", async (c) => {
 // ---------------------------------------------------------------------------
 // 討論 —— 每個 dx 一條公開討論串,任何人可看可發言,只有作者本人或 admin
 // 能刪(軟刪除,保留列以維持串的完整性,同 comments 表的既有作法)。
-// v1 刻意不做 @mention 解析 / 通知:那套機制在既有 comments 系統上已經
-// 相當複雜,這裡先給純 TipTap 內容,列為未來工作。
+// @ 沿用筆試的 mention 節點抽取。通知寫 dx_id,不寫 mentions 表:
+// 那張表的 question_id 是 NOT NULL,而這裡沒有考題。
 // ---------------------------------------------------------------------------
 
 smearCommunityRoutes.get("/dx/:id/comments", async (c) => {
@@ -263,12 +269,33 @@ smearCommunityRoutes.post("/dx/:id/comments", async (c) => {
 	const now = Date.now();
 	const contentStr = JSON.stringify(body.content_json);
 
-	await c.env.DB.prepare(
-		`INSERT INTO smear_comments (id, dx_id, parent_id, author_email, content_json, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-	)
-		.bind(id, dxId, body.parent_id || null, email, contentStr, now, now)
-		.run();
+	const rawMentions = extractMentions(contentStr).filter((m) => m !== email);
+	const known = new Set<string>();
+	if (rawMentions.length > 0) {
+		const { results: users } = await c.env.DB.prepare(
+			`SELECT email FROM users WHERE email IN (${rawMentions.map(() => "?").join(",")})`,
+		)
+			.bind(...rawMentions)
+			.all<{ email: string }>();
+		for (const u of users ?? []) known.add(u.email);
+	}
+	const targets = smearMentionTargets(contentStr, email, known);
+	const preview = smearCommentPreview(contentStr);
+
+	const ops = [
+		c.env.DB.prepare(
+			`INSERT INTO smear_comments (id, dx_id, parent_id, author_email, content_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		).bind(id, dxId, body.parent_id || null, email, contentStr, now, now),
+		...targets.map((mentionedEmail) =>
+			c.env.DB.prepare(
+				`INSERT INTO notifications
+           (id, recipient, kind, question_id, comment_id, actor_email, preview, created_at, dx_id)
+         VALUES (?, ?, 'smear_mention', NULL, ?, ?, ?, ?, ?)`,
+			).bind(uuid(), mentionedEmail, id, email, preview, now, dxId),
+		),
+	];
+	await c.env.DB.batch(ops);
 
 	const author = await c.env.DB.prepare(
 		"SELECT display_name, avatar_key FROM users WHERE email = ?",
@@ -308,9 +335,14 @@ smearCommunityRoutes.delete("/comments/:id", async (c) => {
 	const isAdmin = isAdminEmail(email, c.env);
 	if (!isOwner && !isAdmin) return c.json({ error: "forbidden" }, 403);
 
-	await c.env.DB.prepare("UPDATE smear_comments SET deleted_at = ? WHERE id = ?")
-		.bind(Date.now(), id)
-		.run();
+	const now = Date.now();
+	await c.env.DB.batch([
+		c.env.DB.prepare("UPDATE smear_comments SET deleted_at = ? WHERE id = ?").bind(now, id),
+		// 預覽換成固定墓碑。只動 smear_mention,避免撞到筆試留言的 comment_id。
+		c.env.DB.prepare(
+			"UPDATE notifications SET preview = ? WHERE comment_id = ? AND kind = 'smear_mention'",
+		).bind(DELETED_SMEAR_COMMENT_PREVIEW, id),
+	]);
 	return c.json({ ok: true });
 });
 

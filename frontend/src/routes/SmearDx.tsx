@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Bookmark, BookmarkPlus, ExternalLink, Loader2 } from "lucide-react";
 import { ApiError } from "../lib/api";
 import {
@@ -12,7 +12,7 @@ import {
 	type SmearDxDetail,
 } from "../lib/smearApi";
 import { SmearImage } from "../components/smear/SmearImage";
-import { SmearDxPanel } from "../components/smear/SmearDxPanel";
+import { SmearDxPanel, type SmearDxPanelTab } from "../components/smear/SmearDxPanel";
 
 // /smear/dx/:id —— 診斷詳情頁(D5)。這一支現在只管「這個診斷是什麼」的頭部
 // (標題/badge/收藏鈕/圖片格線),詳解/個人筆記/討論/相似四塊全部交給
@@ -26,6 +26,15 @@ import { SmearDxPanel } from "../components/smear/SmearDxPanel";
 
 export function SmearDx() {
 	const { id } = useParams<{ id: string }>();
+	const [search] = useSearchParams();
+	const tabParam = search.get("tab");
+	const initialTab: SmearDxPanelTab | undefined =
+		tabParam === "discussion" ||
+		tabParam === "note" ||
+		tabParam === "similar" ||
+		tabParam === "explanation"
+			? tabParam
+			: undefined;
 
 	const [dx, setDx] = useState<SmearDxDetail | null>(null);
 	const [loadError, setLoadError] = useState<string | null>(null);
@@ -204,7 +213,7 @@ export function SmearDx() {
 					)}
 				</div>
 
-				<SmearDxPanel dxId={id} />
+				<SmearDxPanel dxId={id} initialTab={initialTab} />
 			</div>
 		</div>
 	);

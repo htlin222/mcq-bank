@@ -15,8 +15,10 @@ type Notification = {
     | 'challenge_filed'
     | 'challenge_promoted'
     | 'challenge_rejected'
-    | 'challenge_superseded';
+    | 'challenge_superseded'
+    | 'smear_mention';
   question_id: string | null;
+  dx_id?: string | null;
   challenge_id: string | null;
   actor_email: string | null;
   preview: string;
@@ -54,7 +56,18 @@ function notificationLabel(n: Notification): string {
       return '挑戰未通過';
     case 'challenge_superseded':
       return '挑戰因答案修正而失效';
+    case 'smear_mention':
+      return '在抹片討論提到了你';
   }
+}
+
+function notificationHref(n: Notification): string {
+  if (n.kind === 'chat_mention') return '/chat';
+  if (n.kind === 'smear_mention' && n.dx_id) {
+    return `/smear/dx/${encodeURIComponent(n.dx_id)}?tab=discussion`;
+  }
+  if (n.question_id) return `/q/${n.question_id}`;
+  return '/';
 }
 
 export function NotificationBell() {
@@ -145,13 +158,7 @@ export function NotificationBell() {
               items.map((n) => (
                 <Link
                   key={n.id}
-                  to={
-                    n.kind === 'chat_mention'
-                      ? '/chat'
-                      : n.question_id
-                        ? `/q/${n.question_id}`
-                        : '/'
-                  }
+                  to={notificationHref(n)}
                   onClick={() => setOpen(false)}
                   className="block px-4 py-3 border-b border-ink-50 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-700 last:border-0"
                 >
