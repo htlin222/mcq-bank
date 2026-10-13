@@ -3,15 +3,26 @@
 // 讀與寫共用這一份定義。分開寫的話遲早會對不上 —— 例如讀的時候接受 `0`、
 // 寫的時候從 `1` 起算,使用者就會看到「複製出去的連結跳到別頁」。
 //
-// 對外一律是 **1-based**(跟 PDF 上印的頁碼、跟搜尋結果回傳的 `hit.page` 一致);
-// 對內的 viewer API 是 0-indexed,轉換只發生在這裡。
+// 對外一律是 **1-based**(跟 PDF 上印的頁碼、跟搜尋結果回傳的 `hit.page`、
+// 跟 lecture_notes / 書籤 / 畫記的 pdf_page 一致);對內的 viewer API 是
+// 0-indexed。加減只寫在下面兩個函式,網址、畫記的存取與跳頁都叫它們。
+
+/** EmbedPDF 的 pageIndex(0-based)→ 存進 D1 的 PDF 頁碼(1-based)。 */
+export function pdfPageFromIndex(pageIndex: number): number {
+	return pageIndex + 1;
+}
+
+/** 存進 D1 的 PDF 頁碼(1-based)→ EmbedPDF 的 pageIndex。 */
+export function pageIndexFromPdfPage(pdfPage: number): number {
+	return pdfPage - 1;
+}
 
 /** 網址上的字串 → 0-indexed 頁。看不懂就回 null(不猜、不夾)。 */
 export function readPageParam(raw: string | null): number | null {
 	if (!raw) return null;
 	const n = Number.parseInt(raw, 10);
 	if (!Number.isFinite(n) || n < 1) return null;
-	return n - 1;
+	return pageIndexFromPdfPage(n);
 }
 
 /**
@@ -21,7 +32,7 @@ export function readPageParam(raw: string | null): number | null {
  * 第一頁的連結不帶參數本來就會落在第一頁,沒有資訊損失。
  */
 export function pageParamFor(pageIndex: number): string | null {
-	return pageIndex > 0 ? String(pageIndex + 1) : null;
+	return pageIndex > 0 ? String(pdfPageFromIndex(pageIndex)) : null;
 }
 
 /**

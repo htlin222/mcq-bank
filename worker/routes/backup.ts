@@ -94,7 +94,7 @@ backupRoutes.get('/manifest', async (c) => {
     // 讀這份備份的人(或 Claude)要知道欄位長什麼樣。改變任何一支端點的形狀
     // 就把它 +1,並在 CLAUDE.md 裡說明差在哪。
     // 2:zip 多了 smear/(收藏、筆記、已結束的場次與逐題作答)。
-    schema_version: 2,
+    schema_version: 3,
     counts: {
       questions,
       attempts,
@@ -252,7 +252,7 @@ backupRoutes.get('/exam-answers', (c) =>
 backupRoutes.get('/lecture-annotations', (c) =>
   page<{ id: string }>(
     c,
-    `SELECT a.id, a.slug, d.title AS lecture_title, a.page, a.kind, a.payload_json,
+    `SELECT a.id, a.slug, d.title AS lecture_title, a.pdf_page AS page, a.kind, a.payload_json,
             a.created_at, a.updated_at
        FROM lecture_annotations a
        LEFT JOIN lecture_docs d ON d.slug = a.slug

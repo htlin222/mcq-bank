@@ -370,6 +370,8 @@ misc/highlights.json         前綴認不出來的畫記(通常是空的)
 - **筆記與詳解是 TipTap(ProseMirror)JSON,不是 HTML 也不是 Markdown。**
   取純文字要走訪節點樹、收集 \`type: "text"\` 的 \`text\`。
 - **圖片沒有打包。** 內容裡的 \`/img/<key>\` 指向原站,要登入才看得到。
+- **講義的 \`page\` 是 1-based 的 PDF 頁碼**,畫記與筆記同一套。畫記的幾何在
+  \`payload\` 裡,那個 \`pageIndex\` 仍是 viewer 的 0-based,不要跟 \`page\` 加在一起。
 - **\`highlights[].store_key\` 的前綴決定它掛在哪**:\`anno:<題號>\` 是共筆詳解上
   的畫記,\`anno:note:<題號>\` 是個人筆記上的,\`anno:free:<id>\` 是其他筆記上的。
 

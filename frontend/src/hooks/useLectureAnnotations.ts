@@ -18,6 +18,7 @@ import {
 	type LectureAnnotation,
 } from "../lib/lectureApi";
 import type { AnnotationTransferItem } from "../components/lecture/EmbedPDFViewer";
+import { pdfPageFromIndex } from "../lib/lecturePageParam";
 
 export interface UseLectureAnnotations {
 	annotations: LectureAnnotation[];
@@ -83,7 +84,8 @@ export function useLectureAnnotations(slug: string): UseLectureAnnotations {
 
 	const persistHighlight = useCallback(
 		async (item: AnnotationTransferItem) => {
-			const page = item.annotation.pageIndex;
+			// payload 裡的 pageIndex 維持 0-based(viewer 的格式)。存進 D1 的是 PDF 頁碼。
+			const page = pdfPageFromIndex(item.annotation.pageIndex);
 			const id = item.annotation.id;
 			// Optimistic row so the 標註 list updates immediately.
 			const now = Date.now();

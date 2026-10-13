@@ -1,7 +1,7 @@
 {
   "email": "dev@example.com",
   "generated_at": 1754000000000,
-  "schema_version": 2,
+  "schema_version": 3,
   "counts": {
     "questions": 2,
     "attempts": 2,

@@ -25,6 +25,7 @@ export interface LectureDoc {
 export interface LectureAnnotation {
 	id: string;
 	slug: string;
+	/** 1-based PDF 頁碼(lecture_annotations.pdf_page)。 */
 	page: number;
 	kind: "highlight" | "note";
 	payload_json: any;
@@ -196,7 +197,7 @@ export interface LecturePageQuestion {
 	tags: string | null; // space-joined GROUP_CONCAT
 }
 
-/** @param page 1-based PDF page (currentPage + 1). */
+/** @param page 1-based PDF page (`pdfPageFromIndex`). */
 export function listPageQuestions(slug: string, page: number): Promise<LecturePageQuestion[]> {
 	return api.get<LecturePageQuestion[]>(`/api/lectures/${slug}/questions?page=${page}`);
 }
@@ -211,8 +212,8 @@ export function explainSelection(text: string): Promise<{ text: string }> {
 // ── 書籤 (migration 0042) ─────────────────────────────────────────────
 //
 // 一則書籤 = 「某人在某份講義的某一頁插了旗子」。頁碼一律 1-based —— 跟
-// lecture_notes 一致(預覽就是 join 它來的),跟 lecture_annotations 不一致
-// (那張表是 0-based)。0/1 的轉換只發生在 LectureReader 那一處。
+// lecture_notes、lecture_annotations.pdf_page 一致。0/1 的轉換只在
+// lecturePageParam.ts。
 
 export interface LectureBookmark {
 	id: string;

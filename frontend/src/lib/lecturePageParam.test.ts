@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { readFileSync } from "node:fs";
 import {
 	nextPageSearch,
+	pageIndexFromPdfPage,
 	pageParamFor,
+	pdfPageFromIndex,
 	readPageParam,
 } from "./lecturePageParam.ts";
 
@@ -41,6 +44,27 @@ test("讀寫互為反函式", () => {
 		const raw = pageParamFor(idx);
 		assert.equal(readPageParam(raw), idx === 0 ? null : idx, `第 ${idx} 頁對不上`);
 	}
+});
+
+test("舊畫記回填後仍落在原來那一頁,清單頁碼與跳頁是同一頁", () => {
+	// 套用 0075 之前本機的兩筆:lecture-1 的 d2fcbdee 存 page=1,
+	// lecture-4 的 89cbaa77 存 page=15。回填是 pdf_page = page + 1。
+	for (const storedBefore of [1, 15]) {
+		const pdfPage = storedBefore + 1;
+		assert.equal(pdfPageFromIndex(storedBefore), pdfPage);
+		assert.equal(pageIndexFromPdfPage(pdfPage), storedBefore);
+		// 清單寫 p.{pdfPage},點下去把同一個數字換回 viewer index。
+		assert.equal(pdfPageFromIndex(pageIndexFromPdfPage(pdfPage)), pdfPage);
+	}
+});
+
+test("清單不再把已經是 1-based 的畫記頁碼再加一", () => {
+	const panel = readFileSync(
+		new URL("../components/lecture/LecturePanel.tsx", import.meta.url),
+		"utf8",
+	);
+	assert.equal(panel.includes("a.page + 1"), false);
+	assert.match(panel, /p\.\{a\.page\}/);
 });
 
 test("nextPageSearch:沒變就回 null —— 少了這道閘就是無窮迴圈", () => {

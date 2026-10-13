@@ -307,4 +307,5 @@ test('manifest 與 CLAUDE.md 一定在', () => {
   // 會被人直接讀的檔案。
   assert.match(files['CLAUDE.md'], /只有這個帳號自己的紀錄/);
   assert.match(files['CLAUDE.md'], /TipTap/);
+  assert.match(files['CLAUDE.md'], /講義的 `page` 是 1-based 的 PDF 頁碼/);
 });

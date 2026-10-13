@@ -143,7 +143,7 @@ test('個人頁按下「下載備份」,拿到一個結構正確的 zip', async 
     assert.equal(smear.answers[0].image_full, '/img/smear/exam/q1-full.webp');
 
     const manifest = JSON.parse(read('manifest.json'));
-    assert.equal(manifest.schema_version, 2);
+    assert.equal(manifest.schema_version, 3);
     assert.equal(manifest.counts.questions, 2);
     assert.equal(manifest.counts.smear_sessions, 1);
     assert.equal(manifest.counts.smear_answers, 1);

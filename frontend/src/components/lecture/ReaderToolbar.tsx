@@ -2,6 +2,7 @@
 // snapshot, and the side-panel toggle. Scholarly ink/cream styling to match
 // the rest of the app — no SaaS gradients.
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { pageIndexFromPdfPage, pdfPageFromIndex } from "../../lib/lecturePageParam";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -178,7 +179,7 @@ function PageIndicator({
 
 	useEffect(() => {
 		if (editing) {
-			setVal(String(currentPage + 1));
+			setVal(String(pdfPageFromIndex(currentPage)));
 			// select after the value is set
 			requestAnimationFrame(() => inputRef.current?.select());
 		}
@@ -187,7 +188,7 @@ function PageIndicator({
 	function commit() {
 		const n = parseInt(val, 10);
 		if (!Number.isNaN(n) && n >= 1 && pageCount > 0 && n <= pageCount) {
-			onGoToPage(n - 1);
+			onGoToPage(pageIndexFromPdfPage(n));
 		}
 		setEditing(false);
 	}
@@ -225,7 +226,7 @@ function PageIndicator({
 			title="點擊輸入頁碼跳頁"
 			className="whitespace-nowrap rounded px-1 font-mono text-xs text-ink-600 transition hover:bg-ink-100 hover:text-accent dark:text-ink-300 dark:hover:bg-ink-700 sm:text-sm"
 		>
-			p.{currentPage + 1}
+			p.{pdfPageFromIndex(currentPage)}
 			<span className="text-ink-400 dark:text-ink-500">
 				{" "}
 				/ {pageCount || "—"}

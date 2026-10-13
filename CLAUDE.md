@@ -717,13 +717,16 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 的卡片格線(migration `0042`)。一列 = 「某人在某份講義的某一頁插了旗子」,私有,
 同 `lecture_notes` / `lecture_annotations` 的 per-user 模型。
 
-**頁碼存 1-based。** 這個 repo 裡兩種慣例已經並存 —— `lecture_notes.page` 是
-1-based(`LecturePanel` 的 `pdfPage = currentPage + 1`),`lecture_annotations.page`
-卻是 0-based(清單顯示寫的是 `p.{a.page + 1}`)。書籤卡片的預覽要 join
-`lecture_notes`,所以跟 join 對象一致,0/1 的轉換就只發生在 `LectureReader` 的
-`currentPdfPage` 那一行。**多一處轉換就多一個會 off-by-one 的地方**,而 off-by-one
-在這裡的症狀是「書籤跳到隔壁頁」—— 看起來像 PDF 捲動不準,不像資料錯。e2e 因此
-斷言的是**具體頁碼**(`{method:'POST', page:1}`),不是「有送出請求」。
+**頁碼存 1-based。** `lecture_notes.page`、書籤,以及畫記的 `pdf_page`
+(migration 0074–0076)都是 PDF 頁碼。畫記原本的 `page` 是 EmbedPDF 的 0-based
+`pageIndex`,清單用 `p.{a.page + 1}` 補正。那個欄位沒有就地改語意:加欄、回填
+`pdf_page = page + 1`、讀取改走新欄、再 drop 舊欄。Viewer 的 `payload_json` 仍是
+0-based,那是 `importAnnotations` 的格式,改了舊螢光會畫到隔壁頁。0/1 的加減只在
+`lib/lecturePageParam.ts` 的 `pdfPageFromIndex` / `pageIndexFromPdfPage`。書籤
+沒有另外一處轉換。清單顯示 `p.{a.page}`,點下去用同一個函式換成 viewer index,
+所以畫面上的頁碼跟停下來的頁是同一頁。off-by-one 的症狀是「跳到隔壁頁」——
+看起來像 PDF 捲動不準,不像資料錯。e2e 因此斷言的是**具體頁碼**
+(`{method:'POST', page:1}`),不是「有送出請求」。
 
 - **`UNIQUE(user_email, slug, page)` 是承重的。** 工具列那顆是 toggle,「同一頁
   只有一筆」正是它的前提;少了唯一鍵,連點兩下會寫出兩列一模一樣的資料,而畫面上

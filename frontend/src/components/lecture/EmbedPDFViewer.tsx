@@ -18,6 +18,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { pageIndexFromPdfPage, pdfPageFromIndex } from "../../lib/lecturePageParam";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
 import { EmbedPDF } from "@embedpdf/core/react";
 import { createPluginRegistration } from "@embedpdf/core";
@@ -422,7 +423,7 @@ function ViewerInner({
 		const unsub = scroll.onPageChange((evt) => {
 			if (evt.documentId !== docId) return;
 			// PageChangeEvent.pageNumber is 1-based; expose 0-based.
-			const p = Math.max(0, evt.pageNumber - 1);
+			const p = Math.max(0, pageIndexFromPdfPage(evt.pageNumber));
 			setActivePage(p);
 			onPageChange?.(p);
 		});
@@ -487,14 +488,14 @@ function ViewerInner({
 			getCurrentPage() {
 				if (!scroll || !docId) return 0;
 				// ScrollCapability.getCurrentPage() is 1-based; expose 0-based.
-				return Math.max(0, scroll.forDocument(docId).getCurrentPage() - 1);
+				return Math.max(0, pageIndexFromPdfPage(scroll.forDocument(docId).getCurrentPage()));
 			},
 			scrollToPage(page: number) {
 				if (!scroll || !docId) return;
 				// instant: slides should cut, not glide, when flipping pages.
 				scroll
 					.forDocument(docId)
-					.scrollToPage({ pageNumber: page + 1, behavior: "instant" });
+					.scrollToPage({ pageNumber: pdfPageFromIndex(page), behavior: "instant" });
 			},
 			zoomIn() {
 				if (!zoom || !docId) return;
@@ -546,7 +547,7 @@ function ViewerInner({
 				const pageIndex =
 					page ??
 					(scroll
-						? Math.max(0, scroll.forDocument(docId).getCurrentPage() - 1)
+						? Math.max(0, pageIndexFromPdfPage(scroll.forDocument(docId).getCurrentPage()))
 						: 0);
 				return new Promise<Blob | null>((resolve) => {
 					render
@@ -592,7 +593,7 @@ function ViewerInner({
 						onJump={(p) =>
 							scroll
 								?.forDocument(activeDocumentId)
-								.scrollToPage({ pageNumber: p + 1, behavior: "instant" })
+								.scrollToPage({ pageNumber: pdfPageFromIndex(p), behavior: "instant" })
 						}
 					/>
 				</LeftRail>
@@ -620,7 +621,9 @@ function ViewerInner({
 										pageContainerRef &&
 										scroll &&
 										pageIndex ===
-											scroll.forDocument(activeDocumentId).getCurrentPage() - 1
+											pageIndexFromPdfPage(
+												scroll.forDocument(activeDocumentId).getCurrentPage(),
+											)
 									) {
 										pageContainerRef(el);
 									}
@@ -721,8 +724,8 @@ function ThumbnailRail({
 						<button
 							type="button"
 							onClick={() => onJump(m.pageIndex)}
-							aria-label={`第 ${m.pageIndex + 1} 頁`}
-							title={`第 ${m.pageIndex + 1} 頁`}
+							aria-label={`第 ${pdfPageFromIndex(m.pageIndex)} 頁`}
+							title={`第 ${pdfPageFromIndex(m.pageIndex)} 頁`}
 							className={
 								"overflow-hidden rounded border-2 bg-white shadow-sm transition " +
 								(m.pageIndex === activePage
@@ -752,7 +755,7 @@ function ThumbnailRail({
 									: "text-ink-400 dark:text-ink-500")
 							}
 						>
-							{m.pageIndex + 1}
+							{pdfPageFromIndex(m.pageIndex)}
 						</span>
 					</div>
 				)}

@@ -8,7 +8,12 @@
 // overlay) to the clipboard.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
-import { nextPageSearch, readPageParam } from "../lib/lecturePageParam";
+import {
+	nextPageSearch,
+	pageIndexFromPdfPage,
+	pdfPageFromIndex,
+	readPageParam,
+} from "../lib/lecturePageParam";
 import { ChevronLeft } from "lucide-react";
 import {
 	EmbedPDFViewer,
@@ -125,11 +130,9 @@ export default function LectureReader() {
 	const annos = useLectureAnnotations(slug);
 	const bookmarks = useLectureBookmarks(slug);
 
-	// ⚠️ 書籤的頁碼是 1-based(對齊 lecture_notes,卡片預覽 join 它),而 viewer
-	// 的 currentPage 是 0-based。轉換只在這一行 —— 兩種慣例在這個 repo 裡已經
-	// 並存(lecture_annotations 是 0-based),多一處轉換就多一個會 off-by-one
-	// 的地方。
-	const currentPdfPage = currentPage + 1;
+	// 書籤、筆記、畫記存的都是 1-based PDF 頁碼。viewer 的 currentPage 是
+	// 0-based。轉換只走 lecturePageParam,不在這裡再寫一遍 + 1。
+	const currentPdfPage = pdfPageFromIndex(currentPage);
 	const bookmarked = bookmarks.has(currentPdfPage);
 
 	const toggleBookmark = useCallback(() => {
@@ -433,7 +436,7 @@ export default function LectureReader() {
 			}
 			const where = await blobToClipboard(
 				blob,
-				`${slug}-p${currentPage + 1}.png`,
+				`${slug}-p${pdfPageFromIndex(currentPage)}.png`,
 			);
 			setToast({
 				kind: "ok",
@@ -497,14 +500,15 @@ export default function LectureReader() {
 	);
 
 	// ── Panel actions ──
-	const jumpToAnnotation = useCallback((page: number) => {
-		viewerRef.current?.scrollToPage(page);
+	const jumpToAnnotation = useCallback((pdfPage: number) => {
+		viewerRef.current?.scrollToPage(pageIndexFromPdfPage(pdfPage));
 	}, []);
 
 	const deleteAnnotationRow = useCallback(
-		(id: string, page: number) => {
-			viewerRef.current?.deleteAnnotation(page, id);
-			void annos.removeAnnotation(id, page);
+		(id: string, pdfPage: number) => {
+			// viewer 的 deleteAnnotation 吃 0-based pageIndex。清單傳來的是 PDF 頁碼。
+			viewerRef.current?.deleteAnnotation(pageIndexFromPdfPage(pdfPage), id);
+			void annos.removeAnnotation(id, pdfPage);
 		},
 		[annos],
 	);
@@ -644,7 +648,7 @@ export default function LectureReader() {
 									bookmarks={bookmarks.bookmarks}
 									loading={bookmarks.loading}
 									currentPage={currentPdfPage}
-									onJump={(p) => goToPage(p - 1)}
+									onJump={(p) => goToPage(pageIndexFromPdfPage(p))}
 									onRemove={(p) => {
 										bookmarks.remove(p).catch((e) =>
 											setToast({
