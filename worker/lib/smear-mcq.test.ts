@@ -6,6 +6,7 @@ import {
   pickMcqDistractors,
   pickMcqOptions,
   pickCorrectOptionLabel,
+  firstInitial,
   type McqCandidate,
   type DxTermLike,
 } from './smear-mcq.ts';
@@ -180,4 +181,32 @@ test('⚠️ 對照組：舊邏輯（直接用 canonical_long）在真實種子�
   );
   // 已知至少含 all_l3（canonical_long 帶 "(Burkitt-type)"，比 full 級詞多字）
   assert.ok(misses.some((dx) => dx.dx_id === 'all_l3'));
+});
+
+test('firstInitial 只回一個字母,跳過前導標點', () => {
+  assert.equal(firstInitial('Dacrocyte'), 'D');
+  assert.equal(firstInitial('acute promyelocytic leukemia'), 'a');
+  assert.equal(firstInitial('  (Döhle body)'), 'D');
+  assert.equal(firstInitial('淚滴狀紅血球'), '淚');
+  assert.equal(firstInitial('e\u0301clair'), 'e');
+  assert.equal(firstInitial('🩸blast'), 'b');
+  assert.equal(firstInitial(''), '');
+  assert.equal(firstInitial('!!!'), '');
+  assert.equal([...firstInitial('Dacrocyte')].length, 1);
+});
+
+test('首字母 payload 不含詞的其餘部分,也不含詞長', () => {
+  const dxList = loadDxSeed();
+  assert.ok(dxList.length >= 50, '種子資料筆數太少，可能讀錯檔案');
+  for (const dx of dxList) {
+    const label = pickCorrectOptionLabel(dx.terms, dx.canonical_long);
+    const initial = firstInitial(label);
+    assert.equal([...initial].length, 1, `${dx.dx_id} 的首字母不是一個字`);
+    const payload = JSON.stringify({ initial });
+    const rest = [...label].slice(1).join('');
+    if (rest.length >= 3) {
+      assert.ok(!payload.includes(rest), `${dx.dx_id} 的 payload 含了詞的其餘部分`);
+    }
+    assert.ok(!payload.includes(String(label.length)), `${dx.dx_id} 的 payload 含了詞長`);
+  }
 });

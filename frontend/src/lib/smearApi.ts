@@ -163,6 +163,20 @@ export function fetchSmearMcqOptions(
 	return api.post(`/api/smear/sessions/${sessionId}/mc-options`, { questionId });
 }
 
+// ---------------------------------------------------------------------------
+// POST /api/smear/sessions/:id/initial —— 首字母提示,複習模式限定
+// ---------------------------------------------------------------------------
+export interface SmearInitialResponse {
+	initial: string;
+}
+
+export function fetchSmearInitial(
+	sessionId: string,
+	questionId: string,
+): Promise<SmearInitialResponse> {
+	return api.post(`/api/smear/sessions/${sessionId}/initial`, { questionId });
+}
+
 export function submitSmearAnswer(
 	sessionId: string,
 	questionId: string,

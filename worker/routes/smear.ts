@@ -5,7 +5,7 @@ import { uuid } from "../lib/db";
 import { gradeSmear, type AcceptedTerm } from "../lib/smear-grade";
 import { laterAcceptedTyped } from "../lib/smear-proposal";
 import { pickSmearSet, type PoolItem } from "../lib/smear-pick";
-import { pickMcqOptions, pickCorrectOptionLabel, type McqCandidate } from "../lib/smear-mcq";
+import { pickMcqOptions, pickCorrectOptionLabel, firstInitial, type McqCandidate } from "../lib/smear-mcq";
 import { ftsQuery } from "../lib/fts-query";
 import { chunkParams, D1_MAX_PARAMS } from "../lib/sql-params";
 
@@ -567,6 +567,66 @@ smearRoutes.post("/sessions/:id/mc-options", async (c) => {
 	);
 
 	return c.json({ options });
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/smear/sessions/:id/initial —— 首字母提示,複習模式限定
+//
+// 回應只有一個字母。詞的其餘部分、詞長、診斷 id 都不進這份 JSON —— 那些
+// 在 103 個診斷裡就是答案。全真模式在查出任何詞之前就 403:這個模式的價值
+// 是交卷前不揭曉任何判定資訊,而一個字母已經是判定資訊。
+// ---------------------------------------------------------------------------
+smearRoutes.post("/sessions/:id/initial", async (c) => {
+	const sid = c.req.param("id");
+	const email = c.var.email;
+
+	const session = await c.env.DB.prepare(
+		"SELECT id, mode, question_ids FROM smear_sessions WHERE id = ? AND user_email = ?",
+	)
+		.bind(sid, email)
+		.first<{ id: string; mode: "review" | "exam"; question_ids: string }>();
+	if (!session) return c.json({ error: "not found" }, 404);
+	if (session.mode !== "review") {
+		return c.json({ error: "initial hint only available in review mode" }, 403);
+	}
+
+	const body = await c.req
+		.json<{ questionId?: string }>()
+		.catch(() => ({}) as Record<string, never>);
+	if (!body.questionId) {
+		return c.json({ error: "questionId is required" }, 400);
+	}
+
+	let questionIds: string[] = [];
+	try {
+		questionIds = JSON.parse(session.question_ids);
+	} catch {
+		questionIds = [];
+	}
+	const idx = resolveQuestionIdx(body.questionId, questionIds);
+	if (idx < 0) {
+		return c.json({ error: "question is not part of this session" }, 400);
+	}
+	const realQuestionId = questionIds[idx];
+
+	const q = await c.env.DB.prepare(
+		`SELECT sq.dx_id, sd.canonical_long
+       FROM smear_questions sq JOIN smear_dx sd ON sd.id = sq.dx_id
+       WHERE sq.id = ?`,
+	)
+		.bind(realQuestionId)
+		.first<{ dx_id: string; canonical_long: string }>();
+	if (!q) return c.json({ error: "question not found" }, 404);
+
+	const { results: termRows } = await c.env.DB.prepare(
+		"SELECT text, tier, form FROM smear_terms WHERE dx_id = ? AND status = 'accepted'",
+	)
+		.bind(q.dx_id)
+		.all<{ text: string; tier: string; form: string }>();
+	const label = pickCorrectOptionLabel(termRows ?? [], q.canonical_long);
+	const initial = firstInitial(label);
+	if (!initial) return c.json({ error: "no initial" }, 404);
+	return c.json({ initial });
 });
 
 // ---------------------------------------------------------------------------

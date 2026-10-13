@@ -50,6 +50,18 @@ export function pickCorrectOptionLabel(terms: DxTermLike[], canonicalLong: strin
 }
 
 /**
+ * 首字母提示只回一個字母(含 CJK)。其餘字母、詞長、格數都不回 —— 103 個
+ * 診斷裡那些就是答案。前導空白與標點跳過;沒有字母就回空字串,呼叫端
+ * 不該把空字串送到瀏覽器。
+ */
+export function firstInitial(label: string): string {
+  for (const ch of label) {
+    if (/\p{L}/u.test(ch)) return ch;
+  }
+  return "";
+}
+
+/**
  * 依序從每一層候選池裡湊到 count 個,前面的層洗牌後優先取,湊不滿才往下一層
  * 借 —— 沿用 pickSmearSet() 的「優先嚴格匹配,不足才漸進放寬」精神。
  */

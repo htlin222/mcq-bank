@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { CircleHelp, Loader2 } from "lucide-react";
 import type { SmearMode } from "../../lib/smearApi";
+import { acceptInitial, spellingHintUsed } from "../../lib/smearHint";
 
 /**
  * 單一自由輸入框,取代「每個字一格」的設計 —— 見 SmearSession.tsx 檔頭那段
@@ -36,6 +37,7 @@ export function AnswerInput({
 	topicHint,
 	mode,
 	onRequestMcOptions,
+	onRequestInitial,
 }: {
 	onSubmit: (value: string, hintUsed?: string) => void;
 	submitting: boolean;
@@ -54,6 +56,12 @@ export function AnswerInput({
 	 * 「頁面算好、往下傳純資料/callback」的作法。
 	 */
 	onRequestMcOptions?: () => Promise<string[]>;
+	/**
+	 * 首字母提示 —— 打 POST /initial,回應只該有一個字母。只在複習模式由
+	 * 呼叫端傳入;undefined 時整顆按鈕不 render(同「看選項」:全真模式要
+	 * 整個不在 DOM 裡)。輸入框留著,送出仍走拼字判定。
+	 */
+	onRequestInitial?: () => Promise<string>;
 }) {
 	const [value, setValue] = useState("");
 	const [hintShown, setHintShown] = useState(false);
@@ -70,6 +78,25 @@ export function AnswerInput({
 		| { status: "error" };
 	const [mc, setMc] = useState<McState>({ status: "hidden" });
 	const [mcChoice, setMcChoice] = useState<string | null>(null);
+
+	type InitialState =
+		| { status: "hidden" }
+		| { status: "loading" }
+		| { status: "shown"; letter: string }
+		| { status: "error" };
+	const [initialHint, setInitialHint] = useState<InitialState>({ status: "hidden" });
+
+	async function requestInitial() {
+		if (!onRequestInitial || submitting || initialHint.status === "loading") return;
+		setInitialHint({ status: "loading" });
+		try {
+			const letter = acceptInitial(await onRequestInitial());
+			// 超過一個字就當成失敗,一個字都不畫 —— 否則伺服器多回的詞會進 DOM。
+			setInitialHint(letter ? { status: "shown", letter } : { status: "error" });
+		} catch {
+			setInitialHint({ status: "error" });
+		}
+	}
 
 	async function requestMcOptions() {
 		if (!onRequestMcOptions || submitting || mc.status === "loading") return;
@@ -97,7 +124,13 @@ export function AnswerInput({
 		}
 		const v = value.trim();
 		if (!v) return;
-		onSubmit(v, hintShown ? "topic" : undefined);
+		onSubmit(
+			v,
+			spellingHintUsed({
+				topic: hintShown,
+				initial: initialHint.status === "shown",
+			}),
+		);
 	}
 
 	// 無視輸入框目前打了什麼(哪怕才打兩個字),一律送空字串 —— 「放棄」
@@ -180,7 +213,7 @@ export function AnswerInput({
 					/>
 				</>
 			)}
-			<div className="flex items-center gap-2">
+			<div className="flex flex-wrap items-center gap-2">
 				<button
 					type="button"
 					onClick={submit}
@@ -205,6 +238,22 @@ export function AnswerInput({
 					</button>
 				)}
 				{mode === "review" &&
+					onRequestInitial &&
+					initialHint.status !== "shown" &&
+					mc.status !== "loaded" && (
+						<button
+							type="button"
+							onClick={() => void requestInitial()}
+							disabled={submitting || initialHint.status === "loading"}
+							className="px-3 py-2.5 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 text-sm hover:border-ink-400 inline-flex items-center gap-1 disabled:opacity-40"
+						>
+							{initialHint.status === "loading" && (
+								<Loader2 size={14} className="animate-spin" />
+							)}
+							{initialHint.status === "error" ? "首字母(重試)" : "首字母"}
+						</button>
+					)}
+				{mode === "review" &&
 					onRequestMcOptions &&
 					(mc.status === "hidden" || mc.status === "error" || mc.status === "loading") && (
 						<button
@@ -227,6 +276,14 @@ export function AnswerInput({
 				<p className="text-xs text-ink-500 dark:text-ink-400">
 					分類提示:{topicHint}
 				</p>
+			)}
+			{initialHint.status === "shown" && (
+				<p className="text-xs text-ink-500 dark:text-ink-400" data-testid="smear-initial">
+					首字母：{initialHint.letter}
+				</p>
+			)}
+			{initialHint.status === "error" && (
+				<p className="text-xs text-accent">首字母載入失敗,請重試。</p>
 			)}
 			{mode === "review" && (
 				// 文字連結,不是同重量的按鈕 —— 這是刻意的退場路徑,不是預設路徑

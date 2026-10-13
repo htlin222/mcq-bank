@@ -7,6 +7,7 @@ import {
 	submitSmearAnswer,
 	finishSmearSession,
 	fetchSmearMcqOptions,
+	fetchSmearInitial,
 	SMEAR_TOPIC_LABELS,
 	type SmearSessionDetail,
 	type SmearSessionQuestion,
@@ -340,6 +341,12 @@ export function SmearSession() {
 						session.mode === "review"
 							? () =>
 									fetchSmearMcqOptions(session.id, current.id).then((r) => r.options)
+							: undefined
+					}
+					onRequestInitial={
+						session.mode === "review"
+							? () =>
+									fetchSmearInitial(session.id, current.id).then((r) => r.initial)
 							: undefined
 					}
 				/>

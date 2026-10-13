@@ -793,6 +793,11 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 正解文字出現在畫面上,兩者直接衝突),回傳 5 個洗牌過的選項文字,不帶任何
 能推出正解位置的欄位——同 `/answer` 端點既有的對抗性審查精神。
 
+**首字母提示**夾在主題分類與看選項之間(`POST /api/smear/sessions/:id/initial`)。
+回應只有 `pickCorrectOptionLabel()` 那個詞的第一個字母,輸入框留著、送出仍走
+`gradeSmear()`。全真模式在查出任何詞之前回 403,按鈕用 `mode === "review"`
+條件式 render。兩個提示都用過時 `hint_used` 固定寫 `initial,topic`。
+
 干擾項生成(`worker/lib/smear-mcq.ts` 的 `pickMcqOptions()`)沿用既有
 `topic` 分類軸(白血球混白血球、紅血球混紅血球),同 topic 不足 4 個時從
 其他 topic 回填,不靜默少於名額——同 `pickSmearSet()` 缺額回填的精神,
