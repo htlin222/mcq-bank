@@ -1011,7 +1011,9 @@ function truncatePreview(text: string | null, max: number): string | null {
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/smear/dx/:id —— 診斷詳情:詳解 + 所有圖 + accepted terms
+// GET /api/smear/dx/:id —— 診斷詳情:詳解 + 所有圖 + accepted terms。
+// `rejected` 只掛在這一支:墓碑與理由給維護者看。作答 / 選項 / 交卷前的
+// session 回應不帶這份清單,判定查詢仍只取 status = 'accepted'。
 // ---------------------------------------------------------------------------
 smearRoutes.get("/dx/:id", async (c) => {
 	const dxId = c.req.param("id");
@@ -1041,6 +1043,20 @@ smearRoutes.get("/dx/:id", async (c) => {
 	)
 		.bind(dxId)
 		.all<{ id: string; text: string; tier: string; form: string }>();
+
+	const { results: rejectedRows } = await c.env.DB.prepare(
+		`SELECT id, text, tier, form, rationale FROM smear_terms
+       WHERE dx_id = ? AND status = 'rejected'
+       ORDER BY COALESCE(resolved_at, 0) DESC, text ASC`,
+	)
+		.bind(dxId)
+		.all<{
+			id: string;
+			text: string;
+			tier: string;
+			form: string;
+			rationale: string | null;
+		}>();
 
 	const { results: questionRows } = await c.env.DB.prepare(
 		`SELECT id, source, source_ref, source_url, attribution,
@@ -1077,6 +1093,7 @@ smearRoutes.get("/dx/:id", async (c) => {
 		...dx,
 		note: note ?? null,
 		terms: termRows ?? [],
+		rejected: rejectedRows ?? [],
 		questions: questionRows ?? [],
 		related,
 	});

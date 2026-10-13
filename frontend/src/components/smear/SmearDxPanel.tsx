@@ -35,6 +35,7 @@ import {
 	type SmearDxDetail,
 	type SmearNote,
 	type SmearProposedTerm,
+	type SmearRejectedTerm,
 	type SmearTier,
 } from "../../lib/smearApi";
 
@@ -286,27 +287,41 @@ function ExplanationPane({
 				<h2 className="text-xs uppercase tracking-wide text-ink-400 dark:text-ink-500 mb-2">
 					可接受的寫法
 				</h2>
-				<div className="flex flex-wrap gap-1.5">
-					{TERM_TIER_ORDER.flatMap((tier) =>
-						(groupedTerms[tier] ?? []).map((t) => (
-							<span
-								key={t.id}
-								className={
-									"px-2.5 py-1 rounded text-xs max-w-full break-words " +
-									TIER_META[tier].chipCls
-								}
-							>
-								<span aria-hidden="true">{TIER_META[tier].icon}</span> {t.text}
-								<span className="ml-1 opacity-70">({FORM_LABEL[t.form]})</span>
-							</span>
-						)),
-					)}
-					{(dx.terms ?? []).length === 0 && (
-						<p className="text-sm text-ink-400 dark:text-ink-500">
-							目前還沒有已接受的寫法。
-						</p>
-					)}
+				{(dx.terms ?? []).length === 0 && (
+					<p className="text-sm text-ink-400 dark:text-ink-500">
+						目前還沒有已接受的寫法。
+					</p>
+				)}
+				<div className="space-y-3">
+					{TERM_TIER_ORDER.map((tier) => {
+						const items = groupedTerms[tier] ?? [];
+						if (items.length === 0) return null;
+						return (
+							<div key={tier}>
+								<h3 className="text-xs text-ink-500 dark:text-ink-400 mb-1.5">
+									<span aria-hidden="true">{TIER_META[tier].icon}</span>{" "}
+									{TIER_META[tier].label}
+								</h3>
+								<div className="flex flex-wrap gap-1.5">
+									{items.map((t) => (
+										<span
+											key={t.id}
+											className={
+												"px-2.5 py-1 rounded text-xs max-w-full break-words " +
+												TIER_META[tier].chipCls
+											}
+										>
+											<span aria-hidden="true">{TIER_META[tier].icon}</span> {t.text}
+											<span className="ml-1 opacity-70">({FORM_LABEL[t.form]})</span>
+										</span>
+									))}
+								</div>
+							</div>
+						);
+					})}
 				</div>
+
+				<RejectedTerms terms={dx.rejected ?? []} />
 
 				{proposals.length > 0 && (
 					<div className="mt-3 space-y-2">
@@ -330,6 +345,7 @@ function ExplanationPane({
 				onProposed={onProposed}
 				existingAccepted={dx.terms ?? []}
 				existingProposals={proposals}
+				existingRejected={dx.rejected ?? []}
 			/>
 		</div>
 	);
@@ -425,16 +441,54 @@ function ProposalRow({
 	);
 }
 
+function RejectedTerms({ terms }: { terms: SmearRejectedTerm[] }) {
+	if (terms.length === 0) return null;
+	return (
+		<details className="mt-4">
+			<summary className="cursor-pointer text-sm text-ink-500 dark:text-ink-400">
+				已否決的寫法（{terms.length}）
+			</summary>
+			<ul className="mt-2 space-y-2">
+				{terms.map((t) => {
+					const meta = TIER_META[t.tier];
+					const why = t.rationale?.trim();
+					return (
+						<li
+							key={t.id}
+							className="rounded border border-ink-100 dark:border-ink-700 px-2.5 py-2 text-xs"
+						>
+							<div className="flex flex-wrap items-center gap-2">
+								<span className="line-through text-ink-500 dark:text-ink-400 max-w-full break-words">
+									{t.text}
+								</span>
+								<span>已否決</span>
+								{meta && (
+									<span className="text-ink-400 dark:text-ink-500">{meta.label}</span>
+								)}
+							</div>
+							<p className="mt-1.5 text-ink-500 dark:text-ink-400 break-words">
+								{why || "沒有留下理由"}
+							</p>
+						</li>
+					);
+				})}
+			</ul>
+		</details>
+	);
+}
+
 function ProposeTermForm({
 	dxId,
 	onProposed,
 	existingAccepted,
 	existingProposals,
+	existingRejected,
 }: {
 	dxId: string;
 	onProposed: (term: SmearProposedTerm) => void;
 	existingAccepted: SmearDxDetail["terms"];
 	existingProposals: SmearProposedTerm[];
+	existingRejected: SmearRejectedTerm[];
 }) {
 	const [text, setText] = useState("");
 	const [tier, setTier] = useState<SmearTier>("half");
@@ -467,10 +521,21 @@ function ProposeTermForm({
 				const existingId = e.data?.existingTermId as string | undefined;
 				const foundAccepted = existingAccepted.find((t) => t.id === existingId);
 				const foundOpen = existingProposals.find((t) => t.id === existingId);
+				const foundRejected = existingRejected.find((t) => t.id === existingId);
+				const rejectedByMessage =
+					typeof e.data?.error === "string" &&
+					e.data.error.includes("already proposed and rejected");
 				if (foundAccepted) {
 					setError(`「${foundAccepted.text}」已經是可接受的寫法了,不用重複提報。`);
 				} else if (foundOpen) {
 					setError(`「${foundOpen.text}」正在投票中,幫它投一票就好,不用重新提報。`);
+				} else if (foundRejected || rejectedByMessage) {
+					const why = foundRejected?.rationale?.trim();
+					const name = foundRejected?.text ?? text.trim();
+					setError(
+						`「${name}」先前已被否決,不會因為再提報一次就恢復。` +
+							(why ? `理由:${why}` : ""),
+					);
 				} else {
 					setError(`這個寫法先前已被提報過(${e.data?.error ?? "重複"})。`);
 				}

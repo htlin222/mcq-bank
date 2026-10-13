@@ -224,8 +224,9 @@ export function finishSmearSession(sessionId: string): Promise<SmearFinishResult
 //
 // `note.content_json` 是原樣字串(同 /api/questions/:id 的 explanation 慣例),
 // 呼叫端自己 JSON.parse() 再餵給 StaticContent。`terms` 只含 status='accepted'
-// 的列 —— 提報中的詞不會出現在這裡,提報成功後由呼叫端把回應裡的 term 加進
-// 本地 state 顯示,見 SmearDx.tsx。
+// 的列。`rejected` 是墓碑(寫法與 rationale),只給診斷頁;提報中的詞不在這支,
+// 提報成功後由呼叫端把回應裡的 term 加進本地 state。再提報同一寫法仍是 409,
+// 不會因為墓碑看得到就翻回 accepted。
 // ---------------------------------------------------------------------------
 export interface SmearDxNote {
 	dx_id: string;
@@ -264,6 +265,15 @@ export interface SmearAcceptedTermFull {
 	form: "long" | "abbrev";
 }
 
+/** 已否決的寫法。留在表上當墓碑,診斷頁才看得到,不進判定。 */
+export interface SmearRejectedTerm {
+	id: string;
+	text: string;
+	tier: SmearTier;
+	form: "long" | "abbrev";
+	rationale: string | null;
+}
+
 export interface SmearDxQuestionImage {
 	id: string;
 	source: string;
@@ -290,6 +300,8 @@ export interface SmearDxDetail {
 	created_at: number;
 	note: SmearDxNote | null;
 	terms: SmearAcceptedTermFull[];
+	/** 舊回應沒有這個欄位。呼叫端用 `?? []`,不要假設一定在。 */
+	rejected?: SmearRejectedTerm[];
 	questions: SmearDxQuestionImage[];
 	related: SmearRelatedDx[];
 }
