@@ -34,6 +34,7 @@ const INPUT = (over: Partial<PlanInput> = {}): PlanInput => ({
 	restSunday: false,
 	studyStart: "21:00",
 	studyEnd: "22:30",
+	smearPerDay: 0,
 	...over,
 });
 
@@ -324,6 +325,7 @@ test("parsePlanInput:數值一律 clamp,不信任 client", () => {
 	assert.equal(big.secondsPerQuestion, 600);
 	assert.equal(big.rounds, 3);
 	assert.equal(big.mockExams, 6);
+	assert.equal(parsePlanInput({ smearPerDay: 999 }).smearPerDay, 200);
 
 	const small = parsePlanInput({
 		minutesPerDay: -5,
@@ -337,6 +339,9 @@ test("parsePlanInput:數值一律 clamp,不信任 client", () => {
 	assert.equal(small.rounds, 1);
 	assert.equal(small.mockExams, 0);
 	assert.equal(small.completedOverride, 0);
+	assert.equal(parsePlanInput({ smearPerDay: -4 }).smearPerDay, 0);
+	// 舊問卷沒有這個欄位,當成不排抹片。
+	assert.equal(parsePlanInput({ minutesPerDay: 30 }).smearPerDay, 0);
 
 	// 小數與字串數字都收斂成整數。
 	const odd = parsePlanInput({ minutesPerDay: "90", rounds: 2.7 });
@@ -373,4 +378,25 @@ test("parsePlanInput:接得住自己吐出來的東西(round-trip)", () => {
 		studyEnd: "07:15",
 	});
 	assert.deepEqual(parsePlanInput(JSON.parse(JSON.stringify(once))), once);
+	assert.equal(once.smearPerDay, 0);
+});
+
+test("抹片張數不改筆試題量、容量與 shortfall", () => {
+	const ctx = CTX([YEAR(114)]);
+	const base = buildPlan(INPUT(), ctx);
+	const withSmear = buildPlan(INPUT({ smearPerDay: 12 }), ctx);
+	assert.equal(base.smear_per_day, 0);
+	assert.equal(withSmear.smear_per_day, 12);
+	assert.equal(withSmear.demand, base.demand);
+	assert.equal(withSmear.scheduled, base.scheduled);
+	assert.equal(withSmear.shortfall, base.shortfall);
+	assert.equal(withSmear.daily_capacity, base.daily_capacity);
+	assert.deepEqual(withSmear.demand_by_round, base.demand_by_round);
+	assert.deepEqual(withSmear.suggestions, base.suggestions);
+	assert.deepEqual(
+		withSmear.weeks.flatMap((w) => w.days.map((d) => [d.date, d.kind, d.count])),
+		base.weeks.flatMap((w) => w.days.map((d) => [d.date, d.kind, d.count])),
+	);
+	// 直接呼叫也 clamp,不讓 500 張進行事曆。
+	assert.equal(buildPlan(INPUT({ smearPerDay: 500 }), ctx).smear_per_day, 200);
 });

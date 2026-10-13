@@ -22,6 +22,7 @@ const INPUT: PlanInput = {
 	restSunday: true,
 	studyStart: "21:00",
 	studyEnd: "22:30",
+	smearPerDay: 0,
 };
 
 const META = { email: "a@example.com", now: Date.parse("2026-08-07T02:00:00Z") };
@@ -110,4 +111,21 @@ test("使用者可控的字串一律逸出", () => {
 	assert.equal(html.includes("<script>alert(1)</script>"), false);
 	assert.equal(html.includes("<img src=x"), false);
 	assert.match(html, /&lt;script&gt;/);
+});
+
+test("抹片 0 張時表格跟以前一樣,正整數才寫進非考試日", () => {
+	const zero = renderPlanHtml(buildPlan(INPUT, CTX), META);
+	assert.equal(zero.includes("抹片"), false);
+
+	const plan = buildPlan({ ...INPUT, smearPerDay: 10 }, CTX);
+	const base = buildPlan(INPUT, CTX);
+	assert.equal(plan.shortfall, base.shortfall);
+	assert.equal(plan.scheduled, base.scheduled);
+	const html = renderPlanHtml(plan, META);
+	assert.match(html, /休息 · 抹片 10 張/);
+	assert.match(html, /全真模擬 · 100 題 · 抹片 10 張/);
+	assert.equal(html.includes("考試日 · 抹片"), false);
+	assert.match(html, />考試日</);
+	assert.equal(html.includes("差 "), zero.includes("差 "));
+	assert.equal(html.includes("每天多"), false);
 });

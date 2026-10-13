@@ -58,8 +58,16 @@ function hash(s: string): string {
 	return h.toString(16).padStart(8, "0");
 }
 
-export function planUid(email: string, date: string, host: string): string {
-	return `plan-${hash(email)}-${date}@${host}`;
+export function planUid(
+	email: string,
+	date: string,
+	host: string,
+	slot?: string,
+): string {
+	// 第四個參數留給同一天的第二個時段(抹片)。不傳時 UID 跟以前一字不差,
+	// 已經匯進行事曆的筆試事件重匯入仍是更新。
+	const extra = slot ? `-${slot}` : "";
+	return `plan-${hash(email)}-${date}${extra}@${host}`;
 }
 
 function stamp(ms: number): string {
@@ -123,6 +131,11 @@ export function renderPlanIcs(plan: PlanResult, opts: IcsOpts): string {
 	const end =
 		rawEnd > start ? rawEnd : rawEnd < start ? rawEnd + 1440 : start + 60;
 	const mockEnd = start + 180; // 100 題的全真模擬撐不進晚間 90 分鐘
+	// 一張一分鐘,接在當天筆試結束之後。0 張就完全不寫事件。
+	const smearMin = Math.min(
+		Math.max(Math.trunc(Number(plan.smear_per_day) || 0), 0),
+		200,
+	);
 
 	const lines: string[] = [
 		"BEGIN:VCALENDAR",
@@ -140,10 +153,11 @@ export function renderPlanIcs(plan: PlanResult, opts: IcsOpts): string {
 		summary: string,
 		description: string,
 		timing: string[],
+		slot?: string,
 	) => {
 		lines.push(
 			"BEGIN:VEVENT",
-			`UID:${planUid(opts.email, date, opts.host)}`,
+			`UID:${planUid(opts.email, date, opts.host, slot)}`,
 			`DTSTAMP:${dtstamp}`,
 			...timing,
 			`SUMMARY:${esc(summary)}`,
@@ -152,9 +166,27 @@ export function renderPlanIcs(plan: PlanResult, opts: IcsOpts): string {
 		);
 	};
 
+	const pushSmear = (date: string, at: number) => {
+		if (smearMin < 1) return;
+		push(
+			date,
+			`抹片 ${smearMin} 張`,
+			`每天 ${smearMin} 張,一張約一分鐘。不佔筆試題量。`,
+			[
+				`DTSTART;TZID=Asia/Taipei:${localTime(date, at)}`,
+				`DTEND;TZID=Asia/Taipei:${localTime(date, at + smearMin)}`,
+			],
+			"smear",
+		);
+	};
+
 	for (const week of plan.weeks) {
 		for (const day of week.days) {
-			if (day.kind === "rest") continue;
+			if (day.kind === "rest") {
+				// 休息日沒有筆試時段,抹片從讀書開始時刻起。
+				pushSmear(day.date, start);
+				continue;
+			}
 
 			if (day.kind === "exam") {
 				push(day.date, "血液腫瘤次專科考試", "計畫的終點。", [
@@ -169,22 +201,25 @@ export function renderPlanIcs(plan: PlanResult, opts: IcsOpts): string {
 					`DTSTART;TZID=Asia/Taipei:${localTime(day.date, start)}`,
 					`DTEND;TZID=Asia/Taipei:${localTime(day.date, mockEnd)}`,
 				]);
+				pushSmear(day.date, mockEnd);
 				continue;
 			}
 
-			// 空手的一天不占行事曆版面。
-			if (day.count === 0) continue;
-
-			const rounds = [...new Set(day.slices.map((s) => s.round))];
-			push(
-				day.date,
-				`${day.label} · ${day.count} 題`,
-				`第 ${rounds.join("、")} 輪 · 共 ${day.count} 題`,
-				[
-					`DTSTART;TZID=Asia/Taipei:${localTime(day.date, start)}`,
-					`DTEND;TZID=Asia/Taipei:${localTime(day.date, end)}`,
-				],
-			);
+			// 空手的一天不占筆試行事曆版面;有抹片時仍要一個時段。
+			if (day.count > 0) {
+				const rounds = [...new Set(day.slices.map((s) => s.round))];
+				push(
+					day.date,
+					`${day.label} · ${day.count} 題`,
+					`第 ${rounds.join("、")} 輪 · 共 ${day.count} 題`,
+					[
+						`DTSTART;TZID=Asia/Taipei:${localTime(day.date, start)}`,
+						`DTEND;TZID=Asia/Taipei:${localTime(day.date, end)}`,
+					],
+				);
+			}
+			// 接在筆試結束之後(當天沒有筆試也從同一個結束時刻起)。
+			pushSmear(day.date, end);
 		}
 	}
 

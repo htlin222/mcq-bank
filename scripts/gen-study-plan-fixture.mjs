@@ -45,6 +45,7 @@ const input = {
   restSunday: true,
   studyStart: '21:00',
   studyEnd: '22:30',
+  smearPerDay: 0,
 };
 
 const plan = buildPlan(input, {
