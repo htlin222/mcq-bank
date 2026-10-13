@@ -354,8 +354,8 @@ migration 0016 的慣用法)。照輸入建的話,社群提報通過的寫法與
 - **`/smear/dx/:id`、`/smear/s/:id` 是萬用參數路由**,新的固定路徑(`/smear/xxx`)
   要排在它們前面(`App.tsx` 有註解)。
 - **FTS 是 `unicode61`**,中文詞只比得到連續 CJK 的開頭,同 MCQ 搜尋那節的限制。
-- `aml_m2` 的詳解把 t(8;21) 跟 dysplastic eosinophil 寫在一起,#226 審核時判斷應為
-  inv(16)/M4Eo 的特徵,**說要另開 issue 但沒有開**,中英文都還沒修。
+- `aml_m2` 的詳解曾經把 t(8;21) 跟 dysplastic eosinophil 寫在一起。來源檔已改成
+  嗜酸性球前驅細胞屬於 inv(16)/M4Eo;正式機要等非破壞性匯入才跟上。
 - e-ink 掃描沒覆蓋「確認退件」子狀態(textarea + 確認鈕),#229 留的。
 - `CLAUDE.md` 的「抹片 × 筆試操作一致性」那節引用「上面『抹片練習』那節」,
   **那一節不存在** —— 抹片練習從來沒有寫進 CLAUDE.md 設計筆記,只有 plan 檔。
@@ -378,7 +378,7 @@ migration 0016 的慣用法)。照輸入建的話,社群提報通過的寫法與
 | PathologyOutlines 補充圖                        | 設計 §分期      | L    | gentle scraper,對 RBC 形態幾乎沒覆蓋                          |
 | 投稿核准後沒有 view/full 兩種尺寸                | `approve()` 註解 | S    | v1 簡化:`image_key_view` / `image_key_full` 指向同一把 key,不做伺服器端二次裁切 |
 | 提報通過後「你當時寫的 X 後來被接受了」的追溯標示   | 設計、`smear-proposal.ts` 檔頭 | S | **只在註解裡**,`SmearResult.tsx` 沒有查 `smear_terms` 的後續狀態 |
-| `aml_m2` 詳解錯誤                               | #226            | S    | 開 issue、改 `dx-notes.json`、重灌(又撞 import 問題)          |
+| `aml_m2` 詳解錯誤                               | #226、#246      | S    | 來源檔已把嗜酸性球前驅細胞改到 inv(16)/M4Eo;正式機靠下一次非破壞性匯入 |
 | e-ink 退件子狀態掃描                            | #229            | S    |                                                             |
 | 提報投票流程從沒被真人走過                       | §2              | —    | 門檻 3 票對 20 人合不合適,要看數字                             |
 
