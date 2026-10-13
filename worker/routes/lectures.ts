@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { AppContext } from "../types";
 import { readIdemKey, idemLookup, idemRecordOp } from "../lib/idempotency";
+import { ftsPhraseToken } from "../lib/fts-query";
 
 export const lectureRoutes = new Hono<AppContext>();
 
@@ -60,14 +61,15 @@ lectureRoutes.get("/search", async (c) => {
 		return c.json({ results: [], scope, q: qRaw });
 	}
 
-	// FTS5 query sanitisation: strip operator chars and wrap each token as a
-	// phrase so user input can't trigger syntax errors or unexpected boolean
-	// behaviour. Tokens implicitly AND. Empty → no match → []
+	// Strip operator chars, then each token ANDs. ASCII stays an exact phrase
+	// (no prefix `*`). A CJK token of 2+ characters becomes a bigram phrase
+	// so 白血病 matches 慢性骨髓性白血病 in the cjk column (migration 0046).
 	const ftsQuery = qRaw
 		.replace(/["()*:]/g, " ")
 		.split(/\s+/)
 		.filter(Boolean)
-		.map((t) => '"' + t + '"')
+		.map((t) => ftsPhraseToken(t))
+		.filter(Boolean)
 		.join(" ");
 
 	if (ftsQuery.length === 0) {

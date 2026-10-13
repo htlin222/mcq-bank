@@ -1,3 +1,5 @@
+import { smearFtsInsertSql } from "../../worker/lib/cjk-index-sql.ts";
+
 /**
  * 抹片匯入的 SQL 產生器 —— 純函式,不碰檔案系統也不呼叫 wrangler,所以測得動。
  *
@@ -239,17 +241,9 @@ export function buildImportStatements(opts: BuildOpts): string[] {
 	// ⚠️ 清空與重建必須是**同一個**陣列元素:呼叫端每 50 條切一個 .sql 檔
 	// 分開送,而那一步實測會偶發失敗(所以才有 shRetry)。落在不同檔案、
 	// 而後者重試耗盡的話,smear_fts 會是空的 —— 搜尋從此什麼都找不到,無聲。
-	out.push(
-		"DELETE FROM smear_fts;\n" +
-			`INSERT INTO smear_fts (dx_id, canonical, terms, topic, note) ` +
-			`SELECT d.id, ` +
-			`TRIM(d.canonical_long || ' ' || COALESCE(d.canonical_abbrev, '')), ` +
-			`COALESCE((SELECT group_concat(t.text, ' ') FROM smear_terms t WHERE t.dx_id = d.id AND t.status = 'accepted'), ''), ` +
-			`d.topic, ` +
-			`COALESCE((SELECT group_concat(jt.value, ' ') FROM smear_dx_notes n, json_tree(n.content_json) jt ` +
-			`WHERE n.dx_id = d.id AND jt.key = 'text' AND jt.type = 'text'), '') ` +
-			`FROM smear_dx d;`,
-	);
+	// cjk 欄跟 migration 0046 同一段 SQL。漏了的話,下一次匯入會把二字索引
+	// 留空,「白血病」又找不到「慢性骨髓性白血病」,而且無聲。
+	out.push("DELETE FROM smear_fts;\n" + smearFtsInsertSql());
 
 	return out;
 }

@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../types';
 import { TEXT_MODEL } from '../lib/ai-models';
+import { ftsPhraseToken } from '../lib/fts-query';
 
 // ── 教科書引用 lookup ────────────────────────────────────────────────
 //
@@ -60,7 +61,16 @@ function tokenize(raw: string): string[] {
 // tokenises internally but can't inject FTS operators); OR between them so bm25
 // ranks by coverage/rarity. Returns '' when nothing usable remains.
 function toFtsQuery(toks: string[]): string {
-  return toks.map((t) => '"' + t + '"').join(' OR ');
+  // ASCII stays a quoted phrase. CJK of 2+ characters becomes a bigram phrase
+  // (migration 0046); wrap that in parens so the OR between tokens still binds
+  // outside the AND inside one token.
+  return toks
+    .map((t) => {
+      const expr = ftsPhraseToken(t);
+      return expr.includes(' ') ? `(${expr})` : expr;
+    })
+    .filter((expr) => expr.length > 0)
+    .join(' OR ');
 }
 
 // POST /api/textbook/lookup  { text, limit? } → { hits: [{ slug, page, title, snippet, score }] }

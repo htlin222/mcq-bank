@@ -193,6 +193,9 @@ test("FTS 從資料庫重建,不是從匯入資料重建", () => {
 	const out = sql();
 	assert.match(out, /DELETE FROM smear_fts\s*;/i);
 	assert.match(out, /INSERT INTO smear_fts[\s\S]*?SELECT[\s\S]*?FROM smear_dx/i);
+	// 二字欄跟 migration 0046 一起寫。漏了,下一次匯入會把中段搜尋留空。
+	assert.match(out, /INSERT INTO smear_fts \(dx_id, canonical, terms, topic, note, cjk\)/);
+	assert.match(out, /cjk_offsets/);
 	assert.match(out, /FROM smear_terms[\s\S]*?status = 'accepted'/i);
 	// 詳解純文字用 json_tree 走出來(同 migration 0016 的慣用法),
 	// 不是把整份 content_json 塞進索引。
