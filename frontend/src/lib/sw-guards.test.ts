@@ -189,6 +189,7 @@ test("scheduling and answer state are never cacheable", () => {
 	assert.equal(isCacheableApiPath("/api/review/due"), false);
 	assert.equal(isCacheableApiPath("/api/drill/next"), false);
 	assert.equal(isCacheableApiPath("/api/exam/123"), false);
+	assert.equal(isCacheableApiPath("/api/exam/pending-review"), false);
 	assert.equal(isCacheableApiPath("/api/highlights"), false);
 	assert.equal(isCacheableApiPath("/api/bookmarks"), false);
 });

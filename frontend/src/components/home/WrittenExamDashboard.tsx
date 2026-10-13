@@ -76,6 +76,8 @@ export function WrittenExamDashboard() {
 				</p>
 			) : null}
 
+			<PendingReview />
+
 			{/* 讀書進度預估 — 把倒數與活動量接起來。天數用 API 的 days_left,
 			    不是倒數卡的 countdown.days(ceil vs floor,會差一天)。 */}
 			<section className="mb-8">
@@ -251,6 +253,84 @@ export function WrittenExamDashboard() {
 				</Link>
 			</section>
 		</div>
+	);
+}
+
+type PendingSession = {
+	id: string;
+	year: number;
+	finished_at: number;
+	score: number | null;
+	pending: number;
+};
+
+function PendingReview() {
+	const [sessions, setSessions] = useState<PendingSession[] | null>(null);
+	const [busy, setBusy] = useState<string | null>(null);
+
+	useEffect(() => {
+		let alive = true;
+		api
+			.get<{ sessions?: PendingSession[] }>("/api/exam/pending-review")
+			.then((r) => {
+				if (!alive) return;
+				setSessions(Array.isArray(r?.sessions) ? r.sessions : []);
+			})
+			.catch(() => alive && setSessions([]));
+		return () => {
+			alive = false;
+		};
+	}, []);
+
+	async function apply(id: string) {
+		const row = sessions?.find((s) => s.id === id);
+		if (!row || row.pending < 1 || busy) return;
+		setBusy(id);
+		try {
+			await api.post(`/api/exam/${id}/apply-to-review`, {});
+			setSessions((list) => (list ?? []).filter((s) => s.id !== id));
+		} finally {
+			setBusy(null);
+		}
+	}
+
+	const list = sessions ?? [];
+	return (
+		<section
+			id="pending-review"
+			className="mb-8 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 py-3 shadow-paper"
+		>
+			<h2 className="font-serif text-lg text-ink-900 dark:text-ink-100 mb-2">
+				尚未登記進複習
+			</h2>
+			{sessions === null ? (
+				<p className="text-sm text-ink-400">載入中…</p>
+			) : list.length === 0 ? (
+				<p className="text-sm text-ink-500 dark:text-ink-400">沒有需要登記的題目</p>
+			) : (
+				<ul className="space-y-2">
+					{list.map((s) => (
+						<li key={s.id} className="flex items-center justify-between gap-3 flex-wrap">
+							<Link
+								to={`/exam/${s.id}/result`}
+								className="text-sm text-ink-800 dark:text-ink-100 hover:text-accent"
+							>
+								民國 {s.year} 年
+								{s.score != null ? ` · ${s.score} 分` : ""} · {s.pending} 題會登記
+							</Link>
+							<button
+								type="button"
+								disabled={busy === s.id}
+								onClick={() => apply(s.id)}
+								className="rounded bg-accent hover:bg-accent-dark text-white px-3 py-1.5 text-sm font-medium disabled:opacity-40"
+							>
+								{busy === s.id ? "登記中…" : "登記進複習進度"}
+							</button>
+						</li>
+					))}
+				</ul>
+			)}
+		</section>
 	);
 }
 
