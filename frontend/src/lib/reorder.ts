@@ -49,6 +49,6 @@ export function dropIndex(mids: readonly number[], y: number, from: number): num
 }
 
 /** 兩個順序一樣嗎?用來判斷這次拖曳要不要真的送出請求。 */
-export function sameOrder(a: readonly number[], b: readonly number[]): boolean {
+export function sameOrder<T>(a: readonly T[], b: readonly T[]): boolean {
 	return a.length === b.length && a.every((v, i) => v === b[i]);
 }

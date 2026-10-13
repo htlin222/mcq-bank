@@ -456,6 +456,13 @@ export function deleteSmearNote(noteId: string): Promise<{ ok: true }> {
 	return api.del(`/api/smear/notes/${noteId}`);
 }
 
+export function reorderSmearNotes(
+	dxId: string,
+	ids: string[],
+): Promise<{ ok: true; ids: string[] }> {
+	return api.put(`/api/smear/dx/${dxId}/notes/order`, { ids });
+}
+
 // ---------------------------------------------------------------------------
 // 討論 —— GET|POST /api/smear/dx/:id/comments、DELETE /api/smear/comments/:id
 //

@@ -4,6 +4,7 @@ import { uuid } from "../lib/db";
 import { isAdminEmail } from "../lib/admin";
 import { normalizeTerm } from "../lib/smear-grade";
 import { validateImageFile, type UploadedFile } from "../lib/upload-validate";
+import { resolveSmearNoteOrder } from "../lib/smear-notes";
 
 // 抹片練習的社群功能:收藏 / 個人筆記 / 討論 / 投稿。掛在 /api/smear 下,
 // 跟 routes/smear.ts、routes/smear-terms.ts 分成三個檔案純粹是行數考量,
@@ -63,8 +64,7 @@ smearCommunityRoutes.get("/bookmarks", async (c) => {
 
 // ---------------------------------------------------------------------------
 // 個人筆記 —— 一使用者一診斷可有多則,私有(僅自己看得到,僅自己能改)。
-// v1 刻意不做拖曳排序:純附加順序(sort_order 遞增),編輯/刪除即可,
-// 之後真的需要排序時再照 personal_notes 的 sort_order 模式加。
+// 順序寫在 sort_order,不改 id:畫記與內文都靠 id 定位。
 // ---------------------------------------------------------------------------
 
 smearCommunityRoutes.get("/dx/:id/notes", async (c) => {
@@ -75,11 +75,42 @@ smearCommunityRoutes.get("/dx/:id/notes", async (c) => {
 		`SELECT id, dx_id, content_json, sort_order, created_at, updated_at
        FROM smear_notes
       WHERE user_email = ? AND dx_id = ?
-      ORDER BY sort_order ASC`,
+      ORDER BY sort_order, id`,
 	)
 		.bind(email, dxId)
 		.all();
 	return c.json({ items: results ?? [] });
+});
+
+// 必須是現有 id 的完整排列。少一個多一個整批拒絕,一次 batch 寫完。
+// 註冊在 PUT /notes/:id 之外:那條改的是內文,這條只改 sort_order。
+smearCommunityRoutes.put("/dx/:id/notes/order", async (c) => {
+	const dxId = c.req.param("id");
+	const email = c.var.email;
+	const body = await c.req.json<{ ids?: unknown }>().catch(() => ({}) as { ids?: unknown });
+
+	const rows = await c.env.DB.prepare(
+		"SELECT id FROM smear_notes WHERE user_email = ? AND dx_id = ?",
+	)
+		.bind(email, dxId)
+		.all<{ id: string }>();
+	const existing = (rows.results ?? []).map((r) => r.id);
+	if (!existing.length) return c.json({ error: "no notes", dx_id: dxId }, 404);
+
+	const picked = resolveSmearNoteOrder(existing, body.ids);
+	if (!picked.ok) return c.json({ error: picked.error, ids: existing }, picked.status);
+
+	await c.env.DB.batch(
+		picked.ids.map((noteId, i) =>
+			c.env.DB
+				.prepare(
+					"UPDATE smear_notes SET sort_order = ? WHERE user_email = ? AND dx_id = ? AND id = ?",
+				)
+				.bind(i, email, dxId, noteId),
+		),
+	);
+
+	return c.json({ ok: true, ids: picked.ids });
 });
 
 smearCommunityRoutes.post("/dx/:id/notes", async (c) => {

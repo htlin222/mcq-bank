@@ -373,7 +373,7 @@ migration 0016 的慣用法)。照輸入建的話,社群提報通過的寫法與
 | ~~首字母提示~~                                  | 設計 §兩種模式  | —    | **已完成**:複習模式 `POST /initial` 只回一個字母;全真 403     |
 | 提示使用率 / 複習模式拼字正確率聚合               | parity §計分    | S–M  | 要排除 `mc_choice`                                            |
 | 詳解站上共筆編輯                                | 0043 有鎖欄位   | M    | 現在改詳解只能改 JSON 重跑 import;跟上一項衝突,要先解 import   |
-| 個人筆記拖曳排序                                | #227 YAGNI      | S    | 表有 `sort_order`;可抄 `personal_notes` 那套 `reorder.ts`     |
+| ~~個人筆記拖曳排序~~                            | #227、#249      | —    | **已完成**:`PUT /dx/:id/notes/order`,id 不改,`ORDER BY sort_order, id` |
 | 討論串 @mention 與通知                          | #227            | M    | `smear_comments` 沒有 mentions 路徑                            |
 | PathologyOutlines 補充圖                        | 設計 §分期      | L    | gentle scraper,對 RBC 形態幾乎沒覆蓋                          |
 | 投稿核准後沒有 view/full 兩種尺寸                | `approve()` 註解 | S    | v1 簡化:`image_key_view` / `image_key_full` 指向同一把 key,不做伺服器端二次裁切 |

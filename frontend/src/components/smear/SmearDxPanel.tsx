@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
 import {
 	ChevronLeft,
 	ChevronRight,
+	GripVertical,
 	Loader2,
 	Plus,
 	ThumbsDown,
@@ -14,6 +15,7 @@ import { isEmptyDoc } from "../../lib/drafts";
 import { useMe, type Me } from "../../hooks/useMe";
 import { useNarrow } from "../../hooks/useNarrow";
 import { noteTitleFromJson, NOTE_TITLE_NARROW } from "../../lib/noteTitle";
+import { dropIndex, moveItem, sameOrder } from "../../lib/reorder";
 import { useDismiss } from "../../hooks/useDismiss";
 import { KeepAlive } from "../KeepAlive";
 import { StaticContent } from "../StaticContent";
@@ -29,6 +31,7 @@ import {
 	createSmearNote,
 	updateSmearNote,
 	deleteSmearNote,
+	reorderSmearNotes,
 	type SmearDxDetail,
 	type SmearNote,
 	type SmearProposedTerm,
@@ -587,10 +590,9 @@ function ProposeTermForm({
 }
 
 // ---------------------------------------------------------------------------
-// 個人筆記 —— 一個診斷可以有多則,私有(僅自己看得到)。介面同 NoteSwitcher.tsx
-// 的視覺慣例(切換 + 下拉 + 新增),但沒有拖曳排序 —— 後端沒有排序 API
-// (worker/routes/smear-community.ts 的檔頭已經說明:v1 純附加順序),
-// 這裡也就沒有理由做一個後端接不住的手勢。
+// 個人筆記 —— 一個診斷可以有多則,私有(僅自己看得到)。順序走 sort_order,
+// 拖曳握把同 NoteSwitcher:pointer events、放開才送、放回原位不送。
+// id 不當排序鍵。
 // ---------------------------------------------------------------------------
 function parseNoteDoc(json: string): unknown {
 	try {
@@ -608,6 +610,8 @@ function NotesPane({ dxId }: { dxId: string }) {
 	const [edit, setEdit] = useState<{ noteId: string; content: any } | null>(null);
 	const [busy, setBusy] = useState(false);
 	const switcherRef = useRef<HTMLDivElement>(null);
+	const listRef = useRef<HTMLUListElement>(null);
+	const [dragging, setDragging] = useState<{ id: string; order: string[] } | null>(null);
 	useDismiss(switcherOpen, switcherRef, () => setSwitcherOpen(false));
 
 	useEffect(() => {
@@ -701,6 +705,54 @@ function NotesPane({ dxId }: { dxId: string }) {
 		}
 	}
 
+	const shown = dragging
+		? dragging.order
+				.map((id) => list.find((n) => n.id === id))
+				.filter((n): n is SmearNote => !!n)
+		: list;
+
+	function startDrag(e: ReactPointerEvent, id: string) {
+		if (list.length < 2) return;
+		e.preventDefault();
+		e.stopPropagation();
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		setDragging({ id, order: list.map((n) => n.id) });
+	}
+
+	function moveDrag(e: ReactPointerEvent) {
+		if (!dragging) return;
+		const ul = listRef.current;
+		if (!ul) return;
+		const mids = [...ul.querySelectorAll("li")].map((li) => {
+			const r = li.getBoundingClientRect();
+			return r.top + r.height / 2;
+		});
+		const from = dragging.order.indexOf(dragging.id);
+		const to = dropIndex(mids, e.clientY, from);
+		if (to === from) return;
+		setDragging({ id: dragging.id, order: moveItem(dragging.order, from, to) });
+	}
+
+	function endDrag() {
+		if (!dragging) return;
+		const next = dragging.order;
+		const prev = list.map((n) => n.id);
+		setDragging(null);
+		if (sameOrder(next, prev)) return;
+		setNotes((cur) => {
+			const byId = new Map((cur ?? []).map((n) => [n.id, n]));
+			return next.flatMap((id, i) => {
+				const n = byId.get(id);
+				return n ? [{ ...n, sort_order: i }] : [];
+			});
+		});
+		void reorderSmearNotes(dxId, next).catch(() => {
+			fetchSmearNotes(dxId)
+				.then((r) => setNotes(r.items ?? []))
+				.catch(() => setError("排序沒有存進去,請重整。"));
+		});
+	}
+
 	if (notes === null) {
 		return (
 			<p className="inline-flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500 py-6">
@@ -753,11 +805,33 @@ function NotesPane({ dxId }: { dxId: string }) {
 						</button>
 						{switcherOpen && (
 							<ul
+								ref={listRef}
 								role="listbox"
 								className="absolute z-20 mt-1 w-full bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded shadow-lg max-h-60 overflow-y-auto text-sm"
 							>
-								{list.map((n, i) => (
-									<li key={n.id}>
+								{shown.map((n, i) => (
+									<li
+										key={n.id}
+										className={
+											"flex items-stretch " +
+											(dragging?.id === n.id ? "bg-ink-100 dark:bg-ink-700" : "")
+										}
+									>
+										{list.length > 1 && (
+											<span
+												role="button"
+												tabIndex={-1}
+												aria-label={`拖曳排序:${noteTitleFromJson(n.content_json)}`}
+												title="拖曳調整順序"
+												onPointerDown={(e) => startDrag(e, n.id)}
+												onPointerMove={moveDrag}
+												onPointerUp={endDrag}
+												onPointerCancel={endDrag}
+												className="flex shrink-0 cursor-grab touch-none items-center pl-2 text-ink-300 hover:text-ink-500 active:cursor-grabbing dark:text-ink-600 dark:hover:text-ink-400"
+											>
+												<GripVertical size={14} />
+											</span>
+										)}
 										<button
 											type="button"
 											role="option"
@@ -768,7 +842,7 @@ function NotesPane({ dxId }: { dxId: string }) {
 												setSwitcherOpen(false);
 											}}
 											className={
-												"w-full text-left px-3 py-2 truncate transition " +
+												"min-w-0 flex-1 text-left px-3 py-2 truncate transition " +
 												(n.id === activeId
 													? "bg-accent text-white"
 													: "text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700")
