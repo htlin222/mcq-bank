@@ -1,5 +1,6 @@
 // 模擬考送不出去的答案要留在畫面上,重整之後補送,而且沿用同一把 idem。
-// 教學模式在那筆離開佇列之前不能揭曉 —— TutorReveal 會去抓正解。
+// 還沒送達的題,題號與題號格都寫「未同步」;補送成功後字消失,伺服器的
+// chosen 與畫面一致。教學模式在那筆離開佇列之前不能揭曉。
 //
 //   node --test --test-concurrency=1 frontend/e2e/exam-answer-outbox.test.mjs
 
@@ -133,12 +134,20 @@ test('POST 失敗後重整,選項還在,補送沿用同一把鍵', async (t) => 
 		assert.equal(before[0].idem, idem);
 		assert.equal(before[0].chosen, 'B');
 		assert.match(await page.locator('li.border-accent').innerText(), /選項乙/);
+		await page.getByText('未同步').first().waitFor({ timeout: 5_000 });
+		const details = page.locator('details').first();
+		await details.locator('summary').click();
+		const cell = details.locator('button', { hasText: '未同步' });
+		await cell.waitFor({ timeout: 5_000 });
+		assert.match(await cell.innerText(), /未同步/);
+		assert.match(await cell.innerText(), /^1/);
 
 		await page.reload({ waitUntil: 'domcontentloaded', timeout: 30_000 });
 		// 佇列裡的第 1 題算答過,續考會落到下一題未作答。
 		await page.getByText('第 2 題').first().waitFor({ timeout: 20_000 });
 		await page.getByRole('button', { name: '上一題' }).click();
 		await page.getByText('第 1 題').first().waitFor({ timeout: 10_000 });
+		await page.getByText('未同步').first().waitFor({ timeout: 5_000 });
 		assert.match(await page.locator('li.border-accent').innerText(), /選項乙/);
 		const mid = await queued(page);
 		assert.equal(mid.length, 1);
@@ -155,7 +164,9 @@ test('POST 失敗後重整,選項還在,補送沿用同一把鍵', async (t) => 
 			{ timeout: 10_000 },
 		);
 		assert.ok(keys.every((k) => k === idem), `補送換了鍵:${keys.join(',')}`);
+		assert.equal(saved.get('113-001'), 'B');
 		assert.match(await page.locator('li.border-accent').innerText(), /選項乙/);
+		assert.equal(await page.getByText('未同步').count(), 0);
 	} finally {
 		await ctx.close();
 	}
@@ -193,6 +204,7 @@ test('教學模式在伺服器確認前不揭曉', async (t) => {
 			{ timeout: 5_000 },
 		);
 		await page.waitForTimeout(600);
+		assert.ok((await page.getByText('未同步').count()) > 0);
 		assert.equal(await page.getByText('答錯了').count(), 0);
 		assert.equal(await page.getByText('答對了').count(), 0);
 		assert.equal(await page.getByText('載入答案與詳解').count(), 0);
@@ -203,6 +215,8 @@ test('教學模式在伺服器確認前不揭曉', async (t) => {
 		blockRef.block = false;
 		await page.evaluate(() => window.dispatchEvent(new Event('online')));
 		await page.getByText('答錯了').waitFor({ timeout: 10_000 });
+		assert.equal(await page.getByText('未同步').count(), 0);
+		assert.equal(saved.get('113-001'), 'B');
 		assert.ok(questionHits > 0);
 		assert.equal((await queued(page)).length, 0);
 		assert.ok(keys.length >= 2);

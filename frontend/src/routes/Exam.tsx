@@ -372,20 +372,24 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 	// 進入 session 時對帳(examFlagStore)。換裝置/關分頁都留得住。
 	// 教學模式的揭曉看佇列,不自己記一份。還在佇列裡的題就是伺服器還沒確認,
 	// TutorReveal 在那之前不能 mount —— 它會去抓正解。
+	// 同一份 id 也用來畫「未同步」:格子在收合的題號跳轉裡,所以當前題的標題
+	// 也要寫。字本身就是記號,不另上一個顏色(1-bit 下色會塌掉)。
 	const pendingExam = useSyncExternalStore(
 		subscribeExamOutbox,
 		examOutboxSnapshot,
 		examOutboxSnapshot,
 	);
+	const pendingIds = useMemo(() => {
+		const ids = new Set<string>();
+		for (const p of pendingExam) {
+			if (p.session_id === sessionId) ids.add(p.question_id);
+		}
+		return ids;
+	}, [pendingExam, sessionId]);
 	const revealed = useMemo(() => {
 		if (state?.tutor !== 1) return new Set<string>();
-		const pending = new Set(
-			pendingExam
-				.filter((p) => p.session_id === sessionId)
-				.map((p) => p.question_id),
-		);
-		return new Set(Object.keys(answers).filter((id) => !pending.has(id)));
-	}, [state?.tutor, pendingExam, sessionId, answers]);
+		return new Set(Object.keys(answers).filter((id) => !pendingIds.has(id)));
+	}, [state?.tutor, pendingIds, answers]);
 	const [marked, setMarked] = useState<Set<string>>(
 		() => new Set(flaggedIds(sessionId)),
 	);
@@ -964,6 +968,11 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 										第 {q.number} 題 / {total}
 									</>
 								)}
+								{pendingIds.has(q.id) && (
+									<span className="ml-2 font-medium text-ink-800 dark:text-ink-100 eink:underline">
+										未同步
+									</span>
+								)}
 							</div>
 							<button
 								onClick={() => toggleMark(q.id)}
@@ -1074,21 +1083,31 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 									題已標記
 								</span>
 							)}
+							{pendingIds.size > 0 && (
+								<span className="text-xs font-medium text-ink-800 dark:text-ink-100 eink:underline">
+									{pendingIds.size} 題未同步
+								</span>
+							)}
 						</summary>
 						<div className="grid grid-cols-10 gap-1.5 p-3">
 							{state.questions.map((qq, i) => {
 								const a = answers[qq.id];
 								const m = marked.has(qq.id);
+								const unsynced = pendingIds.has(qq.id);
 								return (
 									<button
 										key={qq.id}
 										onClick={() => setActiveIdx(i)}
-										// 電子紙:四種狀態原本全靠色相,1-bit 下會塌成兩種。拆成三個
-										// **正交**維度就不會互相蓋掉 ——
+										// 電子紙:答了沒 / 當前題 / 已標記拆成三個正交維度,
+										// 1-bit 下不會互相蓋掉 ——
 										//   填充(黑/白)  = 答了沒
 										//   外框 outline = 是不是當前這題(畫在框外,黑白填充都疊得上)
 										//   虛線邊       = 有沒有標記(再加上原本就有的 Flag 圖示)
-										className={`relative aspect-square text-xs font-mono rounded border transition ${
+										// 第四個是「未同步」,用字,不另給一個顏色。這一格因此
+										// 放下 aspect-square,列高跟著字長出來。
+										className={`relative flex flex-col items-center justify-center text-xs font-mono rounded border transition ${
+											unsynced ? "px-0 py-0.5 leading-none" : "aspect-square"
+										} ${
 											i === activeIdx
 												? "border-accent bg-accent text-white eink:outline eink:outline-2 eink:outline-offset-2 eink:outline-black"
 												: m
@@ -1102,6 +1121,11 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 									>
 										{/* 自訂測驗跨年份時 number 會重複,格子用卷內序號。 */}
 										{isCustom ? i + 1 : qq.number}
+										{unsynced && (
+											<span className="mt-px block text-[8px] sm:text-[10px] font-sans font-semibold leading-none whitespace-nowrap eink:underline">
+												未同步
+											</span>
+										)}
 										{m && (
 											<Flag
 												size={9}
