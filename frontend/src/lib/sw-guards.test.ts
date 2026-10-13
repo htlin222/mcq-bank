@@ -121,6 +121,8 @@ test("question read endpoints are cacheable", () => {
 
 test("curated video listings are cacheable, but the mutable ones are not", () => {
 	assert.equal(isCacheableApiPath("/api/questions/114-001/videos"), true);
+	// 相似題帶著「索引回填了沒」。快取住的話,回填之後重整仍是「尚未回填」。
+	assert.equal(isCacheableApiPath("/api/questions/114-001/similar"), false);
 	assert.equal(isCacheableApiPath("/api/videos/topics"), true);
 	assert.equal(isCacheableApiPath("/api/videos/topics/cml"), true);
 	// 「已移除」是刪除動作的鏡子 —— 快取它,還原後畫面就不會更新。
@@ -187,6 +189,7 @@ test("備份端點永遠不快取 —— 備份到的必須是「現在」", () 
 
 test("scheduling and answer state are never cacheable", () => {
 	assert.equal(isCacheableApiPath("/api/review/due"), false);
+	assert.equal(isCacheableApiPath("/api/review/weakness-map"), false);
 	assert.equal(isCacheableApiPath("/api/drill/next"), false);
 	assert.equal(isCacheableApiPath("/api/exam/123"), false);
 	assert.equal(isCacheableApiPath("/api/exam/pending-review"), false);

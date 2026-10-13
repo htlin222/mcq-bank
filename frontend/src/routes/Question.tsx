@@ -28,6 +28,7 @@ import {
 	Shrink,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
+import { readSimilarPayload, SEMANTIC_INDEX_EMPTY } from "../lib/similarPayload";
 import { loadDraft, saveDraft, clearDraft } from "../lib/drafts";
 import { noteTitle, noteTitleFromJson } from "../lib/noteTitle";
 import { NoteSwitcher, type NoteMeta } from "../components/NoteSwitcher";
@@ -672,16 +673,23 @@ export function Question() {
 	// 相似題目 — lazy-loaded after the main question payload arrives.
 	// Kept off the hot /api/questions/:id path so navigation stays snappy.
 	const [similar, setSimilar] = useState<SimilarItem[]>([]);
+	const [similarIndexEmpty, setSimilarIndexEmpty] = useState(false);
 	useEffect(() => {
 		if (!data?.id) return;
 		let cancelled = false;
 		api
-			.get<SimilarItem[]>(`/api/questions/${data.id}/similar`)
-			.then((rows) => {
-				if (!cancelled) setSimilar(rows);
+			.get<unknown>(`/api/questions/${data.id}/similar`)
+			.then((raw) => {
+				if (cancelled) return;
+				const parsed = readSimilarPayload(raw);
+				setSimilar(parsed.items as SimilarItem[]);
+				setSimilarIndexEmpty(parsed.indexEmpty);
 			})
 			.catch(() => {
-				if (!cancelled) setSimilar([]);
+				if (!cancelled) {
+					setSimilar([]);
+					setSimilarIndexEmpty(false);
+				}
 			});
 		return () => {
 			cancelled = true;
@@ -2354,6 +2362,11 @@ export function Question() {
 								<RefreshCcw size={14} /> 開始交錯練習
 							</Link>
 						</div>
+						{similarIndexEmpty && (
+							<p className="text-sm text-ink-500 dark:text-ink-400 mb-2">
+								{SEMANTIC_INDEX_EMPTY}
+							</p>
+						)}
 						{similar.length === 0 && (
 							<p className="text-sm text-ink-400 dark:text-ink-500">
 								尚無相似題目。

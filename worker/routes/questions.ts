@@ -6,6 +6,7 @@ import { ftsQuery } from "./search";
 import { getActiveChallenges } from "../lib/challenges";
 import { isAdminEmail } from "../lib/admin";
 import { mergeSimilar } from "../lib/similar";
+import { semanticIndexEmpty } from "../lib/vector-index";
 import {
 	explanationPlainText,
 	dedupeTerms,
@@ -336,19 +337,29 @@ questionsRoutes.get("/:id/similar", async (c) => {
 		.first<{ id: string; group: "內科" | "共同" | null; stem: string }>();
 	if (!self) return c.json([]);
 
-	// Source 1: Vectorize semantic neighbors — the "同機轉、不同 vignette"
-	// matches that tag/BM25 miss. Best-effort: if embedding fails or the
-	// index isn't populated yet, degrade to tag+FTS rather than 500.
-	let vec: { id: string; score: number }[] = [];
+	// 索引是空的就不要為了這句話去嵌入。describe() 只回筆數。
+	let indexEmpty = true;
 	try {
-		const emb = await c.env.AI.run(EMBED_MODEL, { text: [self.stem] });
-		const vector = (emb as { data: number[][] }).data[0];
-		const res = await c.env.VEC.query(vector, { topK: limit + 5 });
-		vec = (res.matches ?? [])
-			.filter((m) => m.id !== id)
-			.map((m) => ({ id: m.id, score: m.score }));
+		indexEmpty = semanticIndexEmpty(await c.env.VEC.describe());
 	} catch {
-		vec = [];
+		indexEmpty = true;
+	}
+
+	// Source 1: Vectorize semantic neighbors — the "同機轉、不同 vignette"
+	// matches that tag/BM25 miss. Best-effort: if embedding fails, degrade
+	// to tag+FTS rather than 500. Skipped entirely while the index is empty.
+	let vec: { id: string; score: number }[] = [];
+	if (!indexEmpty) {
+		try {
+			const emb = await c.env.AI.run(EMBED_MODEL, { text: [self.stem] });
+			const vector = (emb as { data: number[][] }).data[0];
+			const res = await c.env.VEC.query(vector, { topK: limit + 5 });
+			vec = (res.matches ?? [])
+				.filter((m) => m.id !== id)
+				.map((m) => ({ id: m.id, score: m.score }));
+		} catch {
+			vec = [];
+		}
 	}
 
 	// Source 2: tag overlap — same tag = related. Prefer same group, then
@@ -408,7 +419,8 @@ questionsRoutes.get("/:id/similar", async (c) => {
 		fts: byFts.map((r) => ({ id: r.id })),
 		limit,
 	});
-	if (merged.length === 0) return c.json([]);
+	if (merged.length === 0)
+		return c.json({ items: [], index_empty: indexEmpty });
 
 	// Hydrate display fields. tag/fts rows are already loaded; vec-only ids
 	// need one lookup. Output preserves the merged ranking + source.
@@ -432,7 +444,7 @@ questionsRoutes.get("/:id/similar", async (c) => {
 		const row = rowById.get(m.id);
 		if (row) out.push({ ...row, source: m.source });
 	}
-	return c.json(out);
+	return c.json({ items: out, index_empty: indexEmpty });
 });
 
 // ------------------------------------------------------------
