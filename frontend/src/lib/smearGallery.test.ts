@@ -8,6 +8,9 @@ import {
 	shouldAutoAdvance,
 	shouldPrefetch,
 	secondsLeft,
+	galleryRoundItems,
+	readGalleryRound,
+	writeGalleryRound,
 	AUTO_ADVANCE_MS,
 	PREFETCH_LEAD,
 	type AutoAdvanceGate,
@@ -145,4 +148,51 @@ test("過了期限不會變負數", () => {
 
 test("沒有在自動輪播時回 null —— 呼叫端據此不畫", () => {
 	assert.equal(secondsLeft(null, Date.now()), null);
+});
+
+function memStorage() {
+	const m = new Map<string, string>();
+	return {
+		getItem: (k: string) => (m.has(k) ? m.get(k)! : null),
+		setItem: (k: string, v: string) => {
+			m.set(k, String(v));
+		},
+		removeItem: (k: string) => {
+			m.delete(k);
+		},
+	};
+}
+
+test("這一輪只留下畫得出來的項目,空批次不蓋掉上一輪", () => {
+	const prev = globalThis.localStorage;
+	globalThis.localStorage = memStorage() as unknown as Storage;
+	try {
+		assert.deepEqual(galleryRoundItems(null), []);
+		assert.deepEqual(
+			galleryRoundItems([
+				{ id: "bad", image_key_view: "../secret", image_key_full: "ok.jpg", canonical_long: "X" },
+				{ id: "", image_key_view: "a.jpg", image_key_full: "b.jpg", canonical_long: "Y" },
+			]),
+			[],
+		);
+		const good = {
+			id: "a",
+			image_key_view: "smear/a.jpg",
+			image_key_full: "smear/a-full.jpg",
+			canonical_long: "A",
+			note_preview: "keep me",
+		};
+		writeGalleryRound([
+			good,
+			{ id: "nope", image_key_view: "smear/../x.jpg", image_key_full: "y.jpg", canonical_long: "B" },
+		]);
+		const round = readGalleryRound<typeof good>();
+		assert.equal(round.length, 1);
+		assert.equal(round[0].id, "a");
+		assert.equal(round[0].note_preview, "keep me");
+		writeGalleryRound([]);
+		assert.equal(readGalleryRound().length, 1);
+	} finally {
+		globalThis.localStorage = prev;
+	}
 });

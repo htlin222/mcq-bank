@@ -126,6 +126,54 @@ export function writeGalleryPaused(paused: boolean): void {
 	}
 }
 
+// ── 這一輪 ──────────────────────────────────────────────────────────────────
+// `/api/smear/gallery` 刻意不進 SW 快取(每次都是隨機的一批)。離線重開首頁時
+// 那支請求失敗,卡片要靠這裡把上一輪畫回來。圖的位元組不在這 —— 看過的 view
+// 走 `/img/*` 的 CacheFirst,進 `img-v1`。沒看過的不在這裡預載。
+
+const ROUND_KEY = "smear-gallery-round";
+
+function safeImageKey(v: unknown): v is string {
+	return typeof v === "string" && v.length > 0 && !v.split("/").includes("..");
+}
+
+/** 留下畫得出來的項目。壞 key、缺名字的丟掉,其餘欄位原樣留著。 */
+export function galleryRoundItems<T>(raw: unknown): T[] {
+	if (!Array.isArray(raw)) return [];
+	const out: T[] = [];
+	for (const item of raw) {
+		if (!item || typeof item !== "object") continue;
+		const row = item as Record<string, unknown>;
+		if (typeof row.id !== "string" || !row.id) continue;
+		if (!safeImageKey(row.image_key_view)) continue;
+		if (!safeImageKey(row.image_key_full)) continue;
+		if (typeof row.canonical_long !== "string" || !row.canonical_long) continue;
+		out.push(item as T);
+	}
+	return out;
+}
+
+/** 空陣列不寫。線上暫時回空批次時,不把上一輪擦掉。 */
+export function writeGalleryRound(items: unknown): void {
+	const clean = galleryRoundItems(items);
+	if (clean.length === 0) return;
+	try {
+		localStorage.setItem(ROUND_KEY, JSON.stringify(clean));
+	} catch {
+		/* 私密瀏覽或配額滿:這一輪離線就看不到,線上不受影響 */
+	}
+}
+
+export function readGalleryRound<T>(): T[] {
+	try {
+		const raw = localStorage.getItem(ROUND_KEY);
+		if (!raw) return [];
+		return galleryRoundItems<T>(JSON.parse(raw));
+	} catch {
+		return [];
+	}
+}
+
 // ── 倒數 ────────────────────────────────────────────────────────────────────
 
 /**

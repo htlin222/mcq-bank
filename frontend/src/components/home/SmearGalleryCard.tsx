@@ -12,11 +12,13 @@ import {
 	advance,
 	initialGallery,
 	readGalleryPaused,
+	readGalleryRound,
 	receivePrefetch,
 	retreat,
 	shouldAutoAdvance,
 	shouldPrefetch,
 	writeGalleryPaused,
+	writeGalleryRound,
 	AUTO_ADVANCE_MS,
 	BATCH_SIZE,
 	type GalleryState,
@@ -80,10 +82,20 @@ export function SmearGalleryCard() {
 		let cancelled = false;
 		fetchSmearGallery(BATCH_SIZE)
 			.then((r) => {
-				if (!cancelled) setState(initialGallery(r.items ?? []));
+				if (cancelled) return;
+				const items = r.items ?? [];
+				if (items.length > 0) {
+					writeGalleryRound(items);
+					setState(initialGallery(items));
+					return;
+				}
+				// 線上回空代表這站沒有抹片,不把舊的一輪畫出來。
 			})
 			.catch(() => {
-				/* 首頁的瀏覽性區塊,抓不到就整張不畫 —— 不彈錯誤打斷首頁 */
+				// 離線或請求失敗:畫上一輪。圖本身要先前看過才在 img-v1。
+				if (cancelled) return;
+				const saved = readGalleryRound<SmearGalleryItem>();
+				if (saved.length > 0) setState(initialGallery(saved));
 			})
 			.finally(() => {
 				if (!cancelled) setLoaded(true);
