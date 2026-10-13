@@ -3,6 +3,7 @@ import type { AppContext } from "../types";
 import { uuid } from "../lib/db";
 import { isAdminEmail } from "../lib/admin";
 import { normalizeTerm } from "../lib/smear-grade";
+import { planApprovedImages } from "../lib/smear-approve-images";
 import { validateImageFile, type UploadedFile } from "../lib/upload-validate";
 import { resolveSmearNoteOrder } from "../lib/smear-notes";
 import {
@@ -558,12 +559,22 @@ smearCommunityRoutes.post("/submissions/:id/approve", async (c) => {
 	const email = c.var.email;
 	if (!isAdminEmail(email, c.env)) return c.json({ error: "forbidden" }, 403);
 
-	const body = await c.req
-		.json<{ dxId?: string }>()
-		.catch(() => ({}) as Record<string, never>);
-	if (!body.dxId || typeof body.dxId !== "string") {
-		return c.json({ error: "dxId is required" }, 400);
+	// multipart:dxId + 瀏覽器縮好的檢視圖。JSON 的舊形狀不再接受 —— 少了
+	// 檢視圖就會又把兩把 key 寫成同一張。
+	const fd = await c.req.formData().catch(() => null);
+	const dxIdRaw = fd?.get("dxId");
+	const dxId = typeof dxIdRaw === "string" ? dxIdRaw.trim() : "";
+	if (!dxId) return c.json({ error: "dxId is required" }, 400);
+
+	const rawView = fd?.get("view") as unknown as UploadedFile | string | null;
+	const check = validateImageFile(rawView);
+	if (!check.ok) {
+		return c.json(
+			{ error: check.error === "no file" ? "view image is required" : check.error },
+			check.status,
+		);
 	}
+	const viewFile = rawView as UploadedFile;
 
 	const submission = await c.env.DB.prepare(
 		"SELECT id, status, image_key FROM smear_submissions WHERE id = ?",
@@ -576,9 +587,27 @@ smearCommunityRoutes.post("/submissions/:id/approve", async (c) => {
 	}
 
 	const dx = await c.env.DB.prepare("SELECT id, qtype FROM smear_dx WHERE id = ?")
-		.bind(body.dxId)
+		.bind(dxId)
 		.first<{ id: string; qtype: string }>();
 	if (!dx) return c.json({ error: "dx not found" }, 400);
+
+	// head 只拿位元組數,不把原圖拉進 Worker。檢視圖不夠小就整筆拒絕,
+	// 不寫出兩把指著同一張圖的 key。
+	const original = await c.env.R2.head(submission.image_key);
+	if (!original) return c.json({ error: "original image is missing" }, 400);
+	const planned = planApprovedImages({
+		submissionId: submission.id,
+		fullKey: submission.image_key,
+		viewType: viewFile.type,
+		viewBytes: viewFile.size,
+		fullBytes: original.size,
+	});
+	if (!planned.ok) return c.json({ error: planned.error }, 400);
+
+	await c.env.R2.put(planned.viewKey, viewFile.stream(), {
+		httpMetadata: { contentType: viewFile.type },
+		customMetadata: { derivedFrom: submission.image_key, uploadedBy: email },
+	});
 
 	const now = Date.now();
 	// 沿用 scripts/smear/import.ts 的 promptFor() 邏輯:依 qtype 決定固定文字,
@@ -594,21 +623,28 @@ smearCommunityRoutes.post("/submissions/:id/approve", async (c) => {
 	// whole batch — both statements — rolls back atomically (verified locally:
 	// re-running approve after manually resetting status back to 'pending'
 	// throws and leaves both tables exactly as they were). Catch that instead
-	// of letting it surface as a bare 500.
+	// of letting it surface as a bare 500. The view object may already be in
+	// R2; the key is deterministic, so the winner's put overwrites it.
 	try {
 		await c.env.DB.batch([
 			c.env.DB.prepare(
 				`UPDATE smear_submissions
            SET status = 'approved', matched_dx_id = ?, reviewed_by = ?, reviewed_at = ?
          WHERE id = ? AND status = 'pending'`,
-			).bind(body.dxId, email, now, id),
-			// v1 簡化:不做伺服器端二次裁切,image_key_view / image_key_full 都指向
-			// 同一張已上傳的圖 —— 這是已知的限制,不是 bug(見任務說明)。
+			).bind(dxId, email, now, id),
 			c.env.DB.prepare(
 				`INSERT INTO smear_questions
            (id, dx_id, source, source_ref, image_key_view, image_key_full, prompt, image_note, attribution, created_at)
          VALUES (?, ?, 'submission', ?, ?, ?, ?, NULL, NULL, ?)`,
-			).bind(questionId, body.dxId, submission.id, submission.image_key, submission.image_key, prompt, now),
+			).bind(
+				questionId,
+				dxId,
+				submission.id,
+				planned.viewKey,
+				planned.fullKey,
+				prompt,
+				now,
+			),
 		]);
 	} catch {
 		return c.json({ error: "submission already resolved" }, 409);

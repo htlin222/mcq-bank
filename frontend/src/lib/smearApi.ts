@@ -587,8 +587,12 @@ export function submitSmearSubmission(input: {
 export function approveSmearSubmission(
 	id: string,
 	dxId: string,
+	view: File,
 ): Promise<{ ok: true; questionId: string }> {
-	return api.post(`/api/smear/submissions/${id}/approve`, { dxId });
+	const fd = new FormData();
+	fd.append("dxId", dxId);
+	fd.append("view", view);
+	return api.postForm(`/api/smear/submissions/${id}/approve`, fd);
 }
 
 export function rejectSmearSubmission(

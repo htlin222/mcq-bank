@@ -9,6 +9,7 @@ import {
 	type SmearSearchHit,
 	type SmearSubmissionPendingItem,
 } from "../../lib/smearApi";
+import { encodeSmearView } from "../../lib/smearViewImage";
 import { SmearImage } from "./SmearImage";
 
 // 待審核佇列 —— 只在 SubmitTab.tsx 確認 `me?.is_admin === true` 之後才會被
@@ -119,11 +120,33 @@ function PendingSubmissionCard({
 		setBusy("approve");
 		setError(null);
 		try {
-			await approveSmearSubmission(item.id, selectedDxId);
+			// 檢視圖在這一刻產出。伺服器再對一次位元組數,不夠小就 400,
+			// 不會把 image_key_view / image_key_full 寫成同一把。
+			const res = await fetch(`/img/${encodeURI(item.image_key)}`, {
+				credentials: "include",
+			});
+			if (!res.ok) throw new Error("讀不到原圖");
+			const original = await res.blob();
+			const bitmap = await createImageBitmap(original);
+			let view: Blob;
+			try {
+				view = await encodeSmearView(bitmap, original.size);
+			} finally {
+				bitmap.close();
+			}
+			await approveSmearSubmission(
+				item.id,
+				selectedDxId,
+				new File([view], "view.jpg", { type: "image/jpeg" }),
+			);
 			onResolved();
 		} catch (e) {
 			setError(
-				e instanceof ApiError ? `核准失敗 (${e.status})` : String(e),
+				e instanceof ApiError
+					? `核准失敗 (${e.status})`
+					: e instanceof Error
+						? e.message
+						: String(e),
 			);
 			setBusy(null);
 		}

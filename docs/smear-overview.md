@@ -376,7 +376,7 @@ migration 0016 的慣用法)。照輸入建的話,社群提報通過的寫法與
 | ~~個人筆記拖曳排序~~                            | #227、#249      | —    | **已完成**:`PUT /dx/:id/notes/order`,id 不改,`ORDER BY sort_order, id` |
 | ~~討論串 @mention 與通知~~                      | #227、#250      | —    | **已完成**:kind=`smear_mention`、`notifications.dx_id`;不寫 `mentions`。刪除後預覽改成「留言已刪除」 |
 | PathologyOutlines 補充圖                        | 設計 §分期      | L    | gentle scraper,對 RBC 形態幾乎沒覆蓋                          |
-| 投稿核准後沒有 view/full 兩種尺寸                | `approve()` 註解 | S    | v1 簡化:`image_key_view` / `image_key_full` 指向同一把 key,不做伺服器端二次裁切 |
+| ~~投稿核准後沒有 view/full 兩種尺寸~~            | `approve()`、#254 | —  | **已完成**:核准時瀏覽器產出較小的 JPEG,伺服器確認 ≤ 原圖 80% 才寫進另一把 R2 key;全螢幕圖沿用原檔。既有相同 key 的列不在這次補,也不重跑匯入。首頁本來就先畫 view,全螢幕載好 full 再換 |
 | 提報通過後「你當時寫的 X 後來被接受了」的追溯標示   | 設計、`smear-proposal.ts` 檔頭 | S | **只在註解裡**,`SmearResult.tsx` 沒有查 `smear_terms` 的後續狀態 |
 | `aml_m2` 詳解錯誤                               | #226、#246      | S    | 來源檔已把嗜酸性球前驅細胞改到 inv(16)/M4Eo;正式機靠下一次非破壞性匯入 |
 | ~~e-ink 退件子狀態掃描~~                        | #253            | —    | **已完成**:`eink.test.mjs` 先打開確認退件,再掃 textarea、按鈕與說明 |
