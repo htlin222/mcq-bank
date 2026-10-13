@@ -412,6 +412,28 @@ export function fetchSmearTopicStats(): Promise<{ items: SmearTopicStat[] }> {
 	return api.get("/api/smear/topic-stats");
 }
 
+// GET /api/smear/usage —— 個人頁的提示次數、俗名命中、主題題量。
+// review_spelling 只算複習模式裡自己打字的題,不含全真的 spelling_ok。
+export interface SmearUsage {
+	hints: { hint_used: string; n: number }[];
+	lay_hits: number;
+	review_spelling: { correct: number; graded: number };
+	topics: { topic: string; question_count: number; answer_count: number }[];
+}
+
+export function fetchSmearUsage(): Promise<SmearUsage> {
+	return api.get("/api/smear/usage");
+}
+
+export const SMEAR_HINT_LABELS: Record<string, string> = {
+	"": "未用提示",
+	topic: "主題分類",
+	initial: "首字母",
+	"initial,topic": "首字母 + 主題",
+	mc_choice: "看選項",
+	reveal_answer: "直接看答案",
+};
+
 // ---------------------------------------------------------------------------
 // 收藏 —— POST|DELETE /api/smear/dx/:id/bookmark、GET /api/smear/bookmarks
 //

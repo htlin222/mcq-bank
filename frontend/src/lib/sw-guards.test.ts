@@ -211,6 +211,7 @@ test("抹片練習的所有端點都不能被快取 —— 可變的個人進度
 	// 這支的症狀是「剛通過的詞條 / 剛編輯的筆記,重整還是看不到」。
 	assert.equal(isCacheableApiPath("/api/smear/dx/dacrocyte"), false);
 	assert.equal(isCacheableApiPath("/api/smear/search?q=cml"), false);
+	assert.equal(isCacheableApiPath("/api/smear/usage"), false);
 });
 
 test("the allowlist is closed — unknown endpoints default to no cache", () => {

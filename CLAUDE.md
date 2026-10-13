@@ -807,10 +807,9 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 目前根本不存在於複習模式。** 「拼字完全正確:N 題」只在全真模式交卷時算
 (`SmearResult.tsx` 讀 `finish` 回應的 `spelling_ok`),複習模式沒有交卷、
 沒有 session 完成的概念,沒有任何聚合會讀到 `hint_used='mc_choice'` 的列。
-**這個原則留著給未來**:複習模式如果哪天長出「拼字正確率」這種聚合統計,
-那支查詢要排除 `hint_used = 'mc_choice'` 的列——理由跟「直接看答案」被排除
-在外一樣(那個數字答的是「你寫不寫得出來」,用選的沒有打字這回事),但現在
-加排除邏輯只是永遠不會被執行的防禦性程式碼。
+個人頁「抹片使用」(`GET /api/smear/usage`)的複習拼字正確率排除
+`mc_choice` 與 `reveal_answer`(用選的、直接看答案,都沒有打字)。全真交卷的
+`spelling_ok` 維持原定義,不進這支。進行中的全真不作答計入。
 
 前端這顆按鈕按下去,`AnswerInput.tsx` 的自由輸入框**整個換成**單選清單
 (不是並存),選了再按送出——跟輸入框共用同一顆「提交答案」按鈕。**刻意

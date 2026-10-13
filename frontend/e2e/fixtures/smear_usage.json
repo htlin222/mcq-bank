@@ -1,0 +1,16 @@
+{
+  "hints": [
+    { "hint_used": "", "n": 4 },
+    { "hint_used": "topic", "n": 2 },
+    { "hint_used": "initial", "n": 0 },
+    { "hint_used": "initial,topic", "n": 1 },
+    { "hint_used": "mc_choice", "n": 3 },
+    { "hint_used": "reveal_answer", "n": 0 }
+  ],
+  "lay_hits": 5,
+  "review_spelling": { "correct": 7, "graded": 11 },
+  "topics": [
+    { "topic": "infection", "question_count": 2, "answer_count": 0 },
+    { "topic": "rbc", "question_count": 40, "answer_count": 8 }
+  ]
+}

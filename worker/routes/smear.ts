@@ -8,6 +8,7 @@ import { pickSmearSet, type PoolItem } from "../lib/smear-pick";
 import { pickMcqOptions, pickCorrectOptionLabel, firstInitial, type McqCandidate } from "../lib/smear-mcq";
 import { ftsQuery } from "../lib/fts-query";
 import { chunkParams, D1_MAX_PARAMS } from "../lib/sql-params";
+import { buildSmearUsage, reviewSpellingExcludedSql } from "../lib/smear-usage";
 
 export const smearRoutes = new Hono<AppContext>();
 
@@ -845,6 +846,83 @@ smearRoutes.get("/topic-stats", async (c) => {
 			last_answered_at: number | null;
 		}>();
 	return c.json({ items: results ?? [] });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/smear/usage —— 個人頁「抹片使用」
+//
+// 提示次數、俗名層命中、每個主題的題量與作答數。作答數字只屬於這個
+// 帳號。進行中的全真不計(同 /wrong):那時候 tier 還沒有資格被看見。
+// 題量是題庫本身,不是私人狀態。
+//
+// 複習拼字正確率排除 reviewSpellingExcludedSql() 那兩種(看選項、直接看
+// 答案)。全真的 spelling_ok 留在交卷回應,不進這裡。
+// ---------------------------------------------------------------------------
+smearRoutes.get("/usage", async (c) => {
+	const email = c.var.email;
+	const revealed = "(ss.mode = 'review' OR ss.finished_at IS NOT NULL)";
+	const excluded = reviewSpellingExcludedSql();
+	const [hints, lay, spelling, questions, answers] = await Promise.all([
+		c.env.DB.prepare(
+			`SELECT COALESCE(sa.hint_used, '') AS hint_used, COUNT(*) AS n
+         FROM smear_answers sa
+         JOIN smear_sessions ss ON ss.id = sa.session_id AND ss.user_email = ?
+        WHERE ${revealed}
+        GROUP BY COALESCE(sa.hint_used, '')`,
+		)
+			.bind(email)
+			.all<{ hint_used: string; n: number }>(),
+		c.env.DB.prepare(
+			`SELECT COUNT(*) AS n
+         FROM smear_answers sa
+         JOIN smear_sessions ss ON ss.id = sa.session_id AND ss.user_email = ?
+        WHERE sa.tier = 'lay' AND ${revealed}`,
+		)
+			.bind(email)
+			.first<{ n: number }>(),
+		c.env.DB.prepare(
+			`SELECT SUM(CASE
+                  WHEN sa.tier = 'full'
+                   AND (sa.spelling_errors_json IS NULL OR sa.spelling_errors_json = '[]')
+                  THEN 1 ELSE 0 END) AS correct,
+                COUNT(*) AS graded
+         FROM smear_answers sa
+         JOIN smear_sessions ss ON ss.id = sa.session_id AND ss.user_email = ?
+        WHERE ss.mode = 'review'
+          AND (sa.hint_used IS NULL OR sa.hint_used NOT IN (${excluded}))`,
+		)
+			.bind(email)
+			.first<{ correct: number | null; graded: number }>(),
+		c.env.DB.prepare(
+			`SELECT d.topic AS topic, COUNT(q.id) AS question_count
+         FROM smear_dx d
+         LEFT JOIN smear_questions q ON q.dx_id = d.id
+        GROUP BY d.topic`,
+		).all<{ topic: string; question_count: number }>(),
+		c.env.DB.prepare(
+			`SELECT sd.topic AS topic, COUNT(*) AS answer_count
+         FROM smear_answers sa
+         JOIN smear_sessions ss ON ss.id = sa.session_id AND ss.user_email = ?
+         JOIN smear_questions sq ON sq.id = sa.question_id
+         JOIN smear_dx sd ON sd.id = sq.dx_id
+        WHERE ${revealed}
+        GROUP BY sd.topic`,
+		)
+			.bind(email)
+			.all<{ topic: string; answer_count: number }>(),
+	]);
+	return c.json(
+		buildSmearUsage(
+			{
+				hintRows: hints.results,
+				layHits: lay?.n ?? 0,
+				reviewSpelling: spelling,
+				topicQuestions: questions.results,
+				topicAnswers: answers.results,
+			},
+			TOPICS,
+		),
+	);
 });
 
 // ---------------------------------------------------------------------------
