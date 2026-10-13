@@ -12,11 +12,15 @@
  *
  *   publish — nothing incomplete gets into `questions`. Every answer present
  *           and in-range, every number accounted for, count matching the
- *           configured group composition.
+ *           configured group composition, and no option cut off mid-word or
+ *           mid-parenthesis (see option-truncation.ts). A cut option may still
+ *           sit in staging; publish is what refuses to copy it into the bank.
  *
  * All pure functions — no D1, no env beyond the raw GROUPS string — so the
  * rules are unit-testable without a Worker runtime.
  */
+
+import { optionCut, optionCutPhrase } from './option-truncation.ts';
 
 export type GroupSpec = {
   label: string;
@@ -257,6 +261,14 @@ export function assertPublishable(
       `these questions still have no answer: ${shown}` +
         `${unanswered.length > 20 ? ` … (+${unanswered.length - 20})` : ''}`,
     );
+  }
+
+  for (const q of questions) {
+    for (const [letter, text] of Object.entries(q.options)) {
+      const kind = optionCut(text);
+      if (!kind) continue;
+      errors.push(`question ${q.number} option ${letter} ends ${optionCutPhrase(kind)}`);
+    }
   }
 
   return errors;
