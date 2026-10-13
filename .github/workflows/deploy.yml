@@ -210,15 +210,23 @@ jobs:
       # 時序競賽（見 wiki 的 Gotchas 十四）。iOS 強制所有瀏覽器使用 WebKit，
       # 所以少了這一關，同一類「整個平台完全不能用」的失敗沒有任何防線。
       #
+      # 整包 glob,不點名檔案。點名曾經漏掉已經寫好的 spec(hidden-year、
+      # smear-gallery):檔案在、單獨全綠、這道關卡卻沒跑到。題目頁與抹片
+      # (含全真不洩題)因此一定在裡面,之後新增的 spec 也會。
+      #
+      # --test-concurrency=2 是量過的,不是調校。預設按 CPU 數會讓單獨為綠的
+      # 測試變紅(見 CLAUDE.md)。不要拿掉,也不要改回預設。
+      #
       # E2E_REQUIRE=1：瀏覽器沒裝好時要讓 job 失敗，不能靜靜跳過 —— 跳過的
       # 測試看起來跟通過一模一樣，那正是這個閘門要防的事。
-      - name: Smoke test on WebKit (iPhone)
+      # 建置在上面那步已經做完,這裡不再跑 pnpm test:webkit(它會再 build 一次)。
+      - name: WebKit e2e
         env:
           E2E_REQUIRE: '1'
         run: |
           set -euo pipefail
           pnpm --dir frontend exec playwright install --with-deps webkit
-          node --test frontend/e2e/smoke.test.mjs frontend/e2e/nav-prefetch.test.mjs
+          node --test --test-concurrency=2 'frontend/e2e/*.test.mjs'
 
       # --branch=main 是明寫的:wrangler 從當前 git 分支推導 Pages 環境,推導錯
       # 的話東西會靜靜地上到 Preview 而不是 Production,看起來像快取問題

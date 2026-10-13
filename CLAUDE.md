@@ -312,7 +312,7 @@ bucket **永遠不公開**,一律走 `/img/:key`、`/pdf/:key` 的 Worker 代理
 | `pnpm typecheck` + `pnpm --dir frontend typecheck` | tsc(**repo 沒有 eslint / biome,tsc 是唯一靜態檢查**)                                 | 每次改完                                                                               |
 | `pnpm test`                                        | 純函式:`worker/**/*.test.ts`、`frontend/src/lib`、`frontend/src/chat`、`scripts/lib` | 每次改完。push `main` 且這次會部署時,`check` job 也跑;紅了就不部署                     |
 | `pnpm test:webkit`                                 | build 前端 → WebKit(iPhone)e2e **全部 47 支**(glob,不是逐檔列舉),打 `frontend/e2e/fixtures/` 的樁 | 動到 React / TipTap / 版面 / SW。約 6m50s;為什麼限併發見下面那節 |
-| CI(`deploy.yml`)                                   | 部署前 `check`:`typecheck` 兩邊 + `pnpm test`。Pages job 另跑 `smoke` + `nav-prefetch`,`E2E_REQUIRE=1` | push main 自動。兩邊都不部署時不跑 `check`                                              |
+| CI(`deploy.yml`)                                   | 部署前 `check`:`typecheck` 兩邊 + `pnpm test`。Pages job 另以 `--test-concurrency=2` 跑整包 `frontend/e2e/*.test.mjs`,`E2E_REQUIRE=1` | push main 自動。兩邊都不部署時不跑 `check`。WebKit 沒裝是紅的,不是 skip |
 
 e2e 不接真 Worker:`frontend/e2e/server.mjs` 回 `fixtures/<path 把 / 換成 _>.json`,沒有 fixture
 的端點回 `{}` 並在結尾列出。**新路由 = 新 fixture**:`wrangler dev` 下打真端點存回應。
@@ -324,7 +324,9 @@ e2e 不接真 Worker:`frontend/e2e/server.mjs` 回 `fixtures/<path 把 / 換成 
 測試」在畫面上一模一樣。實際發生過兩次:`hidden-year.test.mjs`(5 條)與
 `smear-gallery.test.mjs`(10 條)都在磁碟上、單獨跑全綠,但**從來沒有被這個關卡跑
 到**。改成 `node --test 'frontend/e2e/*.test.mjs'` 之後那個失誤不可能再發生 ——
-同「離線預載」那節的精神:不是把問題解決掉,是讓它不存在。
+同「離線預載」那節的精神:不是把問題解決掉,是讓它不存在。Pages 部署用的是
+同一條 glob 與 `--test-concurrency=2`(`E2E_REQUIRE=1`);建置在部署 job 裡已經做過,
+所以那一步不再呼叫 `pnpm test:webkit`。
 
 ⚠️ **`--test-concurrency=2` 是承重的,不是調校。** `node --test` 預設按 CPU 數平行
 跑檔案(這台機器 10 核 = 同時開十個瀏覽器),而每支 spec 都自己 launch 一個 WebKit。

@@ -36,3 +36,17 @@ test('會部署時先跑 typecheck 與單元測試,紅了才不會上線', () =>
 		assert.doesNotMatch(job, /always\(\)/);
 	}
 });
+
+test('Pages 部署前跑整包 WebKit,併發維持 2', () => {
+	const pages = jobBlock('pages');
+	assert.match(pages, /E2E_REQUIRE: '1'/);
+	assert.match(pages, /node --test --test-concurrency=2 'frontend\/e2e\/\*\.test\.mjs'/);
+	assert.doesNotMatch(pages, /smoke\.test\.mjs frontend\/e2e\/nav-prefetch/);
+	// 題目頁與抹片作答的 spec 在這個 glob 裡。點名清單漏掉它們時,這條會紅。
+	for (const file of ['smoke.test.mjs', 'smear-practice.test.mjs', 'tab-cache.test.mjs']) {
+		assert.ok(
+			fs.existsSync(path.join(ROOT, 'frontend/e2e', file)),
+			`${file} 不在 e2e glob 裡`,
+		);
+	}
+});
