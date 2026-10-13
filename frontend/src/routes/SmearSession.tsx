@@ -13,11 +13,14 @@ import {
 	type SmearSessionQuestion,
 	type SmearGradeResponse,
 } from "../lib/smearApi";
+import { useGamepad } from "../hooks/useGamepad";
+import { GamepadFab } from "../components/GamepadFab";
 import { SmearImage } from "../components/smear/SmearImage";
-import { AnswerInput } from "../components/smear/AnswerInput";
+import { AnswerInput, type SmearAnswerHandle } from "../components/smear/AnswerInput";
 import { GradeReveal, type SmearGradeDisplay } from "../components/smear/GradeReveal";
 import { SmearDxPanel } from "../components/smear/SmearDxPanel";
 import { ReadingFramework } from "../components/smear/ReadingFramework";
+import { SMEAR_PAD_HINTS, smearPadIntent, type SmearPadPhase } from "../lib/smearGamepad";
 
 // /smear/s/:id —— 作答頁。手機是這個功能最主要的使用情境(CLAUDE.md
 // 「MOBILE IS THE PRIORITY」),版面刻意單欄堆疊到所有寬度(圖 → 提示 →
@@ -60,6 +63,30 @@ export function SmearSession() {
 	const [finishing, setFinishing] = useState(false);
 	const [autoFinishNotice, setAutoFinishNotice] = useState<string | null>(null);
 	const finishingRef = useRef(false);
+	const answerRef = useRef<SmearAnswerHandle>(null);
+	const [inputPhase, setInputPhase] = useState<Exclude<SmearPadPhase, "answered">>("typing");
+	// 手把回呼看的是這一格,不是當下那次 render 的閉包:輸入框打字不會讓
+	// 這一頁重繪,送不送得出去要問 AnswerInput 自己。
+	const padCtx = useRef({
+		idx: 0,
+		hasResult: false,
+		next: () => {},
+		prev: () => {},
+	});
+
+	useGamepad((action) => {
+		const ctx = padCtx.current;
+		const handle = answerRef.current;
+		const phase: SmearPadPhase = ctx.hasResult ? "answered" : (handle?.phase() ?? "typing");
+		const intent = smearPadIntent(phase, action, handle?.canSubmit() ?? false);
+		if (intent.kind === "move") handle?.moveChoice(intent.delta);
+		else if (intent.kind === "submit") handle?.submitFromPad();
+		else if (intent.kind === "next") {
+			if (ctx.hasResult && !finishingRef.current) ctx.next();
+		} else if (intent.kind === "prev") {
+			if (ctx.idx > 0) ctx.prev();
+		}
+	});
 
 	// 載入 session。**Reload 恢復進度**:已作答的題目從 `answered`/`my_tier`/
 	// `my_score`(複習模式全程揭曉;全真模式要 finish 之後才揭曉,見
@@ -196,6 +223,7 @@ export function SmearSession() {
 	}
 
 	if (loadError) {
+		padCtx.current = { idx: 0, hasResult: false, next: () => {}, prev: () => {} };
 		return (
 			<div className="max-w-md mx-auto px-4 py-20 text-center">
 				<p className="text-accent">{loadError}</p>
@@ -213,6 +241,7 @@ export function SmearSession() {
 	const current = session?.questions[currentIdx];
 
 	if (!session || !current) {
+		padCtx.current = { idx: 0, hasResult: false, next: () => {}, prev: () => {} };
 		return (
 			<div className="max-w-md mx-auto px-4 py-20 text-center text-ink-400 dark:text-ink-500">
 				<Loader2 className="animate-spin mx-auto mb-3" size={22} />
@@ -234,6 +263,14 @@ export function SmearSession() {
 			setCurrentIdx((i) => Math.min(total - 1, i + 1));
 		}
 	}
+
+	padCtx.current = {
+		idx: currentIdx,
+		hasResult: !!currentResult,
+		next: goNext,
+		prev: goPrev,
+	};
+	const padPhase: SmearPadPhase = currentResult ? "answered" : inputPhase;
 
 	return (
 		<div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-20">
@@ -333,9 +370,11 @@ export function SmearSession() {
 			{!currentResult ? (
 				<AnswerInput
 					key={current.id}
+					ref={answerRef}
 					submitting={submitting}
 					topicHint={SMEAR_TOPIC_LABELS[current.topic] ?? current.topic}
 					mode={session.mode}
+					onPhaseChange={setInputPhase}
 					onSubmit={(value, hintUsed) => void handleSubmit(current, value, hintUsed)}
 					onRequestMcOptions={
 						session.mode === "review"
@@ -411,6 +450,7 @@ export function SmearSession() {
 					{isLast ? "查看成績" : "下一題"}
 				</button>
 			</div>
+			<GamepadFab hints={SMEAR_PAD_HINTS[padPhase]} />
 		</div>
 	);
 }

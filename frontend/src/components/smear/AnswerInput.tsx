@@ -1,7 +1,16 @@
-import { useId, useState } from "react";
+import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
 import { CircleHelp, Loader2 } from "lucide-react";
 import type { SmearMode } from "../../lib/smearApi";
 import { acceptInitial, spellingHintUsed } from "../../lib/smearHint";
+import { moveSmearChoice, type SmearPadPhase } from "../../lib/smearGamepad";
+
+/** 作答頁只有一個手把訂閱。這個把手讓那一層移動選項、送出,不必再訂一次。 */
+export type SmearAnswerHandle = {
+	phase: () => Exclude<SmearPadPhase, "answered">;
+	canSubmit: () => boolean;
+	moveChoice: (delta: 1 | -1) => void;
+	submitFromPad: () => void;
+};
 
 /**
  * 單一自由輸入框,取代「每個字一格」的設計 —— 見 SmearSession.tsx 檔頭那段
@@ -31,14 +40,9 @@ import { acceptInitial, spellingHintUsed } from "../../lib/smearHint";
  * 「用了分類提示」(`'topic'`)、「單純猜錯」(`null`)分得開,純粹是
  * 分析用的旗標,不影響判分。
  */
-export function AnswerInput({
-	onSubmit,
-	submitting,
-	topicHint,
-	mode,
-	onRequestMcOptions,
-	onRequestInitial,
-}: {
+export const AnswerInput = forwardRef<
+	SmearAnswerHandle,
+	{
 	onSubmit: (value: string, hintUsed?: string) => void;
 	submitting: boolean;
 	/** 分類提示的顯示文字。undefined = 這一題沒有提示可用。 */
@@ -62,7 +66,20 @@ export function AnswerInput({
 	 * 整個不在 DOM 裡)。輸入框留著,送出仍走拼字判定。
 	 */
 	onRequestInitial?: () => Promise<string>;
-}) {
+	/** 看選項清單出現或收回時通知作答頁,好換成對的那份按鍵說明。 */
+	onPhaseChange?: (phase: Exclude<SmearPadPhase, "answered">) => void;
+}>(function AnswerInput(
+	{
+		onSubmit,
+		submitting,
+		topicHint,
+		mode,
+		onRequestMcOptions,
+		onRequestInitial,
+		onPhaseChange,
+	},
+	ref,
+) {
 	const [value, setValue] = useState("");
 	const [hintShown, setHintShown] = useState(false);
 	const inputId = useId();
@@ -85,6 +102,39 @@ export function AnswerInput({
 		| { status: "shown"; letter: string }
 		| { status: "error" };
 	const [initialHint, setInitialHint] = useState<InitialState>({ status: "hidden" });
+
+	const valueRef = useRef(value);
+	const mcRef = useRef(mc);
+	const choiceRef = useRef(mcChoice);
+	const submittingRef = useRef(submitting);
+	valueRef.current = value;
+	mcRef.current = mc;
+	choiceRef.current = mcChoice;
+	submittingRef.current = submitting;
+
+	const submitRef = useRef<() => void>(() => {});
+
+	useEffect(() => {
+		onPhaseChange?.(mc.status === "loaded" ? "choices" : "typing");
+	}, [mc.status, onPhaseChange]);
+
+	useImperativeHandle(ref, () => ({
+		phase: () => (mcRef.current.status === "loaded" ? "choices" : "typing"),
+		canSubmit: () => {
+			if (submittingRef.current) return false;
+			const m = mcRef.current;
+			if (m.status === "loaded") return choiceRef.current != null;
+			return valueRef.current.trim().length > 0;
+		},
+		moveChoice: (delta) => {
+			const m = mcRef.current;
+			if (m.status !== "loaded" || submittingRef.current) return;
+			const index = choiceRef.current == null ? -1 : m.options.indexOf(choiceRef.current);
+			const next = moveSmearChoice(index, m.options.length, delta);
+			if (next >= 0) setMcChoice(m.options[next]);
+		},
+		submitFromPad: () => submitRef.current(),
+	}), []);
 
 	async function requestInitial() {
 		if (!onRequestInitial || submitting || initialHint.status === "loading") return;
@@ -132,6 +182,7 @@ export function AnswerInput({
 			}),
 		);
 	}
+	submitRef.current = submit;
 
 	// 無視輸入框目前打了什麼(哪怕才打兩個字),一律送空字串 —— 「放棄」
 	// 跟「打了一半的猜測」混在一起送出去,判定會很難懂。
@@ -144,12 +195,10 @@ export function AnswerInput({
 		<div className="space-y-3">
 			{mc.status === "loaded" ? (
 				<>
-					{/* 單選清單 —— name 相同的原生 radio group 本來就支援方向鍵在
-					    選項間移動 + Enter/Space 選取,不需要另外接手把/鍵盤邏輯就有
-					    基本的鍵盤互動。視覺語彙(圓角框線/選中變 accent 邊框)跟
-					    QuestionCard 的選項列同一套語言,但這裡是獨立的小元件 ——
-					    QuestionCard 綁死 MCQ 題目的資料形狀(收藏/信心/管理員編輯),
-					    直接重用會把兩個完全不同的資料模型綁在一起。 */}
+					{/* 單選清單。鍵盤的方向鍵仍靠同 name 的原生 radio。手把不走這裡:
+					    作答頁只有一個訂閱,經 SmearAnswerHandle 改 mcChoice。
+					    視覺語彙跟 QuestionCard 的選項列同一套,但是獨立元件 ——
+					    QuestionCard 綁死 MCQ 的收藏/信心/管理員編輯。 */}
 					<fieldset className="space-y-2">
 						<legend className="sr-only">選一個診斷</legend>
 						{mc.options.map((opt, i) => (
@@ -300,4 +349,4 @@ export function AnswerInput({
 			)}
 		</div>
 	);
-}
+});
