@@ -1,0 +1,14 @@
+{
+  "rows": [
+    {
+      "id": "sn1",
+      "dx_id": "dacrocyte",
+      "canonical_long": "Dacrocyte",
+      "content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"淚滴狀紅血球\"}]}]}",
+      "sort_order": 0,
+      "created_at": 1753900000000,
+      "updated_at": 1753900000000
+    }
+  ],
+  "next": null
+}

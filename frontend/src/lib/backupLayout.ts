@@ -21,6 +21,10 @@ export type BackupRows = {
   lectureAnnotations: any[];
   lectureNotes: any[];
   freeNotes: any[];
+  smearBookmarks: any[];
+  smearNotes: any[];
+  smearSessions: any[];
+  smearAnswers: any[];
 };
 
 export type BackupMeta = {
@@ -55,6 +59,11 @@ export type QuestionFile = {
     highlights: unknown[];
   };
 };
+
+function imagePath(key: unknown): string | null {
+  if (typeof key !== 'string' || !key) return null;
+  return key.startsWith('/img/') ? key : `/img/${key}`;
+}
 
 function parseJson(v: unknown) {
   if (typeof v !== 'string') return v ?? null;
@@ -207,6 +216,74 @@ export function buildBackupFiles(meta: BackupMeta, rows: BackupRows): Record<str
     out['misc/highlights.json'] = json(unmatchedHighlights);
   }
 
+  // 抹片。進行中的場次不寫 —— 全真交卷前的列還沒有判定。作答只跟著
+  // 寫出去的場次走,避免一筆沒有場次的作答自己變成一個檔。
+  if (rows.smearBookmarks.length) {
+    out['smear/bookmarks.json'] = json(
+      rows.smearBookmarks.map((b) => ({
+        dx_id: b.dx_id,
+        canonical_long: b.canonical_long ?? null,
+        topic: b.topic ?? null,
+        qtype: b.qtype ?? null,
+        created_at: b.created_at,
+      })),
+    );
+  }
+  const smearNotesBy = groupBy(rows.smearNotes, (n) => n.dx_id);
+  for (const [dxId, notes] of smearNotesBy) {
+    const sorted = [...notes].sort(
+      (a, b) =>
+        (a.sort_order ?? 0) - (b.sort_order ?? 0) ||
+        String(a.id).localeCompare(String(b.id)),
+    );
+    out[`smear/notes/${dxId}.json`] = json({
+      dx_id: dxId,
+      canonical_long: sorted[0]?.canonical_long ?? null,
+      notes: sorted.map((n) => ({
+        id: n.id,
+        content: parseJson(n.content_json),
+        sort_order: n.sort_order ?? 0,
+        created_at: n.created_at,
+        updated_at: n.updated_at,
+      })),
+    });
+  }
+  const finishedSessions = rows.smearSessions.filter((s) => s.finished_at != null);
+  const finishedIds = new Set(finishedSessions.map((s) => s.id));
+  const smearAnswersBy = groupBy(
+    rows.smearAnswers.filter((a) => finishedIds.has(a.session_id)),
+    (a) => a.session_id,
+  );
+  for (const s of finishedSessions) {
+    out[`smear/sessions/${s.id}.json`] = json({
+      session: {
+        id: s.id,
+        mode: s.mode,
+        config: parseJson(s.config_json),
+        question_ids: parseJson(s.question_ids),
+        started_at: s.started_at,
+        finished_at: s.finished_at,
+        score: s.score ?? null,
+        max_score: s.max_score ?? null,
+        spelling_ok: s.spelling_ok ?? null,
+        lay_count: s.lay_count ?? null,
+      },
+      answers: (smearAnswersBy.get(s.id) ?? []).map((a) => ({
+        question_id: a.question_id,
+        idx: a.idx,
+        dx_id: a.dx_id ?? null,
+        image_view: imagePath(a.image_key_view),
+        image_full: imagePath(a.image_key_full),
+        typed: parseJson(a.typed_json),
+        tier: a.tier ?? null,
+        score: a.score ?? null,
+        spelling_errors: parseJson(a.spelling_errors_json),
+        hint_used: a.hint_used ?? null,
+        answered_at: a.answered_at ?? null,
+      })),
+    });
+  }
+
   out['manifest.json'] = json({
     ...meta,
     counts: {
@@ -222,6 +299,10 @@ export function buildBackupFiles(meta: BackupMeta, rows: BackupRows): Record<str
       lecture_annotations: rows.lectureAnnotations.length,
       lecture_notes: rows.lectureNotes.length,
       free_notes: rows.freeNotes.length,
+      smear_bookmarks: rows.smearBookmarks.length,
+      smear_notes: rows.smearNotes.length,
+      smear_sessions: finishedSessions.length,
+      smear_answers: rows.smearAnswers.filter((a) => finishedIds.has(a.session_id)).length,
     },
   });
 
@@ -248,8 +329,14 @@ questions/<年>/<題號>.json   一題一個檔案(見下)
 exams/<session_id>.json      一場全真模擬:session + 每題作答
 lectures/<slug>.json         一份講義:標題 + 我在第幾頁畫了什麼、寫了什麼
 notes/<id>.json              其他筆記(不掛在任何題目上的私人筆記)
+smear/bookmarks.json         我收藏的抹片診斷
+smear/notes/<診斷>.json      某個診斷上的個人筆記
+smear/sessions/<id>.json     一場已結束的抹片練習:場次 + 逐題作答(含 hint_used)
 misc/highlights.json         前綴認不出來的畫記(通常是空的)
 \`\`\`
+
+進行中的抹片場次不在這份 zip 裡。圖檔沒有打包,作答列上的 \`image_view\` /
+\`image_full\` 是 \`/img/<key>\`。
 
 ## questions/<年>/<題號>.json
 
@@ -294,6 +381,6 @@ misc/highlights.json         前綴認不出來的畫記(通常是空的)
 - 我的筆記寫了很多、但作答仍然錯的題目?(\`my.notes\` 非空且最近一次 \`is_correct\` 為 0)
 - 全真模擬的分數趨勢,以及每一場裡錯在哪些年份/分類。
 
-目前共 ${rows.questions.length} 題、${rows.attempts.length} 筆作答、${rows.notes.length} 則題目筆記、${rows.freeNotes.length} 則其他筆記。
+目前共 ${rows.questions.length} 題、${rows.attempts.length} 筆作答、${rows.notes.length} 則題目筆記、${rows.freeNotes.length} 則其他筆記、${rows.smearSessions.filter((s) => s.finished_at != null).length} 場已結束的抹片練習。
 `;
 }

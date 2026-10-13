@@ -179,6 +179,10 @@ test("備份端點永遠不快取 —— 備份到的必須是「現在」", () 
 	);
 	assert.equal(isCacheableApiPath("/api/backup/notes"), false);
 	assert.equal(isCacheableApiPath("/api/backup/free-notes"), false);
+	assert.equal(isCacheableApiPath("/api/backup/smear-bookmarks"), false);
+	assert.equal(isCacheableApiPath("/api/backup/smear-notes"), false);
+	assert.equal(isCacheableApiPath("/api/backup/smear-sessions"), false);
+	assert.equal(isCacheableApiPath("/api/backup/smear-answers"), false);
 });
 
 test("scheduling and answer state are never cacheable", () => {

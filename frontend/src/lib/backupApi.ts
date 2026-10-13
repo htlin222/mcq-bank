@@ -64,10 +64,14 @@ const PARTS: { key: keyof BackupRows; path: string; label: string }[] = [
 	{ key: "lectureAnnotations", path: "lecture-annotations", label: "講義畫記" },
 	{ key: "lectureNotes", path: "lecture-notes", label: "講義筆記" },
 	{ key: "freeNotes", path: "free-notes", label: "其他筆記" },
+	{ key: "smearBookmarks", path: "smear-bookmarks", label: "抹片收藏" },
+	{ key: "smearNotes", path: "smear-notes", label: "抹片筆記" },
+	{ key: "smearSessions", path: "smear-sessions", label: "抹片場次" },
+	{ key: "smearAnswers", path: "smear-answers", label: "抹片作答" },
 ];
 
 /**
- * 循序抓完所有區塊。刻意**不併發**:一個人的備份是幾十 MB,十二支同時打會讓
+ * 循序抓完所有區塊。刻意**不併發**:一個人的備份是幾十 MB,十六支同時打會讓
  * 這個帳號自己把 D1 的並行度吃光,而其他人正在用同一個 Worker。慢一點沒關係,
  * 這是使用者主動按下、看著進度條等的操作。
  */

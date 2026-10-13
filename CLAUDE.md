@@ -2382,7 +2382,9 @@ no fixture get `{}` and are listed at the end of the run.
 個人頁的「備份我的紀錄」(`/api/backup/*`,`frontend/src/lib/backupLayout.ts`)
 把這個帳號的全部紀錄倒成一個 zip:一題一個 JSON(題目、共筆詳解 + 我的作答、
 信心、筆記、畫記、收藏)、一場模擬考一個 JSON、一份講義一個 JSON、其他筆記
-一則一個,外加一份 `CLAUDE.md` 讓 Claude 打開整個資料夾就看得懂。
+一則一個,再加上抹片的收藏診斷、個人筆記、已結束場次與逐題作答,外加一份
+`CLAUDE.md` 讓 Claude 打開整個資料夾就看得懂。`schema_version` 2 起才有
+`smear/`(1 沒有)。進行中的抹片場次不進 zip。
 
 - **打包在 client。** 實測單一使用者的 `personal_notes` 就有 3976 則 / 35.8 MB
   (再加 1100 題與 1.85 MB 的共筆詳解)。free plan 一次請求 10ms CPU、128 MB
@@ -2403,9 +2405,13 @@ no fixture get `{}` and are listed at the end of the run.
   `bookmark_items`。照著文件寫會拿到 `no such column: bookmarked` —— 這是寫這個
   功能時真的踩到的。
 - **圖片不打包**,`/img/<key>` 保持原樣。血液抹片那類圖會讓體積再翻一倍,而
-  文字分析不受影響。
+  文字分析不受影響。抹片作答列上的 `image_view` / `image_full` 也只是這個
+  key,位元組不進 zip。
+- **抹片作答的游標是 `session_id` + 換行 + `question_id`。** 一場最多 200 題、
+  一頁預設也是 200,頁面會切在一場中間。只記 `session_id` 的話,下一頁的
+  `session_id > ?` 會把這一場剩下的題丟掉。
 - 驗證分兩層:`backupLayout.test.ts` 是純函式(併檔正確性),
-  `frontend/e2e/backup.test.mjs` 走真的瀏覽器 —— 按下按鈕、抓完 12 支端點、
+  `frontend/e2e/backup.test.mjs` 走真的瀏覽器 —— 按下按鈕、抓完 16 支端點、
   壓成 zip、觸發下載,再把下載到的檔案解開檢查。後者涵蓋的是單元測試碰不到
   的那一半(fflate 的 worker thread、`URL.createObjectURL`、`<a download>`)。
 

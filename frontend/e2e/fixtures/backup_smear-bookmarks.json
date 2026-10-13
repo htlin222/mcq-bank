@@ -1,0 +1,12 @@
+{
+  "rows": [
+    {
+      "dx_id": "dacrocyte",
+      "canonical_long": "Dacrocyte",
+      "topic": "rbc",
+      "qtype": "cell",
+      "created_at": 1753900000000
+    }
+  ],
+  "next": null
+}

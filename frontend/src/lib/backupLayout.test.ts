@@ -18,6 +18,10 @@ function rows(over: Partial<BackupRows> = {}): BackupRows {
     lectureAnnotations: [],
     lectureNotes: [],
     freeNotes: [],
+    smearBookmarks: [],
+    smearNotes: [],
+    smearSessions: [],
+    smearAnswers: [],
     ...over,
   };
 }
@@ -176,6 +180,121 @@ test('只有畫記、沒有筆記的講義也要有檔案', () => {
     })
   );
   assert.ok(files['lectures/lec-2.json']);
+});
+
+test('抹片:收藏與筆記進 zip,已結束場次帶 hint_used 與 /img key,進行中的場次不進', () => {
+  const files = buildBackupFiles(
+    META,
+    rows({
+      smearBookmarks: [
+        {
+          dx_id: 'dacrocyte',
+          canonical_long: 'Dacrocyte',
+          topic: 'rbc',
+          qtype: 'cell',
+          created_at: 1,
+        },
+      ],
+      smearNotes: [
+        {
+          id: 'sn2',
+          dx_id: 'dacrocyte',
+          canonical_long: 'Dacrocyte',
+          content_json: '{"type":"doc","content":[]}',
+          sort_order: 1,
+          created_at: 2,
+          updated_at: 3,
+        },
+        {
+          id: 'sn1',
+          dx_id: 'dacrocyte',
+          canonical_long: 'Dacrocyte',
+          content_json: '{"type":"doc"}',
+          sort_order: 0,
+          created_at: 1,
+          updated_at: 1,
+        },
+      ],
+      smearSessions: [
+        {
+          id: 'ss1',
+          mode: 'review',
+          config_json: '{"n":1}',
+          question_ids: '["q1"]',
+          started_at: 1,
+          finished_at: 9,
+          score: 1,
+          max_score: 1,
+          spelling_ok: 1,
+          lay_count: 0,
+        },
+        {
+          id: 'ss-open',
+          mode: 'exam',
+          config_json: '{}',
+          question_ids: '[]',
+          started_at: 2,
+          finished_at: null,
+        },
+      ],
+      smearAnswers: [
+        {
+          session_id: 'ss1',
+          question_id: 'q1',
+          idx: 0,
+          dx_id: 'dacrocyte',
+          image_key_view: 'smear/exam/q1-view.webp',
+          image_key_full: '/img/smear/exam/q1-full.webp',
+          typed_json: '["dacrocyte"]',
+          tier: 'full',
+          score: 1,
+          spelling_errors_json: '[]',
+          hint_used: 'topic',
+          answered_at: 8,
+        },
+        {
+          session_id: 'ss-open',
+          question_id: 'q9',
+          idx: 0,
+          image_key_view: 'smear/exam/secret.webp',
+          hint_used: 'reveal_answer',
+          typed_json: '["x"]',
+        },
+      ],
+    }),
+  );
+
+  const bm = JSON.parse(files['smear/bookmarks.json']);
+  assert.equal(bm[0].canonical_long, 'Dacrocyte');
+
+  const notes = JSON.parse(files['smear/notes/dacrocyte.json']);
+  assert.deepEqual(
+    notes.notes.map((n: { id: string }) => n.id),
+    ['sn1', 'sn2'],
+    '同一診斷的筆記依 sort_order 排',
+  );
+
+  const sess = JSON.parse(files['smear/sessions/ss1.json']);
+  assert.equal(sess.session.mode, 'review');
+  assert.deepEqual(sess.session.question_ids, ['q1']);
+  assert.equal(sess.answers.length, 1);
+  assert.equal(sess.answers[0].hint_used, 'topic');
+  assert.equal(sess.answers[0].image_view, '/img/smear/exam/q1-view.webp');
+  assert.equal(sess.answers[0].image_full, '/img/smear/exam/q1-full.webp');
+  assert.deepEqual(sess.answers[0].typed, ['dacrocyte']);
+
+  assert.equal(files['smear/sessions/ss-open.json'], undefined);
+  const dumped = JSON.stringify(files);
+  assert.equal(dumped.includes('secret.webp'), false);
+  assert.equal(dumped.includes('reveal_answer'), false);
+
+  const m = JSON.parse(files['manifest.json']);
+  assert.equal(m.counts.smear_bookmarks, 1);
+  assert.equal(m.counts.smear_notes, 2);
+  assert.equal(m.counts.smear_sessions, 1);
+  assert.equal(m.counts.smear_answers, 1);
+  assert.match(files['CLAUDE.md'], /smear\/sessions\/<id>\.json/);
+  assert.match(files['CLAUDE.md'], /1 場已結束的抹片練習/);
 });
 
 test('manifest 與 CLAUDE.md 一定在', () => {

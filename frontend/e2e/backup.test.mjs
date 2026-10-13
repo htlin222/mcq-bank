@@ -1,4 +1,4 @@
-// 「備份我的紀錄」的整條路(#123):按下按鈕 → 抓完 12 支分頁端點 → 在瀏覽器裡
+// 「備份我的紀錄」的整條路(#123、#255):按下按鈕 → 抓完 16 支分頁端點 → 在瀏覽器裡
 // 壓成 zip → 觸發下載 → 把下載到的檔案解開,檢查目錄結構與內容。
 //
 // buildBackupFiles() 的重排邏輯已經在 backupLayout.test.ts 用純函式測過了。
@@ -130,9 +130,23 @@ test('個人頁按下「下載備份」,拿到一個結構正確的 zip', async 
     assert.equal(note.title, 'anthracycline 心毒性');
     assert.equal(note.highlights.length, 1, '自由筆記的畫記沒有跟著走');
 
+    const bookmarks = JSON.parse(read('smear/bookmarks.json'));
+    assert.equal(bookmarks[0].dx_id, 'dacrocyte');
+
+    const smearNote = JSON.parse(read('smear/notes/dacrocyte.json'));
+    assert.equal(smearNote.notes[0].id, 'sn1');
+
+    const smear = JSON.parse(read('smear/sessions/ss1.json'));
+    assert.equal(smear.session.mode, 'review');
+    assert.equal(smear.answers[0].hint_used, 'topic');
+    assert.equal(smear.answers[0].image_view, '/img/smear/exam/q1-view.webp');
+    assert.equal(smear.answers[0].image_full, '/img/smear/exam/q1-full.webp');
+
     const manifest = JSON.parse(read('manifest.json'));
-    assert.equal(manifest.schema_version, 1);
+    assert.equal(manifest.schema_version, 2);
     assert.equal(manifest.counts.questions, 2);
+    assert.equal(manifest.counts.smear_sessions, 1);
+    assert.equal(manifest.counts.smear_answers, 1);
 
     // 這份 zip 唯一會被人直接讀的檔案。
     const claude = read('CLAUDE.md');
