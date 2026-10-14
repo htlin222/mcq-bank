@@ -6,6 +6,7 @@ import {
 	describeImageCost,
 	hasRoomFor,
 	imagesInQuestionPayload,
+	settleCachedCount,
 } from "./offlineImages.ts";
 
 const img = (src: string) => ({ type: "image", attrs: { src } });
@@ -113,4 +114,63 @@ test("已用掉的空間要算進去", () => {
 		hasRoomFor(200, { usage: need * 9, quota: need * 10 }),
 		false,
 	);
+});
+
+// —— 快取落定 ———————————————————————————————————————————————
+// Workbox 先還回應、後寫 img-v1。只數一次會把「還沒寫進去」當成失敗。
+
+function virtualClock() {
+	let t = 0;
+	return {
+		now: () => t,
+		sleep: async (ms: number) => {
+			t += ms;
+		},
+		elapsed: () => t,
+	};
+}
+
+test("第一次就數滿就不再等", async () => {
+	const clock = virtualClock();
+	let calls = 0;
+	const have = await settleCachedCount(
+		async () => {
+			calls++;
+			return 3;
+		},
+		3,
+		{ budgetMs: 5_000, now: clock.now, sleep: clock.sleep },
+	);
+	assert.equal(have, 3);
+	assert.equal(calls, 1);
+	assert.equal(clock.elapsed(), 0);
+});
+
+test("數太早時等到足額才停,不等完整個預算", async () => {
+	const clock = virtualClock();
+	let calls = 0;
+	const have = await settleCachedCount(
+		async () => {
+			calls++;
+			return clock.elapsed() >= 80 ? 2 : 0;
+		},
+		2,
+		{ budgetMs: 5_000, now: clock.now, sleep: clock.sleep },
+	);
+	assert.equal(have, 2);
+	assert.ok(calls >= 2, `至少要再數一次,實際 ${calls}`);
+	assert.ok(clock.elapsed() >= 80, `等太短 ${clock.elapsed()}`);
+	assert.ok(clock.elapsed() < 5_000, `不該耗完整個預算 ${clock.elapsed()}`);
+});
+
+test("預算用完仍然不足就交回實際張數", async () => {
+	const clock = virtualClock();
+	const have = await settleCachedCount(async () => 1, 4, {
+		budgetMs: 200,
+		now: clock.now,
+		sleep: clock.sleep,
+	});
+	assert.equal(have, 1);
+	assert.ok(clock.elapsed() >= 200, `預算沒走完 ${clock.elapsed()}`);
+	assert.ok(clock.elapsed() < 600, `睡超過預算太多 ${clock.elapsed()}`);
 });

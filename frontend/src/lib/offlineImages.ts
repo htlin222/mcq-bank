@@ -96,3 +96,41 @@ export function hasRoomFor(
 	const free = quota.quota - (quota.usage ?? 0);
 	return free > count * AVG_IMAGE_BYTES * 3;
 }
+
+/**
+ * CacheFirst 把回應還給頁面之後,`cache.put` 才在 Service Worker 裡跑
+ * (`fetchAndCachePut` 丟進 `waitUntil`,而且 `cachePut` 開頭還讓出一個 task)。
+ * 頁面的 `fetch()` 一 resolve 就去數 `img-v1`,會數到「還沒寫進去」,
+ * 然後把「備好了」退回成按鈕 —— 那一行就再也不會出現。
+ *
+ * 所以不足額時要再等,而不是把第一次的短計數當成失敗。
+ * 注入的 `now` 必須跟 `sleep` 一起前進,否則時間不動、迴圈會空轉到次數上限。
+ */
+export const IMAGE_CACHE_SETTLE_MS = 5_000;
+
+export async function settleCachedCount(
+	count: () => Promise<number>,
+	need: number,
+	opts: {
+		budgetMs?: number;
+		now?: () => number;
+		sleep?: (ms: number) => Promise<void>;
+	} = {},
+): Promise<number> {
+	const budgetMs = opts.budgetMs ?? IMAGE_CACHE_SETTLE_MS;
+	const now = opts.now ?? Date.now;
+	const sleep =
+		opts.sleep ?? ((ms) => new Promise<void>((r) => setTimeout(r, ms)));
+	const start = now();
+	let have = await count();
+	let wait = 40;
+	// 100 次是「時鐘沒在走」的保險絲。正常路徑大約十幾次就會因為預算或足額停下來。
+	for (let spins = 0; have < need && spins < 100; spins++) {
+		const left = budgetMs - (now() - start);
+		if (left <= 0) break;
+		await sleep(Math.min(wait, left));
+		have = await count();
+		wait = Math.min(wait * 2, 400);
+	}
+	return have;
+}
