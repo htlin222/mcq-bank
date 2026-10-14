@@ -4,6 +4,7 @@ import {
 	describeImageCost,
 	hasRoomFor,
 	imagesInQuestionPayload,
+	settleCachedCount,
 } from "../lib/offlineImages";
 import { PREFETCH_CONCURRENCY, runWithConcurrency } from "../lib/yearPrefetch";
 
@@ -111,14 +112,26 @@ export function useYearImages(ids: readonly string[], ready: boolean) {
 			async (src) => {
 				// CacheFirst 那條路由會自己收下。已經在快取裡的不會真的走網路。
 				const res = await fetch(src, { credentials: "same-origin" });
-				await res.arrayBuffer();
+				// 讀 body 是為了把這趟請求收完。cache.put 用的是 SW 自己的 clone,
+				// 跟這份 body 無關,所以讀卡住不能讓後面的計數一起停住。
+				await Promise.race([
+					res.arrayBuffer().then(
+						() => undefined,
+						() => undefined,
+					),
+					new Promise<void>((r) => setTimeout(r, 5_000)),
+				]);
 			},
 			{
 				concurrency: PREFETCH_CONCURRENCY,
 				onProgress: (done, total) => setState({ kind: "running", done, total }),
 			},
 		);
-		const have = await countCachedImages(srcs);
+		// fetch resolve 的當下 img-v1 常常還沒寫進去。只數一次會把狀態退回按鈕。
+		const have = await settleCachedCount(
+			() => countCachedImages(srcs),
+			srcs.length,
+		);
 		setState(
 			have >= srcs.length
 				? { kind: "ready", total: srcs.length }
