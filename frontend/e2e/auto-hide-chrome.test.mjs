@@ -81,9 +81,9 @@ async function openPage(url, viewport = PHONE) {
   return { ctx, page, scrollable };
 }
 
-/** 捲到指定位置,並等到頁面自己的下一幀。
- *  收合寫在 scroll 的 rAF 裡。固定等 350ms 牆鐘,機器一忙就會在那一幀之前讀,
- *  class 還沒掛上。 */
+/** 捲到指定位置,並等到 header 的位移停住。
+ *  class 在 scroll 的 rAF 裡改,位置再花 0.22s transition。固定等牆鐘會在
+ *  兩種中間狀態讀到值:class 還沒掛、或滑到一半(實測 top=-48)。 */
 async function scrollTo(page, y) {
   await page.evaluate((v) => window.scrollTo(0, v), y);
   await page.waitForFunction(
@@ -94,7 +94,19 @@ async function scrollTo(page, y) {
   await page.evaluate(
     () =>
       new Promise((resolve) => {
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        const header = document.querySelector('header.app-chrome-top');
+        let last = null;
+        let stable = 0;
+        const start = performance.now();
+        const step = () => {
+          const top = header ? header.getBoundingClientRect().top : 0;
+          if (last !== null && Math.abs(top - last) < 0.5) stable += 1;
+          else stable = 0;
+          last = top;
+          if (stable >= 2 || performance.now() - start > 1000) resolve();
+          else requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
       }),
   );
 }
