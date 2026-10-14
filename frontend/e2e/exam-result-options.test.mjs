@@ -24,6 +24,18 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(HERE, '..', 'dist');
 const REQUIRE = process.env.E2E_REQUIRE === '1';
 
+/** 輪詢到 computed opacity 停在 want。直接讀或等固定毫秒都會抓到 transition 中間值。 */
+async function settleOpacity(locator, want, message, timeout = 5000) {
+  const started = Date.now();
+  let last = null;
+  while (Date.now() - started < timeout) {
+    last = await locator.evaluate((el) => getComputedStyle(el).opacity);
+    if (last === want) return;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  assert.equal(last, want, message);
+}
+
 const SID = 'e2e-1';
 // 第 1 題(答錯 B、正解 A)的選項文字 —— 從 fixture 推出來,不要另外手寫一份。
 const FIXTURE = JSON.parse(
@@ -248,12 +260,11 @@ test('成績頁:hover 才出現「在新分頁開啟」,而且它沒有被巢狀
     // hover 之前看不見(opacity 0),hover 之後看得見。
     // 用 opacity 量而不是 `toBeVisible` —— `opacity-0` 的元素在 Playwright 眼裡
     // 仍然是 visible(它有尺寸、沒有 display:none),那樣寫兩邊都會通過。
-    const opacityNow = () => btn.evaluate((el) => getComputedStyle(el).opacity);
-    assert.equal(await opacityNow(), '0', 'hover 之前不該看得見');
+    // 直接讀 opacity 會抓到 transition 的中間值(實測 0.03)。輪詢到它停住。
+    await settleOpacity(btn, '0', 'hover 之前不該看得見');
 
     await row.hover();
-    await page.waitForTimeout(300);
-    assert.equal(await opacityNow(), '1', 'hover 之後該看得見');
+    await settleOpacity(btn, '1', 'hover 之後該看得見');
 
     assert.deepEqual(errors, [], '不該有未捕捉的例外');
   } finally {

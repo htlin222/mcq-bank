@@ -81,10 +81,22 @@ async function openPage(url, viewport = PHONE) {
   return { ctx, page, scrollable };
 }
 
-/** 捲到指定位置並等收合動畫走完(transition 0.22s)。 */
+/** 捲到指定位置,並等到頁面自己的下一幀。
+ *  收合寫在 scroll 的 rAF 裡。固定等 350ms 牆鐘,機器一忙就會在那一幀之前讀,
+ *  class 還沒掛上。 */
 async function scrollTo(page, y) {
   await page.evaluate((v) => window.scrollTo(0, v), y);
-  await page.waitForTimeout(350);
+  await page.waitForFunction(
+    (v) => Math.abs((document.scrollingElement?.scrollTop ?? window.scrollY) - v) <= 1,
+    y,
+    { timeout: 2_000 },
+  );
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
 }
 
 const chromeBox = (page) =>
