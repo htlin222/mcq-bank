@@ -95,6 +95,33 @@ function watch(page) {
   };
 }
 
+/** 第一次造訪把 SW 裝到 active,第二次才會被接管。
+ *  固定等 2 秒在機器忙時不夠:第二次進來還沒有 controller,預抓不會開始,
+ *  「可離線」就永遠不出現。timeout 必須是第三個引數,否則 Playwright 把它
+ *  當成傳進頁面的 arg,實際仍用 30 秒預設。 */
+async function openYearReady(page, origin) {
+  await page.goto(origin + '/year/113', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(
+    async () => {
+      const reg = await navigator.serviceWorker?.getRegistration();
+      return !!reg?.active;
+    },
+    null,
+    { timeout: 20_000 },
+  );
+  await page.goto(origin + '/year/113', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(
+    () => !!navigator.serviceWorker?.controller,
+    null,
+    { timeout: 20_000 },
+  );
+  await page.waitForFunction(
+    () => /✓ 可離線閱讀/.test(document.body.innerText),
+    null,
+    { timeout: 45_000 },
+  );
+}
+
 test('SW 還沒接管時一趟都不拓 —— 沒有人會收下那些回應', async (t) => {
   if (guard(t)) return;
   const server = await startServer({ dist: DIST });
@@ -152,9 +179,11 @@ test('SW 接管之後才拓,而且同時在飛的不超過 4 個', async (t) => 
 
     // 拓完之後畫面上要說得出「可以離線了」—— 自動且無聲的話,使用者不知道
     // 現在能不能離線,而那正是他要這個功能的唯一原因。
-    await page.waitForFunction(() => /✓ 可離線閱讀/.test(document.body.innerText), {
-      timeout: 8000,
-    });
+    await page.waitForFunction(
+      () => /✓ 可離線閱讀/.test(document.body.innerText),
+      null,
+      { timeout: 30_000 },
+    );
   } finally {
     await ctx.close();
     await server.close();
@@ -167,12 +196,7 @@ test('拓過的題目離線讀得到,沒拓過的讀不到', async (t) => {
   const ctx = await browser.newContext({ viewport: { width: 900, height: 800 } });
   const page = await ctx.newPage();
   try {
-    await page.goto(server.origin + '/year/113', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    await page.goto(server.origin + '/year/113', { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => /✓ 可離線閱讀/.test(document.body.innerText), {
-      timeout: 12000,
-    });
+    await openYearReady(page, server.origin);
 
     // **把 fixture 伺服器關掉**,不是 setOffline —— 真的連不上,而且不會踩到
     // WebKit 對離線整頁導覽的內部錯誤。
@@ -215,17 +239,12 @@ test('圖片:算得出張數、按下去才拓,而且真的進得了 img-v1', as
   const ctx = await browser.newContext({ viewport: { width: 900, height: 900 } });
   const page = await ctx.newPage();
   try {
-    await page.goto(server.origin + '/year/113', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    await page.goto(server.origin + '/year/113', { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => /✓ 可離線閱讀/.test(document.body.innerText), {
-      timeout: 12000,
-    });
+    await openYearReady(page, server.origin);
 
     // 文字拓完之前不該出現這顆按鈕 —— 那時快取裡只有一半的 payload,算出來的
     // 張數會偏低,而按鈕上那個數字正是使用者用來決定要不要按的依據。
     const btn = page.locator('button', { hasText: '連圖片一起離線備用' });
-    await btn.waitFor({ timeout: 8000 });
+    await btn.waitFor({ timeout: 20_000 });
 
     // 正面對照:按鈕上真的寫著張數與 MB,不是一句空話。
     const label = (await btn.innerText()).trim();
@@ -239,9 +258,11 @@ test('圖片:算得出張數、按下去才拓,而且真的進得了 img-v1', as
     });
 
     await btn.click();
-    await page.waitForFunction(() => /✓ 圖片也備好了/.test(document.body.innerText), {
-      timeout: 15000,
-    });
+    await page.waitForFunction(
+      () => /✓ 圖片也備好了/.test(document.body.innerText),
+      null,
+      { timeout: 45_000 },
+    );
 
     const after = await page.evaluate(async () => {
       const c = await caches.open('img-v1');
