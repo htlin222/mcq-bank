@@ -132,7 +132,8 @@ jobs:
   # 一個不會發生的部署付這段時間;check 自己失敗仍然是紅的。
   #
   # node 22:package.json 的 `pnpm test` 直接把 .ts 交給 node --test。
-  # 部署 job 的 node 20 不會剝型別,這三項在那上面跑不起來。
+  # worker job 維持 node 20:它不跑 node --test,也不剝型別。
+  # pages job 另外也是 22,理由寫在那個 job(引號裡的 e2e glob)。
   check:
     needs: classify
     if: needs.classify.outputs.pages == 'true' || needs.classify.outputs.worker == 'true'
@@ -193,9 +194,13 @@ jobs:
         with:
           version: 9
 
+      # node 22。下面 WebKit 那步的 glob 包在單引號裡,bash 不展開;
+      # node 20 的 test runner 也不展開,於是整包 e2e 在找到任何 spec
+      # 之前就以 Could not find '.../*.test.mjs' 退出,Pages 沒有部署。
+      # 不要改回 20,也不要拿掉引號(deploy-check 鎖的就是這條引號指令)。
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
