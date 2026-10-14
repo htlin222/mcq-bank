@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { settleCachedCount } from "../lib/offlineImages";
 import { API_CACHE_NAME } from "../lib/sw-guards";
 import {
 	PREFETCH_CONCURRENCY,
@@ -95,12 +96,21 @@ export function useYearPrefetch(
 
 	useEffect(() => {
 		if (!year || ids.length === 0) return;
-		if (!swControlling()) return;
-		const list = idsRef.current;
 		const ac = new AbortController();
 		let cancelled = false;
+		let started = false;
+		let cancelIdle: (() => void) | null = null;
 
-		const cancelIdle = onIdle(() => {
+		// controller 常常比第一個 effect 晚到(WebKit 量過:文件已經畫了,
+		// controller 過兩秒才是 true),而且不一定發 controllerchange。
+		// 那一次 return 之後 year 與題數都沒變,effect 不會再跑,這一年
+		// 就永遠不拓,「可離線閱讀」也不會出現。
+		const start = () => {
+			if (cancelled || started || !swControlling()) return;
+			started = true;
+			detach();
+			const list = idsRef.current;
+			cancelIdle = onIdle(() => {
 			void (async () => {
 				// 先問快取:已經齊了就直接顯示可離線,一趟請求都不必發。這條同時
 				// 涵蓋「昨天拓過、今天又進來」—— 時間戳過期不代表東西不在。
@@ -140,8 +150,15 @@ export function useYearPrefetch(
 							signal: ac.signal,
 							credentials: "same-origin",
 						});
-						// 讀完 body,否則 SW 那邊的 cachePut 可能還沒完成就被丟棄。
-						await res.arrayBuffer();
+						// cache.put 用的是 SW 自己的 clone,不跟這份 body 綁在一起。
+						// 讀卡住時不能佔著並行額度,否則整年都等不到「可離線閱讀」。
+						await Promise.race([
+							res.arrayBuffer().then(
+								() => undefined,
+								() => undefined,
+							),
+							new Promise<void>((r) => setTimeout(r, 5_000)),
+						]);
 					},
 					{
 						concurrency: PREFETCH_CONCURRENCY,
@@ -158,26 +175,43 @@ export function useYearPrefetch(
 				);
 				if (cancelled || out.aborted) return;
 
-				// 有失敗就**不要**寫時間戳:下次進來還會再試。寫下去的話,那幾題會
-				// 缺整整 24 小時,而畫面上看不出來。
-				if (out.failed === 0) {
+				// fetch resolve 時 api-json-v1 常常還沒寫進去。只數一次會把
+				// 狀態退回 idle,徽章就再也不出現。
+				const have = await settleCachedCount(
+					() => countCached(list),
+					list.length,
+					{ budgetMs: 8_000 },
+				);
+				if (cancelled) return;
+				// 沒齊就不要寫時間戳:寫下去的話,缺的那幾題會空整整 24 小時,
+				// 而畫面上看不出來。
+				if (have >= list.length) {
 					try {
 						localStorage.setItem(prefetchStampKey(year), String(Date.now()));
 					} catch {
 						/* 無痕模式 */
 					}
+					setState({ kind: "ready" });
+				} else {
+					setState({ kind: "idle" });
 				}
-				const have = await countCached(list);
-				if (!cancelled)
-					setState(
-						have >= list.length ? { kind: "ready" } : { kind: "idle" },
-					);
 			})();
-		});
+			});
+		};
+
+		const onChange = () => start();
+		const timer = window.setInterval(start, 250);
+		function detach() {
+			window.clearInterval(timer);
+			navigator.serviceWorker?.removeEventListener("controllerchange", onChange);
+		}
+		navigator.serviceWorker?.addEventListener("controllerchange", onChange);
+		start();
 
 		return () => {
 			cancelled = true;
-			cancelIdle();
+			detach();
+			cancelIdle?.();
 			ac.abort();
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps

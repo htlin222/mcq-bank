@@ -131,10 +131,13 @@ test('看過的抹片 view 進 img-v1,離線回首頁仍顯示這一輪', async 
     }
     assert.ok(imgReqs.some((p) => p.includes(VIEWED)));
 
-    await page.getByRole('link', { name: '複習', exact: true }).click();
+    // 底部導覽的「複習」是 /smear/review,頂端那顆才是 /review。1280 寬有時
+    // 兩顆都在無障礙樹裡,不點名 banner 的話 strict mode 會直接失敗。
+    const banner = page.getByRole('banner');
+    await banner.getByRole('link', { name: '複習', exact: true }).click();
     await page.waitForURL('**/review');
     await server.close();
-    await page.getByRole('link', { name: '首頁', exact: true }).click();
+    await banner.getByRole('link', { name: '首頁', exact: true }).click();
     await page.waitForFunction(() => location.pathname === '/');
     await page.waitForSelector('[data-smear-gallery]');
     await page.getByRole('heading', { name: 'lymphoma', exact: true }).waitFor();
