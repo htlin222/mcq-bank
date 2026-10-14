@@ -109,21 +109,22 @@ function waitUntilSwActivated(page) {
   );
 }
 
-/** activated 之後的下一趟有時仍不會被接管(本機量過:7 秒後 controller 仍是 false)。
- *  再進一次才會。呼叫端若要數預抓請求,要在這之前掛上 listener。 */
+/** activated 之後的下一趟有時仍不會被接管。controller 是建立文件時決定的,
+ *  沒有 clients.claim,在同一頁再等多久也不會自己出現。所以每次只等一下,
+ *  沒有就再導覽。呼叫端若要數預抓請求,要在這之前掛上 listener。 */
 async function gotoUntilControlled(page, url) {
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
-  const controlled = await page
-    .waitForFunction(() => !!navigator.serviceWorker?.controller, null, { timeout: 2_000 })
-    .then(() => true)
-    .catch(() => false);
-  if (!controlled) {
+  for (let attempt = 0; attempt < 4; attempt++) {
     await page.goto(url, { waitUntil: 'domcontentloaded' });
+    const controlled = await page
+      .waitForFunction(() => !!navigator.serviceWorker?.controller, null, { timeout: 3_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (controlled) return;
   }
   await page.waitForFunction(
     () => !!navigator.serviceWorker?.controller,
     null,
-    { timeout: 20_000 },
+    { timeout: 1_000 },
   );
 }
 
