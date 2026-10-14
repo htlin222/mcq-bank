@@ -109,23 +109,24 @@ function waitUntilSwActivated(page) {
   );
 }
 
-/** activated 之後的下一趟有時仍不會被接管。controller 是建立文件時決定的,
- *  沒有 clients.claim,在同一頁再等多久也不會自己出現。所以每次只等一下,
- *  沒有就再導覽。呼叫端若要數預抓請求,要在這之前掛上 listener。 */
+/** activated 之後,controller 有兩種慢法,只處理其中一種都會在 CI 上紅:
+ *  - 這一頁會被接管,但 WebKit 要數秒才把 controller 補上。等太短就換頁,
+ *    等於把快成功的那頁弄掉(圖片那條 4×3 秒全部錯過,整支只跑了 14 秒)。
+ *  - 這一頁根本不會被接管(沒有 clients.claim)。同一頁再等多久也不會出現,
+ *    必須再導覽。
+ *  所以每次給足時間,沒有才換頁。呼叫端若要數預抓請求,要在這之前掛上 listener。 */
 async function gotoUntilControlled(page, url) {
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     await page.goto(url, { waitUntil: 'domcontentloaded' });
     const controlled = await page
-      .waitForFunction(() => !!navigator.serviceWorker?.controller, null, { timeout: 3_000 })
+      .waitForFunction(() => !!navigator.serviceWorker?.controller, null, {
+        timeout: 10_000,
+      })
       .then(() => true)
       .catch(() => false);
     if (controlled) return;
   }
-  await page.waitForFunction(
-    () => !!navigator.serviceWorker?.controller,
-    null,
-    { timeout: 1_000 },
-  );
+  throw new Error('SW activated 之後連換三頁都沒有 controller');
 }
 
 async function waitUntilOfflineReady(page) {
