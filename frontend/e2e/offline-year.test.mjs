@@ -95,31 +95,53 @@ function watch(page) {
   };
 }
 
-/** 第一次造訪把 SW 裝到 active,第二次才會被接管。
- *  固定等 2 秒在機器忙時不夠:第二次進來還沒有 controller,預抓不會開始,
- *  「可離線」就永遠不出現。timeout 必須是第三個引數,否則 Playwright 把它
- *  當成傳進頁面的 arg,實際仍用 30 秒預設。 */
-async function openYearReady(page, origin) {
-  await page.goto(origin + '/year/113', { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(
+/** `registration.active` 在 state 還是 `activating` 時就有值(workbox precache
+ *  的 waitUntil 還沒完)。那時就換頁,這一頁永遠不會有 controller。
+ *  timeout 必須是第三個引數,否則 Playwright 把它當成傳進頁面的 arg。 */
+function waitUntilSwActivated(page) {
+  return page.waitForFunction(
     async () => {
       const reg = await navigator.serviceWorker?.getRegistration();
-      return !!reg?.active;
+      return reg?.active?.state === 'activated';
     },
     null,
-    { timeout: 20_000 },
+    { timeout: 30_000 },
   );
-  await page.goto(origin + '/year/113', { waitUntil: 'domcontentloaded' });
+}
+
+/** activated 之後的下一趟有時仍不會被接管(本機量過:7 秒後 controller 仍是 false)。
+ *  再進一次才會。呼叫端若要數預抓請求,要在這之前掛上 listener。 */
+async function gotoUntilControlled(page, url) {
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  const controlled = await page
+    .waitForFunction(() => !!navigator.serviceWorker?.controller, null, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!controlled) {
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+  }
   await page.waitForFunction(
     () => !!navigator.serviceWorker?.controller,
     null,
     { timeout: 20_000 },
   );
+}
+
+async function waitUntilOfflineReady(page) {
   await page.waitForFunction(
     () => /✓ 可離線閱讀/.test(document.body.innerText),
     null,
     { timeout: 45_000 },
   );
+}
+
+/** 第一次造訪把 SW 裝到 activated,之後的導覽才會被接管,再等預抓跑完。 */
+async function openYearReady(page, origin) {
+  const url = origin + '/year/113';
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await waitUntilSwActivated(page);
+  await gotoUntilControlled(page, url);
+  await waitUntilOfflineReady(page);
 }
 
 test('SW 還沒接管時一趟都不拓 —— 沒有人會收下那些回應', async (t) => {
@@ -157,18 +179,19 @@ test('SW 接管之後才拓,而且同時在飛的不超過 4 個', async (t) => 
   const ctx = await browser.newContext({ viewport: { width: 900, height: 800 } });
   const page = await ctx.newPage();
   try {
-    // 第一趟只為了讓 SW 裝好;預抓的計數從第二趟才開始。
-    await page.goto(server.origin + '/year/113', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
+    // 第一趟只為了讓 SW 裝到 activated。預抓的計數從被接管的那一趟才開始。
+    const url = server.origin + '/year/113';
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await waitUntilSwActivated(page);
 
     const w = watch(page);
-    await page.goto(server.origin + '/year/113', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(7000);
+    await gotoUntilControlled(page, url);
+    await waitUntilOfflineReady(page);
 
     assert.equal(
       await page.evaluate(() => !!navigator.serviceWorker?.controller),
       true,
-      '第二次造訪 SW 該接管了',
+      '換頁之後 SW 該接管了',
     );
     const total = await page.evaluate(
       () => document.querySelectorAll('a[href^="/q/113-"]').length,
@@ -176,14 +199,6 @@ test('SW 接管之後才拓,而且同時在飛的不超過 4 個', async (t) => 
     assert.ok(w.count >= total, `該把整年拓完(${total} 題),實際 ${w.count} 趟`);
     assert.ok(w.peak <= 4, `同時在飛最多 4 個,實際峰值 ${w.peak}`);
     assert.ok(w.peak > 1, `該是並行的,實際峰值 ${w.peak}`);
-
-    // 拓完之後畫面上要說得出「可以離線了」—— 自動且無聲的話,使用者不知道
-    // 現在能不能離線,而那正是他要這個功能的唯一原因。
-    await page.waitForFunction(
-      () => /✓ 可離線閱讀/.test(document.body.innerText),
-      null,
-      { timeout: 30_000 },
-    );
   } finally {
     await ctx.close();
     await server.close();
