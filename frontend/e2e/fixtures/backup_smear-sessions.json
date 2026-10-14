@@ -1,0 +1,17 @@
+{
+  "rows": [
+    {
+      "id": "ss1",
+      "mode": "review",
+      "config_json": "{\"n\":1}",
+      "question_ids": "[\"q1\"]",
+      "started_at": 1753900000000,
+      "finished_at": 1753901000000,
+      "score": 1,
+      "max_score": 1,
+      "spelling_ok": 1,
+      "lay_count": 0
+    }
+  ],
+  "next": null
+}

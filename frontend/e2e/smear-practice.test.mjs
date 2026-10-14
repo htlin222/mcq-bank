@@ -225,7 +225,9 @@ function installSmearBackend(ctx, { mode, questions, sessionId, leakExamAnswer =
   };
   const calls = { create: [], answer: [], answerResponses: [], finishCount: 0 };
 
-  const pathRe = new RegExp(`^/api/smear/sessions/${sessionId}(?:/(answer|finish|mc-options))?$`);
+  const pathRe = new RegExp(
+    `^/api/smear/sessions/${sessionId}(?:/(answer|finish|mc-options|initial))?$`,
+  );
 
   ctx.route('**/api/smear/**', async (route) => {
     const req = route.request();
@@ -283,6 +285,17 @@ function installSmearBackend(ctx, { mode, questions, sessionId, leakExamAnswer =
           };
         }),
       });
+    }
+
+    if (sub === 'initial' && method === 'POST') {
+      // 鏡射 worker:全真 403,而且回應只有一個字母。詞的其餘部分不進 JSON。
+      if (state.mode !== 'review') return json({ error: 'forbidden' }, 403);
+      const body = JSON.parse(req.postData() || '{}');
+      const idx = resolveIdx(state.questions, body.questionId);
+      const q = state.questions[idx];
+      const initial = [...(q?.canonical_long ?? '')].find((ch) => /\p{L}/u.test(ch)) ?? '';
+      if (!initial) return json({ error: 'no initial' }, 404);
+      return json({ initial });
     }
 
     if (sub === 'mc-options' && method === 'POST') {
@@ -582,8 +595,64 @@ test('全真模式不該有「看選項」按鈕(role 查詢 + DOM 掃描)', asy
       0,
       '全真模式不該有「看選項」按鈕(role 查詢)',
     );
+    assert.equal(
+      await page.getByRole('button', { name: '首字母', exact: true }).count(),
+      0,
+      '全真模式不該有「首字母」按鈕(role 查詢)',
+    );
     const html = await page.content();
     assert.ok(!html.includes('看選項'), '全真模式的「看選項」要整個不在 DOM 裡');
+    assert.ok(!html.includes('首字母'), '全真模式的「首字母」要整個不在 DOM 裡');
+  } finally {
+    await ctx.close();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 測試 1b2 —— 複習模式首字母:只出現一個字母,輸入框還在,送出仍是拼字
+// 並把 hint_used 記成 initial,topic(分類提示先按過)。
+// ---------------------------------------------------------------------------
+test('首字母提示:只顯示一個字母,輸入框還在,送出仍走拼字並記下兩種提示', async (t) => {
+  if (guard(t)) return;
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
+  const questions = [question('ini-q1', DX.apl)];
+  const { calls } = installSmearBackend(ctx, { mode: 'review', questions, sessionId: 'ini-sess' });
+
+  try {
+    const page = await ctx.newPage();
+    await page.goto(`${server.origin}/smear`, { waitUntil: 'domcontentloaded' });
+
+    await page.getByRole('button', { name: '複習模式' }).click();
+    await page.waitForURL('**/smear/review', { timeout: 10_000 });
+    await page.getByRole('button', { name: '全部主題' }).click();
+    await page.getByText('骨髓性').first().waitFor({ timeout: 10_000 });
+    await page.getByLabel('題數').fill('5');
+    await page.getByRole('button', { name: '開始練習' }).click();
+    await page.waitForURL('**/smear/s/ini-sess', { timeout: 20_000 });
+
+    const input = page.getByPlaceholder('輸入診斷或細胞名稱…');
+    await input.waitFor();
+    const initialBtn = page.getByRole('button', { name: '首字母', exact: true });
+    await initialBtn.waitFor();
+
+    await page.getByRole('button', { name: '提示', exact: true }).click();
+    await page.getByText('分類提示:骨髓性').waitFor();
+
+    await initialBtn.click();
+    const shown = page.getByTestId('smear-initial');
+    await shown.waitFor();
+    assert.equal(await shown.innerText(), '首字母：a');
+    assert.equal(await input.count(), 1, '看了首字母之後輸入框還在');
+    const before = await page.locator('body').innerText();
+    assert.ok(!before.includes('promyelocytic'), '首字母不該帶出詞的其餘部分');
+    assert.ok(!before.includes(DX.apl.canonical_long), '正解全文不該出現');
+
+    await input.fill(DX.apl.canonical_long);
+    await page.getByRole('button', { name: '提交答案' }).click();
+    await page.locator('[data-testid="grade-reveal"]').waitFor();
+    assert.equal(calls.answer.length, 1);
+    assert.deepEqual(calls.answer[0].boxes, [DX.apl.canonical_long]);
+    assert.equal(calls.answer[0].hintUsed, 'initial,topic');
   } finally {
     await ctx.close();
   }
@@ -677,6 +746,7 @@ test('全真模式:交卷前頁面上找不到任何一個正解字串,交卷後
     '俗名用法',
     '未命中',
     '正解',
+    '首字母',
   ];
   async function assertNoLeakage(page, where) {
     const text = await page.locator('body').innerText();

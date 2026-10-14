@@ -19,6 +19,7 @@ const INPUT: PlanInput = {
 	restSunday: true,
 	studyStart: "21:00",
 	studyEnd: "22:30",
+	smearPerDay: 0,
 };
 
 const NOW = Date.parse("2026-08-07T02:00:00Z"); // = 10:00 UTC+8
@@ -111,6 +112,71 @@ test("UID 對同一人同一天穩定 —— 重匯入是更新而非長出第�
 		.split("\r\n")
 		.filter((l) => l.startsWith("UID:"));
 	assert.equal(new Set(ids).size, ids.length);
+
+	// 抹片是同一天的第二個事件,UID 要分開而且穩定,重匯入才是更新。
+	const smear = planUid("a@example.com", "2026-08-08", "qa.example.com", "smear");
+	assert.equal(smear, planUid("a@example.com", "2026-08-08", "qa.example.com", "smear"));
+	assert.notEqual(smear, a);
+	assert.match(smear, /@qa\.example\.com$/);
+	assert.equal(smear.includes("a@example.com"), false);
+});
+
+test("每天抹片:0 張時行事曆跟以前一樣,正整數才多一個時段", () => {
+	const none = render();
+	assert.equal(none.includes("抹片"), false);
+
+	const ics = render({ ...INPUT, smearPerDay: 10 });
+	assert.match(ics, /SUMMARY:抹片 10 張/);
+
+	// 讀書日:筆試 21:00–22:30,抹片接著 22:30–22:40。
+	assert.match(ics, /DTSTART;TZID=Asia\/Taipei:20260808T223000/);
+	assert.match(ics, /DTEND;TZID=Asia\/Taipei:20260808T224000/);
+	// 休息日(週日)從讀書開始時刻起,以前這天完全沒有事件。
+	assert.match(ics, /DTSTART;TZID=Asia\/Taipei:20260809T210000/);
+	assert.match(ics, /DTEND;TZID=Asia\/Taipei:20260809T211000/);
+	// 模擬考結束(21:00 + 3 小時 = 隔天 00:00)之後才排抹片。
+	assert.match(ics, /DTSTART;TZID=Asia\/Taipei:20260830T000000/);
+	assert.match(ics, /DTEND;TZID=Asia\/Taipei:20260830T001000/);
+	// 考試日仍只有全天事件。
+	const exam = events(ics).filter((e) =>
+		e.some((l) => l.includes("VALUE=DATE:20260905")),
+	);
+	assert.equal(exam.length, 1);
+	assert.equal(exam[0].join("\n").includes("抹片"), false);
+
+	for (const e of events(ics)) {
+		const s = e.find((l) => l.startsWith("DTSTART;TZID"))?.split(":")[1];
+		const t = e.find((l) => l.startsWith("DTEND;TZID"))?.split(":")[1];
+		if (!s || !t) continue;
+		assert.equal(t > s, true, `事件結束時間不晚於開始:${s} → ${t}`);
+	}
+
+	const ids = ics.split("\r\n").filter((l) => l.startsWith("UID:"));
+	assert.equal(new Set(ids).size, ids.length);
+
+	// 筆試跨到隔天 01:00 時,抹片從 01:00 起,結束再往後,日期已經進位。
+	const late = render({
+		...INPUT,
+		studyStart: "23:30",
+		studyEnd: "01:00",
+		smearPerDay: 10,
+	});
+	assert.match(late, /DTEND;TZID=Asia\/Taipei:20260811T010000/);
+	assert.match(late, /DTSTART;TZID=Asia\/Taipei:20260811T010000/);
+	assert.match(late, /DTEND;TZID=Asia\/Taipei:20260811T011000/);
+
+	// 筆試題數是 0 的讀書日仍要有抹片,時間跟有筆試的日子同一套結束時刻。
+	const idle = render({
+		...INPUT,
+		years: [],
+		mockExams: 0,
+		restSunday: false,
+		smearPerDay: 5,
+	});
+	assert.match(idle, /SUMMARY:抹片 5 張/);
+	assert.equal(/SUMMARY:.*題/.test(idle), false);
+	assert.match(idle, /DTSTART;TZID=Asia\/Taipei:20260808T223000/);
+	assert.match(idle, /DTEND;TZID=Asia\/Taipei:20260808T223500/);
 });
 
 test("特殊字元照 RFC 5545 逸出,不會撐破欄位", () => {

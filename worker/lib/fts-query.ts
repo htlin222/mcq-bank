@@ -44,11 +44,10 @@
  *
  * - 沒有配對的 `"` 換成空白,免得使用者的輸入把我們自己的引號配對打斷。
  * - 純 ASCII 英數字的詞尾端加 `*`(前綴比對):`AML` 也會命中 `AML7`。
- * - 其餘(含 CJK)包成 `"..."` 片語再加 `*`。
- *   ⚠️ **這只救得到「從一段 CJK 的開頭算起」的比對。** `unicode61` 把連續的
- *   CJK 當成**一個** token,所以「白血病」比不到「慢性骨髓性白血病」——
- *   實測 `慢性*` 命中、`白血病*` 不命中。那是 tokenizer 的限制,不是這裡能修的
- *   (同 CLAUDE.md 講義那節提過的同一個老問題)。
+ * - 連續兩個以上的 CJK 改成**相鄰 bigram 片語**(`白血病` → `"白血 血病"`)。
+ *   `unicode61` 把連續 CJK 當成一個 token,前綴 `*` 只對得到詞的開頭;中段要靠
+ *   migration 0046 寫進 `cjk` 欄的重疊二字。單字仍是 `"白"*`。沒有長 CJK 的
+ *   其餘 token(標點、`BCR::ABL1`)維持 `"..."*`。
  * - **大寫的 `AND` / `OR` / `NOT` 原樣通過**,不加 `*`。舊版對它們也加了 `*`,
  *   於是 `AML OR CML` 變成 `AML* OR* CML*` —— 那是 **FTS5 語法錯誤**
  *   (實測 `fts5: syntax error near "*"`),路由把它變成 400,使用者看到的是
@@ -57,6 +56,103 @@
  *
  * 安全性:回傳值一律走 `.bind(?)`,所以不管輸入什麼都不可能 SQL injection。
  */
+
+/**
+ * 與 `cjk-index-sql.ts` 的 `unicode() BETWEEN` 是同一份界線。
+ * 改一邊沒改另一邊,索引的二字跟查詢的二字會對不上,搜尋又變回少給結果。
+ */
+export const CJK_RANGES: ReadonlyArray<readonly [number, number]> = [
+	[0x3400, 0x4dbf], // CJK ext A
+	[0x4e00, 0x9fff], // CJK unified
+	[0xf900, 0xfaff], // CJK compatibility
+	[0x3041, 0x3096], // hiragana letters
+	[0x30a1, 0x30fa], // katakana letters
+	[0x30fc, 0x30fc], // ー (katakana prolonged sound; U+30FB ・ is a separator)
+];
+
+function isCjk(ch: string): boolean {
+	const c = ch.codePointAt(0) ?? 0;
+	for (const [a, b] of CJK_RANGES) {
+		if (c >= a && c <= b) return true;
+	}
+	return false;
+}
+
+/** 有沒有一段連續 CJK 長到能切出 bigram。單字不算。 */
+function hasLongCjk(s: string): boolean {
+	let n = 0;
+	for (const ch of s) {
+		if (isCjk(ch)) {
+			n++;
+			if (n >= 2) return true;
+		} else {
+			n = 0;
+		}
+	}
+	return false;
+}
+
+/** `白血病` → `"白血 血病"`。長度 1 沒有二字可切,退回前綴。 */
+function bigramPhrase(run: string): string {
+	const chars = [...run];
+	if (chars.length < 2) return `"${run}"*`;
+	const grams: string[] = [];
+	for (let i = 0; i < chars.length - 1; i++) grams.push(chars[i] + chars[i + 1]);
+	return `"${grams.join(" ")}"`;
+}
+
+/**
+ * 把一個 token 拆成 ASCII 段與 CJK 段。標點略過 —— 它在 unicode61 裡本來就不是 token。
+ * `ascii` 決定英數段怎麼寫:題庫搜尋加前綴 `*`,講義搜尋維持精確片語。
+ */
+function pieces(token: string, ascii: (run: string) => string): string[] {
+	const chars = [...token];
+	const out: string[] = [];
+	let i = 0;
+	while (i < chars.length) {
+		if (isCjk(chars[i])) {
+			let j = i + 1;
+			while (j < chars.length && isCjk(chars[j])) j++;
+			out.push(bigramPhrase(chars.slice(i, j).join("")));
+			i = j;
+		} else if (/[A-Za-z0-9_]/.test(chars[i])) {
+			let j = i + 1;
+			while (j < chars.length && /[A-Za-z0-9_]/.test(chars[j])) j++;
+			out.push(ascii(chars.slice(i, j).join("")));
+			i = j;
+		} else {
+			i++;
+		}
+	}
+	return out;
+}
+
+function ftsTerm(token: string): string {
+	if (/^[A-Za-z0-9_]+$/.test(token)) return `${token}*`;
+	// 沒有「兩個連續 CJK」就維持整顆 token 的片語前綴。
+	// `BCR::ABL1`、`第2型` 這種不能拆,拆了會改掉原來的片語意思。
+	if (!hasLongCjk(token)) return `"${token}"*`;
+	return pieces(token, (run) => `${run}*`).join(" ");
+}
+
+function ftsQuoted(phrase: string): string {
+	// 引號裡還有英數:片語要的是「跟原文相鄰」,bigram 欄跟原文不在同一欄,
+	// 片語跨不過欄位。這種維持原樣,讓原文那一欄繼續對得到。
+	if (!hasLongCjk(phrase) || /[A-Za-z0-9_]/.test(phrase)) return `"${phrase}"*`;
+	return pieces(phrase, (run) => `"${run}"`).join(" ");
+}
+
+/**
+ * 講義 / 教科書搜尋原本把每個 token 包成 `"token"`(不加前綴 `*`)。
+ * 純英數維持那樣。含有長 CJK 的改走 bigram,否則「白血病」在講義裡還是找不到中段。
+ */
+export function ftsPhraseToken(token: string): string {
+	const cleaned = token.replace(/"/g, "");
+	if (!cleaned) return "";
+	if (!hasLongCjk(cleaned)) return `"${cleaned}"`;
+	return pieces(cleaned, (run) => `"${run}"`).join(" ");
+}
+
 export function ftsQuery(raw: string): string {
 	const groups = raw
 		// 半形與全形逗號都是「或」。
@@ -89,14 +185,14 @@ function ftsGroup(segment: string): string {
 	let m = re.exec(src);
 	while (m !== null) {
 		if (m[1] !== undefined) {
-			// 片語。尾端一樣加 `*`(phrase-prefix),跟單字的前綴行為一致。
+			// 片語。純英數尾端加 `*`(phrase-prefix);長 CJK 改成相鄰 bigram。
 			const phrase = m[1].trim();
-			if (phrase) out.push(`"${phrase}"*`);
+			if (phrase) out.push(ftsQuoted(phrase));
 		} else {
 			const t = stripQuotes(m[2]);
 			// FTS5 的運算子:原樣通過。加了 `*` 會變成語法錯誤(見檔頭)。
 			if (t === "AND" || t === "OR" || t === "NOT") out.push(t);
-			else if (t) out.push(/^[A-Za-z0-9_]+$/.test(t) ? `${t}*` : `"${t}"*`);
+			else if (t) out.push(ftsTerm(t));
 		}
 		m = re.exec(src);
 	}

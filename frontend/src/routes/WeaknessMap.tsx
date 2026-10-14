@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { ExplanationPeek } from "../components/ExplanationPeek";
 import { QuestionResultCard } from "../components/QuestionResultCard";
 import { type QuestionListRow, rowTitle } from "../lib/questionRow";
+import { SEMANTIC_INDEX_EMPTY } from "../lib/similarPayload";
 
 // 弱點概念地圖 — clusters the user's wrong questions into semantic themes and
 // links each to an interleaved drill. A diagnostic surface (retrieval practice
@@ -29,6 +30,8 @@ type Payload = {
 	 */
 	questions?: Record<string, QuestionListRow>;
 	basis?: "semantic" | "topic";
+	/** describe() 筆數為 0 或索引不存在。缺欄位是舊 Worker,不當成未回填。 */
+	index_empty?: boolean;
 };
 
 export function WeaknessMap() {
@@ -83,6 +86,12 @@ export function WeaknessMap() {
 				</p>
 			)}
 
+			{loaded && data?.index_empty && (
+				<p className="text-sm text-ink-500 dark:text-ink-400 mb-4">
+					{SEMANTIC_INDEX_EMPTY}
+				</p>
+			)}
+
 			{loaded && data && data.clusters.length === 0 && (
 				<div className="py-12 text-center text-ink-500 dark:text-ink-400">
 					{data.wrong_count < 2 ? (
@@ -98,7 +107,11 @@ export function WeaknessMap() {
 				</div>
 			)}
 
-			{loaded && data && data.clusters.length > 0 && data.basis === "topic" && (
+			{loaded &&
+				data &&
+				data.clusters.length > 0 &&
+				data.basis === "topic" &&
+				!data.index_empty && (
 				<p className="text-xs text-ink-400 dark:text-ink-500 mb-4">
 					依主題標籤分群(語意索引尚未涵蓋你最近的錯題)。
 				</p>

@@ -3,10 +3,12 @@ import type { D1Database } from "@cloudflare/workers-types";
 import type { AppContext } from "../types";
 import { uuid } from "../lib/db";
 import { gradeSmear, type AcceptedTerm } from "../lib/smear-grade";
+import { laterAcceptedTyped } from "../lib/smear-proposal";
 import { pickSmearSet, type PoolItem } from "../lib/smear-pick";
-import { pickMcqOptions, pickCorrectOptionLabel, type McqCandidate } from "../lib/smear-mcq";
+import { pickMcqOptions, pickCorrectOptionLabel, firstInitial, type McqCandidate } from "../lib/smear-mcq";
 import { ftsQuery } from "../lib/fts-query";
 import { chunkParams, D1_MAX_PARAMS } from "../lib/sql-params";
+import { buildSmearUsage, reviewSpellingExcludedSql } from "../lib/smear-usage";
 
 export const smearRoutes = new Hono<AppContext>();
 
@@ -569,6 +571,66 @@ smearRoutes.post("/sessions/:id/mc-options", async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// POST /api/smear/sessions/:id/initial —— 首字母提示,複習模式限定
+//
+// 回應只有一個字母。詞的其餘部分、詞長、診斷 id 都不進這份 JSON —— 那些
+// 在 103 個診斷裡就是答案。全真模式在查出任何詞之前就 403:這個模式的價值
+// 是交卷前不揭曉任何判定資訊,而一個字母已經是判定資訊。
+// ---------------------------------------------------------------------------
+smearRoutes.post("/sessions/:id/initial", async (c) => {
+	const sid = c.req.param("id");
+	const email = c.var.email;
+
+	const session = await c.env.DB.prepare(
+		"SELECT id, mode, question_ids FROM smear_sessions WHERE id = ? AND user_email = ?",
+	)
+		.bind(sid, email)
+		.first<{ id: string; mode: "review" | "exam"; question_ids: string }>();
+	if (!session) return c.json({ error: "not found" }, 404);
+	if (session.mode !== "review") {
+		return c.json({ error: "initial hint only available in review mode" }, 403);
+	}
+
+	const body = await c.req
+		.json<{ questionId?: string }>()
+		.catch(() => ({}) as Record<string, never>);
+	if (!body.questionId) {
+		return c.json({ error: "questionId is required" }, 400);
+	}
+
+	let questionIds: string[] = [];
+	try {
+		questionIds = JSON.parse(session.question_ids);
+	} catch {
+		questionIds = [];
+	}
+	const idx = resolveQuestionIdx(body.questionId, questionIds);
+	if (idx < 0) {
+		return c.json({ error: "question is not part of this session" }, 400);
+	}
+	const realQuestionId = questionIds[idx];
+
+	const q = await c.env.DB.prepare(
+		`SELECT sq.dx_id, sd.canonical_long
+       FROM smear_questions sq JOIN smear_dx sd ON sd.id = sq.dx_id
+       WHERE sq.id = ?`,
+	)
+		.bind(realQuestionId)
+		.first<{ dx_id: string; canonical_long: string }>();
+	if (!q) return c.json({ error: "question not found" }, 404);
+
+	const { results: termRows } = await c.env.DB.prepare(
+		"SELECT text, tier, form FROM smear_terms WHERE dx_id = ? AND status = 'accepted'",
+	)
+		.bind(q.dx_id)
+		.all<{ text: string; tier: string; form: string }>();
+	const label = pickCorrectOptionLabel(termRows ?? [], q.canonical_long);
+	const initial = firstInitial(label);
+	if (!initial) return c.json({ error: "no initial" }, 404);
+	return c.json({ initial });
+});
+
+// ---------------------------------------------------------------------------
 // POST /api/smear/sessions/:id/finish
 //
 // 已交過卷再打一次不重算 —— 直接把當初寫進 smear_sessions 的彙總數字原樣
@@ -652,6 +714,25 @@ smearRoutes.post("/sessions/:id/finish", async (c) => {
 		}>();
 	const aMap = new Map((answerDetailRows ?? []).map((r) => [r.question_id, r]));
 
+	// 檢討頁才查「這個寫法後來被接受了嗎」。分數用的是 smear_answers 裡
+	// 交卷當下的 tier/score,這裡不回寫。只取 accepted,pending/rejected 不會標。
+	const dxIds = [...new Set([...qMap.values()].map((q) => q.dx_id).filter(Boolean))];
+	const acceptedByDx = new Map<string, { norm: string; text: string }[]>();
+	for (const part of chunkParams(dxIds, D1_MAX_PARAMS)) {
+		const placeholders = part.map(() => "?").join(",");
+		const { results } = await c.env.DB.prepare(
+			`SELECT dx_id, norm, text FROM smear_terms
+        WHERE status = 'accepted' AND dx_id IN (${placeholders})`,
+		)
+			.bind(...part)
+			.all<{ dx_id: string; norm: string; text: string }>();
+		for (const term of results ?? []) {
+			const list = acceptedByDx.get(term.dx_id) ?? [];
+			list.push({ norm: term.norm, text: term.text });
+			acceptedByDx.set(term.dx_id, list);
+		}
+	}
+
 	const breakdown = questionIds.map((qid) => {
 		const q = qMap.get(qid);
 		const a = aMap.get(qid);
@@ -678,6 +759,11 @@ smearRoutes.post("/sessions/:id/finish", async (c) => {
 			tier: a?.tier ?? "miss",
 			score: a?.score ?? 0,
 			spelling_errors: spellingErrors,
+			later_accepted: laterAcceptedTyped(
+				typed,
+				a?.tier ?? "miss",
+				q?.dx_id ? (acceptedByDx.get(q.dx_id) ?? []) : [],
+			),
 		};
 	});
 
@@ -760,6 +846,83 @@ smearRoutes.get("/topic-stats", async (c) => {
 			last_answered_at: number | null;
 		}>();
 	return c.json({ items: results ?? [] });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/smear/usage —— 個人頁「抹片使用」
+//
+// 提示次數、俗名層命中、每個主題的題量與作答數。作答數字只屬於這個
+// 帳號。進行中的全真不計(同 /wrong):那時候 tier 還沒有資格被看見。
+// 題量是題庫本身,不是私人狀態。
+//
+// 複習拼字正確率排除 reviewSpellingExcludedSql() 那兩種(看選項、直接看
+// 答案)。全真的 spelling_ok 留在交卷回應,不進這裡。
+// ---------------------------------------------------------------------------
+smearRoutes.get("/usage", async (c) => {
+	const email = c.var.email;
+	const revealed = "(ss.mode = 'review' OR ss.finished_at IS NOT NULL)";
+	const excluded = reviewSpellingExcludedSql();
+	const [hints, lay, spelling, questions, answers] = await Promise.all([
+		c.env.DB.prepare(
+			`SELECT COALESCE(sa.hint_used, '') AS hint_used, COUNT(*) AS n
+         FROM smear_answers sa
+         JOIN smear_sessions ss ON ss.id = sa.session_id AND ss.user_email = ?
+        WHERE ${revealed}
+        GROUP BY COALESCE(sa.hint_used, '')`,
+		)
+			.bind(email)
+			.all<{ hint_used: string; n: number }>(),
+		c.env.DB.prepare(
+			`SELECT COUNT(*) AS n
+         FROM smear_answers sa
+         JOIN smear_sessions ss ON ss.id = sa.session_id AND ss.user_email = ?
+        WHERE sa.tier = 'lay' AND ${revealed}`,
+		)
+			.bind(email)
+			.first<{ n: number }>(),
+		c.env.DB.prepare(
+			`SELECT SUM(CASE
+                  WHEN sa.tier = 'full'
+                   AND (sa.spelling_errors_json IS NULL OR sa.spelling_errors_json = '[]')
+                  THEN 1 ELSE 0 END) AS correct,
+                COUNT(*) AS graded
+         FROM smear_answers sa
+         JOIN smear_sessions ss ON ss.id = sa.session_id AND ss.user_email = ?
+        WHERE ss.mode = 'review'
+          AND (sa.hint_used IS NULL OR sa.hint_used NOT IN (${excluded}))`,
+		)
+			.bind(email)
+			.first<{ correct: number | null; graded: number }>(),
+		c.env.DB.prepare(
+			`SELECT d.topic AS topic, COUNT(q.id) AS question_count
+         FROM smear_dx d
+         LEFT JOIN smear_questions q ON q.dx_id = d.id
+        GROUP BY d.topic`,
+		).all<{ topic: string; question_count: number }>(),
+		c.env.DB.prepare(
+			`SELECT sd.topic AS topic, COUNT(*) AS answer_count
+         FROM smear_answers sa
+         JOIN smear_sessions ss ON ss.id = sa.session_id AND ss.user_email = ?
+         JOIN smear_questions sq ON sq.id = sa.question_id
+         JOIN smear_dx sd ON sd.id = sq.dx_id
+        WHERE ${revealed}
+        GROUP BY sd.topic`,
+		)
+			.bind(email)
+			.all<{ topic: string; answer_count: number }>(),
+	]);
+	return c.json(
+		buildSmearUsage(
+			{
+				hintRows: hints.results,
+				layHits: lay?.n ?? 0,
+				reviewSpelling: spelling,
+				topicQuestions: questions.results,
+				topicAnswers: answers.results,
+			},
+			TOPICS,
+		),
+	);
 });
 
 // ---------------------------------------------------------------------------
@@ -848,7 +1011,9 @@ function truncatePreview(text: string | null, max: number): string | null {
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/smear/dx/:id —— 診斷詳情:詳解 + 所有圖 + accepted terms
+// GET /api/smear/dx/:id —— 診斷詳情:詳解 + 所有圖 + accepted terms。
+// `rejected` 只掛在這一支:墓碑與理由給維護者看。作答 / 選項 / 交卷前的
+// session 回應不帶這份清單,判定查詢仍只取 status = 'accepted'。
 // ---------------------------------------------------------------------------
 smearRoutes.get("/dx/:id", async (c) => {
 	const dxId = c.req.param("id");
@@ -878,6 +1043,20 @@ smearRoutes.get("/dx/:id", async (c) => {
 	)
 		.bind(dxId)
 		.all<{ id: string; text: string; tier: string; form: string }>();
+
+	const { results: rejectedRows } = await c.env.DB.prepare(
+		`SELECT id, text, tier, form, rationale FROM smear_terms
+       WHERE dx_id = ? AND status = 'rejected'
+       ORDER BY COALESCE(resolved_at, 0) DESC, text ASC`,
+	)
+		.bind(dxId)
+		.all<{
+			id: string;
+			text: string;
+			tier: string;
+			form: string;
+			rationale: string | null;
+		}>();
 
 	const { results: questionRows } = await c.env.DB.prepare(
 		`SELECT id, source, source_ref, source_url, attribution,
@@ -914,6 +1093,7 @@ smearRoutes.get("/dx/:id", async (c) => {
 		...dx,
 		note: note ?? null,
 		terms: termRows ?? [],
+		rejected: rejectedRows ?? [],
 		questions: questionRows ?? [],
 		related,
 	});

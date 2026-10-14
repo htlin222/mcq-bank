@@ -424,6 +424,15 @@ function ResultRow({ row, index }: { row: BreakdownWithQuestion; index: number }
 					</p>
 				)}
 
+				{(row.later_accepted ?? []).map((written) => (
+					<p
+						key={written}
+						className="text-xs border border-ink-300 dark:border-ink-600 rounded px-3 py-2 text-ink-700 dark:text-ink-200 mt-2 break-words"
+					>
+						你當時寫的「{written}」後來被接受了。這題的分數仍是交卷當下的 +{row.score}。
+					</p>
+				))}
+
 				{row.spelling_errors.length > 0 && (
 					<div className="text-xs border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 rounded px-3 py-2 text-amber-800 dark:text-amber-300 mt-2 space-y-0.5">
 						{row.spelling_errors.map((e, i) => {

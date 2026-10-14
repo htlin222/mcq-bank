@@ -45,6 +45,8 @@ export type PlanInput = {
 	/** 'HH:MM',只給 .ics 用,排程本身不看。 */
 	studyStart: string;
 	studyEnd: string;
+	/** 每天幾張抹片。0 = 不排。一張一分鐘,不佔筆試的分鐘與題量。 */
+	smearPerDay: number;
 };
 
 export type PlanContext = {
@@ -105,6 +107,8 @@ export type PlanResult = {
 	suggestions: Suggestion[];
 	study_start: string;
 	study_end: string;
+	/** 每天抹片張數。0 代表這份計畫沒有抹片時段。 */
+	smear_per_day: number;
 };
 
 function toInt(v: unknown, fallback = 0): number {
@@ -122,6 +126,7 @@ const DEFAULT_INPUT: PlanInput = {
 	restSunday: true,
 	studyStart: "21:00",
 	studyEnd: "22:30",
+	smearPerDay: 0,
 };
 
 function clamp(v: unknown, lo: number, hi: number, fallback: number): number {
@@ -177,6 +182,8 @@ export function parsePlanInput(raw: unknown): PlanInput {
 		restSunday: o.restSunday !== false,
 		studyStart: parseTime(o.studyStart, DEFAULT_INPUT.studyStart),
 		studyEnd: parseTime(o.studyEnd, DEFAULT_INPUT.studyEnd),
+		// 舊的已存問卷沒有這個欄位,缺了就是 0,輸出跟加上這個欄位之前一樣。
+		smearPerDay: clamp(o.smearPerDay, 0, 200, DEFAULT_INPUT.smearPerDay),
 	};
 }
 
@@ -400,6 +407,10 @@ export function buildPlan(input: PlanInput, ctx: PlanContext): PlanResult {
 		w.total += day.count;
 	}
 
+	// 抹片不進 dailyCapacity / demand / shortfall。一張一分鐘只用來排時段,
+	// 張數本身不改任何一個筆試數字。
+	const smearPerDay = clamp(input.smearPerDay, 0, 200, 0);
+
 	return {
 		exam_date: ctx.examDate,
 		days_left: daysLeft,
@@ -414,6 +425,7 @@ export function buildPlan(input: PlanInput, ctx: PlanContext): PlanResult {
 		suggestions,
 		study_start: input.studyStart,
 		study_end: input.studyEnd,
+		smear_per_day: smearPerDay,
 	};
 }
 

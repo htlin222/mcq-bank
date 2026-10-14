@@ -17,6 +17,7 @@ import {
 } from "../lib/fsrs";
 import { calibration } from "../lib/calibration";
 import { clusterByThreshold, type VecItem } from "../lib/cluster";
+import { semanticIndexEmpty } from "../lib/vector-index";
 import { groupByTopic, type TopicRow } from "../lib/weakness";
 import { clampElapsedMs, insertAttemptOp } from "../lib/attempts";
 import { readIdemKey, idemLookup, idemRecordOp } from "../lib/idempotency";
@@ -281,22 +282,38 @@ reviewRoutes.get("/weakness-map", async (c) => {
 		.bind(email)
 		.all<{ question_id: string }>();
 	const ids = wrong.map((r) => r.question_id);
-	if (ids.length < 2)
-		return c.json({ clusters: [], wrong_count: ids.length, questions: {} });
 
-	// Fetch vectors for those questions. Best-effort — no index → empty map.
-	let items: VecItem[] = [];
+	// 跟相似題同一條規則:describe() 的筆數,不為了這句話去嵌入。
+	let indexEmpty = true;
 	try {
-		const vecs = await c.env.VEC.getByIds(ids);
-		items = (vecs ?? [])
-			// values may be a plain array OR a Float32/Float64Array — accept both.
-			.filter((v) => Array.isArray(v.values) || ArrayBuffer.isView(v.values))
-			.map((v) => ({
-				id: v.id,
-				vector: Array.from(v.values as ArrayLike<number>),
-			}));
+		indexEmpty = semanticIndexEmpty(await c.env.VEC.describe());
 	} catch {
-		items = [];
+		indexEmpty = true;
+	}
+
+	if (ids.length < 2)
+		return c.json({
+			clusters: [],
+			wrong_count: ids.length,
+			questions: {},
+			index_empty: indexEmpty,
+		});
+
+	// Fetch vectors for those questions. Best-effort — no index → topic groups.
+	let items: VecItem[] = [];
+	if (!indexEmpty) {
+		try {
+			const vecs = await c.env.VEC.getByIds(ids);
+			items = (vecs ?? [])
+				// values may be a plain array OR a Float32/Float64Array — accept both.
+				.filter((v) => Array.isArray(v.values) || ArrayBuffer.isView(v.values))
+				.map((v) => ({
+					id: v.id,
+					vector: Array.from(v.values as ArrayLike<number>),
+				}));
+		} catch {
+			items = [];
+		}
 	}
 	// 索引沒涵蓋到這些題(回填落後於新加入的年份)—— 這正是 issue #78 的成因。
 	// 降級成主題分群,而不是回一頁空白。
@@ -306,6 +323,7 @@ reviewRoutes.get("/weakness-map", async (c) => {
 			wrong_count: ids.length,
 			questions: await weaknessQuestions(c.env.DB, email, ids),
 			basis: "topic",
+			index_empty: indexEmpty,
 		});
 	}
 
@@ -344,6 +362,7 @@ reviewRoutes.get("/weakness-map", async (c) => {
 			wrong_count: ids.length,
 			questions: await weaknessQuestions(c.env.DB, email, ids),
 			basis: "topic",
+			index_empty: false,
 		});
 	}
 
@@ -352,6 +371,7 @@ reviewRoutes.get("/weakness-map", async (c) => {
 		wrong_count: ids.length,
 		questions: await weaknessQuestions(c.env.DB, email, ids),
 		basis: "semantic",
+		index_empty: false,
 	});
 });
 

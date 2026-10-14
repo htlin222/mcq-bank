@@ -12,6 +12,7 @@ import {
 	type LectureSearchHit,
 	type LectureSearchScope,
 } from "../../lib/lectureApi";
+import { pageIndexFromPdfPage } from "../../lib/lecturePageParam";
 import { HighlightedSnippet } from "./HighlightedSnippet";
 
 const DEBOUNCE_MS = 250;
@@ -97,9 +98,8 @@ export function LectureSearchBox({ slug, onJumpToPage }: LectureSearchBoxProps) 
 	}, [open]);
 
 	function pick(hit: LectureSearchHit) {
-		// hit.page is 1-indexed from the server (matches PDF page numbers); the
-		// viewer's scrollToPage / goToPage take 0-indexed input.
-		const target = Math.max(0, hit.page - 1);
+		// hit.page 是 1-based PDF 頁碼。viewer 吃 0-based index。
+		const target = Math.max(0, pageIndexFromPdfPage(hit.page));
 		onJumpToPage(target);
 		setOpen(false);
 	}

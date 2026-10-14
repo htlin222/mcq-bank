@@ -7,16 +7,31 @@ import {
 	submitSmearAnswer,
 	finishSmearSession,
 	fetchSmearMcqOptions,
+	fetchSmearInitial,
 	SMEAR_TOPIC_LABELS,
 	type SmearSessionDetail,
 	type SmearSessionQuestion,
-	type SmearGradeResponse,
 } from "../lib/smearApi";
+import { useGamepad } from "../hooks/useGamepad";
+import { GamepadFab } from "../components/GamepadFab";
 import { SmearImage } from "../components/smear/SmearImage";
-import { AnswerInput } from "../components/smear/AnswerInput";
+import { AnswerInput, type SmearAnswerHandle } from "../components/smear/AnswerInput";
 import { GradeReveal, type SmearGradeDisplay } from "../components/smear/GradeReveal";
 import { SmearDxPanel } from "../components/smear/SmearDxPanel";
 import { ReadingFramework } from "../components/smear/ReadingFramework";
+import { SMEAR_PAD_HINTS, smearPadIntent, type SmearPadPhase } from "../lib/smearGamepad";
+import {
+	consumeSmearFlush,
+	flushSmearAttempts,
+	subscribeSmearFlush,
+} from "../lib/smearAttemptFlusher";
+import {
+	dropSession,
+	enqueue,
+	listSession,
+	remove as removeQueuedAnswer,
+	smearFlushResult,
+} from "../lib/smearOutbox";
 
 // /smear/s/:id —— 作答頁。手機是這個功能最主要的使用情境(CLAUDE.md
 // 「MOBILE IS THE PRIORITY」),版面刻意單欄堆疊到所有寬度(圖 → 提示 →
@@ -39,6 +54,27 @@ type ResultState =
 	| { kind: "grade"; display: SmearGradeDisplay }
 	| { kind: "exam-ack" };
 
+function toResult(mode: "review" | "exam", body: unknown): ResultState {
+	const applied = smearFlushResult(mode, body);
+	if (applied.kind === "exam-ack") return applied;
+	return { kind: "grade", display: applied.display as SmearGradeDisplay };
+}
+
+function applyHits(
+	prev: Record<string, ResultState>,
+	sessionId: string,
+	mode: "review" | "exam",
+	hits: { item: { session_id: string; question_id: string }; body: unknown }[],
+): Record<string, ResultState> {
+	let next = prev;
+	for (const hit of hits) {
+		if (hit.item.session_id !== sessionId) continue;
+		if (next === prev) next = { ...prev };
+		next[hit.item.question_id] = toResult(mode, hit.body);
+	}
+	return next;
+}
+
 function fmtRemaining(ms: number): string {
 	const sec = Math.floor(ms / 1000);
 	const mm = Math.floor(sec / 60);
@@ -59,6 +95,30 @@ export function SmearSession() {
 	const [finishing, setFinishing] = useState(false);
 	const [autoFinishNotice, setAutoFinishNotice] = useState<string | null>(null);
 	const finishingRef = useRef(false);
+	const answerRef = useRef<SmearAnswerHandle>(null);
+	const [inputPhase, setInputPhase] = useState<Exclude<SmearPadPhase, "answered">>("typing");
+	// 手把回呼看的是這一格,不是當下那次 render 的閉包:輸入框打字不會讓
+	// 這一頁重繪,送不送得出去要問 AnswerInput 自己。
+	const padCtx = useRef({
+		idx: 0,
+		hasResult: false,
+		next: () => {},
+		prev: () => {},
+	});
+
+	useGamepad((action) => {
+		const ctx = padCtx.current;
+		const handle = answerRef.current;
+		const phase: SmearPadPhase = ctx.hasResult ? "answered" : (handle?.phase() ?? "typing");
+		const intent = smearPadIntent(phase, action, handle?.canSubmit() ?? false);
+		if (intent.kind === "move") handle?.moveChoice(intent.delta);
+		else if (intent.kind === "submit") handle?.submitFromPad();
+		else if (intent.kind === "next") {
+			if (ctx.hasResult && !finishingRef.current) ctx.next();
+		} else if (intent.kind === "prev") {
+			if (ctx.idx > 0) ctx.prev();
+		}
+	});
 
 	// 載入 session。**Reload 恢復進度**:已作答的題目從 `answered`/`my_tier`/
 	// `my_score`(複習模式全程揭曉;全真模式要 finish 之後才揭曉,見
@@ -72,6 +132,15 @@ export function SmearSession() {
 	// 這一頁的介面(輸入框、送出、下一題)全部假設「還在作答中」。
 	useEffect(() => {
 		if (!id) return;
+		return subscribeSmearFlush((hit) => {
+			if (hit.item.session_id !== id) return;
+			setResults((prev) => applyHits(prev, id, hit.item.mode, [hit]));
+			setSubmitError(null);
+		});
+	}, [id]);
+
+	useEffect(() => {
+		if (!id) return;
 		let cancelled = false;
 		finishingRef.current = false;
 		setSession(null);
@@ -79,8 +148,14 @@ export function SmearSession() {
 		setSubmitError(null);
 		setAutoFinishNotice(null);
 
-		fetchSmearSession(id)
-			.then((s) => {
+		(async () => {
+			try {
+				// 先把斷線時留下的作答送出去,再讀場次。讀到的 answered
+				// 才會含這一題;送不出去的仍留在佇列,畫面講明還在這台裝置。
+				const [s, flushed] = await Promise.all([
+					fetchSmearSession(id),
+					flushSmearAttempts(),
+				]);
 				if (cancelled) return;
 				if (s.finished_at) {
 					navigate(`/smear/s/${s.id}/result`, { replace: true });
@@ -99,16 +174,25 @@ export function SmearSession() {
 						initial[q.id] = { kind: "exam-ack" };
 					}
 				}
-				setResults(initial);
-				const firstUnanswered = s.questions.findIndex((q) => !q.answered);
+				const withFlush = applyHits(
+					applyHits(initial, s.id, s.mode, flushed.hits),
+					s.id,
+					s.mode,
+					consumeSmearFlush(s.id),
+				);
+				setResults(withFlush);
+				const firstUnanswered = s.questions.findIndex((q) => !withFlush[q.id]);
 				setCurrentIdx(
 					firstUnanswered === -1 ? Math.max(0, s.questions.length - 1) : firstUnanswered,
 				);
-			})
-			.catch((e) => {
+				if (listSession(s.id).length > 0) {
+					setSubmitError("有作答還留在這台裝置,連上線後會補送");
+				}
+			} catch (e) {
 				if (cancelled) return;
 				setLoadError(e instanceof ApiError ? `讀取失敗 (${e.status})` : String(e));
-			});
+			}
+		})();
 
 		return () => {
 			cancelled = true;
@@ -137,7 +221,20 @@ export function SmearSession() {
 		finishingRef.current = true;
 		setFinishing(true);
 		try {
+			// 交卷讀的是已經寫進 smear_answers 的列。佇列裡還沒補送的
+			// 這一題不會進成績,所以先送完再算分。
+			for (let attempt = 0; attempt < 2 && listSession(session.id).length > 0; attempt++) {
+				const flushed = await flushSmearAttempts();
+				setResults((prev) => applyHits(prev, session.id, session.mode, flushed.hits));
+			}
+			if (listSession(session.id).length > 0) {
+				setSubmitError("還有作答沒送到伺服器,連上線後再交卷");
+				finishingRef.current = false;
+				setFinishing(false);
+				return;
+			}
 			await finishSmearSession(session.id);
+			dropSession(session.id);
 			navigate(`/smear/s/${session.id}/result`);
 		} catch (e) {
 			setSubmitError(e instanceof ApiError ? `交卷失敗 (${e.status})` : String(e));
@@ -165,18 +262,29 @@ export function SmearSession() {
 		if (!session) return;
 		setSubmitting(true);
 		setSubmitError(null);
+		// POST 之前就入列。斷線、重整之後補送器打的是同一支 /answer,
+		// boxes 與 hint_used 都原樣帶回去。
+		enqueue({
+			session_id: session.id,
+			question_id: q.id,
+			boxes: [value],
+			hint_used: hintUsed ?? null,
+			mode: session.mode,
+		});
 		try {
 			// 單一輸入框 → 一個元素的陣列,見檔頭設計說明。
 			const res = await submitSmearAnswer(session.id, q.id, [value], hintUsed);
+			removeQueuedAnswer(session.id, q.id);
 			setResults((prev) => ({
 				...prev,
-				[q.id]:
-					session.mode === "review"
-						? { kind: "grade", display: res as SmearGradeResponse }
-						: { kind: "exam-ack" },
+				[q.id]: toResult(session.mode, res),
 			}));
 		} catch (e) {
-			setSubmitError(e instanceof ApiError ? `送出失敗 (${e.status})` : String(e));
+			setSubmitError(
+				e instanceof ApiError
+					? `送出失敗 (${e.status}),答案已留在這台裝置,連上線後會補送`
+					: "送出失敗,答案已留在這台裝置,連上線後會補送",
+			);
 		} finally {
 			setSubmitting(false);
 		}
@@ -195,6 +303,7 @@ export function SmearSession() {
 	}
 
 	if (loadError) {
+		padCtx.current = { idx: 0, hasResult: false, next: () => {}, prev: () => {} };
 		return (
 			<div className="max-w-md mx-auto px-4 py-20 text-center">
 				<p className="text-accent">{loadError}</p>
@@ -212,6 +321,7 @@ export function SmearSession() {
 	const current = session?.questions[currentIdx];
 
 	if (!session || !current) {
+		padCtx.current = { idx: 0, hasResult: false, next: () => {}, prev: () => {} };
 		return (
 			<div className="max-w-md mx-auto px-4 py-20 text-center text-ink-400 dark:text-ink-500">
 				<Loader2 className="animate-spin mx-auto mb-3" size={22} />
@@ -233,6 +343,14 @@ export function SmearSession() {
 			setCurrentIdx((i) => Math.min(total - 1, i + 1));
 		}
 	}
+
+	padCtx.current = {
+		idx: currentIdx,
+		hasResult: !!currentResult,
+		next: goNext,
+		prev: goPrev,
+	};
+	const padPhase: SmearPadPhase = currentResult ? "answered" : inputPhase;
 
 	return (
 		<div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-20">
@@ -332,14 +450,22 @@ export function SmearSession() {
 			{!currentResult ? (
 				<AnswerInput
 					key={current.id}
+					ref={answerRef}
 					submitting={submitting}
 					topicHint={SMEAR_TOPIC_LABELS[current.topic] ?? current.topic}
 					mode={session.mode}
+					onPhaseChange={setInputPhase}
 					onSubmit={(value, hintUsed) => void handleSubmit(current, value, hintUsed)}
 					onRequestMcOptions={
 						session.mode === "review"
 							? () =>
 									fetchSmearMcqOptions(session.id, current.id).then((r) => r.options)
+							: undefined
+					}
+					onRequestInitial={
+						session.mode === "review"
+							? () =>
+									fetchSmearInitial(session.id, current.id).then((r) => r.initial)
 							: undefined
 					}
 				/>
@@ -404,6 +530,7 @@ export function SmearSession() {
 					{isLast ? "查看成績" : "下一題"}
 				</button>
 			</div>
+			<GamepadFab hints={SMEAR_PAD_HINTS[padPhase]} />
 		</div>
 	);
 }

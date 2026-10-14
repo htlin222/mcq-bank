@@ -173,7 +173,9 @@ Worker 要用就在 `setup.sh` 的鏡射清單與 `wrangler.example.toml [vars]`
 ### 4.2 之後的日常部署
 
 **push 到 `main` 就部署**(`.github/workflows/deploy.yml`):`classify` 決定要不要動
-Pages / Worker,判準在 `scripts/lib/classify-deploy.sh`(有測試)。需要人工的只有三種檔:
+Pages / Worker,判準在 `scripts/lib/classify-deploy.sh`(有測試)。會部署時先跑
+`pnpm typecheck`、`pnpm --dir frontend typecheck`、`pnpm test`,紅了就不更新
+Pages 或 Worker。需要人工的只有三種檔:
 `migrations/**`、`wrangler.example.toml`、`config.example.toml` —— 那時 job **直接紅**,不是綠色的 skipped。
 
 | 改了                                                     | push 前要先做                                                                           |
@@ -190,7 +192,7 @@ Pages 會靜靜上到 Preview(wrangler 用當前分支名推環境),線上變成
 ### 4.3 部署的坑
 
 - **`Failed to fetch auth token: 400`** 不是 token 過期:`.env` 用的是舊名 `CF_API_TOKEN`,wrangler 認的是 `CLOUDFLARE_API_TOKEN`。`export CLOUDFLARE_API_TOKEN=$CF_API_TOKEN` 即可。
-- **`Cannot apply new-sqlite-class migration to class 'ChatRoom' … already depended on`** 的意思是 CI 那份 `WRANGLER_TOML` secret 缺了後面的 `[[migrations]]`(v2/v3),wrangler 從頭重放。本機重現不出來,因為本機那份是對的。
+- **`Cannot apply new-sqlite-class migration to class 'ChatRoom' … already depended on`** 的意思是 CI 那份 `WRANGLER_TOML` secret 缺了後面的 `[[migrations]]`(v2/v3),wrangler 從頭重放。本機重現不出來,因為本機那份是對的。Worker 部署前會用 `scripts/lib/check-wrangler-bindings.mjs` 把 secret 的 binding 名稱與 migration tag 對 `wrangler.example.toml`;少了就紅,summary 點名缺的那項,不印 secret。
 - `wrangler d1 create` 說 already exists —— 正常,`deploy.sh` 會去 `d1 list` 撈 id。
 - Pages 自訂網域要幾分鐘生效;`*.pages.dev` 立刻可用。
 - 部署完瀏覽器還是舊版 —— 硬重載並比對 bundle hash 與 `frontend/dist/index.html`,再下結論說部署失敗。
@@ -262,7 +264,7 @@ Worker 程式碼裡的寫法固定是 `c.env.DB.prepare(sql).bind(...).first<T>(
 | 詳解(markdown)     | `python3 scripts/seed-explanations.py --local\|--remote`                                                  | `explanations.content_json`           | 讀 `years/<n>/batches/*.json` 的 `explanation_md`                                                                       |
 | 講義 PDF           | `pnpm import:lectures [--remote] [--pdf-dir ./pdf]`                                                       | R2 + `lecture_docs` / `lecture_pages` | 預設 local;PDF 在 gitignored 的 `pdf/`                                                                                  |
 | 教科書             | `node --experimental-strip-types scripts/import-textbook.ts --master <pdf> [--chapters 76,83] [--remote]` | 同上,`kind='textbook'`                | 先用 `--chapters` 小批試                                                                                                |
-| 抹片練習           | `pnpm smear:import [--remote]`                                                                            | R2 + `smear_*`                        | ⚠️ delete-then-insert **會清掉 `smear_sessions` / `smear_answers`**,對有真人資料的 remote 要先想清楚                    |
+| 抹片練習           | `pnpm smear:import [--remote] [--prune]`                                                                  | R2 + 內容 `smear_*`                   | 只 upsert 內容表,使用者表不碰(`scripts/smear/sql.ts`)。`--prune` 才刪過期的診斷/題目,而那會沿 CASCADE 帶走筆記與作答歷史 |
 | 向量索引           | `pnpm vectors:backfill [--dry-run]`                                                                       | Vectorize                             | 相似題 / 弱點地圖沒資料時先查這個有沒有跑過                                                                             |
 | Access 名單        | `pnpm sync-users`                                                                                         | CF Access policy + `users`            | 冪等                                                                                                                    |
 
@@ -308,9 +310,9 @@ bucket **永遠不公開**,一律走 `/img/:key`、`/pdf/:key` 的 Worker 代理
 | 指令                                               | 涵蓋                                                                                 | 何時跑                                                                                 |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
 | `pnpm typecheck` + `pnpm --dir frontend typecheck` | tsc(**repo 沒有 eslint / biome,tsc 是唯一靜態檢查**)                                 | 每次改完                                                                               |
-| `pnpm test`                                        | 純函式:`worker/**/*.test.ts`、`frontend/src/lib`、`frontend/src/chat`、`scripts/lib` | 每次改完。**CI 不跑它**,本機自己負責                                                   |
+| `pnpm test`                                        | 純函式:`worker/**/*.test.ts`、`frontend/src/lib`、`frontend/src/chat`、`scripts/lib` | 每次改完。push `main` 且這次會部署時,`check` job 也跑;紅了就不部署                     |
 | `pnpm test:webkit`                                 | build 前端 → WebKit(iPhone)e2e **全部 47 支**(glob,不是逐檔列舉),打 `frontend/e2e/fixtures/` 的樁 | 動到 React / TipTap / 版面 / SW。約 6m50s;為什麼限併發見下面那節 |
-| CI(`deploy.yml`)                                   | 只跑 `smoke` + `nav-prefetch` 兩支 e2e,`E2E_REQUIRE=1`                               | push main 自動                                                                         |
+| CI(`deploy.yml`)                                   | 部署前 `check`:`typecheck` 兩邊 + `pnpm test`。Pages job 另以 `--test-concurrency=2` 跑整包 `frontend/e2e/*.test.mjs`,`E2E_REQUIRE=1` | push main 自動。兩邊都不部署時不跑 `check`。WebKit 沒裝是紅的,不是 skip |
 
 e2e 不接真 Worker:`frontend/e2e/server.mjs` 回 `fixtures/<path 把 / 換成 _>.json`,沒有 fixture
 的端點回 `{}` 並在結尾列出。**新路由 = 新 fixture**:`wrangler dev` 下打真端點存回應。
@@ -322,7 +324,9 @@ e2e 不接真 Worker:`frontend/e2e/server.mjs` 回 `fixtures/<path 把 / 換成 
 測試」在畫面上一模一樣。實際發生過兩次:`hidden-year.test.mjs`(5 條)與
 `smear-gallery.test.mjs`(10 條)都在磁碟上、單獨跑全綠,但**從來沒有被這個關卡跑
 到**。改成 `node --test 'frontend/e2e/*.test.mjs'` 之後那個失誤不可能再發生 ——
-同「離線預載」那節的精神:不是把問題解決掉,是讓它不存在。
+同「離線預載」那節的精神:不是把問題解決掉,是讓它不存在。Pages 部署用的是
+同一條 glob 與 `--test-concurrency=2`(`E2E_REQUIRE=1`);建置在部署 job 裡已經做過,
+所以那一步不再呼叫 `pnpm test:webkit`。
 
 ⚠️ **`--test-concurrency=2` 是承重的,不是調校。** `node --test` 預設按 CPU 數平行
 跑檔案(這台機器 10 核 = 同時開十個瀏覽器),而每支 spec 都自己 launch 一個 WebKit。
@@ -360,7 +364,7 @@ e2e 不接真 Worker:`frontend/e2e/server.mjs` 回 `fixtures/<path 把 / 換成 
 | 要加                      | 步驟                                                                                               | 常漏的                                                                                                        |
 | ------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | API endpoint              | `worker/routes/<area>.ts` → `worker/index.ts` 註冊(**在 `authMiddleware` 之後**)→ 用 `c.var.email` | 更長的前綴要先註冊(Hono 依序比對);可快取的 GET 才進 `sw-guards.ts` 的 `CACHEABLE_API`,可變 / 私人狀態一律不進 |
-| 公開路徑(不登入可達)      | 註冊在 `authMiddleware` **之前** + 自帶驗證 + 加進 `setup-public-bypass.sh` 並重跑                 | 漏 bypass 的症狀是 302 到登入頁,`fetch` 看起來像 200                                                          |
+| 公開路徑(不登入可達)      | 註冊在 `authMiddleware` **之前** + 自帶驗證 + 加進 `setup-public-bypass.sh` 並重跑                 | 漏 bypass 的症狀是 302 到登入頁,`fetch` 看起來像 200。清單與 auth 之前的路由由 `scripts/lib/public-bypass.test.mjs` 對著看;`/api/admin` 進清單也會紅 |
 | 前端路由                  | `frontend/src/App.tsx` + `frontend/e2e/fixtures/` + 視情況進 `smoke.test.mjs` 的 `ROUTES`          | 有 portal 對話框的頁,e-ink 掃描要另開路由把它打開                                                             |
 | D1 表 / 欄位              | §5.5                                                                                               | 讀取端 `ORDER BY` 要全序;`user_email` 要釘                                                                    |
 | TipTap extension          | `frontend/src/lib/tiptap-extensions.ts`(可編輯與唯讀共用)                                          | `lib/staticDoc.ts` 的靜態渲染器要認得新節點,否則留言裡那段會消失                                              |
@@ -717,13 +721,16 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 的卡片格線(migration `0042`)。一列 = 「某人在某份講義的某一頁插了旗子」,私有,
 同 `lecture_notes` / `lecture_annotations` 的 per-user 模型。
 
-**頁碼存 1-based。** 這個 repo 裡兩種慣例已經並存 —— `lecture_notes.page` 是
-1-based(`LecturePanel` 的 `pdfPage = currentPage + 1`),`lecture_annotations.page`
-卻是 0-based(清單顯示寫的是 `p.{a.page + 1}`)。書籤卡片的預覽要 join
-`lecture_notes`,所以跟 join 對象一致,0/1 的轉換就只發生在 `LectureReader` 的
-`currentPdfPage` 那一行。**多一處轉換就多一個會 off-by-one 的地方**,而 off-by-one
-在這裡的症狀是「書籤跳到隔壁頁」—— 看起來像 PDF 捲動不準,不像資料錯。e2e 因此
-斷言的是**具體頁碼**(`{method:'POST', page:1}`),不是「有送出請求」。
+**頁碼存 1-based。** `lecture_notes.page`、書籤,以及畫記的 `pdf_page`
+(migration 0074–0076)都是 PDF 頁碼。畫記原本的 `page` 是 EmbedPDF 的 0-based
+`pageIndex`,清單用 `p.{a.page + 1}` 補正。那個欄位沒有就地改語意:加欄、回填
+`pdf_page = page + 1`、讀取改走新欄、再 drop 舊欄。Viewer 的 `payload_json` 仍是
+0-based,那是 `importAnnotations` 的格式,改了舊螢光會畫到隔壁頁。0/1 的加減只在
+`lib/lecturePageParam.ts` 的 `pdfPageFromIndex` / `pageIndexFromPdfPage`。書籤
+沒有另外一處轉換。清單顯示 `p.{a.page}`,點下去用同一個函式換成 viewer index,
+所以畫面上的頁碼跟停下來的頁是同一頁。off-by-one 的症狀是「跳到隔壁頁」——
+看起來像 PDF 捲動不準,不像資料錯。e2e 因此斷言的是**具體頁碼**
+(`{method:'POST', page:1}`),不是「有送出請求」。
 
 - **`UNIQUE(user_email, slug, page)` 是承重的。** 工具列那顆是 toggle,「同一頁
   只有一筆」正是它的前提;少了唯一鍵,連點兩下會寫出兩列一模一樣的資料,而畫面上
@@ -762,10 +769,12 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 已知地雷、還沒做的缺口與建議順序。動到 `smear_*` / `worker/routes/smear*` /
 `components/smear/` 之前先讀它。兩條在那裡也寫著、但值得在這裡先看到的:
 
-- **`pnpm smear:import --remote` 是 delete-then-insert,會清掉
-  `smear_sessions` / `smear_answers` / `smear_term_votes`。** 正式機一有真人紀錄
-  就不能再跑,而改詳解、補詞表、修 `aml_m2` 全都要重灌 —— 下一輪的第一件事
-  是把內容表與使用者表拆開。
+- **`pnpm smear:import` 只擁有內容表**(`smear_dx` / `terms` / `questions` /
+  `dx_notes` / `fts`),使用者表的名字一個都不會出現在它產出的 SQL 裡 ——
+  `scripts/smear/sql.test.ts` 守著這條,不是靠註解。它 2026-09-08 之前是
+  delete-then-insert,而**壞法有兩支**:有投稿掛著 `matched_dx_id` 時 FK 失敗、
+  整批 rollback(匯入當掉);沒有那種引用時靜默清空。正式機一直沒出事是因為
+  前者,不是因為它安全。
 - **全真模式交卷前不揭曉任何判定資訊**,所有複習限定的功能(提示、看答案、
   看選項、答後面板)都是 render-level 條件 + 伺服器再擋一次,而 e2e 用「整頁
   掃不到正解字串」守著。新增複習限定功能要補進那條掃描。
@@ -791,6 +800,11 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 正解文字出現在畫面上,兩者直接衝突),回傳 5 個洗牌過的選項文字,不帶任何
 能推出正解位置的欄位——同 `/answer` 端點既有的對抗性審查精神。
 
+**首字母提示**夾在主題分類與看選項之間(`POST /api/smear/sessions/:id/initial`)。
+回應只有 `pickCorrectOptionLabel()` 那個詞的第一個字母,輸入框留著、送出仍走
+`gradeSmear()`。全真模式在查出任何詞之前回 403,按鈕用 `mode === "review"`
+條件式 render。兩個提示都用過時 `hint_used` 固定寫 `initial,topic`。
+
 干擾項生成(`worker/lib/smear-mcq.ts` 的 `pickMcqOptions()`)沿用既有
 `topic` 分類軸(白血球混白血球、紅血球混紅血球),同 topic 不足 4 個時從
 其他 topic 回填,不靜默少於名額——同 `pickSmearSet()` 缺額回填的精神,
@@ -800,10 +814,9 @@ Illegal constructor —— 可用的是舊 API `document.createTouch` / `createT
 目前根本不存在於複習模式。** 「拼字完全正確:N 題」只在全真模式交卷時算
 (`SmearResult.tsx` 讀 `finish` 回應的 `spelling_ok`),複習模式沒有交卷、
 沒有 session 完成的概念,沒有任何聚合會讀到 `hint_used='mc_choice'` 的列。
-**這個原則留著給未來**:複習模式如果哪天長出「拼字正確率」這種聚合統計,
-那支查詢要排除 `hint_used = 'mc_choice'` 的列——理由跟「直接看答案」被排除
-在外一樣(那個數字答的是「你寫不寫得出來」,用選的沒有打字這回事),但現在
-加排除邏輯只是永遠不會被執行的防禦性程式碼。
+個人頁「抹片使用」(`GET /api/smear/usage`)的複習拼字正確率排除
+`mc_choice` 與 `reveal_answer`(用選的、直接看答案,都沒有打字)。全真交卷的
+`spelling_ok` 維持原定義,不進這支。進行中的全真不作答計入。
 
 前端這顆按鈕按下去,`AnswerInput.tsx` 的自由輸入框**整個換成**單選清單
 (不是並存),選了再按送出——跟輸入框共用同一顆「提交答案」按鈕。**刻意
@@ -1157,10 +1170,18 @@ phrase-prefix(`"lupus erythematosus"*`),`“”`/`「」`/`『』` 都認(同逗
 逐詞之後,凡是不在題幹裡的詞都會被指出來 —— 使用者因此看得到「為什麼這題會被
 找出來」,也才有機會決定改用引號。題幹上已經標起來的詞不再講一次(那只是重複)。
 
-⚠️ **CJK 只比得到「從一段連續 CJK 的開頭算起」。** `unicode61` 把連續 CJK 當成
-**一個** token,實測 `慢性*` 命中「慢性骨髓性白血病」而 `白血病*` 不命中。CJK 詞
-現在包成 `"..."*`(片語 + 前綴),至少救回開頭那一種 —— 沒有 `*` 的話連那個都不行。
-要真的修得換 tokenizer 或建 bigram 索引,那是另一個 migration。
+⚠️ **CJK 的中段靠 bigram 欄,不靠把 tokenizer 換成 trigram。** `unicode61` 把連續
+CJK 當成**一個** token,所以 `"白血病"*` 對不到「慢性骨髓性白血病」。`questions_fts`
+/ `lecture_pages_fts` / `lecture_notes_fts` / `smear_fts` 多一欄 `cjk`(重疊二字,
+每一段開頭放 U+E000,避免片語黏到下一段,也不要用英文字當屏障 —— `C*` 會命中
+每一列)。二字以上的查詢改成相鄰 bigram 片語(`白血病` → `"白血 血病"`)。空白仍是
+AND、逗號仍是 OR、英數前綴與引號片語不變,也不 `toLowerCase()`。trigram tokenizer
+會拆掉 `AML*` 跟兩字查詢,所以沒換。
+
+回填不要用 `substr(text, i, 1)` 逐字掃:UTF-8 每次都從開頭數,長頁是平方,
+400 頁就要一分多鐘。改走位元組。D1 一次請求 30 秒,講義頁與筆記因此拆在
+0046 之後的多份 migration,題目與抹片留在 0046。整串都要套用,停在 0046
+的話講義中段搜尋是空的。
 
 ### AI 進階搜尋: 產生的是一排關鍵字, 不是一種新的查詢語法
 
@@ -1406,7 +1427,10 @@ endpoints. 共筆詳解、留言這類**協作**寫入仍然沒有離線路徑,U
 (2026-08-09,e-ink 上連續四題靜默沒進 D1 那次)把**作答**排除在外。理由寫在那個
 檔的檔頭:原則的成本是「寫入衝突的複雜度」,而一筆作答只屬於一個人、只會被寫一次,
 `/api/review/answer` 又本來就帶 idempotency key —— 沒有衝突要解,自然也就沒有那個
-複雜度。改這一區之前先讀那個檔,不要照著這裡舊的一句話把它拆掉。
+複雜度。改這一區之前先讀那個檔,不要照著這裡舊的一句話把它拆掉。模擬考走另一份
+`examOutbox`(不要跟複習佇列混):同一選項沿用同一把鍵打 `/api/exam/:sid/answer`,
+教學模式在那筆離開佇列之前不揭曉。交卷的 PUT 成功後要把該場的佇列清掉,否則
+補送會再 append 一次相同的 attempt。
 
 The one thing to understand before touching any of this: **an expired
 Cloudflare Access session is answered by the edge with a 302 to the login
@@ -1802,7 +1826,7 @@ bundle 上,得到「停用了還是綠」的假結論。
 
 ### 讀書計畫產生器: 排程是純函式,AI 只負責語氣
 
-首頁倒數卡片右側的「生成讀書計畫」開一個對話式問卷(七題),產出到考試當天的
+首頁倒數卡片右側的「生成讀書計畫」開一個對話式問卷(八題),產出到考試當天的
 逐日計畫表(單檔 HTML)與可匯入行事曆的 `.ics`。設計:
 `docs/plans/2026-08-07-study-plan-generator-design.md`。
 
@@ -1820,11 +1844,17 @@ bundle 上,得到「停用了還是綠」的假結論。
 - **排不完就說排不完。** `shortfall` 帶著差額回傳,UI 與 HTML 都把它放在所有
   表格**之前**,並附三顆一鍵重算的按鈕(加時間 / 砍最舊年份 / 減一輪)。那句話
   是使用者現在就該做決定的唯一理由,被行事曆推到看不見的地方等於沒說。
+- **抹片是另外一個時段。** 問卷多一問「每天幾張抹片」(0–200;舊問卷沒這欄就
+  是 0)。一張一分鐘:讀書日接在筆試結束後、模擬考日接在三小時後、休息日從
+  讀書開始時刻起、考試日不排。選 0 時 HTML 與 `.ics` 不出現抹片。`shortfall`
+  與三條建議仍只算筆試題量。抹片不寫進 `attempts`。`.ics` 抹片事件的 UID
+  多一段 `-smear`,同一人同一天重匯入仍是更新。跨午夜沿用 `localTime`。
 - **`study_plans` 只存問卷輸入,不存排程結果**(migration `0039`)。排程可從
   「輸入 + 當下進度」重算,存下來就會跟真實進度漂移,而漂移的計畫表沒人會發現
   它錯了。同 `review_progress` 是快取、`attempts` 才是真相的那條規則。
-- **弱點不走 `/api/review/weakness-map`** —— 它依賴 Vectorize 索引,未回填時直接
-  回空陣列,拿它當計畫的基礎會在多數使用者身上開天窗。改用逐年正確率 +
+- **弱點不走 `/api/review/weakness-map`** —— 它依賴 Vectorize 索引,未回填時
+  語意分群是空的(現在會明講「語意索引尚未回填」,並改走主題標籤;相似題
+  同樣跳過嵌入、改走標籤與 BM25)。拿它當計畫的基礎會在多數使用者身上開天窗。改用逐年正確率 +
   `tag_topics`/`video_topics` 白名單的確定性 SQL,並濾掉作答數 < 8 的主題
   (「1 題錯 1 題 = 0%」是雜訊,不是弱點)。
 - **Workers AI 只寫弱點導讀那一段,不碰任何一個數字。** 送出去的只有一張最多
@@ -2075,10 +2105,14 @@ migration、worker route、前端面板全部照設計做好了,唯獨最後一�
 - 寫入沿用原設計的 delete-then-insert per slug,冪等 —— 之後只加一個新講義,
   可以只針對那個 slug 重跑,不用整批重來。跑之前先 `--local` 驗證(尤其是驗證
   回報案例那一頁真的有結果),再 `--remote` 推上去,同原始腳本的慣例。
-- 這是**一次性手動回填**,沒有寫成常態 pipeline / cron。原本的
-  `scripts/build-slide-mcq-links.ts` 還在 repo 裡,但它的 Workers AI 逐候選判定
-  模式在這個題庫規模下不現實 —— 之後新增講義要回填,照這節描述的做法(subagent +
-  完整題目摘要)重做一輪,而不是直接跑那支腳本。
+- 重跑用 `scripts/build-slide-mcq-links.ts --slug=<slug>`,不呼叫 Workers AI。
+  比對的是標籤、題幹裡的中文詞、和大寫縮寫有沒有出現在那一頁;AML、ALL 這種
+  幾十題共用的標籤單獨不夠,總覽頁才不會被整科灌滿。每頁仍最多 6 題。只刪該
+  slug 的列,其他 slug 不動。跑完印 `wrote N`;N 可以是 0(題庫沒有那個主題,
+  例如 neuroblastoma),那是跑完,不是失敗。沒給 `--slug`、slug 不存在、或
+  wrangler 失敗,都是非 0 結束,而且不會印 `wrote`。上面那次 subagent 回填
+  還在沒被重跑的 slug 上;要換一份講義才重跑那一份。先 `--dry-run`,再
+  `--local`,確認筆數之後才 `--remote`。
 
 ### Images: R2 via Worker proxy (not public bucket)
 
@@ -2375,7 +2409,9 @@ no fixture get `{}` and are listed at the end of the run.
 個人頁的「備份我的紀錄」(`/api/backup/*`,`frontend/src/lib/backupLayout.ts`)
 把這個帳號的全部紀錄倒成一個 zip:一題一個 JSON(題目、共筆詳解 + 我的作答、
 信心、筆記、畫記、收藏)、一場模擬考一個 JSON、一份講義一個 JSON、其他筆記
-一則一個,外加一份 `CLAUDE.md` 讓 Claude 打開整個資料夾就看得懂。
+一則一個,再加上抹片的收藏診斷、個人筆記、已結束場次與逐題作答,外加一份
+`CLAUDE.md` 讓 Claude 打開整個資料夾就看得懂。`schema_version` 2 起才有
+`smear/`(1 沒有)。進行中的抹片場次不進 zip。
 
 - **打包在 client。** 實測單一使用者的 `personal_notes` 就有 3976 則 / 35.8 MB
   (再加 1100 題與 1.85 MB 的共筆詳解)。free plan 一次請求 10ms CPU、128 MB
@@ -2396,16 +2432,22 @@ no fixture get `{}` and are listed at the end of the run.
   `bookmark_items`。照著文件寫會拿到 `no such column: bookmarked` —— 這是寫這個
   功能時真的踩到的。
 - **圖片不打包**,`/img/<key>` 保持原樣。血液抹片那類圖會讓體積再翻一倍,而
-  文字分析不受影響。
+  文字分析不受影響。抹片作答列上的 `image_view` / `image_full` 也只是這個
+  key,位元組不進 zip。
+- **抹片作答的游標是 `session_id` + 換行 + `question_id`。** 一場最多 200 題、
+  一頁預設也是 200,頁面會切在一場中間。只記 `session_id` 的話,下一頁的
+  `session_id > ?` 會把這一場剩下的題丟掉。
 - 驗證分兩層:`backupLayout.test.ts` 是純函式(併檔正確性),
-  `frontend/e2e/backup.test.mjs` 走真的瀏覽器 —— 按下按鈕、抓完 12 支端點、
+  `frontend/e2e/backup.test.mjs` 走真的瀏覽器 —— 按下按鈕、抓完 16 支端點、
   壓成 zip、觸發下載,再把下載到的檔案解開檢查。後者涵蓋的是單元測試碰不到
   的那一半(fflate 的 worker thread、`URL.createObjectURL`、`<a download>`)。
 
 ## 部署管線: 判準是 denylist,而「跳過」不准是綠的
 
 `.github/workflows/deploy.yml` 一支涵蓋兩邊:push 到 `main` → `classify` 決定要
-部署什麼 → `pages` / `worker` 兩個 job 各自跑。判準抽在
+部署什麼 → `check`(typecheck 與 `pnpm test`)→ `pages` / `worker` 兩個 job 各自跑。
+`check` 紅了,部署不會開始。classify 判定兩邊都不部署時 `check` 不跑。
+`test:webkit` 不在 `check` 裡。判準抽在
 `scripts/lib/classify-deploy.sh`(有測試),**不是內嵌在 YAML 裡** —— 內嵌的
 shell 只能靠「推上去看看會不會動」來驗,而部署邏輯最不該用那種方式驗。
 

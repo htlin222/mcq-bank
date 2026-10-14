@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
 import {
 	ChevronLeft,
 	ChevronRight,
+	GripVertical,
 	Loader2,
 	Plus,
 	ThumbsDown,
@@ -10,14 +11,15 @@ import {
 	Undo2,
 } from "lucide-react";
 import { ApiError } from "../../lib/api";
-import { isEmptyDoc } from "../../lib/drafts";
 import { useMe, type Me } from "../../hooks/useMe";
 import { useNarrow } from "../../hooks/useNarrow";
 import { noteTitleFromJson, NOTE_TITLE_NARROW } from "../../lib/noteTitle";
+import { dropIndex, moveItem, sameOrder } from "../../lib/reorder";
 import { useDismiss } from "../../hooks/useDismiss";
 import { KeepAlive } from "../KeepAlive";
 import { StaticContent } from "../StaticContent";
 import { RichEditor } from "../RichEditor";
+import { SmearDxNoteEditor } from "./SmearDxNoteEditor";
 import { SmearCommentThread } from "./SmearCommentThread";
 import { TIER_META, TERM_TIER_ORDER } from "./GradeReveal";
 import {
@@ -29,9 +31,11 @@ import {
 	createSmearNote,
 	updateSmearNote,
 	deleteSmearNote,
+	reorderSmearNotes,
 	type SmearDxDetail,
 	type SmearNote,
 	type SmearProposedTerm,
+	type SmearRejectedTerm,
 	type SmearTier,
 } from "../../lib/smearApi";
 
@@ -78,9 +82,12 @@ const FORM_LABEL: Record<"long" | "abbrev", string> = {
 export function SmearDxPanel({
 	dxId,
 	className = "",
+	initialTab = "explanation",
 }: {
 	dxId: string;
 	className?: string;
+	/** 通知點進來時直接開討論。只接受這四個分頁。 */
+	initialTab?: SmearDxPanelTab;
 }) {
 	const { me } = useMe();
 	const narrow = useNarrow();
@@ -88,7 +95,7 @@ export function SmearDxPanel({
 
 	const [dx, setDx] = useState<SmearDxDetail | null>(null);
 	const [loadError, setLoadError] = useState<string | null>(null);
-	const [tab, setTab] = useState<SmearDxPanelTab>("explanation");
+	const [tab, setTab] = useState<SmearDxPanelTab>(initialTab);
 
 	// 提報中的詞 + 我投的票 —— 同 SmearDx.tsx 舊版的理由:GET /dx/:id 只回
 	// status='accepted' 的列,剛提報成功的詞要靠這裡才看得到自己的提案。
@@ -102,7 +109,7 @@ export function SmearDxPanel({
 		setLoadError(null);
 		setProposals([]);
 		setMyVotes({});
-		setTab("explanation");
+		setTab(initialTab);
 		fetchSmearDx(dxId)
 			.then((d) => {
 				if (!cancelled) setDx(d);
@@ -120,7 +127,7 @@ export function SmearDxPanel({
 		return () => {
 			cancelled = true;
 		};
-	}, [dxId]);
+	}, [dxId, initialTab]);
 
 	function pickTab(t: SmearDxPanelTab) {
 		setTab(t);
@@ -211,6 +218,7 @@ export function SmearDxPanel({
 							onProposed={(t) => setProposals((prev) => [...prev, t])}
 							onVote={handleVote}
 							onRetractVote={handleRetractVote}
+							onNoteSaved={(note) => setDx((d) => (d ? { ...d, note } : d))}
 						/>
 					</KeepAlive>
 					<KeepAlive active={tab === "note"}>
@@ -245,6 +253,7 @@ function ExplanationPane({
 	onProposed,
 	onVote,
 	onRetractVote,
+	onNoteSaved,
 }: {
 	dx: SmearDxDetail;
 	me: Me | null;
@@ -254,18 +263,8 @@ function ExplanationPane({
 	onProposed: (term: SmearProposedTerm) => void;
 	onVote: (term: SmearProposedTerm, agree: boolean) => void;
 	onRetractVote: (term: SmearProposedTerm) => void;
+	onNoteSaved: (note: NonNullable<SmearDxDetail["note"]>) => void;
 }) {
-	const doc = useMemo(() => {
-		const raw = dx.note?.content_json;
-		if (!raw) return null;
-		try {
-			return JSON.parse(raw);
-		} catch {
-			return null;
-		}
-	}, [dx.note?.content_json]);
-	const noteEmpty = !doc || isEmptyDoc(doc);
-
 	const groupedTerms = useMemo(() => {
 		const g: Record<SmearTier, SmearDxDetail["terms"]> = { full: [], half: [], lay: [] };
 		for (const t of dx.terms ?? []) g[t.tier]?.push(t);
@@ -275,38 +274,54 @@ function ExplanationPane({
 	return (
 		<div className="space-y-8">
 			<section>
-				{noteEmpty ? (
-					<p className="text-sm text-ink-400 dark:text-ink-500">詳解尚未建立。</p>
-				) : (
-					<StaticContent content={doc} />
-				)}
+				<SmearDxNoteEditor
+					dxId={dx.id}
+					note={dx.note}
+					isAdmin={!!me?.is_admin}
+					myEmail={me?.email ?? null}
+					onSaved={onNoteSaved}
+				/>
 			</section>
 
 			<section>
 				<h2 className="text-xs uppercase tracking-wide text-ink-400 dark:text-ink-500 mb-2">
 					可接受的寫法
 				</h2>
-				<div className="flex flex-wrap gap-1.5">
-					{TERM_TIER_ORDER.flatMap((tier) =>
-						(groupedTerms[tier] ?? []).map((t) => (
-							<span
-								key={t.id}
-								className={
-									"px-2.5 py-1 rounded text-xs max-w-full break-words " +
-									TIER_META[tier].chipCls
-								}
-							>
-								<span aria-hidden="true">{TIER_META[tier].icon}</span> {t.text}
-								<span className="ml-1 opacity-70">({FORM_LABEL[t.form]})</span>
-							</span>
-						)),
-					)}
-					{(dx.terms ?? []).length === 0 && (
-						<p className="text-sm text-ink-400 dark:text-ink-500">
-							目前還沒有已接受的寫法。
-						</p>
-					)}
+				{(dx.terms ?? []).length === 0 && (
+					<p className="text-sm text-ink-400 dark:text-ink-500">
+						目前還沒有已接受的寫法。
+					</p>
+				)}
+				<div className="space-y-3">
+					{TERM_TIER_ORDER.map((tier) => {
+						const items = groupedTerms[tier] ?? [];
+						if (items.length === 0) return null;
+						return (
+							<div key={tier}>
+								<h3 className="text-xs text-ink-500 dark:text-ink-400 mb-1.5">
+									<span aria-hidden="true">{TIER_META[tier].icon}</span>{" "}
+									{TIER_META[tier].label}
+								</h3>
+								<div className="flex flex-wrap gap-1.5">
+									{items.map((t) => (
+										<span
+											key={t.id}
+											className={
+												"px-2.5 py-1 rounded text-xs max-w-full break-words " +
+												TIER_META[tier].chipCls
+											}
+										>
+											<span aria-hidden="true">{TIER_META[tier].icon}</span> {t.text}
+											<span className="ml-1 opacity-70">({FORM_LABEL[t.form]})</span>
+										</span>
+									))}
+								</div>
+							</div>
+						);
+					})}
 				</div>
+
+				<RejectedTerms terms={dx.rejected ?? []} />
 
 				{proposals.length > 0 && (
 					<div className="mt-3 space-y-2">
@@ -330,6 +345,7 @@ function ExplanationPane({
 				onProposed={onProposed}
 				existingAccepted={dx.terms ?? []}
 				existingProposals={proposals}
+				existingRejected={dx.rejected ?? []}
 			/>
 		</div>
 	);
@@ -425,16 +441,54 @@ function ProposalRow({
 	);
 }
 
+function RejectedTerms({ terms }: { terms: SmearRejectedTerm[] }) {
+	if (terms.length === 0) return null;
+	return (
+		<details className="mt-4">
+			<summary className="cursor-pointer text-sm text-ink-500 dark:text-ink-400">
+				已否決的寫法（{terms.length}）
+			</summary>
+			<ul className="mt-2 space-y-2">
+				{terms.map((t) => {
+					const meta = TIER_META[t.tier];
+					const why = t.rationale?.trim();
+					return (
+						<li
+							key={t.id}
+							className="rounded border border-ink-100 dark:border-ink-700 px-2.5 py-2 text-xs"
+						>
+							<div className="flex flex-wrap items-center gap-2">
+								<span className="line-through text-ink-500 dark:text-ink-400 max-w-full break-words">
+									{t.text}
+								</span>
+								<span>已否決</span>
+								{meta && (
+									<span className="text-ink-400 dark:text-ink-500">{meta.label}</span>
+								)}
+							</div>
+							<p className="mt-1.5 text-ink-500 dark:text-ink-400 break-words">
+								{why || "沒有留下理由"}
+							</p>
+						</li>
+					);
+				})}
+			</ul>
+		</details>
+	);
+}
+
 function ProposeTermForm({
 	dxId,
 	onProposed,
 	existingAccepted,
 	existingProposals,
+	existingRejected,
 }: {
 	dxId: string;
 	onProposed: (term: SmearProposedTerm) => void;
 	existingAccepted: SmearDxDetail["terms"];
 	existingProposals: SmearProposedTerm[];
+	existingRejected: SmearRejectedTerm[];
 }) {
 	const [text, setText] = useState("");
 	const [tier, setTier] = useState<SmearTier>("half");
@@ -467,10 +521,21 @@ function ProposeTermForm({
 				const existingId = e.data?.existingTermId as string | undefined;
 				const foundAccepted = existingAccepted.find((t) => t.id === existingId);
 				const foundOpen = existingProposals.find((t) => t.id === existingId);
+				const foundRejected = existingRejected.find((t) => t.id === existingId);
+				const rejectedByMessage =
+					typeof e.data?.error === "string" &&
+					e.data.error.includes("already proposed and rejected");
 				if (foundAccepted) {
 					setError(`「${foundAccepted.text}」已經是可接受的寫法了,不用重複提報。`);
 				} else if (foundOpen) {
 					setError(`「${foundOpen.text}」正在投票中,幫它投一票就好,不用重新提報。`);
+				} else if (foundRejected || rejectedByMessage) {
+					const why = foundRejected?.rationale?.trim();
+					const name = foundRejected?.text ?? text.trim();
+					setError(
+						`「${name}」先前已被否決,不會因為再提報一次就恢復。` +
+							(why ? `理由:${why}` : ""),
+					);
 				} else {
 					setError(`這個寫法先前已被提報過(${e.data?.error ?? "重複"})。`);
 				}
@@ -587,10 +652,9 @@ function ProposeTermForm({
 }
 
 // ---------------------------------------------------------------------------
-// 個人筆記 —— 一個診斷可以有多則,私有(僅自己看得到)。介面同 NoteSwitcher.tsx
-// 的視覺慣例(切換 + 下拉 + 新增),但沒有拖曳排序 —— 後端沒有排序 API
-// (worker/routes/smear-community.ts 的檔頭已經說明:v1 純附加順序),
-// 這裡也就沒有理由做一個後端接不住的手勢。
+// 個人筆記 —— 一個診斷可以有多則,私有(僅自己看得到)。順序走 sort_order,
+// 拖曳握把同 NoteSwitcher:pointer events、放開才送、放回原位不送。
+// id 不當排序鍵。
 // ---------------------------------------------------------------------------
 function parseNoteDoc(json: string): unknown {
 	try {
@@ -608,6 +672,8 @@ function NotesPane({ dxId }: { dxId: string }) {
 	const [edit, setEdit] = useState<{ noteId: string; content: any } | null>(null);
 	const [busy, setBusy] = useState(false);
 	const switcherRef = useRef<HTMLDivElement>(null);
+	const listRef = useRef<HTMLUListElement>(null);
+	const [dragging, setDragging] = useState<{ id: string; order: string[] } | null>(null);
 	useDismiss(switcherOpen, switcherRef, () => setSwitcherOpen(false));
 
 	useEffect(() => {
@@ -701,6 +767,54 @@ function NotesPane({ dxId }: { dxId: string }) {
 		}
 	}
 
+	const shown = dragging
+		? dragging.order
+				.map((id) => list.find((n) => n.id === id))
+				.filter((n): n is SmearNote => !!n)
+		: list;
+
+	function startDrag(e: ReactPointerEvent, id: string) {
+		if (list.length < 2) return;
+		e.preventDefault();
+		e.stopPropagation();
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		setDragging({ id, order: list.map((n) => n.id) });
+	}
+
+	function moveDrag(e: ReactPointerEvent) {
+		if (!dragging) return;
+		const ul = listRef.current;
+		if (!ul) return;
+		const mids = [...ul.querySelectorAll("li")].map((li) => {
+			const r = li.getBoundingClientRect();
+			return r.top + r.height / 2;
+		});
+		const from = dragging.order.indexOf(dragging.id);
+		const to = dropIndex(mids, e.clientY, from);
+		if (to === from) return;
+		setDragging({ id: dragging.id, order: moveItem(dragging.order, from, to) });
+	}
+
+	function endDrag() {
+		if (!dragging) return;
+		const next = dragging.order;
+		const prev = list.map((n) => n.id);
+		setDragging(null);
+		if (sameOrder(next, prev)) return;
+		setNotes((cur) => {
+			const byId = new Map((cur ?? []).map((n) => [n.id, n]));
+			return next.flatMap((id, i) => {
+				const n = byId.get(id);
+				return n ? [{ ...n, sort_order: i }] : [];
+			});
+		});
+		void reorderSmearNotes(dxId, next).catch(() => {
+			fetchSmearNotes(dxId)
+				.then((r) => setNotes(r.items ?? []))
+				.catch(() => setError("排序沒有存進去,請重整。"));
+		});
+	}
+
 	if (notes === null) {
 		return (
 			<p className="inline-flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500 py-6">
@@ -753,11 +867,33 @@ function NotesPane({ dxId }: { dxId: string }) {
 						</button>
 						{switcherOpen && (
 							<ul
+								ref={listRef}
 								role="listbox"
 								className="absolute z-20 mt-1 w-full bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded shadow-lg max-h-60 overflow-y-auto text-sm"
 							>
-								{list.map((n, i) => (
-									<li key={n.id}>
+								{shown.map((n, i) => (
+									<li
+										key={n.id}
+										className={
+											"flex items-stretch " +
+											(dragging?.id === n.id ? "bg-ink-100 dark:bg-ink-700" : "")
+										}
+									>
+										{list.length > 1 && (
+											<span
+												role="button"
+												tabIndex={-1}
+												aria-label={`拖曳排序:${noteTitleFromJson(n.content_json)}`}
+												title="拖曳調整順序"
+												onPointerDown={(e) => startDrag(e, n.id)}
+												onPointerMove={moveDrag}
+												onPointerUp={endDrag}
+												onPointerCancel={endDrag}
+												className="flex shrink-0 cursor-grab touch-none items-center pl-2 text-ink-300 hover:text-ink-500 active:cursor-grabbing dark:text-ink-600 dark:hover:text-ink-400"
+											>
+												<GripVertical size={14} />
+											</span>
+										)}
 										<button
 											type="button"
 											role="option"
@@ -768,7 +904,7 @@ function NotesPane({ dxId }: { dxId: string }) {
 												setSwitcherOpen(false);
 											}}
 											className={
-												"w-full text-left px-3 py-2 truncate transition " +
+												"min-w-0 flex-1 text-left px-3 py-2 truncate transition " +
 												(n.id === activeId
 													? "bg-accent text-white"
 													: "text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700")

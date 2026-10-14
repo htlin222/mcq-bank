@@ -1,6 +1,16 @@
-import { useId, useState } from "react";
+import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
 import { CircleHelp, Loader2 } from "lucide-react";
 import type { SmearMode } from "../../lib/smearApi";
+import { acceptInitial, spellingHintUsed } from "../../lib/smearHint";
+import { moveSmearChoice, type SmearPadPhase } from "../../lib/smearGamepad";
+
+/** 作答頁只有一個手把訂閱。這個把手讓那一層移動選項、送出,不必再訂一次。 */
+export type SmearAnswerHandle = {
+	phase: () => Exclude<SmearPadPhase, "answered">;
+	canSubmit: () => boolean;
+	moveChoice: (delta: 1 | -1) => void;
+	submitFromPad: () => void;
+};
 
 /**
  * 單一自由輸入框,取代「每個字一格」的設計 —— 見 SmearSession.tsx 檔頭那段
@@ -30,13 +40,9 @@ import type { SmearMode } from "../../lib/smearApi";
  * 「用了分類提示」(`'topic'`)、「單純猜錯」(`null`)分得開,純粹是
  * 分析用的旗標,不影響判分。
  */
-export function AnswerInput({
-	onSubmit,
-	submitting,
-	topicHint,
-	mode,
-	onRequestMcOptions,
-}: {
+export const AnswerInput = forwardRef<
+	SmearAnswerHandle,
+	{
 	onSubmit: (value: string, hintUsed?: string) => void;
 	submitting: boolean;
 	/** 分類提示的顯示文字。undefined = 這一題沒有提示可用。 */
@@ -54,7 +60,26 @@ export function AnswerInput({
 	 * 「頁面算好、往下傳純資料/callback」的作法。
 	 */
 	onRequestMcOptions?: () => Promise<string[]>;
-}) {
+	/**
+	 * 首字母提示 —— 打 POST /initial,回應只該有一個字母。只在複習模式由
+	 * 呼叫端傳入;undefined 時整顆按鈕不 render(同「看選項」:全真模式要
+	 * 整個不在 DOM 裡)。輸入框留著,送出仍走拼字判定。
+	 */
+	onRequestInitial?: () => Promise<string>;
+	/** 看選項清單出現或收回時通知作答頁,好換成對的那份按鍵說明。 */
+	onPhaseChange?: (phase: Exclude<SmearPadPhase, "answered">) => void;
+}>(function AnswerInput(
+	{
+		onSubmit,
+		submitting,
+		topicHint,
+		mode,
+		onRequestMcOptions,
+		onRequestInitial,
+		onPhaseChange,
+	},
+	ref,
+) {
 	const [value, setValue] = useState("");
 	const [hintShown, setHintShown] = useState(false);
 	const inputId = useId();
@@ -70,6 +95,58 @@ export function AnswerInput({
 		| { status: "error" };
 	const [mc, setMc] = useState<McState>({ status: "hidden" });
 	const [mcChoice, setMcChoice] = useState<string | null>(null);
+
+	type InitialState =
+		| { status: "hidden" }
+		| { status: "loading" }
+		| { status: "shown"; letter: string }
+		| { status: "error" };
+	const [initialHint, setInitialHint] = useState<InitialState>({ status: "hidden" });
+
+	const valueRef = useRef(value);
+	const mcRef = useRef(mc);
+	const choiceRef = useRef(mcChoice);
+	const submittingRef = useRef(submitting);
+	valueRef.current = value;
+	mcRef.current = mc;
+	choiceRef.current = mcChoice;
+	submittingRef.current = submitting;
+
+	const submitRef = useRef<() => void>(() => {});
+
+	useEffect(() => {
+		onPhaseChange?.(mc.status === "loaded" ? "choices" : "typing");
+	}, [mc.status, onPhaseChange]);
+
+	useImperativeHandle(ref, () => ({
+		phase: () => (mcRef.current.status === "loaded" ? "choices" : "typing"),
+		canSubmit: () => {
+			if (submittingRef.current) return false;
+			const m = mcRef.current;
+			if (m.status === "loaded") return choiceRef.current != null;
+			return valueRef.current.trim().length > 0;
+		},
+		moveChoice: (delta) => {
+			const m = mcRef.current;
+			if (m.status !== "loaded" || submittingRef.current) return;
+			const index = choiceRef.current == null ? -1 : m.options.indexOf(choiceRef.current);
+			const next = moveSmearChoice(index, m.options.length, delta);
+			if (next >= 0) setMcChoice(m.options[next]);
+		},
+		submitFromPad: () => submitRef.current(),
+	}), []);
+
+	async function requestInitial() {
+		if (!onRequestInitial || submitting || initialHint.status === "loading") return;
+		setInitialHint({ status: "loading" });
+		try {
+			const letter = acceptInitial(await onRequestInitial());
+			// 超過一個字就當成失敗,一個字都不畫 —— 否則伺服器多回的詞會進 DOM。
+			setInitialHint(letter ? { status: "shown", letter } : { status: "error" });
+		} catch {
+			setInitialHint({ status: "error" });
+		}
+	}
 
 	async function requestMcOptions() {
 		if (!onRequestMcOptions || submitting || mc.status === "loading") return;
@@ -97,8 +174,15 @@ export function AnswerInput({
 		}
 		const v = value.trim();
 		if (!v) return;
-		onSubmit(v, hintShown ? "topic" : undefined);
+		onSubmit(
+			v,
+			spellingHintUsed({
+				topic: hintShown,
+				initial: initialHint.status === "shown",
+			}),
+		);
 	}
+	submitRef.current = submit;
 
 	// 無視輸入框目前打了什麼(哪怕才打兩個字),一律送空字串 —— 「放棄」
 	// 跟「打了一半的猜測」混在一起送出去,判定會很難懂。
@@ -111,12 +195,10 @@ export function AnswerInput({
 		<div className="space-y-3">
 			{mc.status === "loaded" ? (
 				<>
-					{/* 單選清單 —— name 相同的原生 radio group 本來就支援方向鍵在
-					    選項間移動 + Enter/Space 選取,不需要另外接手把/鍵盤邏輯就有
-					    基本的鍵盤互動。視覺語彙(圓角框線/選中變 accent 邊框)跟
-					    QuestionCard 的選項列同一套語言,但這裡是獨立的小元件 ——
-					    QuestionCard 綁死 MCQ 題目的資料形狀(收藏/信心/管理員編輯),
-					    直接重用會把兩個完全不同的資料模型綁在一起。 */}
+					{/* 單選清單。鍵盤的方向鍵仍靠同 name 的原生 radio。手把不走這裡:
+					    作答頁只有一個訂閱,經 SmearAnswerHandle 改 mcChoice。
+					    視覺語彙跟 QuestionCard 的選項列同一套,但是獨立元件 ——
+					    QuestionCard 綁死 MCQ 的收藏/信心/管理員編輯。 */}
 					<fieldset className="space-y-2">
 						<legend className="sr-only">選一個診斷</legend>
 						{mc.options.map((opt, i) => (
@@ -180,7 +262,7 @@ export function AnswerInput({
 					/>
 				</>
 			)}
-			<div className="flex items-center gap-2">
+			<div className="flex flex-wrap items-center gap-2">
 				<button
 					type="button"
 					onClick={submit}
@@ -205,6 +287,22 @@ export function AnswerInput({
 					</button>
 				)}
 				{mode === "review" &&
+					onRequestInitial &&
+					initialHint.status !== "shown" &&
+					mc.status !== "loaded" && (
+						<button
+							type="button"
+							onClick={() => void requestInitial()}
+							disabled={submitting || initialHint.status === "loading"}
+							className="px-3 py-2.5 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 text-sm hover:border-ink-400 inline-flex items-center gap-1 disabled:opacity-40"
+						>
+							{initialHint.status === "loading" && (
+								<Loader2 size={14} className="animate-spin" />
+							)}
+							{initialHint.status === "error" ? "首字母(重試)" : "首字母"}
+						</button>
+					)}
+				{mode === "review" &&
 					onRequestMcOptions &&
 					(mc.status === "hidden" || mc.status === "error" || mc.status === "loading") && (
 						<button
@@ -228,6 +326,14 @@ export function AnswerInput({
 					分類提示:{topicHint}
 				</p>
 			)}
+			{initialHint.status === "shown" && (
+				<p className="text-xs text-ink-500 dark:text-ink-400" data-testid="smear-initial">
+					首字母：{initialHint.letter}
+				</p>
+			)}
+			{initialHint.status === "error" && (
+				<p className="text-xs text-accent">首字母載入失敗,請重試。</p>
+			)}
 			{mode === "review" && (
 				// 文字連結,不是同重量的按鈕 —— 這是刻意的退場路徑,不是預設路徑
 				// (逼自己先試著答一次才是這個功能的教學重點)。仍然保留跟其他
@@ -243,4 +349,4 @@ export function AnswerInput({
 			)}
 		</div>
 	);
-}
+});

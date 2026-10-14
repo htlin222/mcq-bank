@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Context } from 'hono';
 import type { AppContext } from '../types';
+import { smearAnswerCursor } from '../lib/smear-backup';
 
 // 「備份我的紀錄」的資料來源(#123)。個人頁按下去之後,**zip 是在瀏覽器裡組的**,
 // 這裡只負責把資料一頁一頁交出去。
@@ -60,7 +61,7 @@ backupRoutes.get('/manifest', async (c) => {
     const r = await c.env.DB.prepare(sql).bind(...binds).first<{ n: number }>();
     return r?.n ?? 0;
   };
-  const [questions, attempts, confidence, notes, highlights, progress, bookmarks, exams, lectureAnno, lectureNotes, freeNotes] =
+  const [questions, attempts, confidence, notes, highlights, progress, bookmarks, exams, lectureAnno, lectureNotes, freeNotes, smearBookmarks, smearNotes, smearSessions, smearAnswers] =
     await Promise.all([
       one('SELECT COUNT(*) AS n FROM questions'),
       one('SELECT COUNT(*) AS n FROM attempts WHERE user_email = ?', email),
@@ -73,6 +74,18 @@ backupRoutes.get('/manifest', async (c) => {
       one('SELECT COUNT(*) AS n FROM lecture_annotations WHERE user_email = ?', email),
       one('SELECT COUNT(*) AS n FROM lecture_notes WHERE user_email = ?', email),
       one('SELECT COUNT(*) AS n FROM free_notes WHERE user_email = ?', email),
+      one('SELECT COUNT(*) AS n FROM smear_dx_bookmarks WHERE user_email = ?', email),
+      one('SELECT COUNT(*) AS n FROM smear_notes WHERE user_email = ?', email),
+      one(
+        'SELECT COUNT(*) AS n FROM smear_sessions WHERE user_email = ? AND finished_at IS NOT NULL',
+        email,
+      ),
+      one(
+        `SELECT COUNT(*) AS n FROM smear_answers a
+           JOIN smear_sessions s ON s.id = a.session_id
+          WHERE s.user_email = ? AND s.finished_at IS NOT NULL`,
+        email,
+      ),
     ]);
 
   return c.json({
@@ -80,7 +93,8 @@ backupRoutes.get('/manifest', async (c) => {
     generated_at: Date.now(),
     // 讀這份備份的人(或 Claude)要知道欄位長什麼樣。改變任何一支端點的形狀
     // 就把它 +1,並在 CLAUDE.md 裡說明差在哪。
-    schema_version: 1,
+    // 2:zip 多了 smear/(收藏、筆記、已結束的場次與逐題作答)。
+    schema_version: 3,
     counts: {
       questions,
       attempts,
@@ -93,6 +107,10 @@ backupRoutes.get('/manifest', async (c) => {
       lecture_annotations: lectureAnno,
       lecture_notes: lectureNotes,
       free_notes: freeNotes,
+      smear_bookmarks: smearBookmarks,
+      smear_notes: smearNotes,
+      smear_sessions: smearSessions,
+      smear_answers: smearAnswers,
     },
   });
 });
@@ -234,7 +252,7 @@ backupRoutes.get('/exam-answers', (c) =>
 backupRoutes.get('/lecture-annotations', (c) =>
   page<{ id: string }>(
     c,
-    `SELECT a.id, a.slug, d.title AS lecture_title, a.page, a.kind, a.payload_json,
+    `SELECT a.id, a.slug, d.title AS lecture_title, a.pdf_page AS page, a.kind, a.payload_json,
             a.created_at, a.updated_at
        FROM lecture_annotations a
        LEFT JOIN lecture_docs d ON d.slug = a.slug
@@ -271,4 +289,70 @@ backupRoutes.get('/free-notes', (c) =>
       LIMIT ?`,
     (r) => r.id
   )
+);
+
+// ── 抹片:收藏的診斷、個人筆記、已結束的場次與逐題作答 ───────────────
+//
+// 進行中的場次不收。全真模式交卷前的作答還沒有判定,收進來會讓 zip 裡出現
+// 一份尚未定案的成績。收藏是診斷(smear_dx_bookmarks),沒有另外一張
+// 「收藏某一張圖」的表。圖只留 /img/<key>,位元組不進 zip。
+
+backupRoutes.get('/smear-bookmarks', (c) =>
+  page<{ dx_id: string }>(
+    c,
+    `SELECT b.dx_id, d.canonical_long, d.topic, d.qtype, b.created_at
+       FROM smear_dx_bookmarks b
+       JOIN smear_dx d ON d.id = b.dx_id
+      WHERE b.user_email = ? AND b.dx_id > ?
+      ORDER BY b.dx_id
+      LIMIT ?`,
+    (r) => r.dx_id,
+  ),
+);
+
+backupRoutes.get('/smear-notes', (c) =>
+  page<{ id: string }>(
+    c,
+    `SELECT n.id, n.dx_id, d.canonical_long, n.content_json, n.sort_order,
+            n.created_at, n.updated_at
+       FROM smear_notes n
+       JOIN smear_dx d ON d.id = n.dx_id
+      WHERE n.user_email = ? AND n.id > ?
+      ORDER BY n.id
+      LIMIT ?`,
+    (r) => r.id,
+  ),
+);
+
+backupRoutes.get('/smear-sessions', (c) =>
+  page<{ id: string }>(
+    c,
+    `SELECT id, mode, config_json, question_ids, started_at, finished_at,
+            score, max_score, spelling_ok, lay_count
+       FROM smear_sessions
+      WHERE user_email = ? AND finished_at IS NOT NULL AND id > ?
+      ORDER BY id
+      LIMIT ?`,
+    (r) => r.id,
+  ),
+);
+
+// 游標是 session_id + 換行 + question_id(smearAnswerCursor)。只記
+// session_id 的話,頁面切在一場中間時,下一頁的 `session_id > ?` 會把
+// 這一場剩下的題丟掉。
+backupRoutes.get('/smear-answers', (c) =>
+  page<{ session_id: string; question_id: string }>(
+    c,
+    `SELECT a.session_id, a.question_id, a.idx, a.typed_json, a.tier, a.score,
+            a.spelling_errors_json, a.hint_used, a.answered_at,
+            q.dx_id, q.image_key_view, q.image_key_full
+       FROM smear_answers a
+       JOIN smear_sessions s ON s.id = a.session_id
+       JOIN smear_questions q ON q.id = a.question_id
+      WHERE s.user_email = ? AND s.finished_at IS NOT NULL
+        AND (a.session_id || char(10) || a.question_id) > ?
+      ORDER BY a.session_id, a.question_id
+      LIMIT ?`,
+    (r) => smearAnswerCursor(r.session_id, r.question_id),
+  ),
 );

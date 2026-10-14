@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef, useSyncExternalStore } from "react";
 import { HIDDEN_YEAR_NOTE, isHiddenYear } from "../lib/years";
 import { useSecretTap } from "../hooks/useSecretTap";
 import { fetchYears } from "../lib/yearsApi";
@@ -12,6 +12,17 @@ import {
 	Flag,
 } from "lucide-react";
 import { api } from "../lib/api";
+import { flushExamAttempts } from "../lib/examAttemptFlusher";
+import {
+	dropSession as dropExamSession,
+	enqueue as enqueueExamAnswer,
+	getSnapshot as examOutboxSnapshot,
+	listSession as listPendingExam,
+	mergeExamAnswers,
+	peek as peekExamAnswer,
+	remove as removeExamAnswer,
+	subscribe as subscribeExamOutbox,
+} from "../lib/examOutbox";
 import { GROUPS, groupCounts } from "../lib/groups";
 import {
 	loadSectionPath,
@@ -359,10 +370,26 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 	const [busy, setBusy] = useState(false);
 	// 標記題目 (待回頭檢查) — 本機(localStorage)即時生效,server 背景同步,
 	// 進入 session 時對帳(examFlagStore)。換裝置/關分頁都留得住。
-	// 教學模式:已揭曉答案的題目 id。只有送出答案之後才會加進來,
-	// TutorReveal 也只在這裡面才 mount —— 否則 /api/questions/:id 會提前
-	// 把正解送到瀏覽器。
-	const [revealed, setRevealed] = useState<Set<string>>(new Set());
+	// 教學模式的揭曉看佇列,不自己記一份。還在佇列裡的題就是伺服器還沒確認,
+	// TutorReveal 在那之前不能 mount —— 它會去抓正解。
+	// 同一份 id 也用來畫「未同步」:格子在收合的題號跳轉裡,所以當前題的標題
+	// 也要寫。字本身就是記號,不另上一個顏色(1-bit 下色會塌掉)。
+	const pendingExam = useSyncExternalStore(
+		subscribeExamOutbox,
+		examOutboxSnapshot,
+		examOutboxSnapshot,
+	);
+	const pendingIds = useMemo(() => {
+		const ids = new Set<string>();
+		for (const p of pendingExam) {
+			if (p.session_id === sessionId) ids.add(p.question_id);
+		}
+		return ids;
+	}, [pendingExam, sessionId]);
+	const revealed = useMemo(() => {
+		if (state?.tutor !== 1) return new Set<string>();
+		return new Set(Object.keys(answers).filter((id) => !pendingIds.has(id)));
+	}, [state?.tutor, pendingIds, answers]);
 	const [marked, setMarked] = useState<Set<string>>(
 		() => new Set(flaggedIds(sessionId)),
 	);
@@ -411,8 +438,9 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 			setState(s);
 			const seed: Record<string, string> = {};
 			for (const q of s.questions) if (q.chosen) seed[q.id] = q.chosen;
-			setAnswers(seed);
-			applyResumeIdx(s.questions, seed);
+			const merged = mergeExamAnswers(seed, listPendingExam(sessionId));
+			setAnswers(merged);
+			applyResumeIdx(s.questions, merged);
 		}
 		api
 			.get<ExamState>(`/api/exam/${sessionId}/state`)
@@ -421,10 +449,19 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 				sessionStorage.setItem(`exam-${sessionId}`, JSON.stringify(s));
 				const seed: Record<string, string> = {};
 				for (const q of s.questions) if (q.chosen) seed[q.id] = q.chosen;
-				setAnswers((prev) => ({ ...seed, ...prev }));
-				applyResumeIdx(s.questions, seed);
-				// 教學模式續答:已作答的題目答案早就送出過,揭曉狀態要一起還原。
-				if (s.tutor === 1) setRevealed(new Set(Object.keys(seed)));
+				const pending = listPendingExam(sessionId);
+				const merged = mergeExamAnswers(seed, pending);
+				// 這次畫面上已經選過的(prev)最後蓋。那些選項也在佇列裡。
+				setAnswers((prev) =>
+					mergeExamAnswers(
+						merged,
+						Object.entries(prev).map(([question_id, chosen]) => ({
+							question_id,
+							chosen,
+						})),
+					),
+				);
+				applyResumeIdx(s.questions, merged);
 				// 標記對帳:複用這份 /state 回應,不多打 API。本機較新的會被推上去,
 				// server 較新的直接採用 —— 重新進入 session 以合併結果為準。
 				void reconcileFlags(sessionId, toServerFlags(s.questions))
@@ -640,39 +677,44 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 
 	function choose(letter: string) {
 		if (isPaused) return;
-		// 教學模式:答案一旦送出就鎖住,不可改答。
+		// 教學模式:伺服器確認過的答案鎖住,不可改答。還沒確認的可以重選,
+		// 而且在確認前不揭曉。
 		if (isTutor && revealed.has(q.id)) return;
-		setAnswers((prev) => ({ ...prev, [q.id]: letter }));
-		if (flushTimers.current[q.id])
-			window.clearTimeout(flushTimers.current[q.id]);
-		if (isTutor) {
-			// 不 debounce:答案即刻定案,且要等 POST 成功才揭曉,確保
-			// TutorReveal(會抓到正解)不會在答案送出前就 mount。
-			const qid = q.id;
+		const qid = q.id;
+		setAnswers((prev) => ({ ...prev, [qid]: letter }));
+		// POST 之前就入列。失敗、重整、debounce 還沒跑完,這題都還在。
+		const item = enqueueExamAnswer({
+			session_id: sessionId,
+			question_id: qid,
+			chosen: letter,
+			elapsed_ms: read(timer.current, Date.now()).elapsedMs,
+		});
+		if (flushTimers.current[qid]) window.clearTimeout(flushTimers.current[qid]);
+		const send = () => {
+			const pending = peekExamAnswer(sessionId, qid);
+			// 400ms 裡又改了選項:這把鍵已經被換掉,讓新的那次送。
+			if (!pending || pending.idem !== item.idem) return;
 			api
-				.post(`/api/exam/${sessionId}/answer`, {
-					question_id: qid,
-					chosen: letter,
-					elapsed_ms: read(timer.current, Date.now()).elapsedMs,
+				.post(
+					`/api/exam/${sessionId}/answer`,
+					{
+						question_id: pending.question_id,
+						chosen: pending.chosen,
+						elapsed_ms: pending.elapsed_ms,
+					},
+					pending.idem,
+				)
+				.then(() => {
+					removeExamAnswer(pending.idem);
+					void flushExamAttempts();
 				})
-				.then(() => setRevealed((prev) => new Set(prev).add(qid)))
 				.catch(() => {
-					// 送出失敗就不揭曉,使用者可以重選。
-					setAnswers((prev) => {
-						const next = { ...prev };
-						delete next[qid];
-						return next;
-					});
+					// 留在佇列。教學模式揭曉看「還在不在佇列」,失敗就看不到正解。
 				});
-			return;
-		}
-		flushTimers.current[q.id] = window.setTimeout(() => {
-			api.post(`/api/exam/${sessionId}/answer`, {
-				question_id: q.id,
-				chosen: letter,
-				elapsed_ms: read(timer.current, Date.now()).elapsedMs,
-			});
-		}, 400);
+		};
+		// 教學不 debounce:確認要盡快回來,揭曉才跟著出現。
+		if (isTutor) send();
+		else flushTimers.current[qid] = window.setTimeout(send, 400);
 	}
 
 	async function pause() {
@@ -766,6 +808,9 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 			if (pending.length > 0) {
 				await api.put(`/api/exam/${sessionId}/answers`, { answers: pending });
 			}
+			// PUT 已經把畫面上的答案寫進 exam_answers。佇列再補送會用另一把鍵
+			// 再 append 一次相同的選項。
+			dropExamSession(sessionId);
 			await api.post(`/api/exam/${sessionId}/finish`);
 			sessionStorage.removeItem(`exam-${sessionId}`);
 			// 標記刻意保留(server 也留著):結果頁的「標記」頁籤要用它做二輪複習。
@@ -923,6 +968,11 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 										第 {q.number} 題 / {total}
 									</>
 								)}
+								{pendingIds.has(q.id) && (
+									<span className="ml-2 font-medium text-ink-800 dark:text-ink-100 eink:underline">
+										未同步
+									</span>
+								)}
 							</div>
 							<button
 								onClick={() => toggleMark(q.id)}
@@ -1033,21 +1083,31 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 									題已標記
 								</span>
 							)}
+							{pendingIds.size > 0 && (
+								<span className="text-xs font-medium text-ink-800 dark:text-ink-100 eink:underline">
+									{pendingIds.size} 題未同步
+								</span>
+							)}
 						</summary>
 						<div className="grid grid-cols-10 gap-1.5 p-3">
 							{state.questions.map((qq, i) => {
 								const a = answers[qq.id];
 								const m = marked.has(qq.id);
+								const unsynced = pendingIds.has(qq.id);
 								return (
 									<button
 										key={qq.id}
 										onClick={() => setActiveIdx(i)}
-										// 電子紙:四種狀態原本全靠色相,1-bit 下會塌成兩種。拆成三個
-										// **正交**維度就不會互相蓋掉 ——
+										// 電子紙:答了沒 / 當前題 / 已標記拆成三個正交維度,
+										// 1-bit 下不會互相蓋掉 ——
 										//   填充(黑/白)  = 答了沒
 										//   外框 outline = 是不是當前這題(畫在框外,黑白填充都疊得上)
 										//   虛線邊       = 有沒有標記(再加上原本就有的 Flag 圖示)
-										className={`relative aspect-square text-xs font-mono rounded border transition ${
+										// 第四個是「未同步」,用字,不另給一個顏色。這一格因此
+										// 放下 aspect-square,列高跟著字長出來。
+										className={`relative flex flex-col items-center justify-center text-xs font-mono rounded border transition ${
+											unsynced ? "px-0 py-0.5 leading-none" : "aspect-square"
+										} ${
 											i === activeIdx
 												? "border-accent bg-accent text-white eink:outline eink:outline-2 eink:outline-offset-2 eink:outline-black"
 												: m
@@ -1061,6 +1121,11 @@ function ExamInProgress({ sessionId }: { sessionId: string }) {
 									>
 										{/* 自訂測驗跨年份時 number 會重複,格子用卷內序號。 */}
 										{isCustom ? i + 1 : qq.number}
+										{unsynced && (
+											<span className="mt-px block text-[8px] sm:text-[10px] font-sans font-semibold leading-none whitespace-nowrap eink:underline">
+												未同步
+											</span>
+										)}
 										{m && (
 											<Flag
 												size={9}

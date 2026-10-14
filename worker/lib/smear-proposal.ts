@@ -14,6 +14,36 @@ import type { D1Database } from '@cloudflare/workers-types';
 import { uuid } from './db.ts';
 import { normalizeTerm } from './smear-grade.ts';
 
+/**
+ * 檢討頁用:當初判成 miss 的那幾個字,現在是不是這個診斷的 accepted 詞。
+ * 不改 smear_answers.tier / score —— 成績維持交卷當下。
+ * half / lay / full 當初就已經對上某個詞,不再標。
+ * 只認 status='accepted' 的 norm;open / rejected 由呼叫端不要傳進來。
+ */
+export function laterAcceptedTyped(
+	typed: unknown[],
+	tier: string | null | undefined,
+	accepted: { norm: string; text: string }[],
+): string[] {
+	if (tier !== 'miss' || accepted.length === 0) return [];
+	const byNorm = new Map<string, string>();
+	for (const term of accepted) {
+		if (!byNorm.has(term.norm)) byNorm.set(term.norm, term.text);
+	}
+	const out: string[] = [];
+	const seen = new Set<string>();
+	for (const raw of typed) {
+		if (typeof raw !== 'string') continue;
+		const shown = raw.trim();
+		if (!shown) continue;
+		const norm = normalizeTerm(shown);
+		if (!byNorm.has(norm) || seen.has(norm)) continue;
+		seen.add(norm);
+		out.push(shown);
+	}
+	return out;
+}
+
 export type ProposalStatus = 'open' | 'accepted' | 'rejected';
 export type Tier = 'full' | 'half' | 'lay';
 export type Form = 'long' | 'abbrev';

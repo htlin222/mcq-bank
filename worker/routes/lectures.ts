@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import type { AppContext } from "../types";
+import { annotationPdfPage } from "../lib/annotation-page";
 import { readIdemKey, idemLookup, idemRecordOp } from "../lib/idempotency";
+import { ftsPhraseToken } from "../lib/fts-query";
 
 export const lectureRoutes = new Hono<AppContext>();
 
@@ -60,14 +62,15 @@ lectureRoutes.get("/search", async (c) => {
 		return c.json({ results: [], scope, q: qRaw });
 	}
 
-	// FTS5 query sanitisation: strip operator chars and wrap each token as a
-	// phrase so user input can't trigger syntax errors or unexpected boolean
-	// behaviour. Tokens implicitly AND. Empty → no match → []
+	// Strip operator chars, then each token ANDs. ASCII stays an exact phrase
+	// (no prefix `*`). A CJK token of 2+ characters becomes a bigram phrase
+	// so 白血病 matches 慢性骨髓性白血病 in the cjk column (migration 0046).
 	const ftsQuery = qRaw
 		.replace(/["()*:]/g, " ")
 		.split(/\s+/)
 		.filter(Boolean)
-		.map((t) => '"' + t + '"')
+		.map((t) => ftsPhraseToken(t))
+		.filter(Boolean)
 		.join(" ");
 
 	if (ftsQuery.length === 0) {
@@ -326,9 +329,11 @@ lectureRoutes.get("/:slug/annotations", async (c) => {
 	const slug = c.req.param("slug");
 	const email = c.var.email;
 	const { results } = await c.env.DB.prepare(
-		`SELECT * FROM lecture_annotations
+		`SELECT id, user_email, slug, pdf_page AS page, kind, payload_json,
+            created_at, updated_at
+       FROM lecture_annotations
        WHERE slug = ? AND user_email = ?
-       ORDER BY page, created_at`,
+       ORDER BY pdf_page, created_at`,
 	)
 		.bind(slug, email)
 		.all<any>();
@@ -357,6 +362,9 @@ lectureRoutes.post("/:slug/annotations", async (c) => {
 		page: number;
 		payload_json: any;
 	}>();
+	// pdf_page 是 1-based。0 是舊的 viewer index,收進來清單與跳頁會差一頁。
+	const page = annotationPdfPage(body.page);
+	if (page === null) return c.json({ error: "invalid page" }, 400);
 
 	const id = crypto.randomUUID();
 	const now = Date.now();
@@ -366,7 +374,7 @@ lectureRoutes.post("/:slug/annotations", async (c) => {
 		id,
 		user_email: email,
 		slug,
-		page: body.page,
+		page,
 		kind: body.kind,
 		payload_json: body.payload_json,
 		created_at: now,
@@ -376,9 +384,9 @@ lectureRoutes.post("/:slug/annotations", async (c) => {
 	const ops = [
 		c.env.DB.prepare(
 			`INSERT INTO lecture_annotations
-         (id, user_email, slug, page, kind, payload_json, created_at, updated_at)
+         (id, user_email, slug, pdf_page, kind, payload_json, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		).bind(id, email, slug, body.page, body.kind, payload, now, now),
+		).bind(id, email, slug, page, body.kind, payload, now, now),
 	];
 	if (idemKey) {
 		ops.push(
@@ -410,9 +418,11 @@ lectureRoutes.patch("/:slug/annotations/:id", async (c) => {
 		sets.push("payload_json = ?");
 		binds.push(JSON.stringify(body.payload_json));
 	}
-	if (typeof body.page === "number") {
-		sets.push("page = ?");
-		binds.push(body.page);
+	if ("page" in body) {
+		const page = annotationPdfPage(body.page);
+		if (page === null) return c.json({ error: "invalid page" }, 400);
+		sets.push("pdf_page = ?");
+		binds.push(page);
 	}
 	binds.push(id, email);
 

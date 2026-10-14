@@ -1,8 +1,8 @@
-// 讀書計畫對話 —— WebKit 上把七題答完,計畫摘要要出得來。
+// 讀書計畫對話 —— WebKit 上把八題答完,計畫摘要要出得來。
 //
 // 為什麼需要一支獨立的 e2e:smoke.test.mjs 只會「打開路徑」,而這個功能整個
 // 活在一個 portal 掛載的 modal 裡,不點就不存在 —— 首頁渲染成功完全不構成
-// 它可用的證據。而它正好是最容易在 WebKit 上壞掉的形狀:portal + 七次連續
+// 它可用的證據。而它正好是最容易在 WebKit 上壞掉的形狀:portal + 八次連續
 // state 更新 + 每次更新後 scrollIntoView。
 //
 // 一樣打正式建置產物、一樣接 fixture 伺服器(不需要 D1 或 Cloudflare 憑證)。
@@ -49,7 +49,7 @@ after(async () => {
   if (browser) await browser.close();
 });
 
-/** 七題的答案。順序即 STEPS 的順序 —— 錯一步後面就點不到,測試會在該步失敗。 */
+/** 八題的答案。順序即 STEPS 的順序 —— 錯一步後面就點不到,測試會在該步失敗。 */
 const ANSWERS = [
   '對,以系統紀錄為準',
   '就這些',
@@ -57,10 +57,11 @@ const ANSWERS = [
   '就用 85 秒',
   '3 輪',
   '4 場',
+  '0 張',
   '產生計畫',
 ];
 
-test('WebKit / iPhone:七題答完後產出計畫摘要', async (t) => {
+test('WebKit / iPhone:八題答完後產出計畫摘要', async (t) => {
   if (skipReason) {
     if (REQUIRE) assert.fail(`E2E_REQUIRE=1 但無法執行:${skipReason}`);
     return t.skip(skipReason);
@@ -79,6 +80,9 @@ test('WebKit / iPhone:七題答完後產出計畫摘要', async (t) => {
   );
 
   try {
+    // 倒數歸零後「生成讀書計畫」整顆不畫。config 的考試日是寫死的,
+    // 套件跑在那一天之後就會在進對話之前逾時。時間停在考試前。
+    await page.clock.install({ time: new Date('2026-08-07T10:00:00+08:00') });
     await page.goto(`${server.origin}/`, {
       waitUntil: 'domcontentloaded',
       timeout: 30_000,

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ftsQuery } from "./fts-query.ts";
+import { ftsPhraseToken, ftsQuery } from "./fts-query.ts";
 
 // ⚠️ 搜尋語法壞掉的時候**不會報錯,只會少給結果** —— 使用者看到的是「怎麼找不到」,
 // 而那句話對不到任何一行程式。所以這一支釘得比一般的純函式細。
@@ -69,14 +69,15 @@ test("引號 = 片語(相鄰且同序)", () => {
 test("**全形與 CJK 引號都認**", () => {
 	// 同逗號那條:中文輸入法預設打出來的不是半形。
 	assert.equal(ftsQuery("\u201clupus erythematosus\u201d"), '"lupus erythematosus"*');
-	assert.equal(ftsQuery("\u300c慢性骨髓\u300d"), '"慢性骨髓"*');
+	// 純 CJK 片語改成相鄰 bigram,順序還在:慢性·性骨·骨髓。
+	assert.equal(ftsQuery("\u300c慢性骨髓\u300d"), '"慢性 性骨 骨髓"');
 });
 
 test("沒有配對的引號不會把查詢弄壞", () => {
 	// 只打了半邊 —— 常見的手滑。整串查詢不能因此變成語法錯誤。
 	assert.equal(ftsQuery('AML"'), "AML*");
 	assert.equal(ftsQuery('"AML'), "AML*");
-	assert.equal(ftsQuery('"白血病"'), '"白血病"*');
+	assert.equal(ftsQuery('"白血病"'), '"白血 血病"');
 	assert.equal(ftsQuery('""'), "");
 	// 空片語不產生空的 `""*`(那是語法錯誤)。
 	assert.equal(ftsQuery('"" AML'), "AML*");
@@ -99,13 +100,27 @@ test("大寫的 AND / OR / NOT 原樣通過 —— 加了 * 會是語法錯誤",
 	assert.equal(ftsQuery("AML or CML"), "AML* or* CML*");
 });
 
-test("CJK 包成片語再加前綴 *", () => {
-	// ⚠️ 這只救得到「從一段 CJK 的開頭算起」的比對:unicode61 把連續 CJK 當成
-	// **一個** token,所以「白血病」比不到「慢性骨髓性白血病」。那是 tokenizer
-	// 的限制,不是這裡能修的。加 `*` 至少讓「慢性」比得到「慢性骨髓性白血病」——
-	// 沒有 `*` 的話連那個都不行。
-	assert.equal(ftsQuery("慢性"), '"慢性"*');
-	assert.equal(ftsQuery("慢性, 急性"), '("慢性"*) OR ("急性"*)');
+test("兩個字以上的 CJK 是相鄰 bigram 片語", () => {
+	// unicode61 把「慢性骨髓性白血病」收成一個 token,`"白血病"*` 對不到中段。
+	// 索引存的是重疊二字,查詢必須用同一種切法,而且二字要相鄰 ——
+	// 鬆散的 AND 會讓「白血」跟「血病」出現在不同地方也算命中。
+	assert.equal(ftsQuery("白血病"), '"白血 血病"');
+	assert.equal(ftsQuery("慢性"), '"慢性"');
+	assert.equal(ftsQuery("慢性, 急性"), '("慢性") OR ("急性")');
+	// 單字沒有二字可切,維持前綴。
+	assert.equal(ftsQuery("白"), '"白"*');
+	// 英數夾在中間:前綴留給英數,中文仍是片語。
+	assert.equal(ftsQuery("AML白血病"), 'AML* "白血 血病"');
+	// 沒有連續兩個 CJK 的 token 不拆,否則 `BCR::ABL1` 的片語意思會不見。
+	assert.equal(ftsQuery("第2型"), '"第2型"*');
+});
+
+test("講義那種精確片語,長 CJK 同樣走 bigram", () => {
+	// 講義 / 教科書不給英數加前綴 `*`。中文若還包成 `"白血病"`,中段一樣找不到。
+	assert.equal(ftsPhraseToken("AML"), '"AML"');
+	assert.equal(ftsPhraseToken("白血病"), '"白血 血病"');
+	assert.equal(ftsPhraseToken("慢性骨髓"), '"慢性 性骨 骨髓"');
+	assert.equal(ftsPhraseToken(""), "");
 });
 
 test("混合中英與底線", () => {

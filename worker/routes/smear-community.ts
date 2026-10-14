@@ -3,7 +3,24 @@ import type { AppContext } from "../types";
 import { uuid } from "../lib/db";
 import { isAdminEmail } from "../lib/admin";
 import { normalizeTerm } from "../lib/smear-grade";
+import { planApprovedImages } from "../lib/smear-approve-images";
 import { validateImageFile, type UploadedFile } from "../lib/upload-validate";
+import { resolveSmearNoteOrder } from "../lib/smear-notes";
+import {
+	SMEAR_NOTE_LOCK_SQL,
+	SMEAR_NOTE_SAVE_SQL,
+	parseSmearNoteSaveBody,
+	smearNoteLockBinds,
+	smearNoteLockDecision,
+	smearNoteSaveBinds,
+	smearNoteSaveRefusal,
+} from "../lib/smear-dx-note";
+import {
+	DELETED_SMEAR_COMMENT_PREVIEW,
+	smearCommentPreview,
+	smearMentionTargets,
+} from "../lib/smear-mentions";
+import { extractMentions } from "../lib/db";
 
 // 抹片練習的社群功能:收藏 / 個人筆記 / 討論 / 投稿。掛在 /api/smear 下,
 // 跟 routes/smear.ts、routes/smear-terms.ts 分成三個檔案純粹是行數考量,
@@ -63,8 +80,7 @@ smearCommunityRoutes.get("/bookmarks", async (c) => {
 
 // ---------------------------------------------------------------------------
 // 個人筆記 —— 一使用者一診斷可有多則,私有(僅自己看得到,僅自己能改)。
-// v1 刻意不做拖曳排序:純附加順序(sort_order 遞增),編輯/刪除即可,
-// 之後真的需要排序時再照 personal_notes 的 sort_order 模式加。
+// 順序寫在 sort_order,不改 id:畫記與內文都靠 id 定位。
 // ---------------------------------------------------------------------------
 
 smearCommunityRoutes.get("/dx/:id/notes", async (c) => {
@@ -75,11 +91,42 @@ smearCommunityRoutes.get("/dx/:id/notes", async (c) => {
 		`SELECT id, dx_id, content_json, sort_order, created_at, updated_at
        FROM smear_notes
       WHERE user_email = ? AND dx_id = ?
-      ORDER BY sort_order ASC`,
+      ORDER BY sort_order, id`,
 	)
 		.bind(email, dxId)
 		.all();
 	return c.json({ items: results ?? [] });
+});
+
+// 必須是現有 id 的完整排列。少一個多一個整批拒絕,一次 batch 寫完。
+// 註冊在 PUT /notes/:id 之外:那條改的是內文,這條只改 sort_order。
+smearCommunityRoutes.put("/dx/:id/notes/order", async (c) => {
+	const dxId = c.req.param("id");
+	const email = c.var.email;
+	const body = await c.req.json<{ ids?: unknown }>().catch(() => ({}) as { ids?: unknown });
+
+	const rows = await c.env.DB.prepare(
+		"SELECT id FROM smear_notes WHERE user_email = ? AND dx_id = ?",
+	)
+		.bind(email, dxId)
+		.all<{ id: string }>();
+	const existing = (rows.results ?? []).map((r) => r.id);
+	if (!existing.length) return c.json({ error: "no notes", dx_id: dxId }, 404);
+
+	const picked = resolveSmearNoteOrder(existing, body.ids);
+	if (!picked.ok) return c.json({ error: picked.error, ids: existing }, picked.status);
+
+	await c.env.DB.batch(
+		picked.ids.map((noteId, i) =>
+			c.env.DB
+				.prepare(
+					"UPDATE smear_notes SET sort_order = ? WHERE user_email = ? AND dx_id = ? AND id = ?",
+				)
+				.bind(i, email, dxId, noteId),
+		),
+	);
+
+	return c.json({ ok: true, ids: picked.ids });
 });
 
 smearCommunityRoutes.post("/dx/:id/notes", async (c) => {
@@ -178,10 +225,99 @@ smearCommunityRoutes.delete("/notes/:id", async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// 共筆詳解 —— 管理員在診斷頁改。鎖 5 分鐘,存檔對版本。
+// updated_by 有值之後,匯入的 ON CONFLICT 不會把這份蓋回 JSON。
+// ---------------------------------------------------------------------------
+
+smearCommunityRoutes.post("/dx/:id/note/lock", async (c) => {
+	const email = c.var.email;
+	if (!isAdminEmail(email, c.env)) return c.json({ error: "forbidden" }, 403);
+	const dxId = c.req.param("id");
+	const now = Date.now();
+	const decision = smearNoteLockDecision(
+		await c.env.DB.prepare(
+			"SELECT editing_by, editing_until FROM smear_dx_notes WHERE dx_id = ?",
+		)
+			.bind(dxId)
+			.first<{ editing_by: string | null; editing_until: number | null }>(),
+		email,
+		now,
+	);
+	if (decision.action === "missing") return c.json({ error: "note missing" }, 404);
+	if (decision.action === "deny") {
+		return c.json(
+			{ error: "locked", locked_by: decision.lockedBy, until: decision.until },
+			423,
+		);
+	}
+	const wrote = await c.env.DB.prepare(SMEAR_NOTE_LOCK_SQL)
+		.bind(...smearNoteLockBinds(email, decision.until, dxId, now))
+		.run();
+	if ((wrote.meta?.changes ?? 0) > 0) return c.json({ ok: true, until: decision.until });
+	const again = smearNoteLockDecision(
+		await c.env.DB.prepare(
+			"SELECT editing_by, editing_until FROM smear_dx_notes WHERE dx_id = ?",
+		)
+			.bind(dxId)
+			.first<{ editing_by: string | null; editing_until: number | null }>(),
+		email,
+		now,
+	);
+	if (again.action === "deny") {
+		return c.json({ error: "locked", locked_by: again.lockedBy, until: again.until }, 423);
+	}
+	if (again.action === "missing") return c.json({ error: "note missing" }, 404);
+	return c.json({ error: "locked" }, 423);
+});
+
+smearCommunityRoutes.post("/dx/:id/note/unlock", async (c) => {
+	const email = c.var.email;
+	if (!isAdminEmail(email, c.env)) return c.json({ error: "forbidden" }, 403);
+	await c.env.DB.prepare(
+		"UPDATE smear_dx_notes SET editing_by = NULL, editing_until = NULL WHERE dx_id = ? AND editing_by = ?",
+	)
+		.bind(c.req.param("id"), email)
+		.run();
+	return c.json({ ok: true });
+});
+
+smearCommunityRoutes.put("/dx/:id/note", async (c) => {
+	const email = c.var.email;
+	if (!isAdminEmail(email, c.env)) return c.json({ error: "forbidden" }, 403);
+	const dxId = c.req.param("id");
+	const parsed = parseSmearNoteSaveBody(await c.req.json().catch(() => null));
+	if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+
+	const now = Date.now();
+	const wrote = await c.env.DB.prepare(SMEAR_NOTE_SAVE_SQL)
+		.bind(...smearNoteSaveBinds(parsed.json, email, now, dxId, parsed.expectedVersion))
+		.run();
+	if ((wrote.meta?.changes ?? 0) > 0) {
+		return c.json({ ok: true, version: parsed.expectedVersion + 1, updated_by: email, updated_at: now });
+	}
+	const row = await c.env.DB.prepare(
+		"SELECT editing_by, editing_until, version FROM smear_dx_notes WHERE dx_id = ?",
+	)
+		.bind(dxId)
+		.first<{ editing_by: string | null; editing_until: number | null; version: number }>();
+	const refusal = smearNoteSaveRefusal(row ?? null, email, parsed.expectedVersion, now);
+	if (refusal.status === 423 && refusal.error === "locked") {
+		return c.json({ error: "locked", locked_by: refusal.lockedBy, until: refusal.until }, 423);
+	}
+	if (refusal.status === 409) {
+		return c.json(
+			{ error: "version conflict", server_version: refusal.serverVersion, your_version: parsed.expectedVersion },
+			409,
+		);
+	}
+	return c.json({ error: refusal.error }, refusal.status);
+});
+
+// ---------------------------------------------------------------------------
 // 討論 —— 每個 dx 一條公開討論串,任何人可看可發言,只有作者本人或 admin
 // 能刪(軟刪除,保留列以維持串的完整性,同 comments 表的既有作法)。
-// v1 刻意不做 @mention 解析 / 通知:那套機制在既有 comments 系統上已經
-// 相當複雜,這裡先給純 TipTap 內容,列為未來工作。
+// @ 沿用筆試的 mention 節點抽取。通知寫 dx_id,不寫 mentions 表:
+// 那張表的 question_id 是 NOT NULL,而這裡沒有考題。
 // ---------------------------------------------------------------------------
 
 smearCommunityRoutes.get("/dx/:id/comments", async (c) => {
@@ -232,12 +368,33 @@ smearCommunityRoutes.post("/dx/:id/comments", async (c) => {
 	const now = Date.now();
 	const contentStr = JSON.stringify(body.content_json);
 
-	await c.env.DB.prepare(
-		`INSERT INTO smear_comments (id, dx_id, parent_id, author_email, content_json, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-	)
-		.bind(id, dxId, body.parent_id || null, email, contentStr, now, now)
-		.run();
+	const rawMentions = extractMentions(contentStr).filter((m) => m !== email);
+	const known = new Set<string>();
+	if (rawMentions.length > 0) {
+		const { results: users } = await c.env.DB.prepare(
+			`SELECT email FROM users WHERE email IN (${rawMentions.map(() => "?").join(",")})`,
+		)
+			.bind(...rawMentions)
+			.all<{ email: string }>();
+		for (const u of users ?? []) known.add(u.email);
+	}
+	const targets = smearMentionTargets(contentStr, email, known);
+	const preview = smearCommentPreview(contentStr);
+
+	const ops = [
+		c.env.DB.prepare(
+			`INSERT INTO smear_comments (id, dx_id, parent_id, author_email, content_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		).bind(id, dxId, body.parent_id || null, email, contentStr, now, now),
+		...targets.map((mentionedEmail) =>
+			c.env.DB.prepare(
+				`INSERT INTO notifications
+           (id, recipient, kind, question_id, comment_id, actor_email, preview, created_at, dx_id)
+         VALUES (?, ?, 'smear_mention', NULL, ?, ?, ?, ?, ?)`,
+			).bind(uuid(), mentionedEmail, id, email, preview, now, dxId),
+		),
+	];
+	await c.env.DB.batch(ops);
 
 	const author = await c.env.DB.prepare(
 		"SELECT display_name, avatar_key FROM users WHERE email = ?",
@@ -277,9 +434,14 @@ smearCommunityRoutes.delete("/comments/:id", async (c) => {
 	const isAdmin = isAdminEmail(email, c.env);
 	if (!isOwner && !isAdmin) return c.json({ error: "forbidden" }, 403);
 
-	await c.env.DB.prepare("UPDATE smear_comments SET deleted_at = ? WHERE id = ?")
-		.bind(Date.now(), id)
-		.run();
+	const now = Date.now();
+	await c.env.DB.batch([
+		c.env.DB.prepare("UPDATE smear_comments SET deleted_at = ? WHERE id = ?").bind(now, id),
+		// 預覽換成固定墓碑。只動 smear_mention,避免撞到筆試留言的 comment_id。
+		c.env.DB.prepare(
+			"UPDATE notifications SET preview = ? WHERE comment_id = ? AND kind = 'smear_mention'",
+		).bind(DELETED_SMEAR_COMMENT_PREVIEW, id),
+	]);
 	return c.json({ ok: true });
 });
 
@@ -397,12 +559,22 @@ smearCommunityRoutes.post("/submissions/:id/approve", async (c) => {
 	const email = c.var.email;
 	if (!isAdminEmail(email, c.env)) return c.json({ error: "forbidden" }, 403);
 
-	const body = await c.req
-		.json<{ dxId?: string }>()
-		.catch(() => ({}) as Record<string, never>);
-	if (!body.dxId || typeof body.dxId !== "string") {
-		return c.json({ error: "dxId is required" }, 400);
+	// multipart:dxId + 瀏覽器縮好的檢視圖。JSON 的舊形狀不再接受 —— 少了
+	// 檢視圖就會又把兩把 key 寫成同一張。
+	const fd = await c.req.formData().catch(() => null);
+	const dxIdRaw = fd?.get("dxId");
+	const dxId = typeof dxIdRaw === "string" ? dxIdRaw.trim() : "";
+	if (!dxId) return c.json({ error: "dxId is required" }, 400);
+
+	const rawView = fd?.get("view") as unknown as UploadedFile | string | null;
+	const check = validateImageFile(rawView);
+	if (!check.ok) {
+		return c.json(
+			{ error: check.error === "no file" ? "view image is required" : check.error },
+			check.status,
+		);
 	}
+	const viewFile = rawView as UploadedFile;
 
 	const submission = await c.env.DB.prepare(
 		"SELECT id, status, image_key FROM smear_submissions WHERE id = ?",
@@ -415,9 +587,27 @@ smearCommunityRoutes.post("/submissions/:id/approve", async (c) => {
 	}
 
 	const dx = await c.env.DB.prepare("SELECT id, qtype FROM smear_dx WHERE id = ?")
-		.bind(body.dxId)
+		.bind(dxId)
 		.first<{ id: string; qtype: string }>();
 	if (!dx) return c.json({ error: "dx not found" }, 400);
+
+	// head 只拿位元組數,不把原圖拉進 Worker。檢視圖不夠小就整筆拒絕,
+	// 不寫出兩把指著同一張圖的 key。
+	const original = await c.env.R2.head(submission.image_key);
+	if (!original) return c.json({ error: "original image is missing" }, 400);
+	const planned = planApprovedImages({
+		submissionId: submission.id,
+		fullKey: submission.image_key,
+		viewType: viewFile.type,
+		viewBytes: viewFile.size,
+		fullBytes: original.size,
+	});
+	if (!planned.ok) return c.json({ error: planned.error }, 400);
+
+	await c.env.R2.put(planned.viewKey, viewFile.stream(), {
+		httpMetadata: { contentType: viewFile.type },
+		customMetadata: { derivedFrom: submission.image_key, uploadedBy: email },
+	});
 
 	const now = Date.now();
 	// 沿用 scripts/smear/import.ts 的 promptFor() 邏輯:依 qtype 決定固定文字,
@@ -433,21 +623,28 @@ smearCommunityRoutes.post("/submissions/:id/approve", async (c) => {
 	// whole batch — both statements — rolls back atomically (verified locally:
 	// re-running approve after manually resetting status back to 'pending'
 	// throws and leaves both tables exactly as they were). Catch that instead
-	// of letting it surface as a bare 500.
+	// of letting it surface as a bare 500. The view object may already be in
+	// R2; the key is deterministic, so the winner's put overwrites it.
 	try {
 		await c.env.DB.batch([
 			c.env.DB.prepare(
 				`UPDATE smear_submissions
            SET status = 'approved', matched_dx_id = ?, reviewed_by = ?, reviewed_at = ?
          WHERE id = ? AND status = 'pending'`,
-			).bind(body.dxId, email, now, id),
-			// v1 簡化:不做伺服器端二次裁切,image_key_view / image_key_full 都指向
-			// 同一張已上傳的圖 —— 這是已知的限制,不是 bug(見任務說明)。
+			).bind(dxId, email, now, id),
 			c.env.DB.prepare(
 				`INSERT INTO smear_questions
            (id, dx_id, source, source_ref, image_key_view, image_key_full, prompt, image_note, attribution, created_at)
          VALUES (?, ?, 'submission', ?, ?, ?, ?, NULL, NULL, ?)`,
-			).bind(questionId, body.dxId, submission.id, submission.image_key, submission.image_key, prompt, now),
+			).bind(
+				questionId,
+				dxId,
+				submission.id,
+				planned.viewKey,
+				planned.fullKey,
+				prompt,
+				now,
+			),
 		]);
 	} catch {
 		return c.json({ error: "submission already resolved" }, 409);

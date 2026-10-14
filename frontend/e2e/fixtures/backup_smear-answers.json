@@ -1,0 +1,19 @@
+{
+  "rows": [
+    {
+      "session_id": "ss1",
+      "question_id": "q1",
+      "idx": 0,
+      "typed_json": "[\"dacrocyte\"]",
+      "tier": "full",
+      "score": 1,
+      "spelling_errors_json": "[]",
+      "hint_used": "topic",
+      "answered_at": 1753900500000,
+      "dx_id": "dacrocyte",
+      "image_key_view": "smear/exam/q1-view.webp",
+      "image_key_full": "smear/exam/q1-full.webp"
+    }
+  ],
+  "next": null
+}

@@ -5,8 +5,10 @@ import { uuid, optionsToRecord } from "../lib/db";
 import { clampElapsedMs, insertAttemptOp } from "../lib/attempts";
 import { planAnswerWrites } from "../lib/exam-answers";
 import {
+	pendingReviewSessions,
 	planApplyToReview,
 	type ExamAnswerRow,
+	type PendingExamRow,
 } from "../lib/apply-exam-to-review";
 import { readIdemKey, idemLookup, idemRecordOp } from "../lib/idempotency";
 import { median, pacingSplit } from "../lib/pacing";
@@ -273,6 +275,27 @@ examRoutes.post("/custom", async (c) => {
 
 // Resume / fetch an in-progress session (with all questions + saved answers).
 // Used when the user navigates back to /exam/:sid after leaving.
+// 筆試首頁:已交卷、考對的題還沒登記進複習進度的場次。
+// 必須註冊在 /:sid 之前,否則 pending-review 會被當成 session id。
+// 判準在 pendingReviewSessions → planApplyToReview,跟成績頁那顆按鈕同一套。
+examRoutes.get("/pending-review", async (c) => {
+	const email = c.var.email;
+	const { results } = await c.env.DB.prepare(
+		`SELECT es.id AS session_id, es.year, es.finished_at, es.score,
+            ea.question_id, ea.chosen, ea.is_correct,
+            rp.last_chosen AS review_last_chosen
+       FROM exam_sessions es
+       JOIN exam_answers ea ON ea.session_id = es.id
+       LEFT JOIN review_progress rp
+              ON rp.question_id = ea.question_id AND rp.user_email = ?
+      WHERE es.user_email = ? AND es.finished_at IS NOT NULL
+      ORDER BY es.finished_at DESC, ea.question_id`,
+	)
+		.bind(email, email)
+		.all<PendingExamRow>();
+	return c.json({ sessions: pendingReviewSessions(results ?? []) });
+});
+
 examRoutes.get("/:sid/state", async (c) => {
 	const sid = c.req.param("sid");
 	const email = c.var.email;

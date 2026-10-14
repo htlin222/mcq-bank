@@ -184,6 +184,58 @@ test("publish refuses when GROUPS is unconfigured", () => {
 	);
 });
 
+test("publish refuses an option cut off mid-parenthesis", () => {
+	const qs = fullYear((n) =>
+		n === 12
+			? {
+					options: {
+						A: "a",
+						B: "b",
+						C: "Lymphomatoid granulomatosis (",
+						D: "d",
+					},
+				}
+			: {},
+	);
+	assert.match(
+		assertPublishable(qs, COMP).join("\n"),
+		/question 12 option C ends mid-parenthesis/,
+	);
+});
+
+test("publish accepts abbreviations, finished words, and marker negatives", () => {
+	const qs = fullYear((n) =>
+		n === 3
+			? {
+					options: {
+						A: "etc.",
+						B: "All of the above",
+						C: "studies",
+						D: "kappa-",
+						E: "CD15-",
+					},
+				}
+			: {},
+	);
+	assert.deepEqual(assertPublishable(qs, COMP), []);
+});
+
+test("a cut option is still allowed into staging", () => {
+	const r = validateStaged(
+		q({
+			options: {
+				A: "Lymphomatoid granulomatosis (",
+				B: "b",
+				C: "c",
+				D: "d",
+			},
+		}),
+		COMP,
+	);
+	assert.deepEqual(r.errors, []);
+	assert.equal(r.value?.options.A, "Lymphomatoid granulomatosis (");
+});
+
 // ---- id format ------------------------------------------------------------
 
 test("question ids match the existing importer's format", () => {

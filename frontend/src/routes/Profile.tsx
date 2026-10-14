@@ -7,6 +7,7 @@ import { Avatar } from '../components/Avatar';
 import { AiKeyCard } from '../components/profile/AiKeyCard';
 import { AttemptLogCard } from '../components/profile/AttemptLogCard';
 import { BackupCard } from '../components/profile/BackupCard';
+import { SmearUsageCard } from '../components/profile/SmearUsageCard';
 import { DisplayCard } from '../components/profile/DisplayCard';
 import { viewportModeSupported } from '../lib/viewportMode';
 import { ProfileToc, type TocItem } from '../components/profile/ProfileToc';
@@ -23,6 +24,7 @@ const SECTIONS: TocItem[] = [
   // 沒有這一項更糟。
   { id: 'profile-display', label: '顯示' },
   { id: 'profile-attempts', label: '答題狀態分析' },
+  { id: 'profile-smear', label: '抹片使用' },
   { id: 'profile-backup', label: '備份我的紀錄' },
   { id: 'profile-telegram', label: 'Telegram 推播' },
   { id: 'profile-ai', label: 'AI 助手' },
@@ -163,6 +165,7 @@ export function Profile() {
               `sections` 用同一個判準濾掉,兩邊要一起改。 */}
           <DisplayCard />
           <AttemptLogCard />
+          <SmearUsageCard />
           <BackupCard />
           <TelegramCard />
           <AiKeyCard />

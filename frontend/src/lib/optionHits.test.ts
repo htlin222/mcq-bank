@@ -46,6 +46,17 @@ test("沒有選項 / 沒有詞 / 一個都沒中時回空陣列", () => {
 	assert.deepEqual(optionHits(OPTS, ["淋巴瘤"]), []);
 });
 
+test("詞只出現在選項、題幹沒有時,仍指出是哪一個選項", () => {
+	// 索引涵蓋選項。中文中段命中之後,這一層還是拿使用者打的詞去對選項全文,
+	// 不看 FTS 的 bigram。題幹沒有「白血病」、選項 A 有,清單要講 A。
+	const opts = { A: "慢性骨髓性白血病", B: "淋巴瘤" };
+	const missing = termsMissingFromStem("A 65-year-old man with fatigue", ["白血病"]);
+	assert.deepEqual(
+		optionHits(opts, missing).map((o) => o.key),
+		["A"],
+	);
+});
+
 test("回的是字母 + 全文 —— 畫面上要講「符合選項 A:…」", () => {
 	assert.deepEqual(optionHits(OPTS, ["imatinib"]), [
 		{ key: "A", text: OPTS.A },

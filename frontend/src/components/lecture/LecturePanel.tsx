@@ -17,6 +17,7 @@ import {
 } from "../../lib/openevidence";
 import { groupBadgeClass } from "../../lib/groups";
 import { listPageQuestions } from "../../lib/lectureApi";
+import { pdfPageFromIndex } from "../../lib/lecturePageParam";
 import type {
 	LectureNote,
 	LectureAnnotation,
@@ -67,7 +68,7 @@ export function LecturePanel(props: LecturePanelProps) {
 	// (see NotesTab below). Loaded here (not inside QuestionsTab) so the tab
 	// strip's count badge can show it without a second fetch, and reloaded
 	// whenever the reader flips to a new page.
-	const pdfPage = props.currentPage + 1;
+	const pdfPage = pdfPageFromIndex(props.currentPage);
 	const [pageQuestions, setPageQuestions] = useState<LecturePageQuestion[] | null>(null);
 	useEffect(() => {
 		let cancelled = false;
@@ -169,7 +170,7 @@ function NotesTab(props: LecturePanelProps) {
 	// numbers (per the seed-script filenames page_001_note.md, page_002_note.md…
 	// and pdfjs's 1-based page numbering). Translate at the API boundary so the
 	// note for PDF page 1 lines up with currentPage = 0.
-	const pdfPage = currentPage + 1;
+	const pdfPage = pdfPageFromIndex(currentPage);
 	return (
 		<div className="p-3">
 			<PageNoteEditor
@@ -465,7 +466,7 @@ function AnnotationsTab(props: LecturePanelProps) {
 									title="跳到此頁"
 								>
 									<span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-										p.{a.page + 1}
+										p.{a.page}
 									</span>
 									<span className="line-clamp-2 min-w-0 flex-1 text-sm text-ink-700 dark:text-ink-200">
 										{snippet || "(螢光標記)"}

@@ -8,7 +8,7 @@ import { api, ApiError } from '../lib/api';
 //
 // 專案沒有 shadcn / Radix,message-scroller 那種「訊息一則一則往下長」的感覺
 // 自己刻:一個可捲動容器 + 每答完一題 append 兩則(提問 + 答案回顯)。回答一律
-// 用選項或數字輸入,**沒有自由文字** —— 七個答案全部要餵進 worker 的純函式,
+// 用選項或數字輸入,**沒有自由文字** —— 八個答案全部要餵進 worker 的純函式,
 // 自由文字只會製造解析問題。
 //
 // 排程不在這裡算。前端只顯示 /api/study-plan/preview 回來的結果 —— 兩邊各算
@@ -26,6 +26,7 @@ export type PlanInput = {
   restSunday: boolean;
   studyStart: string;
   studyEnd: string;
+  smearPerDay: number;
 };
 
 type Slice = { year: number; round: number; n: number; from: number | null; to: number | null };
@@ -54,6 +55,7 @@ type PlanResult = {
   weeks: WeekPlan[];
   mock_dates: string[];
   suggestions: Suggestion[];
+  smear_per_day?: number;
 };
 
 type Bootstrap = {
@@ -66,7 +68,8 @@ type Bootstrap = {
   saved: PlanInput | null;
 };
 
-const STEPS = ['progress', 'years', 'minutes', 'seconds', 'rounds', 'mocks', 'time'] as const;
+const STEPS = ['progress', 'years', 'minutes', 'seconds', 'rounds', 'mocks', 'smear', 'time'] as const;
+const SMEAR_CHOICES = [0, 5, 10, 20];
 type StepId = (typeof STEPS)[number];
 
 const MINUTE_CHOICES = [30, 60, 90, 120];
@@ -109,16 +112,22 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
       .get<Bootstrap>('/api/study-plan')
       .then((b) => {
         setBoot(b);
-        const base: PlanInput = b.saved ?? {
-          years: b.years.map((y) => y.year),
-          completedOverride: null,
-          minutesPerDay: 60,
-          secondsPerQuestion: b.suggested_seconds,
-          rounds: 2,
-          mockExams: 4,
-          restSunday: true,
-          studyStart: '21:00',
-          studyEnd: '22:30',
+        const saved = b.saved;
+        const base: PlanInput = {
+          ...(saved ?? {
+            years: b.years.map((y) => y.year),
+            completedOverride: null,
+            minutesPerDay: 60,
+            secondsPerQuestion: b.suggested_seconds,
+            rounds: 2,
+            mockExams: 4,
+            restSunday: true,
+            studyStart: '21:00',
+            studyEnd: '22:30',
+            smearPerDay: 0,
+          }),
+          // 舊的已存問卷沒有這個欄位。
+          smearPerDay: saved?.smearPerDay ?? 0,
         };
         setInput(base);
         setDraftYears(base.years);
@@ -223,6 +232,8 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
         return '想跑幾輪?第二輪起只排錯題。';
       case 'mocks':
         return '考前想排幾場全真模擬?每場佔一整天。';
+      case 'smear':
+        return '每天幾張抹片?選 0 就不排。這不佔筆試的時間。';
       case 'time':
         return '通常幾點讀書?這只影響匯入行事曆的時間。';
     }
@@ -249,6 +260,8 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
         return `${input.rounds} 輪`;
       case 'mocks':
         return input.mockExams === 0 ? '不排模擬考' : `${input.mockExams} 場`;
+      case 'smear':
+        return `每天 ${input.smearPerDay} 張`;
       case 'time':
         return `${input.studyStart} – ${input.studyEnd}`;
     }
@@ -366,6 +379,16 @@ export function StudyPlanDialog({ onClose }: { onClose: () => void }) {
             {[0, 2, 4, 6].map((m) => (
               <button key={m} className={chip} onClick={() => answer({ mockExams: m })}>
                 {m === 0 ? '不排' : `${m} 場`}
+              </button>
+            ))}
+          </div>
+        );
+      case 'smear':
+        return (
+          <div className="flex flex-wrap gap-2">
+            {SMEAR_CHOICES.map((n) => (
+              <button key={n} className={chip} onClick={() => answer({ smearPerDay: n })}>
+                {n === 0 ? '0 張' : `${n} 張`}
               </button>
             ))}
           </div>
@@ -523,6 +546,10 @@ function PlanSummary({
         <Stat n={plan.daily_capacity} label="每天題數上限" />
         <Stat n={plan.scheduled} label="已排入題數" />
       </div>
+
+      {(plan.smear_per_day ?? 0) > 0 && (
+        <p className="text-ink-600 dark:text-ink-300">每天抹片 {plan.smear_per_day} 張</p>
+      )}
 
       {coaching && (
         <p className="border-l-2 border-accent pl-3 text-ink-700 dark:text-ink-200">{coaching}</p>

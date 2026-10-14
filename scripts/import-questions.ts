@@ -27,6 +27,7 @@
  *   - number falls in the configured slice for that group
  *   - (year, number) unique within file
  *   - answer letter present in option_a..option_e
+ *   - no option ends mid-parenthesis or mid-word (worker/lib/option-truncation.ts)
  *
  * Runs in chunks of 50 inserts to fit within D1 statement size limits.
  */
@@ -35,6 +36,7 @@ import { readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { writeFile } from "node:fs/promises";
 import { cfg } from "./lib/cfg.mjs";
+import { optionCut, optionCutPhrase } from "../worker/lib/option-truncation.ts";
 
 const IMPORT_AUTHOR = `import@${cfg("project.slug")}`;
 
@@ -178,6 +180,15 @@ async function main() {
 		if (!optMap[answer]) {
 			errors.push(
 				`line ${line}: answer "${answer}" has no matching option_${answer.toLowerCase()}`,
+			);
+		}
+		for (const letter of ["A", "B", "C", "D", "E"] as const) {
+			const text = optMap[letter];
+			if (!text?.trim()) continue;
+			const kind = optionCut(text);
+			if (!kind) continue;
+			errors.push(
+				`line ${line}: option ${letter} ends ${optionCutPhrase(kind)}`,
 			);
 		}
 

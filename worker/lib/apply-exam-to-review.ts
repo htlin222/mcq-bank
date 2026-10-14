@@ -31,6 +31,58 @@ export interface ApplyPlan {
  * `skipped_already` 單獨計數而不是併進 apply:批次按鈕上的數字要是「按下去會
  * 改變幾題」,把已經一樣的算進去,使用者會按完發現數字沒動。
  */
+export interface PendingExamRow extends ExamAnswerRow {
+	session_id: string;
+	year: number;
+	finished_at: number | null;
+	score: number | null;
+}
+
+export interface PendingExam {
+	id: string;
+	year: number;
+	finished_at: number;
+	score: number | null;
+	/** planApplyToReview().apply.length —— 按下去會改變幾題。 */
+	pending: number;
+}
+
+/**
+ * 已交卷、而且還有考對的題沒寫進複習進度的場次。判準就是
+ * planApplyToReview,不另寫一套「什麼叫還沒登記」。
+ * 進行中(finished_at 為 null)與一題都不用登記的場次不進清單。
+ */
+export function pendingReviewSessions(
+	rows: readonly PendingExamRow[],
+): PendingExam[] {
+	const groups = new Map<string, PendingExamRow[]>();
+	const meta = new Map<string, Omit<PendingExam, "pending">>();
+	for (const r of rows) {
+		if (r.finished_at == null) continue;
+		const list = groups.get(r.session_id);
+		if (list) list.push(r);
+		else groups.set(r.session_id, [r]);
+		if (!meta.has(r.session_id)) {
+			meta.set(r.session_id, {
+				id: r.session_id,
+				year: r.year,
+				finished_at: r.finished_at,
+				score: r.score,
+			});
+		}
+	}
+	const out: PendingExam[] = [];
+	for (const [id, answers] of groups) {
+		const pending = planApplyToReview(answers).apply.length;
+		if (pending < 1) continue;
+		const m = meta.get(id);
+		if (!m) continue;
+		out.push({ ...m, pending });
+	}
+	out.sort((a, b) => b.finished_at - a.finished_at || a.id.localeCompare(b.id));
+	return out;
+}
+
 export function planApplyToReview(
 	rows: readonly ExamAnswerRow[],
 	requested?: readonly string[],

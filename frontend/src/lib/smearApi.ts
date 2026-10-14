@@ -163,6 +163,20 @@ export function fetchSmearMcqOptions(
 	return api.post(`/api/smear/sessions/${sessionId}/mc-options`, { questionId });
 }
 
+// ---------------------------------------------------------------------------
+// POST /api/smear/sessions/:id/initial —— 首字母提示,複習模式限定
+// ---------------------------------------------------------------------------
+export interface SmearInitialResponse {
+	initial: string;
+}
+
+export function fetchSmearInitial(
+	sessionId: string,
+	questionId: string,
+): Promise<SmearInitialResponse> {
+	return api.post(`/api/smear/sessions/${sessionId}/initial`, { questionId });
+}
+
 export function submitSmearAnswer(
 	sessionId: string,
 	questionId: string,
@@ -188,6 +202,8 @@ export interface SmearFinishBreakdownRow {
 	tier: SmearTier | "miss";
 	score: number;
 	spelling_errors: unknown[];
+	/** 交卷時判 miss、現在這個字已是該診斷的 accepted 詞。不改分數。 */
+	later_accepted?: string[];
 }
 
 export interface SmearFinishResult {
@@ -208,8 +224,9 @@ export function finishSmearSession(sessionId: string): Promise<SmearFinishResult
 //
 // `note.content_json` 是原樣字串(同 /api/questions/:id 的 explanation 慣例),
 // 呼叫端自己 JSON.parse() 再餵給 StaticContent。`terms` 只含 status='accepted'
-// 的列 —— 提報中的詞不會出現在這裡,提報成功後由呼叫端把回應裡的 term 加進
-// 本地 state 顯示,見 SmearDx.tsx。
+// 的列。`rejected` 是墓碑(寫法與 rationale),只給診斷頁;提報中的詞不在這支,
+// 提報成功後由呼叫端把回應裡的 term 加進本地 state。再提報同一寫法仍是 409,
+// 不會因為墓碑看得到就翻回 accepted。
 // ---------------------------------------------------------------------------
 export interface SmearDxNote {
 	dx_id: string;
@@ -218,6 +235,27 @@ export interface SmearDxNote {
 	version: number;
 	updated_by: string | null;
 	updated_at: number;
+	editing_by?: string | null;
+	editing_until?: number | null;
+}
+
+export function lockSmearDxNote(dxId: string): Promise<{ ok: true; until: number }> {
+	return api.post(`/api/smear/dx/${dxId}/note/lock`);
+}
+
+export function unlockSmearDxNote(dxId: string): Promise<{ ok: true }> {
+	return api.post(`/api/smear/dx/${dxId}/note/unlock`);
+}
+
+export function saveSmearDxNote(
+	dxId: string,
+	content: unknown,
+	expectedVersion: number,
+): Promise<{ ok: true; version: number; updated_by: string; updated_at: number }> {
+	return api.put(`/api/smear/dx/${dxId}/note`, {
+		content_json: content,
+		expected_version: expectedVersion,
+	});
 }
 
 export interface SmearAcceptedTermFull {
@@ -225,6 +263,15 @@ export interface SmearAcceptedTermFull {
 	text: string;
 	tier: SmearTier;
 	form: "long" | "abbrev";
+}
+
+/** 已否決的寫法。留在表上當墓碑,診斷頁才看得到,不進判定。 */
+export interface SmearRejectedTerm {
+	id: string;
+	text: string;
+	tier: SmearTier;
+	form: "long" | "abbrev";
+	rationale: string | null;
 }
 
 export interface SmearDxQuestionImage {
@@ -253,6 +300,8 @@ export interface SmearDxDetail {
 	created_at: number;
 	note: SmearDxNote | null;
 	terms: SmearAcceptedTermFull[];
+	/** 舊回應沒有這個欄位。呼叫端用 `?? []`,不要假設一定在。 */
+	rejected?: SmearRejectedTerm[];
 	questions: SmearDxQuestionImage[];
 	related: SmearRelatedDx[];
 }
@@ -375,6 +424,28 @@ export function fetchSmearTopicStats(): Promise<{ items: SmearTopicStat[] }> {
 	return api.get("/api/smear/topic-stats");
 }
 
+// GET /api/smear/usage —— 個人頁的提示次數、俗名命中、主題題量。
+// review_spelling 只算複習模式裡自己打字的題,不含全真的 spelling_ok。
+export interface SmearUsage {
+	hints: { hint_used: string; n: number }[];
+	lay_hits: number;
+	review_spelling: { correct: number; graded: number };
+	topics: { topic: string; question_count: number; answer_count: number }[];
+}
+
+export function fetchSmearUsage(): Promise<SmearUsage> {
+	return api.get("/api/smear/usage");
+}
+
+export const SMEAR_HINT_LABELS: Record<string, string> = {
+	"": "未用提示",
+	topic: "主題分類",
+	initial: "首字母",
+	"initial,topic": "首字母 + 主題",
+	mc_choice: "看選項",
+	reveal_answer: "直接看答案",
+};
+
 // ---------------------------------------------------------------------------
 // 收藏 —— POST|DELETE /api/smear/dx/:id/bookmark、GET /api/smear/bookmarks
 //
@@ -438,6 +509,13 @@ export function updateSmearNote(
 
 export function deleteSmearNote(noteId: string): Promise<{ ok: true }> {
 	return api.del(`/api/smear/notes/${noteId}`);
+}
+
+export function reorderSmearNotes(
+	dxId: string,
+	ids: string[],
+): Promise<{ ok: true; ids: string[] }> {
+	return api.put(`/api/smear/dx/${dxId}/notes/order`, { ids });
 }
 
 // ---------------------------------------------------------------------------
@@ -543,8 +621,12 @@ export function submitSmearSubmission(input: {
 export function approveSmearSubmission(
 	id: string,
 	dxId: string,
+	view: File,
 ): Promise<{ ok: true; questionId: string }> {
-	return api.post(`/api/smear/submissions/${id}/approve`, { dxId });
+	const fd = new FormData();
+	fd.append("dxId", dxId);
+	fd.append("view", view);
+	return api.postForm(`/api/smear/submissions/${id}/approve`, fd);
 }
 
 export function rejectSmearSubmission(

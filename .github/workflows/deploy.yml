@@ -1,6 +1,7 @@
 name: Deploy
 
-# 一次 push 到 main → classify 決定要部署什麼 → pages / worker 各自跑。
+# 一次 push 到 main → classify 決定要部署什麼 → check(typecheck + 單元測試)
+# → pages / worker 各自跑。check 紅了,後面兩個不會開始。
 #
 # 這支取代了原本的 deploy-pages.yml + deploy-worker.yml。舊版兩支各自帶一份
 # 「只有 X 變更才部署」的 guard,而判準是 allowlist(「有沒有非 frontend 的
@@ -124,8 +125,50 @@ jobs:
             echo 'worker='"$WORKER"
           } >> "$GITHUB_OUTPUT"
 
-  pages:
+  # 部署前的純函式關卡。紅了就不要開始部署 —— 單元測試掛掉仍上線,是這支
+  # workflow 以前的缺口。test:webkit 不在這裡(那是另一支、另一則 issue)。
+  #
+  # 只在這次真的會部署時跑。只改文件、classify 兩邊都是 false 時不必為了
+  # 一個不會發生的部署付這段時間;check 自己失敗仍然是紅的。
+  #
+  # node 22:package.json 的 `pnpm test` 直接把 .ts 交給 node --test。
+  # 部署 job 的 node 20 不會剝型別,這三項在那上面跑不起來。
+  check:
     needs: classify
+    if: needs.classify.outputs.pages == 'true' || needs.classify.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            frontend/pnpm-lock.yaml
+
+      - name: Install
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          pnpm --dir frontend install --frozen-lockfile
+
+      - name: Typecheck worker
+        run: pnpm typecheck
+
+      - name: Typecheck frontend
+        run: pnpm --dir frontend typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+  pages:
+    needs: [classify, check]
     if: needs.classify.outputs.pages == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -167,15 +210,23 @@ jobs:
       # 時序競賽（見 wiki 的 Gotchas 十四）。iOS 強制所有瀏覽器使用 WebKit，
       # 所以少了這一關，同一類「整個平台完全不能用」的失敗沒有任何防線。
       #
+      # 整包 glob,不點名檔案。點名曾經漏掉已經寫好的 spec(hidden-year、
+      # smear-gallery):檔案在、單獨全綠、這道關卡卻沒跑到。題目頁與抹片
+      # (含全真不洩題)因此一定在裡面,之後新增的 spec 也會。
+      #
+      # --test-concurrency=2 是量過的,不是調校。預設按 CPU 數會讓單獨為綠的
+      # 測試變紅(見 CLAUDE.md)。不要拿掉,也不要改回預設。
+      #
       # E2E_REQUIRE=1：瀏覽器沒裝好時要讓 job 失敗，不能靜靜跳過 —— 跳過的
       # 測試看起來跟通過一模一樣，那正是這個閘門要防的事。
-      - name: Smoke test on WebKit (iPhone)
+      # 建置在上面那步已經做完,這裡不再跑 pnpm test:webkit(它會再 build 一次)。
+      - name: WebKit e2e
         env:
           E2E_REQUIRE: '1'
         run: |
           set -euo pipefail
           pnpm --dir frontend exec playwright install --with-deps webkit
-          node --test frontend/e2e/smoke.test.mjs frontend/e2e/nav-prefetch.test.mjs
+          node --test --test-concurrency=2 'frontend/e2e/*.test.mjs'
 
       # --branch=main 是明寫的:wrangler 從當前 git 分支推導 Pages 環境,推導錯
       # 的話東西會靜靜地上到 Preview 而不是 Production,看起來像快取問題
@@ -211,7 +262,7 @@ jobs:
           exit 1
 
   worker:
-    needs: classify
+    needs: [classify, check]
     if: needs.classify.outputs.worker == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -234,6 +285,11 @@ jobs:
           printf '%s' "$WRANGLER_TOML" > wrangler.toml
           printf '%s' "$CONFIG_TOML" > config.toml
           echo "PUBLIC_HOST=$(node scripts/lib/cfg.mjs public.host)" >> "$GITHUB_ENV"
+
+      # secret 少了範本裡的 binding 或 migration tag 就停,不要開始 deploy。
+      # 2026-08-10 的錯誤指著 ChatRoom,少的其實是後面的 tag。這一步只印少了的名稱。
+      - name: Check WRANGLER_TOML bindings against the example
+        run: node scripts/lib/check-wrangler-bindings.mjs wrangler.example.toml wrangler.toml
 
       - uses: pnpm/action-setup@v4
         with:

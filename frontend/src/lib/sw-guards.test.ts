@@ -121,6 +121,8 @@ test("question read endpoints are cacheable", () => {
 
 test("curated video listings are cacheable, but the mutable ones are not", () => {
 	assert.equal(isCacheableApiPath("/api/questions/114-001/videos"), true);
+	// 相似題帶著「索引回填了沒」。快取住的話,回填之後重整仍是「尚未回填」。
+	assert.equal(isCacheableApiPath("/api/questions/114-001/similar"), false);
 	assert.equal(isCacheableApiPath("/api/videos/topics"), true);
 	assert.equal(isCacheableApiPath("/api/videos/topics/cml"), true);
 	// 「已移除」是刪除動作的鏡子 —— 快取它,還原後畫面就不會更新。
@@ -179,12 +181,18 @@ test("備份端點永遠不快取 —— 備份到的必須是「現在」", () 
 	);
 	assert.equal(isCacheableApiPath("/api/backup/notes"), false);
 	assert.equal(isCacheableApiPath("/api/backup/free-notes"), false);
+	assert.equal(isCacheableApiPath("/api/backup/smear-bookmarks"), false);
+	assert.equal(isCacheableApiPath("/api/backup/smear-notes"), false);
+	assert.equal(isCacheableApiPath("/api/backup/smear-sessions"), false);
+	assert.equal(isCacheableApiPath("/api/backup/smear-answers"), false);
 });
 
 test("scheduling and answer state are never cacheable", () => {
 	assert.equal(isCacheableApiPath("/api/review/due"), false);
+	assert.equal(isCacheableApiPath("/api/review/weakness-map"), false);
 	assert.equal(isCacheableApiPath("/api/drill/next"), false);
 	assert.equal(isCacheableApiPath("/api/exam/123"), false);
+	assert.equal(isCacheableApiPath("/api/exam/pending-review"), false);
 	assert.equal(isCacheableApiPath("/api/highlights"), false);
 	assert.equal(isCacheableApiPath("/api/bookmarks"), false);
 });
@@ -207,6 +215,7 @@ test("抹片練習的所有端點都不能被快取 —— 可變的個人進度
 	// 這支的症狀是「剛通過的詞條 / 剛編輯的筆記,重整還是看不到」。
 	assert.equal(isCacheableApiPath("/api/smear/dx/dacrocyte"), false);
 	assert.equal(isCacheableApiPath("/api/smear/search?q=cml"), false);
+	assert.equal(isCacheableApiPath("/api/smear/usage"), false);
 });
 
 test("the allowlist is closed — unknown endpoints default to no cache", () => {

@@ -90,10 +90,10 @@ function fact(value: string, label: string): string {
 	return `<li><b>${escapeHtml(value)}</b><span>${escapeHtml(label)}</span></li>`;
 }
 
-function weekTable(week: PlanResult["weeks"][number]): string {
+function weekTable(week: PlanResult["weeks"][number], smearPerDay: number): string {
 	const rows = week.days
 		.map((d) => {
-			const body =
+			const written =
 				d.kind === "exam"
 					? "考試日"
 					: d.kind === "mock"
@@ -101,6 +101,11 @@ function weekTable(week: PlanResult["weeks"][number]): string {
 						: d.kind === "rest"
 							? "休息"
 							: d.label || "—";
+			// 考試日不排抹片。0 張時字串跟以前一樣,題數欄也不動。
+			const body =
+				smearPerDay > 0 && d.kind !== "exam"
+					? `${written} · 抹片 ${smearPerDay} 張`
+					: written;
 			const n = d.count > 0 ? `${d.count} 題` : "—";
 			return (
 				`<tr class="${d.kind}">` +
@@ -165,7 +170,7 @@ ${gap}
 <h2>需求</h2>
 <p class="lede">${escapeHtml(rounds)}${plan.mock_dates.length > 0 ? ` · 全真模擬 ${plan.mock_dates.length} 場` : ""}</p>
 <h2>逐週</h2>
-${plan.weeks.map(weekTable).join("\n")}
+${plan.weeks.map((w) => weekTable(w, plan.smear_per_day)).join("\n")}
 <footer>計畫由「輸入參數 + 當下進度」即時算出;進度變了重新產生一次即可。此檔僅供本人使用。</footer>
 </div>
 <script>document.getElementById('print-btn').addEventListener('click',function(){window.print()})</script>

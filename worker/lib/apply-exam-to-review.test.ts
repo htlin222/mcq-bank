@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { planApplyToReview, type ExamAnswerRow } from './apply-exam-to-review.ts';
+import {
+	pendingReviewSessions,
+	planApplyToReview,
+	type ExamAnswerRow,
+	type PendingExamRow,
+} from './apply-exam-to-review.ts';
 
 const row = (p: Partial<ExamAnswerRow> & { question_id: string }): ExamAnswerRow => ({
 	chosen: 'A',
@@ -72,4 +77,35 @@ test('指定了不屬於這場考試的題號 → 單獨計數,不靜靜吞掉',
 test('空的 requested 視同整場批次,不是「什麼都不做」', () => {
 	const plan = planApplyToReview([row({ question_id: 'q1' })], []);
 	assert.equal(plan.apply.length, 1);
+});
+
+function pending(p: Partial<PendingExamRow> & { session_id: string; question_id: string }): PendingExamRow {
+	return {
+		year: 113,
+		finished_at: 100,
+		score: 1,
+		chosen: 'A',
+		is_correct: 1,
+		review_last_chosen: null,
+		...p,
+	};
+}
+
+test('未登記清單只留還有考對題要搬的場次,數字跟 planApplyToReview 一樣', () => {
+	const out = pendingReviewSessions([
+		pending({ session_id: 'old', question_id: 'q1', finished_at: 10 }),
+		pending({ session_id: 'old', question_id: 'q2', is_correct: 0, finished_at: 10 }),
+		pending({ session_id: 'done', question_id: 'q3', review_last_chosen: 'A', finished_at: 50 }),
+		pending({ session_id: 'wrong-only', question_id: 'q4', is_correct: 0, finished_at: 80 }),
+		pending({ session_id: 'open', question_id: 'q5', finished_at: null }),
+		pending({ session_id: 'new', question_id: 'q6', finished_at: 90 }),
+		pending({ session_id: 'new', question_id: 'q7', chosen: 'B', finished_at: 90 }),
+	]);
+	assert.deepEqual(
+		out.map((s) => [s.id, s.pending]),
+		[
+			['new', 2],
+			['old', 1],
+		],
+	);
 });
