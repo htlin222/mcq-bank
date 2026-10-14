@@ -39,6 +39,9 @@ test('會部署時先跑 typecheck 與單元測試,紅了才不會上線', () =>
 
 test('Pages 部署前跑整包 WebKit,併發維持 2', () => {
 	const pages = jobBlock('pages');
+	// node 20 把引號裡的 glob 當字面路徑,整包在跑到任何 spec 之前就退出。
+	assert.match(pages, /node-version: 22/);
+	assert.doesNotMatch(pages, /node-version: 20/);
 	assert.match(pages, /E2E_REQUIRE: '1'/);
 	assert.match(pages, /node --test --test-concurrency=2 'frontend\/e2e\/\*\.test\.mjs'/);
 	assert.doesNotMatch(pages, /smoke\.test\.mjs frontend\/e2e\/nav-prefetch/);
