@@ -142,7 +142,14 @@ test('看過的抹片 view 進 img-v1,離線回首頁仍顯示這一輪', async 
       const img = document.querySelector('[data-smear-gallery] img');
       return !!img && img.naturalWidth > 0 && (img.getAttribute('src') || '').includes('60634.jpg');
     });
-    assert.deepEqual(errors, []);
+    // 下一張 view 刻意不進快取。關掉伺服器之後元件仍會 new Image() 去要它,
+    // CacheFirst 的網路失敗被 WebKit 報成 pageerror。看過的那張上面已經斷言
+    // 畫得出來;這句只擋別的例外。
+    await page.waitForTimeout(300);
+    const unexpected = errors.filter(
+      (m) => !m.includes('Response served by service worker is an error'),
+    );
+    assert.deepEqual(unexpected, []);
   } finally {
     await ctx.close();
     await server.close().catch(() => {});
