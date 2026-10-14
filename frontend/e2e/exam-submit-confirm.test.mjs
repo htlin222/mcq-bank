@@ -128,12 +128,23 @@ const FAKE_PAD = `(() => {
   };
 })();`;
 
-// 壓住 120ms —— 遠超過一幀(才讀得到),又遠低於長按重複的 400ms 門檻。
+// 壓住期間等頁面自己的幀,而不是牆鐘 120ms。輪詢器走 rAF;機器忙的時候
+// 牆鐘先到、一幀都沒跑,第二下 START 就像沒按。三幀仍低於長按重複的 400ms。
 async function tap(page, index) {
   await page.evaluate((i) => window.__press(i, true), index);
-  await page.waitForTimeout(120);
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }),
+  );
   await page.evaluate((i) => window.__press(i, false), index);
-  await page.waitForTimeout(200);
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }),
+  );
 }
 
 function guard(t) {

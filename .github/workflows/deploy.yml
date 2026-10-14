@@ -230,7 +230,10 @@ jobs:
           E2E_REQUIRE: '1'
         run: |
           set -euo pipefail
-          pnpm --dir frontend exec playwright install --with-deps webkit
+          # chromium 也要。eink 的焦點外框與亮模式隔離是 Blink 的 UA 行為,
+          # WebKit 驗不到,那些測試自己開 chromium。只裝 webkit 時它們在
+          # E2E_REQUIRE=1 底下直接失敗,Pages 不會部署。
+          pnpm --dir frontend exec playwright install --with-deps webkit chromium
           node --test --test-concurrency=2 'frontend/e2e/*.test.mjs'
 
       # --branch=main 是明寫的:wrangler 從當前 git 分支推導 Pages 環境,推導錯

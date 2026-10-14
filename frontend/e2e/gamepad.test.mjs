@@ -99,14 +99,28 @@ const FAKE_PAD = `(() => {
   };
 })();`;
 
-// 按一下就放開。壓住 120ms —— 遠超過一幀(才讀得到),又遠低於長按重複的
-// 400ms 門檻(否則一次點擊會變成好幾次)。
+// 按一下就放開。壓住期間等頁面自己的幀,而不是牆鐘 120ms:輪詢器走 rAF,
+// 機器忙的時候牆鐘先到、一幀都沒跑,這一按下就消失。三幀仍遠低於長按重複的
+// 400ms 門檻,不會變成連發。
+async function frames(page, n) {
+  await page.evaluate(
+    (count) =>
+      new Promise((resolve) => {
+        const step = (left) => {
+          if (left <= 0) resolve();
+          else requestAnimationFrame(() => step(left - 1));
+        };
+        step(count);
+      }),
+    n,
+  );
+}
 async function tap(page, index, times = 1) {
   for (let n = 0; n < times; n++) {
     await page.evaluate((i) => window.__press(i, true), index);
-    await page.waitForTimeout(120);
+    await frames(page, 3);
     await page.evaluate((i) => window.__press(i, false), index);
-    await page.waitForTimeout(140);
+    await frames(page, 2);
   }
 }
 
@@ -507,11 +521,9 @@ test('詳解分頁:FACE ▶ 開啟編輯器,而不是收藏', async (t) => {
   );
 
   await tap(page, BTN.FACE_RIGHT);
-  await page.waitForTimeout(1_200);
-  assert.ok(
-    (await page.getByRole('button', { name: '儲存' }).count()) > 0,
-    'FACE ▶ 該開啟詳解編輯器(工具列出現「儲存」)',
-  );
+  // TipTap 編輯器在忙的機器上超過固定的 1200ms 才掛上。等它出現;
+  // 沒開編輯器的話這裡會逾時,不會變成綠的。
+  await page.getByRole('button', { name: '儲存' }).first().waitFor({ timeout: 10_000 });
 
   assert.deepEqual(errors, [], '不該有未捕捉例外');
 });

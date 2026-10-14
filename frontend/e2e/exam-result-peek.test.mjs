@@ -24,6 +24,18 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(HERE, '..', 'dist');
 const REQUIRE = process.env.E2E_REQUIRE === '1';
 
+/** 輪詢到 computed opacity 停在 want。直接讀或等固定毫秒都會抓到 transition 中間值。 */
+async function settleOpacity(locator, want, message, timeout = 5000) {
+  const started = Date.now();
+  let last = null;
+  while (Date.now() - started < timeout) {
+    last = await locator.evaluate((el) => getComputedStyle(el).opacity);
+    if (last === want) return;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  assert.equal(last, want, message);
+}
+
 const SID = 'e2e-1';
 const RESULT_PATH = `/exam/${SID}/result`;
 const BASE = JSON.parse(
@@ -155,11 +167,10 @@ test('有指標的裝置:hover 才現身,點開就看得到詳解,Esc 關得掉'
 
     // 用 opacity 量而不是 toBeVisible —— `opacity-0` 的元素在 Playwright 眼裡
     // 仍然是 visible(有尺寸、沒有 display:none),那樣寫兩邊都會通過。
-    const opacity = () => btn.evaluate((el) => getComputedStyle(el).opacity);
-    assert.equal(await opacity(), '0', 'hover 之前不該看得見');
+    // 直接讀 opacity 會抓到 transition 的中間值(實測 0.33)。輪詢到它停住。
+    await settleOpacity(btn, '0', 'hover 之前不該看得見');
     await page.locator('ul li').first().hover();
-    await page.waitForTimeout(300);
-    assert.equal(await opacity(), '1', 'hover 之後該看得見');
+    await settleOpacity(btn, '1', 'hover 之後該看得見');
 
     await btn.click();
     const dialog = page.locator('[role="dialog"]');

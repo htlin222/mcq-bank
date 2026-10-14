@@ -44,6 +44,7 @@ test('Pages 部署前跑整包 WebKit,併發維持 2', () => {
 	assert.doesNotMatch(pages, /node-version: 20/);
 	assert.match(pages, /E2E_REQUIRE: '1'/);
 	assert.match(pages, /node --test --test-concurrency=2 'frontend\/e2e\/\*\.test\.mjs'/);
+	assert.match(pages, /playwright install --with-deps webkit chromium/);
 	assert.doesNotMatch(pages, /smoke\.test\.mjs frontend\/e2e\/nav-prefetch/);
 	// 題目頁與抹片作答的 spec 在這個 glob 裡。點名清單漏掉它們時,這條會紅。
 	for (const file of ['smoke.test.mjs', 'smear-practice.test.mjs', 'tab-cache.test.mjs']) {
