@@ -81,10 +81,13 @@ async function openPage(url, viewport = PHONE) {
   return { ctx, page, scrollable };
 }
 
-/** 捲到指定位置,並等到 header 的位移停住。
- *  class 在 scroll 的 rAF 裡改,位置再花 0.22s transition。固定等牆鐘會在
- *  兩種中間狀態讀到值:class 還沒掛、或滑到一半(實測 top=-48)。 */
-async function scrollTo(page, y) {
+/** 捲到指定位置,等 chrome-hidden 變成預期的狀態,再等位移的 transition 跑完。
+ *  class 在 scroll 的 rAF 裡改,位置再花 0.22s transition。不能用「連續兩幀位置
+ *  不變」當停住:class 掛上之前、transition 開始之前,top=0 也是不變的 —— CI 上
+ *  實際讀到 class 已掛而 top=0。所以判準是 class 符合預期、而且沒有還在跑的
+ *  CSSTransition,並且至少過 300ms(> 0.22s):預期不收合的路由若錯誤地收合了,
+ *  那時 transition 已經在跑,會等它跑完再讀,斷言照樣紅。 */
+async function scrollTo(page, y, expectHidden) {
   await page.evaluate((v) => window.scrollTo(0, v), y);
   await page.waitForFunction(
     (v) => Math.abs((document.scrollingElement?.scrollTop ?? window.scrollY) - v) <= 1,
@@ -92,22 +95,22 @@ async function scrollTo(page, y) {
     { timeout: 2_000 },
   );
   await page.evaluate(
-    () =>
+    (expect) =>
       new Promise((resolve) => {
-        const header = document.querySelector('header.app-chrome-top');
-        let last = null;
-        let stable = 0;
         const start = performance.now();
         const step = () => {
-          const top = header ? header.getBoundingClientRect().top : 0;
-          if (last !== null && Math.abs(top - last) < 0.5) stable += 1;
-          else stable = 0;
-          last = top;
-          if (stable >= 2 || performance.now() - start > 1000) resolve();
+          const elapsed = performance.now() - start;
+          const classOk =
+            document.documentElement.classList.contains('chrome-hidden') === expect;
+          const moving = document
+            .getAnimations()
+            .some((a) => a instanceof CSSTransition && a.playState === 'running');
+          if ((classOk && !moving && elapsed >= 300) || elapsed > 3000) resolve();
           else requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
       }),
+    expectHidden,
   );
 }
 
@@ -142,7 +145,7 @@ test('往下捲收起、往回捲放回來', async (t) => {
     '(自明)先把 navTop 讀出來當基準');
   const navShownTop = atTop.navTop;
 
-  await scrollTo(page, 400);
+  await scrollTo(page, 400, true);
   const down = await chromeBox(page);
   assert.equal(down.hidden, true, '往下捲之後應該掛上 chrome-hidden');
   assert.ok(
@@ -154,7 +157,7 @@ test('往下捲收起、往回捲放回來', async (t) => {
     `底部導覽應該整條移出畫面,實際 top=${down.navTop} 視窗高=${down.viewportH}`,
   );
 
-  await scrollTo(page, 340);
+  await scrollTo(page, 340, false);
   const up = await chromeBox(page);
   assert.equal(up.hidden, false, '往回捲之後應該拿掉 chrome-hidden');
   assert.equal(up.headerTop, 0, 'header 要回到 0');
@@ -168,7 +171,7 @@ test('收合過程中 <main> 的留白不變 —— 內容不能跟著位移', a
   const { ctx, page } = await openPage('/');
 
   const before = await chromeBox(page);
-  await scrollTo(page, 400);
+  await scrollTo(page, 400, true);
   const after = await chromeBox(page);
 
   assert.equal(after.hidden, true, '前置條件:已經收起來');
@@ -202,7 +205,7 @@ test('內層 sticky 跟著 header 滑上去遞補', async (t) => {
   const shown = await page.evaluate(
     () => parseFloat(getComputedStyle(document.querySelector('.chrome-follow')).top),
   );
-  await scrollTo(page, Math.min(400, scrollable));
+  await scrollTo(page, Math.min(400, scrollable), true);
   const hiddenNow = await page.evaluate(() => ({
     hidden: document.documentElement.classList.contains('chrome-hidden'),
     top: parseFloat(getComputedStyle(document.querySelector('.chrome-follow')).top),
@@ -222,7 +225,7 @@ test('md 以上不收合', async (t) => {
   const { ctx, page, scrollable } = await openPage('/', { width: 1024, height: 640 });
   assert.ok(scrollable > 200, `桌機版也要捲得動才驗得到,實際 ${scrollable}`);
 
-  await scrollTo(page, 400);
+  await scrollTo(page, 400, false);
   const box = await chromeBox(page);
   assert.equal(box.headerTop, 0, 'md 以上 header 不該移動');
 
@@ -233,7 +236,7 @@ test('/exam 不收合 —— 計時與交卷不能消失', async (t) => {
   if (guard(t)) return;
   const { ctx, page } = await openPage('/exam');
 
-  await scrollTo(page, 400);
+  await scrollTo(page, 400, false);
   const box = await chromeBox(page);
   assert.equal(box.hidden, false, '/exam 是 opt-out 路由,不該掛上 chrome-hidden');
   assert.equal(box.headerTop, 0, 'header 不該移動');
@@ -246,7 +249,7 @@ test('離開 opt-out 路由時不會殘留收起狀態', async (t) => {
   // 反過來的方向:先在會收合的路由收起來,再走到 opt-out 路由。
   // 沒有清乾淨的話,新頁面一進去就頂著一條收起來的 header,而且捲到頂也回不來。
   const { ctx, page } = await openPage('/');
-  await scrollTo(page, 400);
+  await scrollTo(page, 400, true);
   assert.equal((await chromeBox(page)).hidden, true, '前置條件:已經收起來');
 
   await page.evaluate(() => {

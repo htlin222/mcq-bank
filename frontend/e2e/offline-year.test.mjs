@@ -24,6 +24,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startServer } from './server.mjs';
+import { waitUntilSwActivated } from './sw-wait.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(HERE, '..', 'dist');
@@ -95,26 +96,10 @@ function watch(page) {
   };
 }
 
-/** `registration.active` 在 state 還是 `activating` 時就有值(workbox precache
- *  的 waitUntil 還沒完)。那時就換頁,這一頁永遠不會有 controller。
- *  timeout 必須是第三個引數,否則 Playwright 把它當成傳進頁面的 arg。 */
-function waitUntilSwActivated(page) {
-  return page.waitForFunction(
-    async () => {
-      const reg = await navigator.serviceWorker?.getRegistration();
-      return reg?.active?.state === 'activated';
-    },
-    null,
-    { timeout: 30_000 },
-  );
-}
-
-/** activated 之後,controller 有兩種慢法,只處理其中一種都會在 CI 上紅:
- *  - 這一頁會被接管,但 WebKit 要數秒才把 controller 補上。等太短就換頁,
- *    等於把快成功的那頁弄掉(圖片那條 4×3 秒全部錯過,整支只跑了 14 秒)。
- *  - 這一頁根本不會被接管(沒有 clients.claim)。同一頁再等多久也不會出現,
- *    必須再導覽。
- *  所以每次給足時間,沒有才換頁。呼叫端若要數預抓請求,要在這之前掛上 listener。 */
+/** SW 真的 activated 之後,下一次導覽就會被接管(這裡沒有 clients.claim,
+ *  所以同一頁再等多久也不會出現)。之前「要換好幾頁才有 controller」的現象,
+ *  其實是 waitUntilSwActivated 沒有在等,導覽發生在 install 途中。重試留著當
+ *  保險。呼叫端若要數預抓請求,要在這之前掛上 listener。 */
 async function gotoUntilControlled(page, url) {
   for (let attempt = 0; attempt < 3; attempt++) {
     await page.goto(url, { waitUntil: 'domcontentloaded' });

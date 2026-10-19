@@ -12,6 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startServer } from './server.mjs';
+import { pollAsync, waitUntilSwActivated } from './sw-wait.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(HERE, '..', 'dist');
@@ -81,7 +82,7 @@ test('看過的抹片 view 進 img-v1,離線回首頁仍顯示這一輪', async 
   try {
     await page.goto(server.origin + '/', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('[data-smear-gallery]');
-    await page.waitForTimeout(2000);
+    await waitUntilSwActivated(page);
     assert.equal(
       await page.evaluate(() => !!navigator.serviceWorker?.controller),
       false,
@@ -94,19 +95,19 @@ test('看過的抹片 view 進 img-v1,離線回首頁仍顯示這一輪', async 
 
     await page.goto(server.origin + '/', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!navigator.serviceWorker?.controller, null, {
-      timeout: 8000,
+      timeout: 15_000,
     });
     await page.waitForFunction(() => {
       const img = document.querySelector('[data-smear-gallery] img');
       return !!img && img.naturalWidth > 0 && (img.getAttribute('src') || '').includes('60634.jpg');
     });
-    await page.waitForFunction(
+    await pollAsync(
+      page,
       async () => {
         const c = await caches.open('img-v1');
         const urls = (await c.keys()).map((k) => k.url);
         return urls.some((u) => u.includes('60634.jpg') && !u.includes('60634-full'));
       },
-      null,
       { timeout: 8000 },
     );
 
