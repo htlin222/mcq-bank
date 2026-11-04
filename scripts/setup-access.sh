@@ -6,7 +6,12 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if [ -f .env ]; then
+# .env holds 1Password refs (op://...) → re-exec under `op run`, which injects real values.
+if [ -f .env ] && [ -z "${OP_RUN_WRAPPED:-}" ] && grep -q 'op://' .env; then
+  OP_RUN_WRAPPED=1 exec op run --env-file="$PWD/.env" -- "$PWD/scripts/setup-access.sh" "$@"
+fi
+
+if [ -f .env ] && [ -z "${OP_RUN_WRAPPED:-}" ]; then
   # shellcheck disable=SC1091
   source .env
 fi

@@ -33,7 +33,22 @@ def load_env() -> dict:
                 continue
             key, val = line.split("=", 1)
             cfg[key.strip()] = val.strip().strip("\"'")  # .env wins over os.environ
+    for key, val in cfg.items():
+        if val.startswith("op://"):  # 1Password secret reference → resolve via `op` CLI
+            cfg[key] = _op_read(val)
     return cfg
+
+
+def _op_read(ref: str) -> str:
+    import subprocess
+    try:
+        r = subprocess.run(["op", "read", "--no-newline", ref],
+                           capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        sys.exit(f"無法用 1Password CLI 解析 {ref}:{e}")
+    if r.returncode != 0:
+        sys.exit(f"op read {ref} 失敗:{r.stderr.strip()}")
+    return r.stdout
 
 
 def normalize(qid: str) -> str:

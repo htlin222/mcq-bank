@@ -95,6 +95,12 @@ async function loadEnv(): Promise<Env> {
     const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
     if (m) env[m[1]] = m[2].trim();
   }
+
+  // 1Password: .env holds op:// refs; `op run --env-file=.env` injects the real values.
+  for (const k of Object.keys(env)) if (process.env[k]) env[k] = process.env[k]!;
+  const unresolved = Object.keys(env).filter((k) => env[k].startsWith('op://'));
+  if (unresolved.length)
+    throw new Error(`${unresolved.join(', ')} 是 1Password 參照,請用 op run --env-file=.env -- <cmd> 執行`);
   return env;
 }
 

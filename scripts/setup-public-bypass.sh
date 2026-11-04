@@ -21,9 +21,14 @@ cd "$(dirname "$0")/.."
 DRY_RUN=0
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
 
+# .env holds 1Password refs (op://...) → re-exec under `op run`, which injects real values.
+if [ -f .env ] && [ -z "${OP_RUN_WRAPPED:-}" ] && grep -q 'op://' .env; then
+  OP_RUN_WRAPPED=1 exec op run --env-file="$PWD/.env" -- "$PWD/scripts/setup-public-bypass.sh" "$@"
+fi
+
 # Load .env line-by-line, tolerating // comment lines and bare lines that
-# `source` would choke on under set -e.
-while IFS='=' read -r key val; do
+# `source` would choke on under set -e. (Skipped under op run: already injected.)
+[ -n "${OP_RUN_WRAPPED:-}" ] || while IFS='=' read -r key val; do
   case "$key" in
     [A-Z_][A-Z0-9_]*)
       export "$key=$val"
