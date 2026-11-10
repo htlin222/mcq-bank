@@ -312,7 +312,7 @@ bucket **永遠不公開**,一律走 `/img/:key`、`/pdf/:key` 的 Worker 代理
 | `pnpm typecheck` + `pnpm --dir frontend typecheck` | tsc(**repo 沒有 eslint / biome,tsc 是唯一靜態檢查**)                                 | 每次改完                                                                               |
 | `pnpm test`                                        | 純函式:`worker/**/*.test.ts`、`frontend/src/lib`、`frontend/src/chat`、`scripts/lib` | 每次改完。push `main` 且這次會部署時,`check` job 也跑;紅了就不部署                     |
 | `pnpm test:webkit`                                 | build 前端 → WebKit(iPhone)e2e **全部 47 支**(glob,不是逐檔列舉),打 `frontend/e2e/fixtures/` 的樁 | 動到 React / TipTap / 版面 / SW。約 6m50s;為什麼限併發見下面那節 |
-| CI(`deploy.yml`)                                   | 部署前 `check`:`typecheck` 兩邊 + `pnpm test`。Pages job 另以 `--test-concurrency=2` 跑整包 `frontend/e2e/*.test.mjs`,`E2E_REQUIRE=1` | push main 自動。兩邊都不部署時不跑 `check`。WebKit 沒裝是紅的,不是 skip |
+| CI(`deploy.yml`)                                   | 部署前 `check`:`typecheck` 兩邊 + `pnpm test`。Pages job 另以 `--test-concurrency=2` 跑整包 `frontend/e2e/*.test.mjs`,`E2E_REQUIRE=1`;第一輪紅的檔案會單獨重跑一次,兩輪都紅才擋部署 | push main 自動。兩邊都不部署時不跑 `check`。WebKit 沒裝是紅的,不是 skip |
 
 e2e 不接真 Worker:`frontend/e2e/server.mjs` 回 `fixtures/<path 把 / 換成 _>.json`,沒有 fixture
 的端點回 `{}` 並在結尾列出。**新路由 = 新 fixture**:`wrangler dev` 下打真端點存回應。

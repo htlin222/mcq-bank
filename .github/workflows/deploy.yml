@@ -227,14 +227,30 @@ jobs:
       # 建置在上面那步已經做完,這裡不再跑 pnpm test:webkit(它會再 build 一次)。
       - name: WebKit e2e
         env:
-          E2E_REQUIRE: '1'
+          E2E_REQUIRE: "1"
         run: |
           set -euo pipefail
           # chromium 也要。eink 的焦點外框與亮模式隔離是 Blink 的 UA 行為,
           # WebKit 驗不到,那些測試自己開 chromium。只裝 webkit 時它們在
           # E2E_REQUIRE=1 底下直接失敗,Pages 不會部署。
           pnpm --dir frontend exec playwright install --with-deps webkit chromium
-          node --test --test-concurrency=2 'frontend/e2e/*.test.mjs'
+          if node --test --test-concurrency=2 --test-reporter=tap 'frontend/e2e/*.test.mjs' | tee e2e.tap; then
+            exit 0
+          fi
+          # 第一輪紅了:只把失敗的檔案再跑一次,第二輪還紅才算紅。
+          # 2026-10-14 起連續八次部署都被讓 SW 真的上線的那幾支擋下,而每次紅的
+          # 是不同的 1–3 條(offline-year / smear 離線 / auto-hide 輪流),前端
+          # 一直停在舊版,Worker 卻上了新版 —— 線上因此是「Worker 新、前端舊」,
+          # 題目頁白屏。真的壞掉的測試兩輪都會紅,這道閘仍然擋得住它。
+          failed=$(awk '/^ *not ok /{f=1;next} f&&/location:/{ if (match($0,/frontend\/e2e\/[^:]+\.test\.mjs/)) print substr($0,RSTART,RLENGTH); f=0 }' e2e.tap | sort -u)
+          if [ -z "$failed" ]; then
+            echo "::error::e2e 失敗,但從 TAP 輸出抓不到是哪支檔案,不重跑"
+            exit 1
+          fi
+          echo "::warning::e2e 第一輪失敗,只重跑一次: $(echo $failed)"
+          { echo '### e2e 第一輪紅、已重跑的檔案'; echo "$failed" | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
+          # shellcheck disable=SC2086
+          node --test --test-concurrency=1 $failed
 
       # --branch=main 是明寫的:wrangler 從當前 git 分支推導 Pages 環境,推導錯
       # 的話東西會靜靜地上到 Preview 而不是 Production,看起來像快取問題
