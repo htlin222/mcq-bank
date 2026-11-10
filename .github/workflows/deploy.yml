@@ -227,14 +227,14 @@ jobs:
       # 建置在上面那步已經做完,這裡不再跑 pnpm test:webkit(它會再 build 一次)。
       - name: WebKit e2e
         env:
-          E2E_REQUIRE: "1"
+          E2E_REQUIRE: '1'
         run: |
           set -euo pipefail
           # chromium 也要。eink 的焦點外框與亮模式隔離是 Blink 的 UA 行為,
           # WebKit 驗不到,那些測試自己開 chromium。只裝 webkit 時它們在
           # E2E_REQUIRE=1 底下直接失敗,Pages 不會部署。
           pnpm --dir frontend exec playwright install --with-deps webkit chromium
-          if node --test --test-concurrency=2 --test-reporter=tap 'frontend/e2e/*.test.mjs' | tee e2e.tap; then
+          if node --test --test-concurrency=2 'frontend/e2e/*.test.mjs' | tee e2e.tap; then
             exit 0
           fi
           # 第一輪紅了:只把失敗的檔案再跑一次,第二輪還紅才算紅。
