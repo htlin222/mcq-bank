@@ -45,6 +45,10 @@ test('Pages 部署前跑整包 WebKit,併發維持 2', () => {
 	assert.match(pages, /E2E_REQUIRE: '1'/);
 	assert.match(pages, /node --test --test-concurrency=2 'frontend\/e2e\/\*\.test\.mjs'/);
 	assert.match(pages, /playwright install --with-deps webkit chromium/);
+	// 第一輪紅的檔案重跑一次;兩輪都紅才擋。抓不到檔名時直接紅,不能變成整包放行。
+	assert.match(pages, /\| tee e2e\.tap; then/);
+	assert.match(pages, /node --test --test-concurrency=1 \$failed/);
+	assert.match(pages, /抓不到是哪支檔案,不重跑"\n\s+exit 1/);
 	assert.doesNotMatch(pages, /smoke\.test\.mjs frontend\/e2e\/nav-prefetch/);
 	// 題目頁與抹片作答的 spec 在這個 glob 裡。點名清單漏掉它們時,這條會紅。
 	for (const file of ['smoke.test.mjs', 'smear-practice.test.mjs', 'tab-cache.test.mjs']) {
